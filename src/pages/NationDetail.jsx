@@ -352,6 +352,9 @@ export default function NationDetail() {
                                                     </div>
                                                 )}
                                                 <span className="font-medium text-sm text-slate-700 truncate">{club.name}</span>
+                                                {nation.flag_url && (
+                                                    <img src={nation.flag_url} alt={nation.name} className="w-5 h-3 object-contain ml-auto" />
+                                                )}
                                             </Link>
                                         ))}
                                         {clubs.length > 20 && (

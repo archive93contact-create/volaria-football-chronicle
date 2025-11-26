@@ -298,10 +298,13 @@ export default function LeagueDetail() {
                                                     ) : (
                                                         <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center"><Shield className="w-5 h-5 text-slate-400" /></div>
                                                     )}
-                                                    <div className="truncate">
+                                                    <div className="truncate flex-1">
                                                         <div className="font-medium truncate">{club.name}</div>
                                                         {club.city && <div className="text-xs text-slate-500">{club.city}</div>}
                                                     </div>
+                                                    {nation?.flag_url && (
+                                                        <img src={nation.flag_url} alt={nation.name} className="w-5 h-3 object-contain" />
+                                                    )}
                                                 </Link>
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
