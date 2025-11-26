@@ -292,22 +292,22 @@ export default function ClubDetail() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-                    {club.league_titles > 0 && (
+                    {combinedStats?.league_titles > 0 && (
                         <Card className="border-0 shadow-sm bg-amber-50">
                             <CardContent className="p-4 text-center">
                                 <Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-amber-700">{club.league_titles}</div>
+                                <div className="text-2xl font-bold text-amber-700">{combinedStats.league_titles}</div>
                                 <div className="text-xs text-amber-600">League Titles</div>
                             </CardContent>
                         </Card>
                     )}
-                    {club.best_finish && (
+                    {combinedStats?.best_finish && (
                                                   <Card className="border-0 shadow-sm">
                                                       <CardContent className="p-4 text-center">
                                                           <Target className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
-                                                          <div className="text-2xl font-bold">{club.best_finish === 1 ? '1st' : club.best_finish === 2 ? '2nd' : club.best_finish === 3 ? '3rd' : `${club.best_finish}th`}</div>
+                                                          <div className="text-2xl font-bold">{combinedStats.best_finish === 1 ? '1st' : combinedStats.best_finish === 2 ? '2nd' : combinedStats.best_finish === 3 ? '3rd' : `${combinedStats.best_finish}th`}</div>
                                                           <div className="text-xs text-slate-500">
-                                                              Best Finish {club.best_finish_tier ? `(Tier ${club.best_finish_tier})` : ''}
+                                                              Best Finish {combinedStats.best_finish_tier ? `(Tier ${combinedStats.best_finish_tier})` : ''}
                                                           </div>
                                                       </CardContent>
                                                   </Card>
