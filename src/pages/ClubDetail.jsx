@@ -515,6 +515,39 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
+                {/* Former Name Notice */}
+                {formerNameClub && (
+                    <Card className="border-0 shadow-sm mb-8 bg-purple-50 border-l-4 border-l-purple-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Shield className="w-6 h-6 text-purple-600" />
+                            <div>
+                                <span className="text-purple-800">Formerly known as </span>
+                                <Link to={createPageUrl(`ClubDetail?id=${formerNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                    {formerNameClub.name}
+                                </Link>
+                                {club.renamed_year && <span className="text-purple-600"> (renamed in {club.renamed_year})</span>}
+                                <span className="text-purple-600"> - same club, different name.</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* This is a Former Name Notice */}
+                {club.is_former_name && currentNameClub && (
+                    <Card className="border-0 shadow-sm mb-8 bg-purple-50 border-l-4 border-l-purple-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Shield className="w-6 h-6 text-purple-600" />
+                            <div>
+                                <span className="text-purple-800">This is a former name. The club is now known as </span>
+                                <Link to={createPageUrl(`ClubDetail?id=${currentNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                    {currentNameClub.name}
+                                </Link>
+                                {club.renamed_year && <span className="text-purple-600"> (since {club.renamed_year})</span>}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Club Narratives */}
                 <ClubNarratives club={club} seasons={combinedSeasons} leagues={allLeagues} />
 
@@ -821,75 +854,10 @@ export default function ClubDetail() {
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>Honours</Label><Textarea value={editData.honours || ''} onChange={(e) => setEditData({...editData, honours: e.target.value})} rows={3} className="mt-1" /></div>
                         
-                        {/* Former Names Section */}
-                        <div className="border-t pt-4 mt-4">
-                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Former Names (Same Club, Just Renamed)</h4>
-                            <div className="space-y-3 p-3 bg-blue-50 rounded-lg">
-                                <p className="text-xs text-blue-700 mb-2">Link a former name of this club (not a reformation - the same club that just changed its name)</p>
-                                <div>
-                                    <Label className="text-xs">Former Name Club Record</Label>
-                                    <Select 
-                                        value={editData.former_name_club_id || ''} 
-                                        onValueChange={(v) => setEditData({...editData, former_name_club_id: v === 'none' ? null : v})}
-                                    >
-                                        <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">None</SelectItem>
-                                            {allClubs.filter(c => c.id !== clubId && !c.current_name_club_id).map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1">
-                                        <Label className="text-xs flex items-center gap-2">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={editData.is_former_name || false}
-                                                onChange={(e) => setEditData({...editData, is_former_name: e.target.checked})}
-                                                className="rounded"
-                                            />
-                                            This record IS a former name (not current)
-                                        </Label>
-                                    </div>
-                                    {editData.is_former_name && (
-                                        <>
-                                            <div className="w-32">
-                                                <Label className="text-xs">Renamed Year</Label>
-                                                <Input 
-                                                    type="number" 
-                                                    value={editData.renamed_year || ''} 
-                                                    onChange={(e) => setEditData({...editData, renamed_year: parseInt(e.target.value) || null})} 
-                                                    className="mt-1" 
-                                                />
-                                            </div>
-                                            <div className="flex-1">
-                                                <Label className="text-xs">Current Name Club</Label>
-                                                <Select 
-                                                    value={editData.current_name_club_id || ''} 
-                                                    onValueChange={(v) => setEditData({...editData, current_name_club_id: v === 'none' ? null : v})}
-                                                >
-                                                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select current name" /></SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="none">None</SelectItem>
-                                                        {allClubs.filter(c => c.id !== clubId).map(c => (
-                                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Club Succession Section */}
                         <div className="border-t pt-4 mt-4">
-                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Club Succession (Reformation/Merger)</h4>
+                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Club Succession</h4>
                             <div className="space-y-3 p-3 bg-slate-50 rounded-lg">
-                                <p className="text-xs text-slate-500 mb-2">For clubs that were reformed or merged from other clubs (different entity, carrying legacy)</p>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <Label className="text-xs">Predecessor Club (this club continues from)</Label>
@@ -952,6 +920,68 @@ export default function ClubDetail() {
                                         <Select 
                                             value={editData.successor_club_id || ''} 
                                             onValueChange={(v) => setEditData({...editData, successor_club_id: v === 'none' ? null : v})}
+                                        >
+                                            <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {allClubs.filter(c => c.id !== clubId).map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Name Change Section */}
+                        <div className="border-t pt-4 mt-4">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Name Changes (Same Club)</h4>
+                            <p className="text-xs text-slate-500 mb-3">Use this when the club simply changed name but is the same entity (not a reformation or restart).</p>
+                            <div className="space-y-3 p-3 bg-purple-50 rounded-lg">
+                                <div>
+                                    <Label className="text-xs">Former Name Club Record</Label>
+                                    <Select 
+                                        value={editData.former_name_club_id || ''} 
+                                        onValueChange={(v) => setEditData({...editData, former_name_club_id: v === 'none' ? null : v})}
+                                    >
+                                        <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            {allClubs.filter(c => c.id !== clubId && !c.former_name_club_id).map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex-1">
+                                        <Label className="text-xs flex items-center gap-2">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={editData.is_former_name || false}
+                                                onChange={(e) => setEditData({...editData, is_former_name: e.target.checked})}
+                                                className="rounded"
+                                            />
+                                            This record is a former name
+                                        </Label>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">Renamed Year</Label>
+                                        <Input 
+                                            type="number" 
+                                            value={editData.renamed_year || ''} 
+                                            onChange={(e) => setEditData({...editData, renamed_year: parseInt(e.target.value) || null})} 
+                                            className="mt-1" 
+                                        />
+                                    </div>
+                                </div>
+                                {editData.is_former_name && (
+                                    <div>
+                                        <Label className="text-xs">Current Name Club</Label>
+                                        <Select 
+                                            value={editData.current_name_club_id || ''} 
+                                            onValueChange={(v) => setEditData({...editData, current_name_club_id: v === 'none' ? null : v})}
                                         >
                                             <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
                                             <SelectContent>
