@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock } from 'lucide-react';
+import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock, Users } from 'lucide-react';
 
 export default function ClubNarratives({ club, seasons, leagues }) {
     const narratives = [];
@@ -499,57 +499,112 @@ export default function ClubNarratives({ club, seasons, leagues }) {
         });
     }
 
-    // Longest continuous spell in a tier
-    if (sortedSeasons.length >= 5) {
-        let longestSpell = { tier: 0, count: 0, startYear: '', endYear: '' };
-        let currentSpell = { tier: 0, count: 0, startYear: '' };
-
-        sortedSeasons.forEach((s, idx) => {
-            const tier = getLeagueTier(s.league_id);
-            if (tier === currentSpell.tier) {
-                currentSpell.count++;
-            } else {
-                if (currentSpell.count > longestSpell.count) {
-                    longestSpell = { ...currentSpell, endYear: sortedSeasons[idx - 1]?.year || '' };
-                }
-                currentSpell = { tier, count: 1, startYear: s.year };
-            }
+    // Never relegated narrative
+    const hasRelegation = sortedSeasons.some(s => s.status === 'relegated');
+    if (!hasRelegation && club.seasons_top_flight >= 10) {
+        narratives.push({
+            icon: Shield,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            title: 'Never Relegated',
+            text: `${club.seasons_top_flight} seasons in the top flight without ever being relegated - elite status.`
         });
-        // Check final spell
-        if (currentSpell.count > longestSpell.count) {
-            longestSpell = { ...currentSpell, endYear: sortedSeasons[sortedSeasons.length - 1].year };
-        }
+    }
 
-        if (longestSpell.count >= 10) {
-            const tierName = longestSpell.tier === 1 ? 'top flight' : `Tier ${longestSpell.tier}`;
+    // Always in top flight since debut
+    if (firstTopFlight && sortedSeasons.length >= 5) {
+        const allTopFlightSinceDebut = sortedSeasons
+            .filter(s => s.year >= firstTopFlight.year)
+            .every(s => getLeagueTier(s.league_id) === 1);
+        if (allTopFlightSinceDebut && sortedSeasons.filter(s => s.year >= firstTopFlight.year).length >= 5) {
             narratives.push({
-                icon: Clock,
-                color: longestSpell.tier === 1 ? 'text-amber-600' : 'text-blue-500',
-                bg: longestSpell.tier === 1 ? 'bg-amber-50' : 'bg-blue-50',
-                title: 'Long-Term Resident',
-                text: `Spent ${longestSpell.count} consecutive seasons in the ${tierName} (${longestSpell.startYear} to ${longestSpell.endYear}).`
+                icon: Star,
+                color: 'text-amber-500',
+                bg: 'bg-amber-50',
+                title: 'Ever-Present',
+                text: `Has never left the top flight since joining in ${firstTopFlight.year}.`
             });
         }
     }
 
-    // Unbeaten narrative - high win rate in a season
-    const bestSeason = sortedSeasons.reduce((best, s) => {
-        if (s.played && s.played >= 10) {
-            const winRate = s.won / s.played;
-            if (!best || winRate > best.winRate) {
-                return { ...s, winRate };
-            }
+    // Win percentage narrative
+    if (club.seasons_played >= 5 && club.total_wins && club.total_losses) {
+        const totalGames = club.total_wins + club.total_draws + club.total_losses;
+        const winPercentage = Math.round((club.total_wins / totalGames) * 100);
+        if (winPercentage >= 50) {
+            narratives.push({
+                icon: Target,
+                color: 'text-green-600',
+                bg: 'bg-green-50',
+                title: 'Winning Culture',
+                text: `${winPercentage}% win rate across ${totalGames} matches - a dominant record.`
+            });
+        } else if (winPercentage <= 30 && totalGames >= 100) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-slate-500',
+                bg: 'bg-slate-50',
+                title: 'Battling the Odds',
+                text: `A ${winPercentage}% win rate shows the struggles, but they keep fighting.`
+            });
         }
-        return best;
-    }, null);
+    }
 
-    if (bestSeason && bestSeason.winRate >= 0.8) {
+    // Goal difference narrative
+    if (club.total_goals_scored && club.total_goals_conceded) {
+        const gd = club.total_goals_scored - club.total_goals_conceded;
+        if (gd >= 200) {
+            narratives.push({
+                icon: Flame,
+                color: 'text-orange-500',
+                bg: 'bg-orange-50',
+                title: 'Attack-Minded',
+                text: `A cumulative goal difference of +${gd} shows their attacking prowess.`
+            });
+        } else if (gd <= -200) {
+            narratives.push({
+                icon: Shield,
+                color: 'text-slate-500',
+                bg: 'bg-slate-50',
+                title: 'Defensive Struggles',
+                text: `A goal difference of ${gd} reflects the challenges faced over the years.`
+            });
+        }
+    }
+
+    // Title drought
+    if (club.league_titles > 0 && championships.length > 0) {
+        const lastTitle = [...championships].sort((a, b) => b.year.localeCompare(a.year))[0];
+        const lastTitleYear = parseInt(lastTitle.year.split('-')[0]);
+        const currentYear = new Date().getFullYear();
+        const yearsSinceTitle = currentYear - lastTitleYear;
+        if (yearsSinceTitle >= 20) {
+            narratives.push({
+                icon: Clock,
+                color: 'text-slate-500',
+                bg: 'bg-slate-100',
+                title: 'Waiting for Glory',
+                text: `${yearsSinceTitle} years since their last title in ${lastTitle.year} - the drought continues.`
+            });
+        }
+    }
+
+    // Stadium capacity narrative
+    if (club.stadium_capacity >= 50000) {
         narratives.push({
-            icon: Flame,
-            color: 'text-orange-500',
-            bg: 'bg-orange-50',
-            title: 'Dominant Season',
-            text: `Won ${bestSeason.won} of ${bestSeason.played} matches (${Math.round(bestSeason.winRate * 100)}%) in ${bestSeason.year}.`
+            icon: Users,
+            color: 'text-blue-500',
+            bg: 'bg-blue-50',
+            title: 'Massive Home Support',
+            text: `${club.stadium} holds ${club.stadium_capacity.toLocaleString()} fans - one of the largest grounds.`
+        });
+    } else if (club.stadium_capacity && club.stadium_capacity <= 5000 && club.seasons_top_flight > 0) {
+        narratives.push({
+            icon: Users,
+            color: 'text-slate-500',
+            bg: 'bg-slate-50',
+            title: 'Intimate Atmosphere',
+            text: `Despite a modest ${club.stadium_capacity.toLocaleString()} capacity, they've competed at the highest level.`
         });
     }
 
@@ -558,36 +613,43 @@ export default function ClubNarratives({ club, seasons, leagues }) {
         if (sortedSeasons[i].status === 'promoted' && sortedSeasons[i - 1].status === 'relegated') {
             narratives.push({
                 icon: TrendingUp,
-                color: 'text-green-500',
+                color: 'text-green-600',
                 bg: 'bg-green-50',
-                title: 'Immediate Bounce Back',
-                text: `Bounced straight back in ${sortedSeasons[i].year} after relegation the previous season.`
+                title: 'Instant Bounce Back',
+                text: `Won immediate promotion in ${sortedSeasons[i].year} after relegation - resilient spirit.`
             });
             break;
         }
     }
 
-    // Never relegated narrative
-    if (club.seasons_played >= 10 && (club.relegations || 0) === 0) {
-        narratives.push({
-            icon: Shield,
-            color: 'text-emerald-500',
-            bg: 'bg-emerald-50',
-            title: 'Never Relegated',
-            text: `${club.seasons_played} seasons without a single relegation - remarkable stability.`
-        });
-    }
-
-    // High scoring club
-    if (club.total_goals_scored && club.seasons_played && club.seasons_played >= 5) {
-        const avgGoals = club.total_goals_scored / club.seasons_played;
-        if (avgGoals >= 60) {
+    // Long spell at same tier
+    if (sortedSeasons.length >= 10) {
+        let maxConsecutive = 1;
+        let currentConsecutive = 1;
+        let consecutiveTier = getLeagueTier(sortedSeasons[0].league_id);
+        let maxTier = consecutiveTier;
+        
+        for (let i = 1; i < sortedSeasons.length; i++) {
+            const tier = getLeagueTier(sortedSeasons[i].league_id);
+            if (tier === getLeagueTier(sortedSeasons[i - 1].league_id)) {
+                currentConsecutive++;
+                if (currentConsecutive > maxConsecutive) {
+                    maxConsecutive = currentConsecutive;
+                    maxTier = tier;
+                }
+            } else {
+                currentConsecutive = 1;
+            }
+        }
+        
+        if (maxConsecutive >= 15) {
+            const tierName = maxTier === 1 ? 'top flight' : `Tier ${maxTier}`;
             narratives.push({
-                icon: Flame,
-                color: 'text-red-500',
-                bg: 'bg-red-50',
-                title: 'Attack-Minded',
-                text: `Averaging ${avgGoals.toFixed(1)} goals per season across ${club.seasons_played} campaigns.`
+                icon: Calendar,
+                color: 'text-blue-500',
+                bg: 'bg-blue-50',
+                title: 'Decade of Stability',
+                text: `${maxConsecutive} consecutive seasons in the ${tierName} - remarkable consistency.`
             });
         }
     }
