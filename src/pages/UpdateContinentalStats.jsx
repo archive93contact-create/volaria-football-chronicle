@@ -169,19 +169,30 @@ export default function UpdateContinentalStats() {
             const runnerUpField = `${prefix}_runner_up`;
             const appearancesField = `${prefix}_appearances`;
 
-            // Determine best finish display
-            let bestFinishDisplay = ROUND_DISPLAY[data.bestRound] || data.bestRound;
-            if (data.isWinner) bestFinishDisplay = 'Winner';
-            else if (data.isRunnerUp) bestFinishDisplay = 'Final';
+            // Determine best finish display - only winner if they actually won the final
+            let bestFinishDisplay;
+            if (data.isWinner && data.bestRound === 'Final') {
+                bestFinishDisplay = 'Winner';
+            } else if (data.isRunnerUp) {
+                bestFinishDisplay = 'Final';
+            } else {
+                bestFinishDisplay = ROUND_DISPLAY[data.bestRound] || data.bestRound;
+            }
 
             // Build update data
             const updateData = {};
             let changes = [];
 
-            // Check if this is a better finish than existing
+            // Calculate rank for comparison (lower is better)
+            const getBestFinishRank = (finish) => {
+                if (finish === 'Winner') return 0;
+                if (finish === 'Final') return 0.5;
+                return ROUND_RANK[finish] || 99;
+            };
+
             const existingBestFinish = club[bestFinishField];
-            const existingBestRank = ROUND_RANK[existingBestFinish] || (existingBestFinish === 'Winner' ? 0 : 99);
-            const newBestRank = data.isWinner ? 0 : (data.isRunnerUp ? 0.5 : (ROUND_RANK[data.bestRound] || 99));
+            const existingBestRank = getBestFinishRank(existingBestFinish);
+            const newBestRank = getBestFinishRank(bestFinishDisplay);
 
             if (newBestRank < existingBestRank || !existingBestFinish) {
                 updateData[bestFinishField] = bestFinishDisplay;
@@ -189,8 +200,8 @@ export default function UpdateContinentalStats() {
                 changes.push(`Best finish: ${bestFinishDisplay}`);
             }
 
-            // Update titles if winner
-            if (data.isWinner) {
+            // Update titles ONLY if they won the final
+            if (data.isWinner && data.bestRound === 'Final') {
                 const currentTitles = club[titlesField] || 0;
                 const currentTitleYears = club[titleYearsField] || '';
                 if (!currentTitleYears.includes(season.year)) {
@@ -202,7 +213,7 @@ export default function UpdateContinentalStats() {
                 }
             }
 
-            // Update runner-up count
+            // Update runner-up count only for actual runner-up
             if (data.isRunnerUp) {
                 const currentRunnerUp = club[runnerUpField] || 0;
                 updateData[runnerUpField] = currentRunnerUp + 1;

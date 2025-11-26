@@ -184,8 +184,8 @@ export default function ContinentalSeasonDetail() {
                         <BracketView 
                             matches={matches} 
                             getNationFlag={getNationFlag}
+                            clubs={clubs}
                             onEdit={setEditingMatch}
-                            onDelete={(id) => deleteMatchMutation.mutate(id)}
                         />
                     </TabsContent>
 
