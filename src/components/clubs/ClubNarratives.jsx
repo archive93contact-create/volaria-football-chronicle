@@ -124,9 +124,11 @@ export default function ClubNarratives({ club, seasons, leagues }) {
         }
     }
 
-    // Relegated after being champions
+    // Relegated after being champions (same tier only)
     for (let i = 1; i < sortedSeasons.length; i++) {
-        if (sortedSeasons[i].status === 'relegated' && sortedSeasons[i - 1].status === 'champion') {
+        const prevTier = getLeagueTier(sortedSeasons[i - 1].league_id);
+        const currTier = getLeagueTier(sortedSeasons[i].league_id);
+        if (sortedSeasons[i].status === 'relegated' && sortedSeasons[i - 1].status === 'champion' && prevTier === currTier) {
             narratives.push({
                 icon: TrendingDown,
                 color: 'text-red-500',
@@ -322,6 +324,41 @@ export default function ClubNarratives({ club, seasons, leagues }) {
                 text: `Established in ${club.founded_year}, with ${age} years of history behind them.`
             });
         }
+    }
+
+    // Club reformation/name change narratives
+    if (club.predecessor_club_id && !club.predecessor_club_2_id) {
+        narratives.push({
+            icon: Shield,
+            color: 'text-blue-500',
+            bg: 'bg-blue-50',
+            title: 'Reborn',
+            text: `This club continues the legacy of a predecessor, carrying forward their history and traditions.`
+        });
+    }
+
+    // Merger narrative
+    if (club.predecessor_club_id && club.predecessor_club_2_id) {
+        narratives.push({
+            icon: Shield,
+            color: 'text-purple-500',
+            bg: 'bg-purple-50',
+            title: 'United as One',
+            text: `Formed from a merger of two clubs, combining their histories and fanbases into one entity.`
+        });
+    }
+
+    // Defunct club narrative
+    if (club.is_defunct) {
+        narratives.push({
+            icon: BookOpen,
+            color: 'text-slate-500',
+            bg: 'bg-slate-100',
+            title: 'End of an Era',
+            text: club.defunct_year 
+                ? `The club ceased operations in ${club.defunct_year}, but their legacy lives on.`
+                : `This club is no longer active, but their story remains part of football history.`
+        });
     }
 
     if (narratives.length === 0) return null;
