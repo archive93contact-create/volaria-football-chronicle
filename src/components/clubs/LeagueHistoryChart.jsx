@@ -1,9 +1,9 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from 'lucide-react';
 
-export default function LeagueHistoryChart({ seasons, leagues }) {
+export default function LeagueHistoryChart({ seasons, leagues, nationName }) {
     if (!seasons || seasons.length === 0) return null;
 
     // Get max tier from the data
