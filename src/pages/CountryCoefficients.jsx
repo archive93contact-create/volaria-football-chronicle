@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus, Trophy, Star } from 'lucide-react';
+import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus, Trophy, Star, Shield } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -249,6 +251,11 @@ export default function CountryCoefficients() {
                                                         <Link to={createPageUrl(`NationDetail?id=${coeff.nation_id}`)} className="flex items-center gap-2 hover:text-emerald-600">
                                                             {nation?.flag_url && <img src={nation.flag_url} alt="" className="w-6 h-4 object-cover rounded" />}
                                                             <span className="font-semibold">{coeff.nation_name}</span>
+                                                            {nation?.membership && (
+                                                                <Badge variant="outline" className={nation.membership === 'VCC' ? 'border-amber-500 text-amber-600 text-xs' : 'border-blue-500 text-blue-600 text-xs'}>
+                                                                    {nation.membership}
+                                                                </Badge>
+                                                            )}
                                                         </Link>
                                                     </TableCell>
                                                     <TableCell className="text-center font-bold text-lg">{coeff.total_points?.toFixed(3)}</TableCell>

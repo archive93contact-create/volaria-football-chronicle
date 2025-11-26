@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2 } from 'lucide-react';
+import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -133,7 +135,14 @@ export default function NationDetail() {
                                 </div>
                             )}
                             <div className="flex-1">
-                                <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">{nation.name}</h1>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">{nation.name}</h1>
+                                    {nation.membership && (
+                                        <Badge className={nation.membership === 'VCC' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'}>
+                                            {nation.membership === 'VCC' ? 'Full Member' : 'Associate'}
+                                        </Badge>
+                                    )}
+                                </div>
                                 {(nation.description || nation.federation_name) && (
                                     <p className="mt-3 text-lg text-white/80 max-w-2xl">{nation.description || nation.federation_name}</p>
                                 )}
@@ -496,6 +505,18 @@ export default function NationDetail() {
                                 rows={5}
                                 className="mt-1"
                             />
+                        </div>
+                        <div>
+                            <Label>Continental Membership</Label>
+                            <Select value={editData.membership || ''} onValueChange={(value) => setEditData({...editData, membership: value})}>
+                                <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select membership type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="VCC">VCC - Full Member</SelectItem>
+                                    <SelectItem value="CCC">CCC - Associate Member</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>

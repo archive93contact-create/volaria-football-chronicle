@@ -14,6 +14,7 @@ import NationClubs from './pages/NationClubs';
 import ContinentalSeasonDetail from './pages/ContinentalSeasonDetail';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import ClubCoefficients from './pages/ClubCoefficients';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "ContinentalSeasonDetail": ContinentalSeasonDetail,
     "About": About,
     "Contact": Contact,
+    "ClubCoefficients": ClubCoefficients,
 }
 
 export const pagesConfig = {
