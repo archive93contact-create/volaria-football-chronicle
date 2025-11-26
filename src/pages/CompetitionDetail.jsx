@@ -18,7 +18,7 @@ export default function CompetitionDetail() {
     const compId = urlParams.get('id');
     const queryClient = useQueryClient();
     
-    const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
+
     const [editingSeason, setEditingSeason] = useState(null);
     const [seasonForm, setSeasonForm] = useState({
         year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '',
@@ -38,16 +38,6 @@ export default function CompetitionDetail() {
         queryKey: ['competitionSeasons', compId],
         queryFn: () => base44.entities.ContinentalSeason.filter({ competition_id: compId }, '-year'),
     });
-
-    const { data: nations = [] } = useQuery({
-        queryKey: ['nations'],
-        queryFn: () => base44.entities.Nation.list('name'),
-    });
-
-    const getNationFlag = (nationName) => {
-        const nation = nations.find(n => n.name?.toLowerCase() === nationName?.toLowerCase());
-        return nation?.flag_url;
-    };
 
     const createSeasonMutation = useMutation({
         mutationFn: (data) => base44.entities.ContinentalSeason.create({ ...data, competition_id: compId }),
@@ -93,54 +83,58 @@ export default function CompetitionDetail() {
         return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" /></div>;
     }
 
+    const handleSeasonFormChange = (field, value) => {
+        setSeasonForm(prev => ({...prev, [field]: value}));
+    };
+
     const SeasonForm = () => (
         <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Season Year *</Label>
-                    <Input value={seasonForm.year} onChange={(e) => setSeasonForm({...seasonForm, year: e.target.value})} placeholder="e.g., 2023-24" className="mt-1" />
+                    <Input value={seasonForm.year} onChange={(e) => handleSeasonFormChange('year', e.target.value)} placeholder="e.g., 2023-24" className="mt-1" />
                 </div>
                 <div>
                     <Label>Final Score</Label>
-                    <Input value={seasonForm.final_score} onChange={(e) => setSeasonForm({...seasonForm, final_score: e.target.value})} placeholder="e.g., 2-1" className="mt-1" />
+                    <Input value={seasonForm.final_score} onChange={(e) => handleSeasonFormChange('final_score', e.target.value)} placeholder="e.g., 2-1" className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Champion</Label>
-                    <Input value={seasonForm.champion_name} onChange={(e) => setSeasonForm({...seasonForm, champion_name: e.target.value})} placeholder="Winning club" className="mt-1" />
+                    <Input value={seasonForm.champion_name} onChange={(e) => handleSeasonFormChange('champion_name', e.target.value)} placeholder="Winning club" className="mt-1" />
                 </div>
                 <div>
                     <Label>Champion Nation</Label>
-                    <Input value={seasonForm.champion_nation} onChange={(e) => setSeasonForm({...seasonForm, champion_nation: e.target.value})} className="mt-1" />
+                    <Input value={seasonForm.champion_nation} onChange={(e) => handleSeasonFormChange('champion_nation', e.target.value)} className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Runner-up</Label>
-                    <Input value={seasonForm.runner_up} onChange={(e) => setSeasonForm({...seasonForm, runner_up: e.target.value})} className="mt-1" />
+                    <Input value={seasonForm.runner_up} onChange={(e) => handleSeasonFormChange('runner_up', e.target.value)} className="mt-1" />
                 </div>
                 <div>
                     <Label>Runner-up Nation</Label>
-                    <Input value={seasonForm.runner_up_nation} onChange={(e) => setSeasonForm({...seasonForm, runner_up_nation: e.target.value})} className="mt-1" />
+                    <Input value={seasonForm.runner_up_nation} onChange={(e) => handleSeasonFormChange('runner_up_nation', e.target.value)} className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Final Venue</Label>
-                    <Input value={seasonForm.final_venue} onChange={(e) => setSeasonForm({...seasonForm, final_venue: e.target.value})} className="mt-1" />
+                    <Input value={seasonForm.final_venue} onChange={(e) => handleSeasonFormChange('final_venue', e.target.value)} className="mt-1" />
                 </div>
                 <div>
                     <Label>Top Scorer</Label>
-                    <Input value={seasonForm.top_scorer} onChange={(e) => setSeasonForm({...seasonForm, top_scorer: e.target.value})} placeholder="e.g., John Smith (10 goals)" className="mt-1" />
+                    <Input value={seasonForm.top_scorer} onChange={(e) => handleSeasonFormChange('top_scorer', e.target.value)} placeholder="e.g., John Smith (10 goals)" className="mt-1" />
                 </div>
             </div>
             <div>
                 <Label>Notes</Label>
-                <Textarea value={seasonForm.notes} onChange={(e) => setSeasonForm({...seasonForm, notes: e.target.value})} rows={3} className="mt-1" />
+                <Textarea value={seasonForm.notes} onChange={(e) => handleSeasonFormChange('notes', e.target.value)} rows={3} className="mt-1" />
             </div>
             <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => { setIsAddSeasonOpen(false); setEditingSeason(null); resetSeasonForm(); }}>Cancel</Button>
+                <Button variant="outline" onClick={() => { setEditingSeason(null); resetSeasonForm(); }}>Cancel</Button>
                 <Button onClick={handleSeasonSubmit} disabled={!seasonForm.year} className="bg-emerald-600 hover:bg-emerald-700">
                     {editingSeason ? 'Save Changes' : 'Add Season'}
                 </Button>
@@ -194,15 +188,9 @@ export default function CompetitionDetail() {
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Roll of Honour</CardTitle>
-                        <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-xl">
-                                <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
-                                <SeasonForm />
-                            </DialogContent>
-                        </Dialog>
+                        <Link to={createPageUrl(`AddCompetitionSeason?competition_id=${compId}`)}>
+                            <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                        </Link>
                     </CardHeader>
                     <CardContent>
                         {seasons.length === 0 ? (
@@ -224,32 +212,18 @@ export default function CompetitionDetail() {
                                     {seasons.map(season => (
                                         <TableRow key={season.id} className="hover:bg-slate-50">
                                             <TableCell className="font-medium">
-                                                <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)} className="hover:text-emerald-600 hover:underline">
+                                                <Link to={createPageUrl(`CompetitionSeasonDetail?id=${season.id}`)} className="hover:text-emerald-600 hover:underline">
                                                     {season.year}
                                                 </Link>
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    {getNationFlag(season.champion_nation) && (
-                                                        <img src={getNationFlag(season.champion_nation)} alt="" className="w-5 h-3 object-contain" />
-                                                    )}
-                                                    <span className="font-semibold text-emerald-600">{season.champion_name}</span>
-                                                </div>
-                                            </TableCell>
+                                            <TableCell className="font-semibold text-emerald-600">{season.champion_name}</TableCell>
                                             <TableCell className="hidden md:table-cell text-slate-500">{season.champion_nation}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    {getNationFlag(season.runner_up_nation) && (
-                                                        <img src={getNationFlag(season.runner_up_nation)} alt="" className="w-5 h-3 object-contain" />
-                                                    )}
-                                                    <span>{season.runner_up}</span>
-                                                </div>
-                                            </TableCell>
+                                            <TableCell>{season.runner_up}</TableCell>
                                             <TableCell className="hidden md:table-cell">{season.final_score}</TableCell>
                                             <TableCell className="hidden lg:table-cell text-slate-500">{season.final_venue}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-1">
-                                                    <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)}>
+                                                    <Link to={createPageUrl(`CompetitionSeasonDetail?id=${season.id}`)}>
                                                         <Button variant="ghost" size="sm" className="h-8">View</Button>
                                                     </Link>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
