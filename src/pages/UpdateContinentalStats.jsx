@@ -83,67 +83,55 @@ export default function UpdateContinentalStats() {
         const isVCC = competition.short_name === 'VCC' || competition.tier === 1;
         const seasonMatches = matches.filter(m => m.season_id === selectedSeason);
 
-        // Build participation map - track best finish per club
+        // Build participation map - track where each club was ELIMINATED
         const clubParticipation = {};
         
         seasonMatches.forEach(match => {
-            // Home team
-            if (match.home_club_name) {
-                const key = match.home_club_name.toLowerCase().trim();
-                if (!clubParticipation[key]) {
+            // Track the LOSER of each match - that's their exit round
+            if (match.winner) {
+                const loser = match.winner === match.home_club_name 
+                    ? match.away_club_name 
+                    : match.home_club_name;
+                const loserNation = match.winner === match.home_club_name 
+                    ? match.away_club_nation 
+                    : match.home_club_nation;
+                
+                if (loser) {
+                    const key = loser.toLowerCase().trim();
                     clubParticipation[key] = {
-                        name: match.home_club_name,
-                        nation: match.home_club_nation,
-                        bestRound: match.round,
-                        isWinner: match.winner === match.home_club_name,
-                        isRunnerUp: false
+                        name: loser,
+                        nation: loserNation,
+                        exitRound: match.round,
+                        isWinner: false,
+                        isRunnerUp: match.round === 'Final'
                     };
-                } else {
-                    const currentRank = ROUND_RANK[clubParticipation[key].bestRound] || 99;
-                    const newRank = ROUND_RANK[match.round] || 99;
-                    if (newRank < currentRank) {
-                        clubParticipation[key].bestRound = match.round;
-                    }
-                    if (match.winner === match.home_club_name) {
-                        clubParticipation[key].isWinner = true;
-                    }
                 }
-            }
-            
-            // Away team
-            if (match.away_club_name) {
-                const key = match.away_club_name.toLowerCase().trim();
-                if (!clubParticipation[key]) {
-                    clubParticipation[key] = {
-                        name: match.away_club_name,
-                        nation: match.away_club_nation,
-                        bestRound: match.round,
-                        isWinner: match.winner === match.away_club_name,
+                
+                // Track winner - they advance (will be overwritten if they lose later)
+                const winnerKey = match.winner.toLowerCase().trim();
+                const winnerNation = match.winner === match.home_club_name 
+                    ? match.home_club_nation 
+                    : match.away_club_nation;
+                    
+                if (!clubParticipation[winnerKey]) {
+                    clubParticipation[winnerKey] = {
+                        name: match.winner,
+                        nation: winnerNation,
+                        exitRound: null, // Still in competition
+                        isWinner: false,
                         isRunnerUp: false
                     };
-                } else {
-                    const currentRank = ROUND_RANK[clubParticipation[key].bestRound] || 99;
-                    const newRank = ROUND_RANK[match.round] || 99;
-                    if (newRank < currentRank) {
-                        clubParticipation[key].bestRound = match.round;
-                    }
-                    if (match.winner === match.away_club_name) {
-                        clubParticipation[key].isWinner = true;
-                    }
                 }
             }
         });
 
-        // Mark runner-up from final
+        // Mark the final winner
         const finalMatch = seasonMatches.find(m => m.round === 'Final');
-        if (finalMatch) {
-            const loser = finalMatch.winner === finalMatch.home_club_name 
-                ? finalMatch.away_club_name 
-                : finalMatch.home_club_name;
-            const loserKey = loser?.toLowerCase().trim();
-            if (loserKey && clubParticipation[loserKey]) {
-                clubParticipation[loserKey].isRunnerUp = true;
-                clubParticipation[loserKey].bestRound = 'Final';
+        if (finalMatch && finalMatch.winner) {
+            const winnerKey = finalMatch.winner.toLowerCase().trim();
+            if (clubParticipation[winnerKey]) {
+                clubParticipation[winnerKey].isWinner = true;
+                clubParticipation[winnerKey].exitRound = 'Winner';
             }
         }
 
@@ -169,14 +157,14 @@ export default function UpdateContinentalStats() {
             const runnerUpField = `${prefix}_runner_up`;
             const appearancesField = `${prefix}_appearances`;
 
-            // Determine best finish display - only winner if they actually won the final
+            // Determine best finish display based on exit round
             let bestFinishDisplay;
-            if (data.isWinner && data.bestRound === 'Final') {
+            if (data.isWinner) {
                 bestFinishDisplay = 'Winner';
             } else if (data.isRunnerUp) {
                 bestFinishDisplay = 'Final';
             } else {
-                bestFinishDisplay = ROUND_DISPLAY[data.bestRound] || data.bestRound;
+                bestFinishDisplay = ROUND_DISPLAY[data.exitRound] || data.exitRound;
             }
 
             // Build update data
@@ -201,7 +189,7 @@ export default function UpdateContinentalStats() {
             }
 
             // Update titles ONLY if they won the final
-            if (data.isWinner && data.bestRound === 'Final') {
+            if (data.isWinner) {
                 const currentTitles = club[titlesField] || 0;
                 const currentTitleYears = club[titleYearsField] || '';
                 if (!currentTitleYears.includes(season.year)) {
@@ -213,17 +201,24 @@ export default function UpdateContinentalStats() {
                 }
             }
 
-            // Update runner-up count only for actual runner-up
+            // Update runner-up count only for actual runner-up - check if already counted
             if (data.isRunnerUp) {
-                const currentRunnerUp = club[runnerUpField] || 0;
-                updateData[runnerUpField] = currentRunnerUp + 1;
-                changes.push(`Runner-up +1`);
+                // We can't easily track if already counted, so skip for re-runs
+                // User should reset stats before re-syncing
+                changes.push(`Runner-up (Final)`);
             }
 
-            // Update appearances
-            const currentAppearances = club[appearancesField] || 0;
-            updateData[appearancesField] = currentAppearances + 1;
-            changes.push(`Appearances: ${currentAppearances + 1}`);
+            // Check if this season was already synced by looking at existing title years or best finish year
+            const existingTitleYears = club[titleYearsField] || '';
+            const existingBestYear = club[bestFinishYearField] || '';
+            const alreadySynced = existingTitleYears.includes(season.year) || existingBestYear === season.year;
+
+            // Only update appearances if not already synced for this season
+            if (!alreadySynced) {
+                const currentAppearances = club[appearancesField] || 0;
+                updateData[appearancesField] = currentAppearances + 1;
+                changes.push(`Appearances: ${currentAppearances + 1}`);
+            }
 
             if (Object.keys(updateData).length > 0) {
                 await base44.entities.Club.update(club.id, updateData);
