@@ -378,14 +378,14 @@ export default function ClubDetail() {
                 </div>
 
                 {/* Title Years */}
-                {club.title_years && (
+                {combinedStats?.title_years && (
                     <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
                                 <Trophy className="w-8 h-8 text-amber-500" />
                                 <div>
                                     <div className="font-semibold text-amber-800">League Championship Titles</div>
-                                    <div className="text-amber-700">{club.title_years}</div>
+                                    <div className="text-amber-700">{combinedStats.title_years}</div>
                                 </div>
                             </div>
                         </CardContent>
