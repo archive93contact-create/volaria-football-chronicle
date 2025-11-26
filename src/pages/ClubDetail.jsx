@@ -482,33 +482,33 @@ export default function ClubDetail() {
                 )}
 
                 {/* All-Time Stats */}
-                {club.seasons_played > 0 && (
+                {combinedStats?.seasons_played > 0 && (
                     <Card className="border-0 shadow-sm mb-8">
                         <CardHeader><CardTitle>All-Time League Statistics</CardTitle></CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
                                 <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">{club.total_wins || 0}</div>
+                                    <div className="text-2xl font-bold text-green-600">{combinedStats.total_wins || 0}</div>
                                     <div className="text-xs text-slate-500">Wins</div>
                                 </div>
                                 <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-slate-600">{club.total_draws || 0}</div>
+                                    <div className="text-2xl font-bold text-slate-600">{combinedStats.total_draws || 0}</div>
                                     <div className="text-xs text-slate-500">Draws</div>
                                 </div>
                                 <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-red-600">{club.total_losses || 0}</div>
+                                    <div className="text-2xl font-bold text-red-600">{combinedStats.total_losses || 0}</div>
                                     <div className="text-xs text-slate-500">Losses</div>
                                 </div>
                                 <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold">{club.total_goals_scored || 0}</div>
+                                    <div className="text-2xl font-bold">{combinedStats.total_goals_scored || 0}</div>
                                     <div className="text-xs text-slate-500">Goals Scored</div>
                                 </div>
                                 <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold">{club.total_goals_conceded || 0}</div>
+                                    <div className="text-2xl font-bold">{combinedStats.total_goals_conceded || 0}</div>
                                     <div className="text-xs text-slate-500">Goals Conceded</div>
                                 </div>
                                 <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold">{(club.total_goals_scored || 0) - (club.total_goals_conceded || 0)}</div>
+                                    <div className="text-2xl font-bold">{(combinedStats.total_goals_scored || 0) - (combinedStats.total_goals_conceded || 0)}</div>
                                     <div className="text-xs text-slate-500">Goal Difference</div>
                                 </div>
                             </div>
