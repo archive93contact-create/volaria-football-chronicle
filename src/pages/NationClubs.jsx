@@ -76,6 +76,28 @@ export default function NationClubs() {
         return { topFlightSeasons, tfaSeasons };
     };
 
+    // Find the most recent season year across all leagues
+    const mostRecentSeasonYear = useMemo(() => {
+        if (allLeagueTables.length === 0) return null;
+        const years = allLeagueTables.map(t => t.year).filter(Boolean);
+        return years.sort().reverse()[0] || null;
+    }, [allLeagueTables]);
+
+    // Get the last season a club appeared in
+    const getLastSeasonYear = (clubId) => {
+        const clubTables = allLeagueTables.filter(t => t.club_id === clubId);
+        if (clubTables.length === 0) return null;
+        const years = clubTables.map(t => t.year).filter(Boolean);
+        return years.sort().reverse()[0] || null;
+    };
+
+    // Check if a club is inactive (not in most recent season)
+    const isClubInactive = (clubId) => {
+        if (!mostRecentSeasonYear) return false;
+        const lastSeason = getLastSeasonYear(clubId);
+        return lastSeason && lastSeason !== mostRecentSeasonYear;
+    };
+
     // Extract unique filter values
     const filterOptions = useMemo(() => {
         const regions = [...new Set(clubs.filter(c => c.region).map(c => c.region))].sort();
@@ -307,28 +329,36 @@ export default function NationClubs() {
                                                 </button>
                                             </TableHead>
                                         )}
+                                        <TableHead className="text-center hidden md:table-cell">
+                                            Last Season
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {filteredClubs.map((club, idx) => {
                                         const league = getLeagueInfo(club.league_id);
+                                        const inactive = isClubInactive(club.id);
+                                        const lastSeason = getLastSeasonYear(club.id);
                                         return (
-                                            <TableRow key={club.id} className="hover:bg-slate-50">
+                                            <TableRow key={club.id} className={`hover:bg-slate-50 ${inactive ? 'bg-slate-50' : ''}`}>
                                                 <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
                                                 <TableCell>
-                                                    <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-3 hover:text-emerald-600">
+                                                    <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className={`flex items-center gap-3 hover:text-emerald-600 ${inactive ? 'italic' : ''}`}>
                                                         {club.logo_url ? (
-                                                            <img src={club.logo_url} alt="" className="w-8 h-8 object-contain" />
+                                                            <img src={club.logo_url} alt="" className={`w-8 h-8 object-contain ${inactive ? 'opacity-50' : ''}`} />
                                                         ) : (
-                                                            <div className="w-8 h-8 rounded bg-slate-200 flex items-center justify-center">
+                                                            <div className={`w-8 h-8 rounded bg-slate-200 flex items-center justify-center ${inactive ? 'opacity-50' : ''}`}>
                                                                 <Shield className="w-4 h-4 text-slate-400" />
                                                             </div>
                                                         )}
                                                         <div>
-                                                            <div className="font-medium flex items-center gap-2">
+                                                            <div className={`font-medium flex items-center gap-2 ${inactive ? 'text-slate-500' : ''}`}>
                                                                 {club.name}
-                                                                {isTuruliand && league?.tier && league.tier <= 4 && (
+                                                                {isTuruliand && league?.tier && league.tier <= 4 && !inactive && (
                                                                     <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">TFA</Badge>
+                                                                )}
+                                                                {inactive && (
+                                                                    <Badge variant="outline" className="text-xs bg-slate-100 text-slate-500 border-slate-300">Inactive</Badge>
                                                                 )}
                                                             </div>
                                                             {club.nickname && <div className="text-xs text-slate-500">{club.nickname}</div>}
@@ -392,13 +422,24 @@ export default function NationClubs() {
                                                             const calc = getCalculatedSeasons(club.id);
                                                             const val = club.seasons_in_tfa || calc.tfaSeasons;
                                                             return val > 0 ? (
-                                                                <span className="font-medium text-blue-600">{val}</span>
+                                                                <span className={`font-medium ${inactive ? 'text-slate-400' : 'text-blue-600'}`}>{val}</span>
                                                             ) : (
                                                                 <span className="text-slate-300">-</span>
                                                             );
                                                         })()}
                                                     </TableCell>
                                                 )}
+                                                <TableCell className={`text-center hidden md:table-cell ${inactive ? 'italic text-slate-500' : ''}`}>
+                                                    {lastSeason ? (
+                                                        inactive ? (
+                                                            <span className="text-amber-600">{lastSeason}</span>
+                                                        ) : (
+                                                            <span className="text-slate-400">{lastSeason}</span>
+                                                        )
+                                                    ) : (
+                                                        <span className="text-slate-300">-</span>
+                                                    )}
+                                                </TableCell>
                                             </TableRow>
                                         );
                                     })}
