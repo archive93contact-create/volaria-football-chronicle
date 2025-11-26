@@ -83,56 +83,47 @@ export default function UpdateContinentalStats() {
         const isVCC = competition.short_name === 'VCC' || competition.tier === 1;
         const seasonMatches = matches.filter(m => m.season_id === selectedSeason);
 
-        // Build participation map - track where each club was ELIMINATED
+        // Build participation map - track where each club was ELIMINATED (the loser of each match)
         const clubParticipation = {};
         
+        // First pass: identify all losers and their exit rounds
         seasonMatches.forEach(match => {
-            // Track the LOSER of each match - that's their exit round
-            if (match.winner) {
-                const loser = match.winner === match.home_club_name 
-                    ? match.away_club_name 
-                    : match.home_club_name;
-                const loserNation = match.winner === match.home_club_name 
-                    ? match.away_club_nation 
-                    : match.home_club_nation;
-                
-                if (loser) {
-                    const key = loser.toLowerCase().trim();
-                    clubParticipation[key] = {
-                        name: loser,
-                        nation: loserNation,
-                        exitRound: match.round,
-                        isWinner: false,
-                        isRunnerUp: match.round === 'Final'
-                    };
-                }
-                
-                // Track winner - they advance (will be overwritten if they lose later)
-                const winnerKey = match.winner.toLowerCase().trim();
-                const winnerNation = match.winner === match.home_club_name 
-                    ? match.home_club_nation 
-                    : match.away_club_nation;
-                    
-                if (!clubParticipation[winnerKey]) {
-                    clubParticipation[winnerKey] = {
-                        name: match.winner,
-                        nation: winnerNation,
-                        exitRound: null, // Still in competition
-                        isWinner: false,
-                        isRunnerUp: false
-                    };
-                }
+            if (!match.winner) return; // Skip matches without results
+            
+            const loser = match.winner === match.home_club_name 
+                ? match.away_club_name 
+                : match.home_club_name;
+            const loserNation = match.winner === match.home_club_name 
+                ? match.away_club_nation 
+                : match.home_club_nation;
+            
+            if (loser) {
+                const key = loser.toLowerCase().trim();
+                clubParticipation[key] = {
+                    name: loser,
+                    nation: loserNation,
+                    exitRound: match.round,
+                    isWinner: false,
+                    isRunnerUp: match.round === 'Final'
+                };
             }
         });
 
-        // Mark the final winner
+        // Second pass: find the tournament winner (winner of the Final)
         const finalMatch = seasonMatches.find(m => m.round === 'Final');
         if (finalMatch && finalMatch.winner) {
             const winnerKey = finalMatch.winner.toLowerCase().trim();
-            if (clubParticipation[winnerKey]) {
-                clubParticipation[winnerKey].isWinner = true;
-                clubParticipation[winnerKey].exitRound = 'Winner';
-            }
+            const winnerNation = finalMatch.winner === finalMatch.home_club_name 
+                ? finalMatch.home_club_nation 
+                : finalMatch.away_club_nation;
+            
+            clubParticipation[winnerKey] = {
+                name: finalMatch.winner,
+                nation: winnerNation,
+                exitRound: 'Winner',
+                isWinner: true,
+                isRunnerUp: false
+            };
         }
 
         // Update each club
@@ -182,10 +173,13 @@ export default function UpdateContinentalStats() {
             const existingBestRank = getBestFinishRank(existingBestFinish);
             const newBestRank = getBestFinishRank(bestFinishDisplay);
 
+            // Only update best finish if this is better than existing
             if (newBestRank < existingBestRank || !existingBestFinish) {
                 updateData[bestFinishField] = bestFinishDisplay;
                 updateData[bestFinishYearField] = season.year;
                 changes.push(`Best finish: ${bestFinishDisplay}`);
+            } else {
+                changes.push(`Exit: ${bestFinishDisplay} (not best)`);
             }
 
             // Update titles ONLY if they won the final
@@ -197,28 +191,21 @@ export default function UpdateContinentalStats() {
                     updateData[titleYearsField] = currentTitleYears 
                         ? `${currentTitleYears}, ${season.year}` 
                         : season.year;
-                    changes.push(`Added title for ${season.year}`);
+                    changes.push(`Title winner!`);
                 }
             }
 
-            // Update runner-up count only for actual runner-up - check if already counted
+            // Update runner-up count only for actual runner-up
             if (data.isRunnerUp) {
-                // We can't easily track if already counted, so skip for re-runs
-                // User should reset stats before re-syncing
-                changes.push(`Runner-up (Final)`);
+                const currentRunnerUp = club[runnerUpField] || 0;
+                updateData[runnerUpField] = currentRunnerUp + 1;
+                changes.push(`Runner-up`);
             }
 
-            // Check if this season was already synced by looking at existing title years or best finish year
-            const existingTitleYears = club[titleYearsField] || '';
-            const existingBestYear = club[bestFinishYearField] || '';
-            const alreadySynced = existingTitleYears.includes(season.year) || existingBestYear === season.year;
-
-            // Only update appearances if not already synced for this season
-            if (!alreadySynced) {
-                const currentAppearances = club[appearancesField] || 0;
-                updateData[appearancesField] = currentAppearances + 1;
-                changes.push(`Appearances: ${currentAppearances + 1}`);
-            }
+            // Update appearances - use a simple increment (only run sync once per season!)
+            const currentAppearances = club[appearancesField] || 0;
+            updateData[appearancesField] = currentAppearances + 1;
+            changes.push(`Appearances: ${currentAppearances + 1}`);
 
             if (Object.keys(updateData).length > 0) {
                 await base44.entities.Club.update(club.id, updateData);
