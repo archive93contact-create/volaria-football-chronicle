@@ -124,6 +124,9 @@ export default function AddSeason() {
                 notes: data.notes
             });
 
+            const currentTier = league.tier || 1;
+            const isTopTier = currentTier === 1;
+
             // Process each club in the table - create new or update existing
             const clubIdMap = {};
             for (const row of tableRows.filter(r => r.club_name.trim())) {
@@ -136,27 +139,44 @@ export default function AddSeason() {
 
                 if (existingClub) {
                     // Update existing club stats
-                    const currentTitles = existingClub.league_titles || 0;
-                    const currentTitleYears = existingClub.title_years || '';
                     const isChampion = row.status === 'champion';
                     const isPromoted = row.status === 'promoted';
                     const isRelegated = row.status === 'relegated';
 
-                    const newTitles = isChampion ? currentTitles + 1 : currentTitles;
-                    const newTitleYears = isChampion 
+                    // Only count titles if this is the top tier league
+                    const currentTitles = existingClub.league_titles || 0;
+                    const currentTitleYears = existingClub.title_years || '';
+                    const newTitles = (isChampion && isTopTier) ? currentTitles + 1 : currentTitles;
+                    const newTitleYears = (isChampion && isTopTier)
                         ? (currentTitleYears ? `${currentTitleYears}, ${data.year}` : data.year)
                         : currentTitleYears;
 
-                    const currentBestFinish = existingClub.best_finish || 999;
-                    const newBestFinish = row.position < currentBestFinish ? row.position : currentBestFinish;
-                    const newBestFinishYear = row.position < currentBestFinish ? data.year : existingClub.best_finish_year;
+                    // Best finish only counts in the highest tier the club has played
+                    // Compare: lower tier number = higher tier (tier 1 is better than tier 2)
+                    const existingBestTier = existingClub.best_finish_tier || 999;
+                    const existingBestFinish = existingClub.best_finish || 999;
+                    
+                    let newBestFinish = existingBestFinish;
+                    let newBestFinishYear = existingClub.best_finish_year;
+                    let newBestFinishTier = existingBestTier;
 
-                    await base44.entities.Club.update(existingClub.id, {
-                        league_id: leagueId,
+                    // If current tier is higher (lower number) OR same tier with better position
+                    if (currentTier < existingBestTier || (currentTier === existingBestTier && row.position < existingBestFinish)) {
+                        newBestFinish = row.position;
+                        newBestFinishYear = data.year;
+                        newBestFinishTier = currentTier;
+                    }
+
+                    // Update current league based on most recent season
+                    const existingLastSeasonYear = existingClub.last_season_year || '';
+                    const shouldUpdateCurrentLeague = data.year > existingLastSeasonYear || !existingLastSeasonYear;
+
+                    const updateData = {
                         league_titles: newTitles,
                         title_years: newTitleYears,
                         best_finish: newBestFinish,
                         best_finish_year: newBestFinishYear,
+                        best_finish_tier: newBestFinishTier,
                         seasons_played: (existingClub.seasons_played || 0) + 1,
                         total_wins: (existingClub.total_wins || 0) + (row.won || 0),
                         total_draws: (existingClub.total_draws || 0) + (row.drawn || 0),
@@ -165,7 +185,15 @@ export default function AddSeason() {
                         total_goals_conceded: (existingClub.total_goals_conceded || 0) + (row.goals_against || 0),
                         promotions: (existingClub.promotions || 0) + (isPromoted ? 1 : 0),
                         relegations: (existingClub.relegations || 0) + (isRelegated ? 1 : 0),
-                    });
+                    };
+
+                    // Only update current league if this is the most recent season
+                    if (shouldUpdateCurrentLeague) {
+                        updateData.league_id = leagueId;
+                        updateData.last_season_year = data.year;
+                    }
+
+                    await base44.entities.Club.update(existingClub.id, updateData);
                     clubIdMap[clubName] = existingClub.id;
                 } else {
                     // Create new club
@@ -177,10 +205,12 @@ export default function AddSeason() {
                         name: clubName,
                         nation_id: league.nation_id,
                         league_id: leagueId,
-                        league_titles: isChampion ? 1 : 0,
-                        title_years: isChampion ? data.year : '',
+                        league_titles: (isChampion && isTopTier) ? 1 : 0,
+                        title_years: (isChampion && isTopTier) ? data.year : '',
                         best_finish: row.position,
                         best_finish_year: data.year,
+                        best_finish_tier: currentTier,
+                        last_season_year: data.year,
                         seasons_played: 1,
                         total_wins: row.won || 0,
                         total_draws: row.drawn || 0,
