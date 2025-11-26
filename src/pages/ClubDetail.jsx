@@ -71,6 +71,42 @@ export default function ClubDetail() {
         queryFn: () => base44.entities.League.list(),
     });
 
+    const { data: allClubs = [] } = useQuery({
+        queryKey: ['allClubsForPredecessor', club?.nation_id],
+        queryFn: () => base44.entities.Club.filter({ nation_id: club.nation_id }),
+        enabled: !!club?.nation_id,
+    });
+
+    // Fetch predecessor club data if exists
+    const { data: predecessorClub } = useQuery({
+        queryKey: ['predecessorClub', club?.predecessor_club_id],
+        queryFn: async () => {
+            const clubs = await base44.entities.Club.filter({ id: club.predecessor_club_id });
+            return clubs[0];
+        },
+        enabled: !!club?.predecessor_club_id,
+    });
+
+    // Fetch predecessor's seasons
+    const { data: predecessorSeasons = [] } = useQuery({
+        queryKey: ['predecessorSeasons', club?.predecessor_club_id],
+        queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_id }, '-year'),
+        enabled: !!club?.predecessor_club_id,
+    });
+
+    // Fetch successor club if this is defunct
+    const { data: successorClub } = useQuery({
+        queryKey: ['successorClub', club?.successor_club_id],
+        queryFn: async () => {
+            const clubs = await base44.entities.Club.filter({ id: club.successor_club_id });
+            return clubs[0];
+        },
+        enabled: !!club?.successor_club_id,
+    });
+
+    // Combine seasons from current club and predecessor
+    const combinedSeasons = [...clubSeasons, ...predecessorSeasons].sort((a, b) => b.year.localeCompare(a.year));
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Club.update(clubId, data),
         onSuccess: () => {
