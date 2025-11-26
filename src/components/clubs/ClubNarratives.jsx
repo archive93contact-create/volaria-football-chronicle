@@ -438,6 +438,54 @@ export default function ClubNarratives({ club, seasons, leagues }) {
         });
     }
 
+    // Recent decade rise/fall narratives
+    const recentSeasons = sortedSeasons.filter(s => {
+        const yearStr = s.year.split('-')[0];
+        const year = parseInt(yearStr);
+        return year >= new Date().getFullYear() - 10;
+    });
+
+    if (recentSeasons.length >= 3) {
+        const recentPromotions = recentSeasons.filter(s => s.status === 'promoted').length;
+        const recentRelegations = recentSeasons.filter(s => s.status === 'relegated').length;
+
+        if (recentPromotions >= 3) {
+            narratives.push({
+                icon: TrendingUp,
+                color: 'text-green-600',
+                bg: 'bg-green-50',
+                title: 'Rapid Rise',
+                text: `${recentPromotions} promotions in the last decade - a club on the up with serious momentum.`
+            });
+        } else if (recentPromotions === 2) {
+            narratives.push({
+                icon: TrendingUp,
+                color: 'text-green-500',
+                bg: 'bg-green-50',
+                title: 'Climbing the Ladder',
+                text: `Two promotions in the last decade, steadily working their way up the pyramid.`
+            });
+        }
+
+        if (recentRelegations >= 3) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-600',
+                bg: 'bg-red-50',
+                title: 'Steep Decline',
+                text: `${recentRelegations} relegations in the last decade - a turbulent period for the club.`
+            });
+        } else if (recentRelegations === 2) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-500',
+                bg: 'bg-red-50',
+                title: 'Troubled Times',
+                text: `Two relegations in the last decade, struggling to find stability.`
+            });
+        }
+    }
+
     // Defunct club narrative
     if (club.is_defunct) {
         narratives.push({
