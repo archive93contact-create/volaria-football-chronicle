@@ -339,29 +339,29 @@ export default function ClubDetail() {
                                                                           </Card>
                                                                       );
                                                                   })()}
-                    {club.seasons_played > 0 && (
+                    {combinedStats?.seasons_played > 0 && (
                         <Card className="border-0 shadow-sm">
                             <CardContent className="p-4 text-center">
                                 <Calendar className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold">{club.seasons_played}</div>
+                                <div className="text-2xl font-bold">{combinedStats.seasons_played}</div>
                                 <div className="text-xs text-slate-500">Seasons</div>
                             </CardContent>
                         </Card>
                     )}
-                    {club.promotions > 0 && (
+                    {combinedStats?.promotions > 0 && (
                         <Card className="border-0 shadow-sm bg-green-50">
                             <CardContent className="p-4 text-center">
                                 <TrendingUp className="w-6 h-6 text-green-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-green-700">{club.promotions}</div>
+                                <div className="text-2xl font-bold text-green-700">{combinedStats.promotions}</div>
                                 <div className="text-xs text-green-600">Promotions</div>
                             </CardContent>
                         </Card>
                     )}
-                    {club.relegations > 0 && (
+                    {combinedStats?.relegations > 0 && (
                         <Card className="border-0 shadow-sm bg-red-50">
                             <CardContent className="p-4 text-center">
                                 <TrendingDown className="w-6 h-6 text-red-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-red-700">{club.relegations}</div>
+                                <div className="text-2xl font-bold text-red-700">{combinedStats.relegations}</div>
                                 <div className="text-xs text-red-600">Relegations</div>
                             </CardContent>
                         </Card>
