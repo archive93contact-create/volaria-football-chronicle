@@ -47,7 +47,7 @@ export default function Home() {
                             Volaria
                         </h1>
                         <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-12">
-                            Welcome to my fictional football world — home to the TFA Football League, 100+ seasons of history, and 1000s of clubs with their own stories
+                            Welcome to my fictional football world, home to the fictional continent of Volaria, 100+ seasons of history, and 1000s of clubs with their own stories, a fictional football passion project.
                         </p>
                         
                         <div className="flex flex-wrap justify-center gap-4">
