@@ -205,6 +205,9 @@ export default function LeagueDetail() {
                     {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                 </div>
 
+                {/* League Narratives */}
+                <LeagueNarratives league={league} seasons={seasons} clubs={clubs} />
+
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="table">League Table</TabsTrigger>

@@ -212,8 +212,11 @@ export default function NationDetail() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Nation Narratives */}
+                <NationNarratives nation={nation} leagues={leagues} clubs={clubs} />
+
                 {/* Quick Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 mt-8">
                     <Card className="border-0 shadow-sm">
                         <CardContent className="p-4 text-center">
                             <Trophy className="w-8 h-8 text-amber-500 mx-auto mb-2" />
