@@ -494,7 +494,7 @@ export default function ClubDetail() {
                 {/* League History Chart */}
                 {combinedSeasons.length >= 2 && (
                     <div className="mt-8">
-                        <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} />
+                        <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} nationName={nation?.name} />
                     </div>
                 )}
 
