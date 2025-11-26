@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children, currentPageName }) {
@@ -12,6 +12,8 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Nations', icon: Globe, page: 'Nations' },
         { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
         { name: 'Coefficients', icon: BarChart3, page: 'CountryCoefficients' },
+        { name: 'About', icon: Info, page: 'About' },
+        { name: 'Contact', icon: Mail, page: 'Contact' },
     ];
 
     return (

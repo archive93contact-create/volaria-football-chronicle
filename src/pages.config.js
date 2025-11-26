@@ -12,6 +12,8 @@ import ClubDetail from './pages/ClubDetail';
 import AddSeason from './pages/AddSeason';
 import NationClubs from './pages/NationClubs';
 import ContinentalSeasonDetail from './pages/ContinentalSeasonDetail';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +32,8 @@ export const PAGES = {
     "AddSeason": AddSeason,
     "NationClubs": NationClubs,
     "ContinentalSeasonDetail": ContinentalSeasonDetail,
+    "About": About,
+    "Contact": Contact,
 }
 
 export const pagesConfig = {
