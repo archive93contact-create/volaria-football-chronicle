@@ -127,7 +127,14 @@ export default function ClubDetail() {
                             </div>
                         )}
                         <div className="flex-1">
-                            <h1 className="text-3xl md:text-4xl font-bold text-white">{club.name}</h1>
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-3xl md:text-4xl font-bold text-white">{club.name}</h1>
+                                {nation?.name === 'Turuliand' && league?.tier <= 4 && (
+                                    <span className="px-2 py-1 bg-white/20 rounded text-xs font-bold text-white border border-white/30">
+                                        TFA
+                                    </span>
+                                )}
+                            </div>
                             {club.nickname && <p className="text-white/80 text-lg mt-1">"{club.nickname}"</p>}
                             {club.city && <p className="text-white/70 flex items-center gap-1 mt-2"><MapPin className="w-4 h-4" /> {club.city}</p>}
                         </div>
