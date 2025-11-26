@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star } from 'lucide-react';
+import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -329,6 +329,14 @@ export default function NationClubs() {
                                                 </button>
                                             </TableHead>
                                         )}
+                                        <TableHead className="text-center hidden lg:table-cell">
+                                            <div className="flex items-center gap-1">
+                                                <TrendingUp className="w-3 h-3 text-green-500" />/<TrendingDown className="w-3 h-3 text-red-500" />
+                                            </div>
+                                        </TableHead>
+                                        <TableHead className="text-center hidden xl:table-cell">
+                                            <Target className="w-3 h-3" />
+                                        </TableHead>
                                         <TableHead className="text-center hidden md:table-cell">
                                             Last Season
                                         </TableHead>
@@ -429,6 +437,35 @@ export default function NationClubs() {
                                                         })()}
                                                     </TableCell>
                                                 )}
+                                                <TableCell className="text-center hidden lg:table-cell">
+                                                    <div className="flex items-center justify-center gap-1 text-xs">
+                                                        {(club.promotions || 0) > 0 && (
+                                                            <span className="text-green-600 font-medium">{club.promotions}↑</span>
+                                                        )}
+                                                        {(club.relegations || 0) > 0 && (
+                                                            <span className="text-red-600 font-medium">{club.relegations}↓</span>
+                                                        )}
+                                                        {!(club.promotions || club.relegations) && (
+                                                            <span className="text-slate-300">-</span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-center hidden xl:table-cell">
+                                                    <div className="text-xs">
+                                                        {club.best_finish ? (
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-emerald-600 font-medium">
+                                                                    {club.best_finish}{club.best_finish === 1 ? 'st' : club.best_finish === 2 ? 'nd' : club.best_finish === 3 ? 'rd' : 'th'}
+                                                                </span>
+                                                                {club.best_finish_tier && (
+                                                                    <span className="text-slate-400">T{club.best_finish_tier}</span>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-300">-</span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
                                                 <TableCell className={`text-center hidden md:table-cell ${inactive ? 'italic text-slate-500' : ''}`}>
                                                     {lastSeason ? (
                                                         inactive ? (

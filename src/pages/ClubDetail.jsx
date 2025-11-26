@@ -1125,6 +1125,39 @@ export default function ClubDetail() {
                             </div>
                         </div>
 
+                        {/* Rivalries Section */}
+                        <div className="border-t pt-4 mt-4">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Rivalries</h4>
+                            <div className="space-y-2 p-3 bg-red-50 rounded-lg">
+                                <Label className="text-xs text-red-800">Rival Clubs (select up to 10)</Label>
+                                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                                    {allClubs.filter(c => c.id !== clubId).map(c => {
+                                        const isSelected = (editData.rival_club_ids || []).includes(c.id);
+                                        return (
+                                            <label key={c.id} className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${isSelected ? 'bg-red-200' : 'hover:bg-red-100'}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={(e) => {
+                                                        const current = editData.rival_club_ids || [];
+                                                        if (e.target.checked && current.length < 10) {
+                                                            setEditData({...editData, rival_club_ids: [...current, c.id]});
+                                                        } else if (!e.target.checked) {
+                                                            setEditData({...editData, rival_club_ids: current.filter(id => id !== c.id)});
+                                                        }
+                                                    }}
+                                                    disabled={!isSelected && (editData.rival_club_ids || []).length >= 10}
+                                                    className="rounded"
+                                                />
+                                                <span className="text-sm truncate">{c.name}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-red-600">{(editData.rival_club_ids || []).length}/10 rivals selected</p>
+                            </div>
+                        </div>
+
                         {/* Continental Honours Section */}
                         <div className="border-t pt-4 mt-4">
                             <h4 className="font-semibold mb-3 flex items-center gap-2"><Star className="w-4 h-4" /> Continental Honours</h4>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock } from 'lucide-react';
 
-export default function ClubNarratives({ club, seasons, leagues }) {
+export default function ClubNarratives({ club, seasons, leagues, allClubs = [], allLeagueTables = [] }) {
     const narratives = [];
     
     if (!club || seasons.length === 0) return null;
@@ -611,6 +611,155 @@ export default function ClubNarratives({ club, seasons, leagues }) {
                 ? `The club ceased operations in ${club.defunct_year}, but their legacy lives on.`
                 : `This club is no longer active, but their story remains part of football history.`
         });
+    }
+
+    // Location-based narratives
+    if (club.settlement) {
+        const sameSettlementClubs = allClubs.filter(c => c.id !== club.id && c.settlement === club.settlement);
+        if (sameSettlementClubs.length >= 2) {
+            narratives.push({
+                icon: Shield,
+                color: 'text-purple-500',
+                bg: 'bg-purple-50',
+                title: 'Local Football Hub',
+                text: `One of ${sameSettlementClubs.length + 1} clubs in ${club.settlement}, making it a footballing hotbed.`
+            });
+        } else if (sameSettlementClubs.length === 1) {
+            narratives.push({
+                icon: Shield,
+                color: 'text-purple-500',
+                bg: 'bg-purple-50',
+                title: 'Town Rivals',
+                text: `Shares ${club.settlement} with ${sameSettlementClubs[0].name} - a natural local rivalry.`
+            });
+        }
+    }
+
+    if (club.district && !club.settlement) {
+        const sameDistrictClubs = allClubs.filter(c => c.id !== club.id && c.district === club.district);
+        if (sameDistrictClubs.length >= 3) {
+            narratives.push({
+                icon: Shield,
+                color: 'text-blue-500',
+                bg: 'bg-blue-50',
+                title: 'District Football',
+                text: `Part of a strong footballing tradition in ${club.district} with ${sameDistrictClubs.length} other clubs.`
+            });
+        }
+    }
+
+    if (club.region) {
+        const sameRegionClubs = allClubs.filter(c => c.id !== club.id && c.region === club.region);
+        const regionChampions = sameRegionClubs.filter(c => (c.league_titles || 0) > 0);
+        if ((club.league_titles || 0) > 0 && regionChampions.length === 0) {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-amber-600',
+                bg: 'bg-amber-50',
+                title: 'Regional Pride',
+                text: `The only club from ${club.region} to have won a top-flight title.`
+            });
+        }
+    }
+
+    // Manual rivalries narrative
+    if (club.rival_club_ids && club.rival_club_ids.length > 0) {
+        const rivalNames = club.rival_club_ids
+            .map(id => allClubs.find(c => c.id === id)?.name)
+            .filter(Boolean)
+            .slice(0, 3);
+        if (rivalNames.length > 0) {
+            narratives.push({
+                icon: Flame,
+                color: 'text-red-500',
+                bg: 'bg-red-50',
+                title: 'Fierce Rivalries',
+                text: `Historic rivals include ${rivalNames.join(', ')}${club.rival_club_ids.length > 3 ? ` and ${club.rival_club_ids.length - 3} more` : ''}.`
+            });
+        }
+    }
+
+    // Dynamic rivalry detection from league tables
+    if (allLeagueTables.length > 0 && sortedSeasons.length >= 3) {
+        const clubSeasonsByYear = {};
+        sortedSeasons.forEach(s => {
+            clubSeasonsByYear[s.year] = s;
+        });
+
+        // Find clubs that frequently finish close (within 2 positions)
+        const closeFinishCounts = {};
+        // Find clubs that battle for titles together
+        const titleRaceCounts = {};
+        // Find clubs that battle relegation together
+        const relegationBattleCounts = {};
+
+        Object.keys(clubSeasonsByYear).forEach(year => {
+            const clubSeason = clubSeasonsByYear[year];
+            const leagueId = clubSeason.league_id;
+            const yearTables = allLeagueTables.filter(t => t.year === year && t.league_id === leagueId);
+            
+            if (yearTables.length === 0) return;
+            
+            const leagueSize = yearTables.length;
+            const clubPos = clubSeason.position;
+            
+            yearTables.forEach(t => {
+                if (t.club_id === club.id || !t.club_name) return;
+                const otherPos = t.position;
+                const posDiff = Math.abs(clubPos - otherPos);
+                
+                // Close finishes (within 2 positions)
+                if (posDiff <= 2 && posDiff > 0) {
+                    closeFinishCounts[t.club_name] = (closeFinishCounts[t.club_name] || 0) + 1;
+                }
+                
+                // Title race (both in top 3)
+                if (clubPos <= 3 && otherPos <= 3) {
+                    titleRaceCounts[t.club_name] = (titleRaceCounts[t.club_name] || 0) + 1;
+                }
+                
+                // Relegation battle (both in bottom 3)
+                if (clubPos >= leagueSize - 2 && otherPos >= leagueSize - 2) {
+                    relegationBattleCounts[t.club_name] = (relegationBattleCounts[t.club_name] || 0) + 1;
+                }
+            });
+        });
+
+        // Find most frequent close finisher
+        const sortedClose = Object.entries(closeFinishCounts).sort((a, b) => b[1] - a[1]);
+        if (sortedClose.length > 0 && sortedClose[0][1] >= 3) {
+            narratives.push({
+                icon: Target,
+                color: 'text-orange-500',
+                bg: 'bg-orange-50',
+                title: 'Competitive Rivalry',
+                text: `Finished within 2 places of ${sortedClose[0][0]} in ${sortedClose[0][1]} seasons - a competitive rivalry.`
+            });
+        }
+
+        // Title race rivals
+        const sortedTitleRace = Object.entries(titleRaceCounts).sort((a, b) => b[1] - a[1]);
+        if (sortedTitleRace.length > 0 && sortedTitleRace[0][1] >= 3) {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-amber-500',
+                bg: 'bg-amber-50',
+                title: 'Title Race Rivals',
+                text: `Battled for the title with ${sortedTitleRace[0][0]} in ${sortedTitleRace[0][1]} seasons.`
+            });
+        }
+
+        // Relegation battle companions
+        const sortedRelegation = Object.entries(relegationBattleCounts).sort((a, b) => b[1] - a[1]);
+        if (sortedRelegation.length > 0 && sortedRelegation[0][1] >= 2) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-600',
+                bg: 'bg-red-50',
+                title: 'Survival Rivals',
+                text: `Fought against relegation alongside ${sortedRelegation[0][0]} in ${sortedRelegation[0][1]} seasons.`
+            });
+        }
     }
 
     // Longest continuous spell in a tier
