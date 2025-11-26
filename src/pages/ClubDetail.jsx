@@ -596,7 +596,7 @@ export default function ClubDetail() {
                 )}
 
                 {/* Club Narratives */}
-                <ClubNarratives club={club} seasons={combinedSeasons} leagues={allLeagues} />
+                <ClubNarratives club={{...club, ...combinedStats}} seasons={combinedSeasons} leagues={allLeagues} />
 
                 {/* League History Chart */}
                 {combinedSeasons.length >= 2 && (
