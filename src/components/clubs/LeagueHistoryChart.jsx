@@ -168,7 +168,14 @@ export default function LeagueHistoryChart({ seasons, leagues, nationName }) {
                         <span className="w-3 h-3 rounded-full bg-red-500"></span> Relegated
                     </span>
                     <span className="text-slate-400">|</span>
-                    <span>Higher = Better (Top of chart is Tier 1, 1st place)</span>
+                    <span className="flex items-center gap-1">
+                        <span className="w-3 h-3 rounded bg-amber-100 border border-amber-300"></span> Top Flight
+                    </span>
+                    {nationName?.toLowerCase() === 'turuliand' && (
+                        <span className="flex items-center gap-1">
+                            <span className="w-3 h-3 rounded bg-blue-100 border border-blue-300"></span> TFA League
+                        </span>
+                    )}
                 </div>
             </CardContent>
         </Card>
