@@ -86,73 +86,69 @@ export default function ContinentalCompetitions() {
         }
     };
 
-    const handleFormChange = (field, value) => {
-        setFormData(prev => ({...prev, [field]: value}));
-    };
-
-    const CompForm = () => (
+    const compFormContent = (
         <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Competition Name *</Label>
-                    <Input value={formData.name} onChange={(e) => handleFormChange('name', e.target.value)} placeholder="e.g., Volaria Champions Cup" className="mt-1" />
+                    <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g., Volaria Champions Cup" className="mt-1" />
                 </div>
                 <div>
                     <Label>Short Name</Label>
-                    <Input value={formData.short_name} onChange={(e) => handleFormChange('short_name', e.target.value)} placeholder="e.g., VCC" className="mt-1" />
+                    <Input value={formData.short_name} onChange={(e) => setFormData({...formData, short_name: e.target.value})} placeholder="e.g., VCC" className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
                 <div>
                     <Label>Founded Year</Label>
-                    <Input type="number" value={formData.founded_year} onChange={(e) => handleFormChange('founded_year', e.target.value)} className="mt-1" />
+                    <Input type="number" value={formData.founded_year} onChange={(e) => setFormData({...formData, founded_year: e.target.value})} className="mt-1" />
                 </div>
                 <div>
                     <Label>Number of Teams</Label>
-                    <Input type="number" value={formData.number_of_teams} onChange={(e) => handleFormChange('number_of_teams', e.target.value)} className="mt-1" />
+                    <Input type="number" value={formData.number_of_teams} onChange={(e) => setFormData({...formData, number_of_teams: e.target.value})} className="mt-1" />
                 </div>
                 <div>
                     <Label>Tier (1=Top, 2=Secondary)</Label>
-                    <Input type="number" min="1" max="3" value={formData.tier} onChange={(e) => handleFormChange('tier', e.target.value)} className="mt-1" />
+                    <Input type="number" min="1" max="3" value={formData.tier} onChange={(e) => setFormData({...formData, tier: e.target.value})} className="mt-1" />
                 </div>
             </div>
             <div>
                 <Label>Format</Label>
-                <Input value={formData.format} onChange={(e) => handleFormChange('format', e.target.value)} placeholder="e.g., Group stage + Knockout rounds" className="mt-1" />
+                <Input value={formData.format} onChange={(e) => setFormData({...formData, format: e.target.value})} placeholder="e.g., Group stage + Knockout rounds" className="mt-1" />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Current Champion</Label>
-                    <Input value={formData.current_champion} onChange={(e) => handleFormChange('current_champion', e.target.value)} className="mt-1" />
+                    <Input value={formData.current_champion} onChange={(e) => setFormData({...formData, current_champion: e.target.value})} className="mt-1" />
                 </div>
                 <div>
                     <Label>Most Titles (Club)</Label>
-                    <Input value={formData.most_titles_club} onChange={(e) => handleFormChange('most_titles_club', e.target.value)} className="mt-1" />
+                    <Input value={formData.most_titles_club} onChange={(e) => setFormData({...formData, most_titles_club: e.target.value})} className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Primary Color</Label>
                     <div className="flex gap-2 mt-1">
-                        <input type="color" value={formData.primary_color} onChange={(e) => handleFormChange('primary_color', e.target.value)} className="w-12 h-10 rounded cursor-pointer" />
-                        <Input value={formData.primary_color} onChange={(e) => handleFormChange('primary_color', e.target.value)} className="flex-1" />
+                        <input type="color" value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="w-12 h-10 rounded cursor-pointer" />
+                        <Input value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="flex-1" />
                     </div>
                 </div>
                 <div>
                     <Label>Secondary Color</Label>
                     <div className="flex gap-2 mt-1">
-                        <input type="color" value={formData.secondary_color} onChange={(e) => handleFormChange('secondary_color', e.target.value)} className="w-12 h-10 rounded cursor-pointer" />
-                        <Input value={formData.secondary_color} onChange={(e) => handleFormChange('secondary_color', e.target.value)} className="flex-1" />
+                        <input type="color" value={formData.secondary_color} onChange={(e) => setFormData({...formData, secondary_color: e.target.value})} className="w-12 h-10 rounded cursor-pointer" />
+                        <Input value={formData.secondary_color} onChange={(e) => setFormData({...formData, secondary_color: e.target.value})} className="flex-1" />
                     </div>
                 </div>
             </div>
             <div>
                 <Label>Description</Label>
-                <Textarea value={formData.description} onChange={(e) => handleFormChange('description', e.target.value)} rows={3} className="mt-1" />
+                <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} className="mt-1" />
             </div>
             <div>
                 <Label>History</Label>
-                <Textarea value={formData.history} onChange={(e) => handleFormChange('history', e.target.value)} rows={4} className="mt-1" />
+                <Textarea value={formData.history} onChange={(e) => setFormData({...formData, history: e.target.value})} rows={4} className="mt-1" />
             </div>
             <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => { setIsAddOpen(false); setEditingComp(null); resetForm(); }}>Cancel</Button>
@@ -178,7 +174,7 @@ export default function ContinentalCompetitions() {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader><DialogTitle>Add Continental Competition</DialogTitle></DialogHeader>
-                        <CompForm />
+                        {compFormContent}
                     </DialogContent>
                 </Dialog>
             </PageHeader>
@@ -254,7 +250,7 @@ export default function ContinentalCompetitions() {
             <Dialog open={!!editingComp} onOpenChange={(open) => { if (!open) { setEditingComp(null); resetForm(); } }}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Edit Competition</DialogTitle></DialogHeader>
-                    <CompForm />
+                    {compFormContent}
                 </DialogContent>
             </Dialog>
         </div>
