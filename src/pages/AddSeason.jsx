@@ -28,10 +28,10 @@ export default function AddSeason() {
         enabled: !!leagueId,
     });
 
-    const { data: clubs = [] } = useQuery({
-        queryKey: ['leagueClubs', leagueId],
-        queryFn: () => base44.entities.Club.filter({ league_id: leagueId }, 'name'),
-        enabled: !!leagueId,
+    const { data: allNationClubs = [] } = useQuery({
+        queryKey: ['nationClubs', league?.nation_id],
+        queryFn: () => base44.entities.Club.filter({ nation_id: league.nation_id }, 'name'),
+        enabled: !!league?.nation_id,
     });
 
     const [seasonData, setSeasonData] = useState({
@@ -124,11 +124,82 @@ export default function AddSeason() {
                 notes: data.notes
             });
 
-            // Create league table entries
-            const tableEntries = tableRows.filter(r => r.club_name).map(row => ({
+            // Process each club in the table - create new or update existing
+            const clubIdMap = {};
+            for (const row of tableRows.filter(r => r.club_name.trim())) {
+                const clubName = row.club_name.trim();
+                
+                // Check if club already exists in the nation
+                const existingClub = allNationClubs.find(
+                    c => c.name.toLowerCase() === clubName.toLowerCase()
+                );
+
+                if (existingClub) {
+                    // Update existing club stats
+                    const currentTitles = existingClub.league_titles || 0;
+                    const currentTitleYears = existingClub.title_years || '';
+                    const isChampion = row.status === 'champion';
+                    const isPromoted = row.status === 'promoted';
+                    const isRelegated = row.status === 'relegated';
+
+                    const newTitles = isChampion ? currentTitles + 1 : currentTitles;
+                    const newTitleYears = isChampion 
+                        ? (currentTitleYears ? `${currentTitleYears}, ${data.year}` : data.year)
+                        : currentTitleYears;
+
+                    const currentBestFinish = existingClub.best_finish || 999;
+                    const newBestFinish = row.position < currentBestFinish ? row.position : currentBestFinish;
+                    const newBestFinishYear = row.position < currentBestFinish ? data.year : existingClub.best_finish_year;
+
+                    await base44.entities.Club.update(existingClub.id, {
+                        league_id: leagueId,
+                        league_titles: newTitles,
+                        title_years: newTitleYears,
+                        best_finish: newBestFinish,
+                        best_finish_year: newBestFinishYear,
+                        seasons_played: (existingClub.seasons_played || 0) + 1,
+                        total_wins: (existingClub.total_wins || 0) + (row.won || 0),
+                        total_draws: (existingClub.total_draws || 0) + (row.drawn || 0),
+                        total_losses: (existingClub.total_losses || 0) + (row.lost || 0),
+                        total_goals_scored: (existingClub.total_goals_scored || 0) + (row.goals_for || 0),
+                        total_goals_conceded: (existingClub.total_goals_conceded || 0) + (row.goals_against || 0),
+                        promotions: (existingClub.promotions || 0) + (isPromoted ? 1 : 0),
+                        relegations: (existingClub.relegations || 0) + (isRelegated ? 1 : 0),
+                    });
+                    clubIdMap[clubName] = existingClub.id;
+                } else {
+                    // Create new club
+                    const isChampion = row.status === 'champion';
+                    const isPromoted = row.status === 'promoted';
+                    const isRelegated = row.status === 'relegated';
+
+                    const newClub = await base44.entities.Club.create({
+                        name: clubName,
+                        nation_id: league.nation_id,
+                        league_id: leagueId,
+                        league_titles: isChampion ? 1 : 0,
+                        title_years: isChampion ? data.year : '',
+                        best_finish: row.position,
+                        best_finish_year: data.year,
+                        seasons_played: 1,
+                        total_wins: row.won || 0,
+                        total_draws: row.drawn || 0,
+                        total_losses: row.lost || 0,
+                        total_goals_scored: row.goals_for || 0,
+                        total_goals_conceded: row.goals_against || 0,
+                        promotions: isPromoted ? 1 : 0,
+                        relegations: isRelegated ? 1 : 0,
+                    });
+                    clubIdMap[clubName] = newClub.id;
+                }
+            }
+
+            // Create league table entries with club IDs
+            const tableEntries = tableRows.filter(r => r.club_name.trim()).map(row => ({
                 season_id: season.id,
                 league_id: leagueId,
                 year: data.year,
+                club_id: clubIdMap[row.club_name.trim()] || '',
                 ...row
             }));
 
@@ -141,6 +212,8 @@ export default function AddSeason() {
         onSuccess: () => {
             queryClient.invalidateQueries(['leagueSeasons']);
             queryClient.invalidateQueries(['leagueTables']);
+            queryClient.invalidateQueries(['clubs']);
+            queryClient.invalidateQueries(['nationClubs']);
             navigate(createPageUrl(`LeagueDetail?id=${leagueId}`));
         },
     });
