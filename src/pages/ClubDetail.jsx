@@ -152,6 +152,53 @@ export default function ClubDetail() {
     // Combine seasons from current club, predecessors, and former names
     const combinedSeasons = [...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2, ...formerNameSeasons].sort((a, b) => b.year.localeCompare(a.year));
 
+    // Combine stats from former name club (same club, just renamed)
+    const combinedStats = React.useMemo(() => {
+        if (!club) return null;
+        const former = formerNameClub || {};
+        
+        // Helper to combine comma-separated year strings
+        const combineYears = (y1, y2) => {
+            const years = [...(y1?.split(',').map(y => y.trim()).filter(Boolean) || []), ...(y2?.split(',').map(y => y.trim()).filter(Boolean) || [])];
+            return years.length > 0 ? [...new Set(years)].sort().join(', ') : null;
+        };
+
+        return {
+            league_titles: (club.league_titles || 0) + (former.league_titles || 0),
+            title_years: combineYears(club.title_years, former.title_years),
+            lower_tier_titles: (club.lower_tier_titles || 0) + (former.lower_tier_titles || 0),
+            lower_tier_title_years: combineYears(club.lower_tier_title_years, former.lower_tier_title_years),
+            seasons_played: (club.seasons_played || 0) + (former.seasons_played || 0),
+            seasons_top_flight: (club.seasons_top_flight || 0) + (former.seasons_top_flight || 0),
+            promotions: (club.promotions || 0) + (former.promotions || 0),
+            relegations: (club.relegations || 0) + (former.relegations || 0),
+            total_wins: (club.total_wins || 0) + (former.total_wins || 0),
+            total_draws: (club.total_draws || 0) + (former.total_draws || 0),
+            total_losses: (club.total_losses || 0) + (former.total_losses || 0),
+            total_goals_scored: (club.total_goals_scored || 0) + (former.total_goals_scored || 0),
+            total_goals_conceded: (club.total_goals_conceded || 0) + (former.total_goals_conceded || 0),
+            vcc_titles: (club.vcc_titles || 0) + (former.vcc_titles || 0),
+            vcc_title_years: combineYears(club.vcc_title_years, former.vcc_title_years),
+            vcc_runner_up: (club.vcc_runner_up || 0) + (former.vcc_runner_up || 0),
+            vcc_appearances: (club.vcc_appearances || 0) + (former.vcc_appearances || 0),
+            ccc_titles: (club.ccc_titles || 0) + (former.ccc_titles || 0),
+            ccc_title_years: combineYears(club.ccc_title_years, former.ccc_title_years),
+            ccc_runner_up: (club.ccc_runner_up || 0) + (former.ccc_runner_up || 0),
+            ccc_appearances: (club.ccc_appearances || 0) + (former.ccc_appearances || 0),
+            // For best finishes, use the better one
+            best_finish: (!club.best_finish && !former.best_finish) ? null :
+                (!former.best_finish || (club.best_finish && club.best_finish < former.best_finish)) ? club.best_finish : former.best_finish,
+            best_finish_tier: (!club.best_finish && !former.best_finish) ? null :
+                (!former.best_finish || (club.best_finish && club.best_finish < former.best_finish)) ? club.best_finish_tier : former.best_finish_tier,
+            best_finish_year: (!club.best_finish && !former.best_finish) ? null :
+                (!former.best_finish || (club.best_finish && club.best_finish < former.best_finish)) ? club.best_finish_year : former.best_finish_year,
+            vcc_best_finish: club.vcc_best_finish || former.vcc_best_finish,
+            vcc_best_finish_year: club.vcc_best_finish_year || former.vcc_best_finish_year,
+            ccc_best_finish: club.ccc_best_finish || former.ccc_best_finish,
+            ccc_best_finish_year: club.ccc_best_finish_year || former.ccc_best_finish_year,
+        };
+    }, [club, formerNameClub]);
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Club.update(clubId, data),
         onSuccess: () => {
