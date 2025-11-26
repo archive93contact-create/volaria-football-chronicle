@@ -328,6 +328,69 @@ export default function LeagueDetail() {
                         </Card>
                     </TabsContent>
 
+                    <TabsContent value="titles">
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader>
+                                <CardTitle>All-Time Title Winners</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {(() => {
+                                    // Count titles per club from season data
+                                    const titleCounts = {};
+                                    seasons.forEach(season => {
+                                        if (season.champion_name) {
+                                            const name = season.champion_name.trim();
+                                            if (!titleCounts[name]) {
+                                                titleCounts[name] = { count: 0, years: [] };
+                                            }
+                                            titleCounts[name].count++;
+                                            titleCounts[name].years.push(season.year);
+                                        }
+                                    });
+
+                                    const sortedClubs = Object.entries(titleCounts)
+                                        .sort((a, b) => b[1].count - a[1].count);
+
+                                    if (sortedClubs.length === 0) {
+                                        return <p className="text-center py-8 text-slate-500">No title history yet</p>;
+                                    }
+
+                                    return (
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-12">#</TableHead>
+                                                    <TableHead>Club</TableHead>
+                                                    <TableHead className="text-center">Titles</TableHead>
+                                                    <TableHead className="hidden md:table-cell">Years</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {sortedClubs.map(([clubName, data], idx) => (
+                                                    <TableRow key={clubName}>
+                                                        <TableCell className="font-bold text-slate-400">{idx + 1}</TableCell>
+                                                        <TableCell className="font-medium">
+                                                            <span className="flex items-center gap-2">
+                                                                {idx === 0 && <Trophy className="w-4 h-4 text-amber-500" />}
+                                                                {clubName}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="text-center">
+                                                            <span className="font-bold text-emerald-600">{data.count}</span>
+                                                        </TableCell>
+                                                        <TableCell className="hidden md:table-cell text-slate-500 text-sm">
+                                                            {data.years.sort().join(', ')}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    );
+                                })()}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
                     <TabsContent value="history">
                         <Card className="border-0 shadow-sm">
                             <CardHeader className="flex flex-row items-center justify-between">
