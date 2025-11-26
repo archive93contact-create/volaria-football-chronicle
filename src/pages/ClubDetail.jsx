@@ -78,6 +78,18 @@ export default function ClubDetail() {
         enabled: !!club?.nation_id,
     });
 
+    // Fetch all league tables for dynamic rivalry detection
+    const { data: allNationLeagueTables = [] } = useQuery({
+        queryKey: ['allNationLeagueTables', club?.nation_id],
+        queryFn: async () => {
+            const nationLeagues = await base44.entities.League.filter({ nation_id: club.nation_id });
+            const leagueIds = nationLeagues.map(l => l.id);
+            const tables = await base44.entities.LeagueTable.list();
+            return tables.filter(t => leagueIds.includes(t.league_id));
+        },
+        enabled: !!club?.nation_id,
+    });
+
     // Fetch predecessor club data if exists
     const { data: predecessorClub } = useQuery({
         queryKey: ['predecessorClub', club?.predecessor_club_id],
@@ -652,7 +664,7 @@ export default function ClubDetail() {
                     seasons={combinedSeasons} 
                     leagues={allLeagues} 
                     allClubs={allClubs}
-                    allLeagueTables={clubSeasons.concat(predecessorSeasons, predecessorSeasons2, formerNameSeasons, formerNameSeasons2)}
+                    allLeagueTables={allNationLeagueTables}
                 />
 
                 {/* League History Chart */}
