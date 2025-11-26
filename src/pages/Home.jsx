@@ -11,7 +11,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Home() {
     const { data: nations = [], isLoading: nationsLoading } = useQuery({
         queryKey: ['nations'],
-        queryFn: () => base44.entities.Nation.list('name'),
+        queryFn: () => base44.entities.Nation.list(),
+    });
+
+    const { data: coefficients = [] } = useQuery({
+        queryKey: ['coefficients'],
+        queryFn: () => base44.entities.CountryCoefficient.list(),
+    });
+
+    const sortedNations = [...nations].sort((a, b) => {
+        const coeffA = coefficients.find(c => c.nation_id === a.id);
+        const coeffB = coefficients.find(c => c.nation_id === b.id);
+        if (coeffA && coeffB) return (coeffA.rank || 999) - (coeffB.rank || 999);
+        if (coeffA) return -1;
+        if (coeffB) return 1;
+        return a.name.localeCompare(b.name);
     });
 
     const { data: leagues = [] } = useQuery({
@@ -122,7 +136,7 @@ export default function Home() {
                     </Card>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {nations.map((nation) => {
+                        {sortedNations.map((nation) => {
                             const nationLeagues = leagues.filter(l => l.nation_id === nation.id);
                             const nationClubs = clubs.filter(c => c.nation_id === nation.id);
                             

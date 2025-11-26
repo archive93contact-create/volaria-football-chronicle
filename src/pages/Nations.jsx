@@ -17,7 +17,12 @@ export default function Nations() {
 
     const { data: nations = [], isLoading } = useQuery({
         queryKey: ['nations'],
-        queryFn: () => base44.entities.Nation.list('name'),
+        queryFn: () => base44.entities.Nation.list(),
+    });
+
+    const { data: coefficients = [] } = useQuery({
+        queryKey: ['coefficients'],
+        queryFn: () => base44.entities.CountryCoefficient.list(),
     });
 
     const { data: leagues = [] } = useQuery({
@@ -32,11 +37,27 @@ export default function Nations() {
 
     const regions = [...new Set(nations.filter(n => n.region).map(n => n.region))];
 
-    const filteredNations = nations.filter(nation => {
-        const matchesSearch = nation.name.toLowerCase().includes(search.toLowerCase());
-        const matchesRegion = regionFilter === 'all' || nation.region === regionFilter;
-        return matchesSearch && matchesRegion;
-    });
+    const filteredNations = nations
+        .filter(nation => {
+            const matchesSearch = nation.name.toLowerCase().includes(search.toLowerCase());
+            const matchesRegion = regionFilter === 'all' || nation.region === regionFilter;
+            return matchesSearch && matchesRegion;
+        })
+        .sort((a, b) => {
+            const coeffA = coefficients.find(c => c.nation_id === a.id);
+            const coeffB = coefficients.find(c => c.nation_id === b.id);
+            
+            // Both have rankings - sort by rank
+            if (coeffA && coeffB) {
+                return (coeffA.rank || 999) - (coeffB.rank || 999);
+            }
+            // Only A has ranking - A comes first
+            if (coeffA) return -1;
+            // Only B has ranking - B comes first
+            if (coeffB) return 1;
+            // Neither has ranking - sort alphabetically
+            return a.name.localeCompare(b.name);
+        });
 
     return (
         <div className="min-h-screen bg-slate-50">
