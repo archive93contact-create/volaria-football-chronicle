@@ -206,7 +206,7 @@ export default function LeagueDetail() {
                 </div>
 
                 {/* League Narratives */}
-                <LeagueNarratives league={league} seasons={seasons} clubs={clubs} />
+                <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
 
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
