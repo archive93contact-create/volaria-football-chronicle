@@ -515,6 +515,39 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
+                {/* Former Name Notice */}
+                {formerNameClub && (
+                    <Card className="border-0 shadow-sm mb-8 bg-purple-50 border-l-4 border-l-purple-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Shield className="w-6 h-6 text-purple-600" />
+                            <div>
+                                <span className="text-purple-800">Formerly known as </span>
+                                <Link to={createPageUrl(`ClubDetail?id=${formerNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                    {formerNameClub.name}
+                                </Link>
+                                {club.renamed_year && <span className="text-purple-600"> (renamed in {club.renamed_year})</span>}
+                                <span className="text-purple-600"> - same club, different name.</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* This is a Former Name Notice */}
+                {club.is_former_name && currentNameClub && (
+                    <Card className="border-0 shadow-sm mb-8 bg-purple-50 border-l-4 border-l-purple-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Shield className="w-6 h-6 text-purple-600" />
+                            <div>
+                                <span className="text-purple-800">This is a former name. The club is now known as </span>
+                                <Link to={createPageUrl(`ClubDetail?id=${currentNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                    {currentNameClub.name}
+                                </Link>
+                                {club.renamed_year && <span className="text-purple-600"> (since {club.renamed_year})</span>}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Club Narratives */}
                 <ClubNarratives club={club} seasons={combinedSeasons} leagues={allLeagues} />
 
