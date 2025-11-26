@@ -151,6 +151,14 @@ export default function AddSeason() {
                         ? (currentTitleYears ? `${currentTitleYears}, ${data.year}` : data.year)
                         : currentTitleYears;
 
+                    // Track lower-tier titles separately
+                    const currentLowerTitles = existingClub.lower_tier_titles || 0;
+                    const currentLowerTitleYears = existingClub.lower_tier_title_years || '';
+                    const newLowerTitles = (isChampion && !isTopTier) ? currentLowerTitles + 1 : currentLowerTitles;
+                    const newLowerTitleYears = (isChampion && !isTopTier)
+                        ? (currentLowerTitleYears ? `${currentLowerTitleYears}, ${data.year}` : data.year)
+                        : currentLowerTitleYears;
+
                     // Best finish: prioritize the highest tier (lowest tier number)
                     // Then within same tier, the best position (lowest number)
                     const existingBestTier = existingClub.best_finish_tier || 999;
@@ -182,6 +190,8 @@ export default function AddSeason() {
                     const updateData = {
                         league_titles: newTitles,
                         title_years: newTitleYears,
+                        lower_tier_titles: newLowerTitles,
+                        lower_tier_title_years: newLowerTitleYears,
                         best_finish: newBestFinish,
                         best_finish_year: newBestFinishYear,
                         best_finish_tier: newBestFinishTier,
@@ -215,6 +225,8 @@ export default function AddSeason() {
                         league_id: leagueId,
                         league_titles: (isChampion && isTopTier) ? 1 : 0,
                         title_years: (isChampion && isTopTier) ? data.year : '',
+                        lower_tier_titles: (isChampion && !isTopTier) ? 1 : 0,
+                        lower_tier_title_years: (isChampion && !isTopTier) ? data.year : '',
                         best_finish: row.position,
                         best_finish_year: data.year,
                         best_finish_tier: currentTier,
