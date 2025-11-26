@@ -337,17 +337,57 @@ export default function ClubDetail() {
                     <TabsContent value="info">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2 space-y-6">
-                                {club.founded_year && (
-                                    <Card className="border-0 shadow-sm">
-                                        <CardContent className="p-4 flex items-center gap-4">
-                                            <Calendar className="w-8 h-8 text-emerald-500" />
-                                            <div>
-                                                <div className="text-sm text-slate-500">Founded</div>
-                                                <div className="text-xl font-bold">{club.founded_year}</div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
+                                {/* Location & Basic Info Card */}
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle>Club Information</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                            {club.founded_year && (
+                                                <div className="p-3 bg-slate-50 rounded-lg">
+                                                    <div className="text-xs text-slate-500 mb-1">Founded</div>
+                                                    <div className="font-bold text-lg">{club.founded_year}</div>
+                                                </div>
+                                            )}
+                                            {club.region && (
+                                                <div className="p-3 bg-slate-50 rounded-lg">
+                                                    <div className="text-xs text-slate-500 mb-1">Region</div>
+                                                    <div className="font-semibold">{club.region}</div>
+                                                </div>
+                                            )}
+                                            {club.district && (
+                                                <div className="p-3 bg-slate-50 rounded-lg">
+                                                    <div className="text-xs text-slate-500 mb-1">District</div>
+                                                    <div className="font-semibold">{club.district}</div>
+                                                </div>
+                                            )}
+                                            {club.settlement && (
+                                                <div className="p-3 bg-slate-50 rounded-lg">
+                                                    <div className="text-xs text-slate-500 mb-1">Settlement</div>
+                                                    <div className="font-semibold">{club.settlement}</div>
+                                                </div>
+                                            )}
+                                            {club.city && !club.settlement && (
+                                                <div className="p-3 bg-slate-50 rounded-lg">
+                                                    <div className="text-xs text-slate-500 mb-1">City</div>
+                                                    <div className="font-semibold">{club.city}</div>
+                                                </div>
+                                            )}
+                                            {club.primary_color && (
+                                                <div className="p-3 bg-slate-50 rounded-lg">
+                                                    <div className="text-xs text-slate-500 mb-1">Colors</div>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-5 h-5 rounded-full border border-slate-300" style={{ backgroundColor: club.primary_color }} />
+                                                        {club.secondary_color && (
+                                                            <div className="w-5 h-5 rounded-full border border-slate-300" style={{ backgroundColor: club.secondary_color }} />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Stadium Card */}
                                 {club.stadium && (
                                     <Card className="border-0 shadow-sm">
                                         <CardContent className="p-4 flex items-center gap-4">
