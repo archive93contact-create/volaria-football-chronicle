@@ -143,7 +143,7 @@ export default function AddSeason() {
                     const isPromoted = row.status === 'promoted';
                     const isRelegated = row.status === 'relegated';
 
-                    // Only count titles if this is the top tier league
+                    // Only count league titles if this is tier 1 (top tier)
                     const currentTitles = existingClub.league_titles || 0;
                     const currentTitleYears = existingClub.title_years || '';
                     const newTitles = (isChampion && isTopTier) ? currentTitles + 1 : currentTitles;
@@ -151,8 +151,8 @@ export default function AddSeason() {
                         ? (currentTitleYears ? `${currentTitleYears}, ${data.year}` : data.year)
                         : currentTitleYears;
 
-                    // Best finish only counts in the highest tier the club has played
-                    // Compare: lower tier number = higher tier (tier 1 is better than tier 2)
+                    // Best finish: prioritize the highest tier (lowest tier number)
+                    // Then within same tier, the best position (lowest number)
                     const existingBestTier = existingClub.best_finish_tier || 999;
                     const existingBestFinish = existingClub.best_finish || 999;
                     
@@ -160,12 +160,20 @@ export default function AddSeason() {
                     let newBestFinishYear = existingClub.best_finish_year;
                     let newBestFinishTier = existingBestTier;
 
-                    // If current tier is higher (lower number) OR same tier with better position
-                    if (currentTier < existingBestTier || (currentTier === existingBestTier && row.position < existingBestFinish)) {
+                    // Current tier is HIGHER (better) if its number is LOWER
+                    // e.g., tier 1 < tier 2 means tier 1 is better
+                    if (currentTier < existingBestTier) {
+                        // This is a higher tier than previous best - always update
+                        newBestFinish = row.position;
+                        newBestFinishYear = data.year;
+                        newBestFinishTier = currentTier;
+                    } else if (currentTier === existingBestTier && row.position < existingBestFinish) {
+                        // Same tier but better position
                         newBestFinish = row.position;
                         newBestFinishYear = data.year;
                         newBestFinishTier = currentTier;
                     }
+                    // If currentTier > existingBestTier, don't update (lower tier finish doesn't count)
 
                     // Update current league based on most recent season
                     const existingLastSeasonYear = existingClub.last_season_year || '';
