@@ -326,6 +326,69 @@ export default function ClubNarratives({ club, seasons, leagues }) {
         }
     }
 
+    // TFA-specific narratives (Turuliand top 4 tiers)
+    const isTuruliand = club.nation_id && leagues.some(l => l.nation_id === club.nation_id && l.name?.includes('TFA'));
+    if (isTuruliand && sortedSeasons.length > 0) {
+        const tfaSeasons = sortedSeasons.filter(s => {
+            const tier = getLeagueTier(s.league_id);
+            return tier && tier <= 4;
+        });
+        const nonTfaSeasons = sortedSeasons.filter(s => {
+            const tier = getLeagueTier(s.league_id);
+            return tier && tier > 4;
+        });
+
+        // First time joining TFA
+        if (tfaSeasons.length > 0) {
+            const firstTfaSeason = [...tfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
+            const seasonsBeforeTfa = sortedSeasons.filter(s => s.year < firstTfaSeason.year);
+            if (seasonsBeforeTfa.length > 0 && seasonsBeforeTfa.every(s => getLeagueTier(s.league_id) > 4)) {
+                narratives.push({
+                    icon: TrendingUp,
+                    color: 'text-emerald-600',
+                    bg: 'bg-emerald-50',
+                    title: 'Welcome to the TFA',
+                    text: `Joined the TFA Football League for the first time in ${firstTfaSeason.year}, reaching the top 4 tiers.`
+                });
+            }
+        }
+
+        // Dropped out of TFA for the first time
+        if (nonTfaSeasons.length > 0 && tfaSeasons.length > 0) {
+            const firstNonTfaSeason = [...nonTfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
+            const tfaSeasonsBeforeDrop = tfaSeasons.filter(s => s.year < firstNonTfaSeason.year);
+            if (tfaSeasonsBeforeDrop.length > 0) {
+                const allSeasonsBefore = sortedSeasons.filter(s => s.year < firstNonTfaSeason.year);
+                if (allSeasonsBefore.every(s => getLeagueTier(s.league_id) <= 4)) {
+                    narratives.push({
+                        icon: TrendingDown,
+                        color: 'text-red-600',
+                        bg: 'bg-red-50',
+                        title: 'Farewell to the TFA',
+                        text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}.`
+                    });
+                }
+            }
+        }
+
+        // Currently outside TFA - how long away
+        const mostRecentSeason = sortedSeasons[0];
+        const mostRecentTier = getLeagueTier(mostRecentSeason?.league_id);
+        if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
+            const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+            const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
+            if (seasonsAway >= 2) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-slate-500',
+                    bg: 'bg-slate-100',
+                    title: 'TFA Exile',
+                    text: `${seasonsAway} seasons since last playing in the TFA Football League (${lastTfaSeason.year}).`
+                });
+            }
+        }
+    }
+
     // Club reformation/name change narratives
     if (club.predecessor_club_id && !club.predecessor_club_2_id) {
         narratives.push({
