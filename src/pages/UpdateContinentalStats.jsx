@@ -87,6 +87,8 @@ export default function UpdateContinentalStats() {
         const clubParticipation = {};
         
         seasonMatches.forEach(match => {
+            const isFinalMatch = match.round === 'Final';
+            
             // Home team
             if (match.home_club_name) {
                 const key = match.home_club_name.toLowerCase().trim();
@@ -95,7 +97,7 @@ export default function UpdateContinentalStats() {
                         name: match.home_club_name,
                         nation: match.home_club_nation,
                         bestRound: match.round,
-                        isWinner: match.winner === match.home_club_name,
+                        isWinner: false,
                         isRunnerUp: false
                     };
                 } else {
@@ -104,9 +106,11 @@ export default function UpdateContinentalStats() {
                     if (newRank < currentRank) {
                         clubParticipation[key].bestRound = match.round;
                     }
-                    if (match.winner === match.home_club_name) {
-                        clubParticipation[key].isWinner = true;
-                    }
+                }
+                // Only mark as winner if they won THE FINAL
+                if (isFinalMatch && match.winner === match.home_club_name) {
+                    clubParticipation[key].isWinner = true;
+                    clubParticipation[key].bestRound = 'Final';
                 }
             }
             
@@ -118,7 +122,7 @@ export default function UpdateContinentalStats() {
                         name: match.away_club_name,
                         nation: match.away_club_nation,
                         bestRound: match.round,
-                        isWinner: match.winner === match.away_club_name,
+                        isWinner: false,
                         isRunnerUp: false
                     };
                 } else {
@@ -127,9 +131,11 @@ export default function UpdateContinentalStats() {
                     if (newRank < currentRank) {
                         clubParticipation[key].bestRound = match.round;
                     }
-                    if (match.winner === match.away_club_name) {
-                        clubParticipation[key].isWinner = true;
-                    }
+                }
+                // Only mark as winner if they won THE FINAL
+                if (isFinalMatch && match.winner === match.away_club_name) {
+                    clubParticipation[key].isWinner = true;
+                    clubParticipation[key].bestRound = 'Final';
                 }
             }
         });
