@@ -514,12 +514,15 @@ export default function ClubDetail() {
                                                              club.name}
                                                         </TableCell>
                                                         <TableCell>
-                                                            {seasonLeague ? (
-                                                                <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className="hover:text-emerald-600 hover:underline">
-                                                                    {seasonLeague.name}
-                                                                </Link>
-                                                            ) : '-'}
-                                                        </TableCell>
+                                                                                                                          {seasonLeague ? (
+                                                                                                                              <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className={`hover:text-emerald-600 hover:underline ${seasonLeague.tier === 1 ? 'font-bold' : ''}`}>
+                                                                                                                                  {seasonLeague.name}
+                                                                                                                                  <span className={`ml-1 text-xs ${seasonLeague.tier === 1 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                                                                                                                                      (T{seasonLeague.tier})
+                                                                                                                                  </span>
+                                                                                                                              </Link>
+                                                                                                                          ) : '-'}
+                                                                                                                      </TableCell>
                                                         <TableCell className="text-center">
                                                             <span className="flex items-center justify-center gap-1">
                                                                 {season.position}
