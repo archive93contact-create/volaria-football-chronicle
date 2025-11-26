@@ -1,28 +1,29 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Trophy, Plus, Edit2, Trash2, ChevronRight, Star, Calendar, Users } from 'lucide-react';
+import { Plus, Trophy, Edit2, Trash2, ChevronRight, Star, Calendar } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function CompetitionDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const compId = urlParams.get('id');
-    const navigate = useNavigate();
     const queryClient = useQueryClient();
-
-    const [isEditingComp, setIsEditingComp] = useState(false);
-    const [editCompData, setEditCompData] = useState(null);
-    const [isAddingSeason, setIsAddingSeason] = useState(false);
-    const [seasonData, setSeasonData] = useState(null);
+    
+    const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
+    const [editingSeason, setEditingSeason] = useState(null);
+    const [seasonForm, setSeasonForm] = useState({
+        year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '',
+        final_score: '', final_venue: '', top_scorer: '', notes: ''
+    });
 
     const { data: competition } = useQuery({
         queryKey: ['competition', compId],
@@ -38,118 +39,125 @@ export default function CompetitionDetail() {
         queryFn: () => base44.entities.ContinentalSeason.filter({ competition_id: compId }, '-year'),
     });
 
-    const updateCompMutation = useMutation({
-        mutationFn: (data) => base44.entities.ContinentalCompetition.update(compId, data),
+    const createSeasonMutation = useMutation({
+        mutationFn: (data) => base44.entities.ContinentalSeason.create({ ...data, competition_id: compId }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['competition', compId] });
-            setIsEditingComp(false);
+            queryClient.invalidateQueries(['competitionSeasons']);
+            setIsAddSeasonOpen(false);
+            resetSeasonForm();
         },
     });
 
-    const deleteCompMutation = useMutation({
-        mutationFn: () => base44.entities.ContinentalCompetition.delete(compId),
+    const updateSeasonMutation = useMutation({
+        mutationFn: ({ id, data }) => base44.entities.ContinentalSeason.update(id, data),
         onSuccess: () => {
-            navigate(createPageUrl('ContinentalCompetitions'));
-        },
-    });
-
-    const saveSeasonMutation = useMutation({
-        mutationFn: async (data) => {
-            if (data.id) {
-                return base44.entities.ContinentalSeason.update(data.id, data);
-            }
-            return base44.entities.ContinentalSeason.create({ ...data, competition_id: compId });
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['competitionSeasons', compId] });
-            setIsAddingSeason(false);
-            setSeasonData(null);
+            queryClient.invalidateQueries(['competitionSeasons']);
+            setEditingSeason(null);
+            resetSeasonForm();
         },
     });
 
     const deleteSeasonMutation = useMutation({
         mutationFn: (id) => base44.entities.ContinentalSeason.delete(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['competitionSeasons', compId] });
-        },
+        onSuccess: () => queryClient.invalidateQueries(['competitionSeasons']),
     });
 
+    const resetSeasonForm = () => {
+        setSeasonForm({ year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '', final_score: '', final_venue: '', top_scorer: '', notes: '' });
+    };
+
+    const openEditSeason = (season) => {
+        setSeasonForm(season);
+        setEditingSeason(season);
+    };
+
+    const handleSeasonSubmit = () => {
+        if (editingSeason) {
+            updateSeasonMutation.mutate({ id: editingSeason.id, data: seasonForm });
+        } else {
+            createSeasonMutation.mutate(seasonForm);
+        }
+    };
+
     if (!competition) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full" />
-            </div>
-        );
+        return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" /></div>;
     }
+
+    const SeasonForm = () => (
+        <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label>Season Year *</Label>
+                    <Input value={seasonForm.year} onChange={(e) => setSeasonForm({...seasonForm, year: e.target.value})} placeholder="e.g., 2023-24" className="mt-1" />
+                </div>
+                <div>
+                    <Label>Final Score</Label>
+                    <Input value={seasonForm.final_score} onChange={(e) => setSeasonForm({...seasonForm, final_score: e.target.value})} placeholder="e.g., 2-1" className="mt-1" />
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label>Champion</Label>
+                    <Input value={seasonForm.champion_name} onChange={(e) => setSeasonForm({...seasonForm, champion_name: e.target.value})} placeholder="Winning club" className="mt-1" />
+                </div>
+                <div>
+                    <Label>Champion Nation</Label>
+                    <Input value={seasonForm.champion_nation} onChange={(e) => setSeasonForm({...seasonForm, champion_nation: e.target.value})} className="mt-1" />
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label>Runner-up</Label>
+                    <Input value={seasonForm.runner_up} onChange={(e) => setSeasonForm({...seasonForm, runner_up: e.target.value})} className="mt-1" />
+                </div>
+                <div>
+                    <Label>Runner-up Nation</Label>
+                    <Input value={seasonForm.runner_up_nation} onChange={(e) => setSeasonForm({...seasonForm, runner_up_nation: e.target.value})} className="mt-1" />
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label>Final Venue</Label>
+                    <Input value={seasonForm.final_venue} onChange={(e) => setSeasonForm({...seasonForm, final_venue: e.target.value})} className="mt-1" />
+                </div>
+                <div>
+                    <Label>Top Scorer</Label>
+                    <Input value={seasonForm.top_scorer} onChange={(e) => setSeasonForm({...seasonForm, top_scorer: e.target.value})} placeholder="e.g., John Smith (10 goals)" className="mt-1" />
+                </div>
+            </div>
+            <div>
+                <Label>Notes</Label>
+                <Textarea value={seasonForm.notes} onChange={(e) => setSeasonForm({...seasonForm, notes: e.target.value})} rows={3} className="mt-1" />
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => { setIsAddSeasonOpen(false); setEditingSeason(null); resetSeasonForm(); }}>Cancel</Button>
+                <Button onClick={handleSeasonSubmit} disabled={!seasonForm.year} className="bg-emerald-600 hover:bg-emerald-700">
+                    {editingSeason ? 'Save Changes' : 'Add Season'}
+                </Button>
+            </div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Hero Header */}
-            <div 
-                className="relative overflow-hidden"
-                style={{ backgroundColor: competition.primary_color || '#fbbf24' }}
-            >
+            {/* Hero */}
+            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${competition.primary_color || '#1e40af'}, ${competition.secondary_color || '#fbbf24'})` }}>
                 <div className="absolute inset-0 bg-black/20" />
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-                    <nav className="flex items-center gap-2 text-sm text-white/70 mb-6">
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+                    <nav className="flex items-center gap-2 text-sm text-white/70 mb-4">
                         <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
                         <ChevronRight className="w-4 h-4" />
-                        <Link to={createPageUrl('ContinentalCompetitions')} className="hover:text-white">Competitions</Link>
+                        <Link to={createPageUrl('ContinentalCompetitions')} className="hover:text-white">Continental Competitions</Link>
                         <ChevronRight className="w-4 h-4" />
                         <span className="text-white">{competition.short_name || competition.name}</span>
                     </nav>
-                    
                     <div className="flex items-center gap-6">
-                        {competition.logo_url ? (
-                            <img src={competition.logo_url} alt={competition.name} className="w-24 h-24 object-contain" />
-                        ) : (
-                            <div className="w-24 h-24 bg-white/20 rounded-2xl flex items-center justify-center">
-                                {competition.tier === 1 ? (
-                                    <Star className="w-12 h-12 text-white" />
-                                ) : (
-                                    <Trophy className="w-12 h-12 text-white" />
-                                )}
-                            </div>
-                        )}
-                        <div className="flex-1">
-                            <h1 className="text-4xl md:text-5xl font-bold text-white">{competition.name}</h1>
-                            {competition.description && (
-                                <p className="mt-2 text-white/80 max-w-2xl">{competition.description}</p>
-                            )}
+                        <div className="w-20 h-20 md:w-28 md:h-28 bg-white/20 rounded-2xl flex items-center justify-center">
+                            {competition.tier === 1 ? <Star className="w-12 h-12 text-white" /> : <Trophy className="w-12 h-12 text-white" />}
                         </div>
-                        <div className="flex gap-2">
-                            <Button 
-                                variant="outline" 
-                                className="border-white/30 text-white hover:bg-white/10"
-                                onClick={() => {
-                                    setEditCompData(competition);
-                                    setIsEditingComp(true);
-                                }}
-                            >
-                                <Edit2 className="w-4 h-4 mr-2" />
-                                Edit
-                            </Button>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" className="border-red-300/50 text-red-200 hover:bg-red-500/20">
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Competition?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will permanently delete {competition.name} and all its season history.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => deleteCompMutation.mutate()} className="bg-red-600">
-                                            Delete
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                        <div>
+                            <h1 className="text-3xl md:text-5xl font-bold text-white">{competition.name}</h1>
+                            {competition.description && <p className="mt-2 text-white/80 max-w-2xl">{competition.description}</p>}
                         </div>
                     </div>
                 </div>
@@ -158,105 +166,72 @@ export default function CompetitionDetail() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <Card className="border-0 shadow-sm">
-                        <CardContent className="p-4 text-center">
-                            <Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-                            <div className="text-2xl font-bold">{seasons.length}</div>
-                            <div className="text-xs text-slate-500">Seasons</div>
-                        </CardContent>
-                    </Card>
-                    {competition.founded_year && (
-                        <Card className="border-0 shadow-sm">
-                            <CardContent className="p-4 text-center">
-                                <Calendar className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold">{competition.founded_year}</div>
-                                <div className="text-xs text-slate-500">Founded</div>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {competition.current_champion && (
-                        <Card className="border-0 shadow-sm">
-                            <CardContent className="p-4 text-center">
-                                <Star className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
-                                <div className="text-lg font-bold truncate">{competition.current_champion}</div>
-                                <div className="text-xs text-slate-500">Champion</div>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {competition.number_of_teams && (
-                        <Card className="border-0 shadow-sm">
-                            <CardContent className="p-4 text-center">
-                                <Users className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold">{competition.number_of_teams}</div>
-                                <div className="text-xs text-slate-500">Teams</div>
-                            </CardContent>
-                        </Card>
-                    )}
+                    {competition.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Calendar className="w-6 h-6 text-emerald-500 mx-auto mb-2" /><div className="text-2xl font-bold">{competition.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
+                    <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" /><div className="text-2xl font-bold">{seasons.length}</div><div className="text-xs text-slate-500">Editions</div></CardContent></Card>
+                    {competition.number_of_teams && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{competition.number_of_teams}</div><div className="text-xs text-slate-500">Teams</div></CardContent></Card>}
+                    {competition.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-lg font-bold text-emerald-600 truncate">{competition.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
                 </div>
 
-                {/* Winners History */}
+                {/* History */}
+                {competition.history && (
+                    <Card className="border-0 shadow-sm mb-8">
+                        <CardHeader><CardTitle>Competition History</CardTitle></CardHeader>
+                        <CardContent><p className="text-slate-600 whitespace-pre-line">{competition.history}</p></CardContent>
+                    </Card>
+                )}
+
+                {/* Winners Table */}
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Winners History</CardTitle>
-                        <Button 
-                            onClick={() => {
-                                setSeasonData({ year: '', champion_name: '', champion_nation: '', runner_up: '', final_score: '' });
-                                setIsAddingSeason(true);
-                            }}
-                            className="bg-emerald-600 hover:bg-emerald-700"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Season
-                        </Button>
+                        <CardTitle>Roll of Honour</CardTitle>
+                        <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-xl">
+                                <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
+                                <SeasonForm />
+                            </DialogContent>
+                        </Dialog>
                     </CardHeader>
                     <CardContent>
                         {seasons.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Trophy className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                                <p className="text-slate-500">No seasons recorded yet</p>
-                            </div>
+                            <div className="text-center py-12 text-slate-500">No seasons recorded yet. Add your first season above.</div>
                         ) : (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Season</TableHead>
                                         <TableHead>Champion</TableHead>
-                                        <TableHead>Nation</TableHead>
+                                        <TableHead className="hidden md:table-cell">Nation</TableHead>
                                         <TableHead>Runner-up</TableHead>
-                                        <TableHead>Final</TableHead>
+                                        <TableHead className="hidden md:table-cell">Score</TableHead>
+                                        <TableHead className="hidden lg:table-cell">Venue</TableHead>
                                         <TableHead className="w-20"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {seasons.map(season => (
                                         <TableRow key={season.id}>
-                                            <TableCell className="font-bold">{season.year}</TableCell>
-                                            <TableCell className="font-medium text-emerald-600">
-                                                🏆 {season.champion_name}
-                                            </TableCell>
-                                            <TableCell>{season.champion_nation}</TableCell>
+                                            <TableCell className="font-medium">{season.year}</TableCell>
+                                            <TableCell className="font-semibold text-emerald-600">{season.champion_name}</TableCell>
+                                            <TableCell className="hidden md:table-cell text-slate-500">{season.champion_nation}</TableCell>
                                             <TableCell>{season.runner_up}</TableCell>
-                                            <TableCell>{season.final_score}</TableCell>
+                                            <TableCell className="hidden md:table-cell">{season.final_score}</TableCell>
+                                            <TableCell className="hidden lg:table-cell text-slate-500">{season.final_venue}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-1">
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon"
-                                                        onClick={() => {
-                                                            setSeasonData(season);
-                                                            setIsAddingSeason(true);
-                                                        }}
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon"
-                                                        className="text-red-500 hover:text-red-600"
-                                                        onClick={() => deleteSeasonMutation.mutate(season.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button></AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader><AlertDialogTitle>Delete {season.year}?</AlertDialogTitle></AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -266,194 +241,13 @@ export default function CompetitionDetail() {
                         )}
                     </CardContent>
                 </Card>
-
-                {/* History */}
-                {competition.history && (
-                    <Card className="border-0 shadow-sm mt-8">
-                        <CardHeader>
-                            <CardTitle>Competition History</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-slate-600 whitespace-pre-line">{competition.history}</p>
-                        </CardContent>
-                    </Card>
-                )}
             </div>
 
-            {/* Edit Competition Dialog */}
-            <Dialog open={isEditingComp} onOpenChange={setIsEditingComp}>
-                <DialogContent className="max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>Edit Competition</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Name</Label>
-                                <Input
-                                    value={editCompData?.name || ''}
-                                    onChange={(e) => setEditCompData({...editCompData, name: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Short Name</Label>
-                                <Input
-                                    value={editCompData?.short_name || ''}
-                                    onChange={(e) => setEditCompData({...editCompData, short_name: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <Label>Description</Label>
-                            <Textarea
-                                value={editCompData?.description || ''}
-                                onChange={(e) => setEditCompData({...editCompData, description: e.target.value})}
-                                rows={2}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div>
-                            <Label>History</Label>
-                            <Textarea
-                                value={editCompData?.history || ''}
-                                onChange={(e) => setEditCompData({...editCompData, history: e.target.value})}
-                                rows={4}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Current Champion</Label>
-                                <Input
-                                    value={editCompData?.current_champion || ''}
-                                    onChange={(e) => setEditCompData({...editCompData, current_champion: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Most Titles Club</Label>
-                                <Input
-                                    value={editCompData?.most_titles_club || ''}
-                                    onChange={(e) => setEditCompData({...editCompData, most_titles_club: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={() => setIsEditingComp(false)}>Cancel</Button>
-                            <Button 
-                                onClick={() => updateCompMutation.mutate(editCompData)}
-                                className="bg-emerald-600 hover:bg-emerald-700"
-                            >
-                                Save
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* Add/Edit Season Dialog */}
-            <Dialog open={isAddingSeason} onOpenChange={setIsAddingSeason}>
-                <DialogContent className="max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>{seasonData?.id ? 'Edit Season' : 'Add Season'}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Season Year</Label>
-                                <Input
-                                    value={seasonData?.year || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, year: e.target.value})}
-                                    placeholder="e.g., 2023-24"
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Final Score</Label>
-                                <Input
-                                    value={seasonData?.final_score || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, final_score: e.target.value})}
-                                    placeholder="e.g., 2-1"
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Champion</Label>
-                                <Input
-                                    value={seasonData?.champion_name || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, champion_name: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Champion Nation</Label>
-                                <Input
-                                    value={seasonData?.champion_nation || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, champion_nation: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Runner-up</Label>
-                                <Input
-                                    value={seasonData?.runner_up || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, runner_up: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Runner-up Nation</Label>
-                                <Input
-                                    value={seasonData?.runner_up_nation || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, runner_up_nation: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Final Venue</Label>
-                                <Input
-                                    value={seasonData?.final_venue || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, final_venue: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Top Scorer</Label>
-                                <Input
-                                    value={seasonData?.top_scorer || ''}
-                                    onChange={(e) => setSeasonData({...seasonData, top_scorer: e.target.value})}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <Label>Notes</Label>
-                            <Textarea
-                                value={seasonData?.notes || ''}
-                                onChange={(e) => setSeasonData({...seasonData, notes: e.target.value})}
-                                rows={2}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={() => setIsAddingSeason(false)}>Cancel</Button>
-                            <Button 
-                                onClick={() => saveSeasonMutation.mutate(seasonData)}
-                                className="bg-emerald-600 hover:bg-emerald-700"
-                            >
-                                Save
-                            </Button>
-                        </div>
-                    </div>
+            {/* Edit Season Dialog */}
+            <Dialog open={!!editingSeason} onOpenChange={(open) => { if (!open) { setEditingSeason(null); resetSeasonForm(); } }}>
+                <DialogContent className="max-w-xl">
+                    <DialogHeader><DialogTitle>Edit Season</DialogTitle></DialogHeader>
+                    <SeasonForm />
                 </DialogContent>
             </Dialog>
         </div>
