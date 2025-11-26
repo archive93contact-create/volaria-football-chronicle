@@ -14,6 +14,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
         { name: 'Country Rankings', icon: BarChart3, page: 'CountryCoefficients' },
         { name: 'Club Rankings', icon: Shield, page: 'ClubCoefficients' },
+        { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
         { name: 'About', icon: Info, page: 'About' },
         { name: 'Contact', icon: Mail, page: 'Contact' },
     ];
