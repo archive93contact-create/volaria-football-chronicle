@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, Calendar } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children, currentPageName }) {
@@ -10,6 +10,7 @@ export default function Layout({ children, currentPageName }) {
     const navItems = [
         { name: 'Home', icon: Home, page: 'Home' },
         { name: 'Nations', icon: Globe, page: 'Nations' },
+        { name: 'Seasons', icon: Trophy, page: 'Seasons' },
         { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
         { name: 'Country Rankings', icon: BarChart3, page: 'CountryCoefficients' },
         { name: 'Club Rankings', icon: Shield, page: 'ClubCoefficients' },
