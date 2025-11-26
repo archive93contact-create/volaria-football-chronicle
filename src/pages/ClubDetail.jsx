@@ -149,8 +149,8 @@ export default function ClubDetail() {
         enabled: !!club?.current_name_club_id,
     });
 
-    // Combine seasons from current club and predecessors
-    const combinedSeasons = [...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2].sort((a, b) => b.year.localeCompare(a.year));
+    // Combine seasons from current club, predecessors, and former names
+    const combinedSeasons = [...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2, ...formerNameSeasons].sort((a, b) => b.year.localeCompare(a.year));
 
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Club.update(clubId, data),
