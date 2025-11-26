@@ -25,7 +25,9 @@ export default function LeagueDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
     const [selectedSeason, setSelectedSeason] = useState('');
-    const [activeTab, setActiveTab] = useState('table');
+    const [selectedTab, setSelectedTab] = useState('table');
+    const [editingSeason, setEditingSeason] = useState(null);
+    const [seasonEditData, setSeasonEditData] = useState({});
 
     const { data: league } = useQuery({
         queryKey: ['league', leagueId],
@@ -76,28 +78,50 @@ export default function LeagueDetail() {
         },
     });
 
-    const deleteClubMutation = useMutation({
-        mutationFn: (clubId) => base44.entities.Club.delete(clubId),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['leagueClubs']);
-            queryClient.invalidateQueries(['clubs']);
-        },
-    });
-
     const deleteSeasonMutation = useMutation({
         mutationFn: async (seasonId) => {
-            // Delete all table entries for this season first
-            const tables = leagueTables.filter(t => t.season_id === seasonId);
+            // Delete associated league table entries first
+            const tables = await base44.entities.LeagueTable.filter({ season_id: seasonId });
             for (const table of tables) {
                 await base44.entities.LeagueTable.delete(table.id);
             }
             await base44.entities.Season.delete(seasonId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['leagueSeasons']);
-            queryClient.invalidateQueries(['leagueTables']);
+            queryClient.invalidateQueries(['leagueSeasons', leagueId]);
+            queryClient.invalidateQueries(['leagueTables', leagueId]);
         },
     });
+
+    const updateSeasonMutation = useMutation({
+        mutationFn: ({ id, data }) => base44.entities.Season.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['leagueSeasons', leagueId]);
+            setEditingSeason(null);
+        },
+    });
+
+    const deleteClubMutation = useMutation({
+        mutationFn: (clubId) => base44.entities.Club.delete(clubId),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['leagueClubs', leagueId]);
+            queryClient.invalidateQueries(['clubs']);
+        },
+    });
+
+    const handleViewTable = (year) => {
+        setSelectedSeason(year);
+        setSelectedTab('table');
+    };
+
+    const handleEditSeason = (season) => {
+        setSeasonEditData(season);
+        setEditingSeason(season.id);
+    };
+
+    const handleSaveSeason = () => {
+        updateSeasonMutation.mutate({ id: editingSeason, data: seasonEditData });
+    };
 
 
 
@@ -180,7 +204,7 @@ export default function LeagueDetail() {
                     {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                 </div>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="table">League Table</TabsTrigger>
                         <TabsTrigger value="clubs">Clubs ({clubs.length})</TabsTrigger>
@@ -266,7 +290,7 @@ export default function LeagueDetail() {
                                 ) : (
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         {clubs.map(club => (
-                                            <div key={club.id} className="flex items-center gap-3 p-3 rounded-lg border hover:shadow-md transition-shadow group">
+                                            <div key={club.id} className="flex items-center gap-3 p-3 rounded-lg border hover:shadow-md transition-shadow group relative">
                                                 <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-3 flex-1">
                                                     {club.logo_url ? (
                                                         <img src={club.logo_url} alt={club.name} className="w-10 h-10 object-contain" />
@@ -280,12 +304,15 @@ export default function LeagueDetail() {
                                                 </Link>
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 hover:bg-red-50">
+                                                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 absolute right-2 text-red-500 hover:text-red-700">
                                                             <Trash2 className="w-4 h-4" />
                                                         </Button>
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
-                                                        <AlertDialogHeader><AlertDialogTitle>Delete {club.name}?</AlertDialogTitle></AlertDialogHeader>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Delete {club.name}?</AlertDialogTitle>
+                                                            <AlertDialogDescription>This will permanently delete this club.</AlertDialogDescription>
+                                                        </AlertDialogHeader>
                                                         <AlertDialogFooter>
                                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                                                             <AlertDialogAction onClick={() => deleteClubMutation.mutate(club.id)} className="bg-red-600">Delete</AlertDialogAction>
@@ -319,33 +346,40 @@ export default function LeagueDetail() {
                                                 <TableHead>Champion</TableHead>
                                                 <TableHead className="hidden md:table-cell">Runner-up</TableHead>
                                                 <TableHead className="hidden lg:table-cell">Top Scorer</TableHead>
-                                                <TableHead className="w-24"></TableHead>
+                                                <TableHead className="w-40 text-right">Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {seasons.map(season => (
                                                 <TableRow key={season.id} className="hover:bg-slate-50">
                                                     <TableCell className="font-medium">{season.year}</TableCell>
-                                                    <TableCell className="text-emerald-600 font-semibold flex items-center gap-1">
-                                                        <Trophy className="w-4 h-4 text-amber-500" />
-                                                        {season.champion_name}
+                                                    <TableCell className="text-emerald-600 font-semibold">
+                                                        <span className="flex items-center gap-1">
+                                                            <Trophy className="w-4 h-4 text-amber-500" />
+                                                            {season.champion_name}
+                                                        </span>
                                                     </TableCell>
                                                     <TableCell className="hidden md:table-cell">{season.runner_up}</TableCell>
                                                     <TableCell className="hidden lg:table-cell text-slate-500">{season.top_scorer}</TableCell>
-                                                    <TableCell>
-                                                        <div className="flex gap-1">
-                                                            <Button variant="ghost" size="sm" onClick={() => { setSelectedSeason(season.year); setActiveTab('table'); }}>
-                                                                View Table
+                                                    <TableCell className="text-right">
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <Button variant="ghost" size="sm" onClick={() => handleViewTable(season.year)}>
+                                                                View
                                                             </Button>
-                                                            <Link to={createPageUrl(`EditSeason?id=${season.id}`)}>
-                                                                <Button variant="ghost" size="sm"><Edit2 className="w-3 h-3" /></Button>
-                                                            </Link>
+                                                            <Button variant="ghost" size="sm" onClick={() => handleEditSeason(season)}>
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </Button>
                                                             <AlertDialog>
                                                                 <AlertDialogTrigger asChild>
-                                                                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700"><Trash2 className="w-3 h-3" /></Button>
+                                                                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </Button>
                                                                 </AlertDialogTrigger>
                                                                 <AlertDialogContent>
-                                                                    <AlertDialogHeader><AlertDialogTitle>Delete {season.year} season?</AlertDialogTitle></AlertDialogHeader>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Delete {season.year} season?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>This will delete the season and all associated table data.</AlertDialogDescription>
+                                                                    </AlertDialogHeader>
                                                                     <AlertDialogFooter>
                                                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                                                                         <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
@@ -365,7 +399,7 @@ export default function LeagueDetail() {
                 </Tabs>
             </div>
 
-            {/* Edit Dialog */}
+            {/* Edit League Dialog */}
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Edit League</DialogTitle></DialogHeader>
@@ -387,6 +421,35 @@ export default function LeagueDetail() {
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}><X className="w-4 h-4 mr-2" /> Cancel</Button>
                             <Button onClick={handleSave} disabled={updateMutation.isPending} className="bg-emerald-600"><Save className="w-4 h-4 mr-2" /> Save</Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Season Dialog */}
+            <Dialog open={!!editingSeason} onOpenChange={(open) => !open && setEditingSeason(null)}>
+                <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle>Edit Season</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div><Label>Season Year</Label><Input value={seasonEditData.year || ''} onChange={(e) => setSeasonEditData({...seasonEditData, year: e.target.value})} className="mt-1" /></div>
+                            <div><Label>Number of Teams</Label><Input type="number" value={seasonEditData.number_of_teams || ''} onChange={(e) => setSeasonEditData({...seasonEditData, number_of_teams: parseInt(e.target.value) || 0})} className="mt-1" /></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div><Label>Champion</Label><Input value={seasonEditData.champion_name || ''} onChange={(e) => setSeasonEditData({...seasonEditData, champion_name: e.target.value})} className="mt-1" /></div>
+                            <div><Label>Runner-up</Label><Input value={seasonEditData.runner_up || ''} onChange={(e) => setSeasonEditData({...seasonEditData, runner_up: e.target.value})} className="mt-1" /></div>
+                        </div>
+                        <div><Label>Top Scorer</Label><Input value={seasonEditData.top_scorer || ''} onChange={(e) => setSeasonEditData({...seasonEditData, top_scorer: e.target.value})} placeholder="e.g., John Smith (25 goals)" className="mt-1" /></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div><Label>Promoted Teams</Label><Input value={seasonEditData.promoted_teams || ''} onChange={(e) => setSeasonEditData({...seasonEditData, promoted_teams: e.target.value})} placeholder="Comma separated" className="mt-1" /></div>
+                            <div><Label>Relegated Teams</Label><Input value={seasonEditData.relegated_teams || ''} onChange={(e) => setSeasonEditData({...seasonEditData, relegated_teams: e.target.value})} placeholder="Comma separated" className="mt-1" /></div>
+                        </div>
+                        <div><Label>Notes</Label><Textarea value={seasonEditData.notes || ''} onChange={(e) => setSeasonEditData({...seasonEditData, notes: e.target.value})} rows={3} className="mt-1" /></div>
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setEditingSeason(null)}><X className="w-4 h-4 mr-2" /> Cancel</Button>
+                            <Button onClick={handleSaveSeason} disabled={updateSeasonMutation.isPending} className="bg-emerald-600">
+                                {updateSeasonMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />} Save
+                            </Button>
                         </div>
                     </div>
                 </DialogContent>
