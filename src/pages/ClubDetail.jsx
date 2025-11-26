@@ -87,11 +87,28 @@ export default function ClubDetail() {
         enabled: !!club?.predecessor_club_id,
     });
 
+    // Fetch second predecessor club data if exists (merger)
+    const { data: predecessorClub2 } = useQuery({
+        queryKey: ['predecessorClub2', club?.predecessor_club_2_id],
+        queryFn: async () => {
+            const clubs = await base44.entities.Club.filter({ id: club.predecessor_club_2_id });
+            return clubs[0];
+        },
+        enabled: !!club?.predecessor_club_2_id,
+    });
+
     // Fetch predecessor's seasons
     const { data: predecessorSeasons = [] } = useQuery({
         queryKey: ['predecessorSeasons', club?.predecessor_club_id],
         queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_id }, '-year'),
         enabled: !!club?.predecessor_club_id,
+    });
+
+    // Fetch second predecessor's seasons
+    const { data: predecessorSeasons2 = [] } = useQuery({
+        queryKey: ['predecessorSeasons2', club?.predecessor_club_2_id],
+        queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_2_id }, '-year'),
+        enabled: !!club?.predecessor_club_2_id,
     });
 
     // Fetch successor club if this is defunct
@@ -104,8 +121,8 @@ export default function ClubDetail() {
         enabled: !!club?.successor_club_id,
     });
 
-    // Combine seasons from current club and predecessor
-    const combinedSeasons = [...clubSeasons, ...predecessorSeasons].sort((a, b) => b.year.localeCompare(a.year));
+    // Combine seasons from current club and predecessors
+    const combinedSeasons = [...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2].sort((a, b) => b.year.localeCompare(a.year));
 
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Club.update(clubId, data),
@@ -214,7 +231,9 @@ export default function ClubDetail() {
                             <CardContent className="p-4 text-center">
                                 <Target className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
                                 <div className="text-2xl font-bold">{club.best_finish === 1 ? '1st' : club.best_finish === 2 ? '2nd' : club.best_finish === 3 ? '3rd' : `${club.best_finish}th`}</div>
-                                <div className="text-xs text-slate-500">Best Finish</div>
+                                <div className="text-xs text-slate-500">
+                                    Best Finish {club.best_finish_tier ? `(Tier ${club.best_finish_tier})` : ''}
+                                </div>
                             </CardContent>
                         </Card>
                     )}
@@ -411,16 +430,31 @@ export default function ClubDetail() {
                 )}
 
                 {/* Predecessor Notice */}
-                {predecessorClub && (
+                {(predecessorClub || predecessorClub2) && (
                     <Card className="border-0 shadow-sm mb-8 bg-blue-50 border-l-4 border-l-blue-500">
                         <CardContent className="p-4 flex items-center gap-3">
                             <Shield className="w-6 h-6 text-blue-600" />
                             <div>
-                                <span className="text-blue-800">This club continues the legacy of </span>
-                                <Link to={createPageUrl(`ClubDetail?id=${predecessorClub.id}`)} className="font-semibold text-blue-700 hover:underline">
-                                    {predecessorClub.name}
-                                </Link>
-                                {predecessorClub.defunct_year && <span className="text-blue-600"> (defunct {predecessorClub.defunct_year})</span>}
+                                <span className="text-blue-800">
+                                    {predecessorClub && predecessorClub2 ? 'This club was formed from a merger of ' : 'This club continues the legacy of '}
+                                </span>
+                                {predecessorClub && (
+                                    <>
+                                        <Link to={createPageUrl(`ClubDetail?id=${predecessorClub.id}`)} className="font-semibold text-blue-700 hover:underline">
+                                            {predecessorClub.name}
+                                        </Link>
+                                        {predecessorClub.defunct_year && <span className="text-blue-600"> ({predecessorClub.defunct_year})</span>}
+                                    </>
+                                )}
+                                {predecessorClub && predecessorClub2 && <span className="text-blue-800"> and </span>}
+                                {predecessorClub2 && (
+                                    <>
+                                        <Link to={createPageUrl(`ClubDetail?id=${predecessorClub2.id}`)} className="font-semibold text-blue-700 hover:underline">
+                                            {predecessorClub2.name}
+                                        </Link>
+                                        {predecessorClub2.defunct_year && <span className="text-blue-600"> ({predecessorClub2.defunct_year})</span>}
+                                    </>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -464,12 +498,14 @@ export default function ClubDetail() {
                                         <TableBody>
                                             {combinedSeasons.map((season) => {
                                                 const seasonLeague = allLeagues.find(l => l.id === season.league_id);
-                                                const isPredecessor = season.club_id === club.predecessor_club_id;
+                                                const isPredecessor = season.club_id === club.predecessor_club_id || season.club_id === club.predecessor_club_2_id;
                                                 return (
                                                     <TableRow key={season.id} style={{ backgroundColor: season.highlight_color || (isPredecessor ? '#f1f5f9' : 'transparent') }}>
                                                         <TableCell className="font-medium">{season.year}</TableCell>
                                                         <TableCell className={isPredecessor ? 'text-slate-500 italic' : ''}>
-                                                            {isPredecessor ? predecessorClub?.name : club.name}
+                                                            {season.club_id === club.predecessor_club_id ? predecessorClub?.name : 
+                                                             season.club_id === club.predecessor_club_2_id ? predecessorClub2?.name : 
+                                                             club.name}
                                                         </TableCell>
                                                         <TableCell>
                                                             {seasonLeague ? (
@@ -726,20 +762,37 @@ export default function ClubDetail() {
                         <div className="border-t pt-4 mt-4">
                             <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Club Succession</h4>
                             <div className="space-y-3 p-3 bg-slate-50 rounded-lg">
-                                <div>
-                                    <Label className="text-xs">Predecessor Club (this club continues from)</Label>
-                                    <Select 
-                                        value={editData.predecessor_club_id || ''} 
-                                        onValueChange={(v) => setEditData({...editData, predecessor_club_id: v === 'none' ? null : v})}
-                                    >
-                                        <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">None</SelectItem>
-                                            {allClubs.filter(c => c.id !== clubId && !c.predecessor_club_id).map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Label className="text-xs">Predecessor Club (this club continues from)</Label>
+                                        <Select 
+                                            value={editData.predecessor_club_id || ''} 
+                                            onValueChange={(v) => setEditData({...editData, predecessor_club_id: v === 'none' ? null : v})}
+                                        >
+                                            <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {allClubs.filter(c => c.id !== clubId && !c.predecessor_club_id && c.id !== editData.predecessor_club_2_id).map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">2nd Predecessor (if merger)</Label>
+                                        <Select 
+                                            value={editData.predecessor_club_2_id || ''} 
+                                            onValueChange={(v) => setEditData({...editData, predecessor_club_2_id: v === 'none' ? null : v})}
+                                        >
+                                            <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {allClubs.filter(c => c.id !== clubId && !c.predecessor_club_id && c.id !== editData.predecessor_club_id).map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex-1">
