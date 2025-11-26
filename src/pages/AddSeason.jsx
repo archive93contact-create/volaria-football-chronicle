@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Save, ArrowLeft, Loader2, Plus, Trash2, Trophy, ArrowUp, ArrowDown } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Plus, Trash2, Trophy, ArrowUp, ArrowDown, ClipboardPaste } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,6 +42,8 @@ export default function AddSeason() {
     });
 
     const [tableRows, setTableRows] = useState([]);
+    const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
+    const [pasteText, setPasteText] = useState('');
 
     const initializeTable = (numTeams) => {
         const rows = [];
@@ -299,6 +302,31 @@ export default function AddSeason() {
         setTableRows(updated);
     };
 
+    const handlePasteClubs = () => {
+        const lines = pasteText.split('\n').filter(line => line.trim());
+        if (lines.length === 0) return;
+
+        // Update team count if needed
+        if (lines.length !== tableRows.length) {
+            setSeasonData(prev => ({ ...prev, number_of_teams: lines.length }));
+        }
+
+        const newRows = lines.map((line, idx) => {
+            const clubName = line.trim();
+            return {
+                position: idx + 1,
+                club_name: clubName,
+                played: 0, won: 0, drawn: 0, lost: 0,
+                goals_for: 0, goals_against: 0, goal_difference: 0, points: 0,
+                status: '', highlight_color: ''
+            };
+        });
+
+        setTableRows(newRows);
+        setPasteDialogOpen(false);
+        setPasteText('');
+    };
+
     if (!league) {
         return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
     }
@@ -382,11 +410,46 @@ export default function AddSeason() {
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>League Table</CardTitle>
-                        {tableRows.length === 0 && (
-                            <Button onClick={() => initializeTable(seasonData.number_of_teams)}>
-                                <Plus className="w-4 h-4 mr-2" /> Generate Table
-                            </Button>
-                        )}
+                        <div className="flex gap-2">
+                            <Dialog open={pasteDialogOpen} onOpenChange={setPasteDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline">
+                                        <ClipboardPaste className="w-4 h-4 mr-2" /> Paste Club List
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Paste Club Names</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                        <p className="text-sm text-slate-500">
+                                            Paste club names (one per line) in order of league position. This will populate the table with club names which you can then edit.
+                                        </p>
+                                        <Textarea
+                                            value={pasteText}
+                                            onChange={(e) => setPasteText(e.target.value)}
+                                            placeholder={"1st Place FC\n2nd Place United\n3rd Place City\n..."}
+                                            rows={12}
+                                            className="font-mono text-sm"
+                                        />
+                                        <p className="text-xs text-slate-400">
+                                            {pasteText.split('\n').filter(l => l.trim()).length} clubs detected
+                                        </p>
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="outline" onClick={() => setPasteDialogOpen(false)}>Cancel</Button>
+                                            <Button onClick={handlePasteClubs} disabled={!pasteText.trim()} className="bg-emerald-600 hover:bg-emerald-700">
+                                                Populate Table
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                            {tableRows.length === 0 && (
+                                <Button onClick={() => initializeTable(seasonData.number_of_teams)}>
+                                    <Plus className="w-4 h-4 mr-2" /> Generate Empty Table
+                                </Button>
+                            )}
+                        </div>
                     </CardHeader>
                     <CardContent>
                         {tableRows.length === 0 ? (
