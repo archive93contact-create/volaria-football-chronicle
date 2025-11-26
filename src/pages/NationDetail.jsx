@@ -324,15 +324,20 @@ export default function NationDetail() {
                             )}
 
                             {/* All Clubs */}
-                            <Card className="border-0 shadow-sm">
-                                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                                    <CardTitle className="text-lg">All Clubs</CardTitle>
-                                <Link to={createPageUrl(`AddClub?nation_id=${nationId}`)}>
-                                    <Button size="sm" variant="ghost">
-                                        <Plus className="w-4 h-4" />
-                                    </Button>
-                                </Link>
-                            </CardHeader>
+                                          <Card className="border-0 shadow-sm">
+                                              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                                                  <CardTitle className="text-lg">All Clubs</CardTitle>
+                                                  <div className="flex gap-1">
+                                                      <Link to={createPageUrl(`NationClubs?id=${nationId}`)}>
+                                                          <Button size="sm" variant="outline">View All</Button>
+                                                      </Link>
+                                                      <Link to={createPageUrl(`AddClub?nation_id=${nationId}`)}>
+                                                          <Button size="sm" variant="ghost">
+                                                              <Plus className="w-4 h-4" />
+                                                          </Button>
+                                                      </Link>
+                                                  </div>
+                                          </CardHeader>
                             <CardContent>
                                 {clubs.length === 0 ? (
                                     <p className="text-slate-500 text-sm">No clubs added yet</p>
