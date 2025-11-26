@@ -18,7 +18,7 @@ export default function CompetitionDetail() {
     const compId = urlParams.get('id');
     const queryClient = useQueryClient();
     
-
+    const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
     const [editingSeason, setEditingSeason] = useState(null);
     const [seasonForm, setSeasonForm] = useState({
         year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '',
@@ -38,6 +38,16 @@ export default function CompetitionDetail() {
         queryKey: ['competitionSeasons', compId],
         queryFn: () => base44.entities.ContinentalSeason.filter({ competition_id: compId }, '-year'),
     });
+
+    const { data: nations = [] } = useQuery({
+        queryKey: ['nations'],
+        queryFn: () => base44.entities.Nation.list('name'),
+    });
+
+    const getNationFlag = (nationName) => {
+        const nation = nations.find(n => n.name?.toLowerCase() === nationName?.toLowerCase());
+        return nation?.flag_url;
+    };
 
     const createSeasonMutation = useMutation({
         mutationFn: (data) => base44.entities.ContinentalSeason.create({ ...data, competition_id: compId }),
@@ -184,9 +194,15 @@ export default function CompetitionDetail() {
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Roll of Honour</CardTitle>
-                        <Link to={createPageUrl(`AddCompetitionSeason?competition_id=${compId}`)}>
-                            <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                        </Link>
+                        <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-xl">
+                                <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
+                                <SeasonForm />
+                            </DialogContent>
+                        </Dialog>
                     </CardHeader>
                     <CardContent>
                         {seasons.length === 0 ? (
@@ -208,18 +224,32 @@ export default function CompetitionDetail() {
                                     {seasons.map(season => (
                                         <TableRow key={season.id} className="hover:bg-slate-50">
                                             <TableCell className="font-medium">
-                                                <Link to={createPageUrl(`CompetitionSeasonDetail?id=${season.id}`)} className="hover:text-emerald-600 hover:underline">
+                                                <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)} className="hover:text-emerald-600 hover:underline">
                                                     {season.year}
                                                 </Link>
                                             </TableCell>
-                                            <TableCell className="font-semibold text-emerald-600">{season.champion_name}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {getNationFlag(season.champion_nation) && (
+                                                        <img src={getNationFlag(season.champion_nation)} alt="" className="w-5 h-3 object-contain" />
+                                                    )}
+                                                    <span className="font-semibold text-emerald-600">{season.champion_name}</span>
+                                                </div>
+                                            </TableCell>
                                             <TableCell className="hidden md:table-cell text-slate-500">{season.champion_nation}</TableCell>
-                                            <TableCell>{season.runner_up}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {getNationFlag(season.runner_up_nation) && (
+                                                        <img src={getNationFlag(season.runner_up_nation)} alt="" className="w-5 h-3 object-contain" />
+                                                    )}
+                                                    <span>{season.runner_up}</span>
+                                                </div>
+                                            </TableCell>
                                             <TableCell className="hidden md:table-cell">{season.final_score}</TableCell>
                                             <TableCell className="hidden lg:table-cell text-slate-500">{season.final_venue}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-1">
-                                                    <Link to={createPageUrl(`CompetitionSeasonDetail?id=${season.id}`)}>
+                                                    <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)}>
                                                         <Button variant="ghost" size="sm" className="h-8">View</Button>
                                                     </Link>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
