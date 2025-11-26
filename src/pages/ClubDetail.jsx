@@ -599,17 +599,32 @@ export default function ClubDetail() {
                 )}
 
                 {/* Former Name Notice */}
-                {formerNameClub && (
+                {(formerNameClub || formerNameClub2 || club.reverted_to_original) && (
                     <Card className="border-0 shadow-sm mb-8 bg-purple-50 border-l-4 border-l-purple-500">
                         <CardContent className="p-4 flex items-center gap-3">
                             <Shield className="w-6 h-6 text-purple-600" />
                             <div>
-                                <span className="text-purple-800">Formerly known as </span>
-                                <Link to={createPageUrl(`ClubDetail?id=${formerNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
-                                    {formerNameClub.name}
-                                </Link>
-                                {club.renamed_year && <span className="text-purple-600"> (renamed in {club.renamed_year})</span>}
-                                <span className="text-purple-600"> - same club, different name.</span>
+                                {club.reverted_to_original && (
+                                    <span className="text-purple-800 font-medium">Reverted to original name. </span>
+                                )}
+                                {(formerNameClub || formerNameClub2) && (
+                                    <>
+                                        <span className="text-purple-800">Formerly known as </span>
+                                        {formerNameClub && (
+                                            <Link to={createPageUrl(`ClubDetail?id=${formerNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                                {formerNameClub.name}
+                                            </Link>
+                                        )}
+                                        {formerNameClub && formerNameClub2 && <span className="text-purple-800"> and </span>}
+                                        {formerNameClub2 && (
+                                            <Link to={createPageUrl(`ClubDetail?id=${formerNameClub2.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                                {formerNameClub2.name}
+                                            </Link>
+                                        )}
+                                        {club.renamed_year && <span className="text-purple-600"> (current name since {club.renamed_year})</span>}
+                                        <span className="text-purple-600"> - same club, different name{formerNameClub && formerNameClub2 ? 's' : ''}.</span>
+                                    </>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -675,7 +690,7 @@ export default function ClubDetail() {
                                             {combinedSeasons.map((season) => {
                                                 const seasonLeague = allLeagues.find(l => l.id === season.league_id);
                                                 const isPredecessor = season.club_id === club.predecessor_club_id || season.club_id === club.predecessor_club_2_id;
-                                                const isFormerName = season.club_id === club.former_name_club_id;
+                                                const isFormerName = season.club_id === club.former_name_club_id || season.club_id === club.former_name_club_2_id;
                                                 return (
                                                     <TableRow key={season.id} style={{ backgroundColor: season.highlight_color || (isPredecessor ? '#f1f5f9' : isFormerName ? '#faf5ff' : 'transparent') }}>
                                                         <TableCell className="font-medium">{season.year}</TableCell>
@@ -683,6 +698,7 @@ export default function ClubDetail() {
                                                                 {season.club_id === club.predecessor_club_id ? predecessorClub?.name : 
                                                                  season.club_id === club.predecessor_club_2_id ? predecessorClub2?.name : 
                                                                  season.club_id === club.former_name_club_id ? formerNameClub?.name :
+                                                                 season.club_id === club.former_name_club_2_id ? formerNameClub2?.name :
                                                                  club.name}
                                                         </TableCell>
                                                         <TableCell>
@@ -1024,22 +1040,39 @@ export default function ClubDetail() {
                             <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Name Changes (Same Club)</h4>
                             <p className="text-xs text-slate-500 mb-3">Use this when the club simply changed name but is the same entity (not a reformation or restart).</p>
                             <div className="space-y-3 p-3 bg-purple-50 rounded-lg">
-                                <div>
-                                    <Label className="text-xs">Former Name Club Record</Label>
-                                    <Select 
-                                        value={editData.former_name_club_id || ''} 
-                                        onValueChange={(v) => setEditData({...editData, former_name_club_id: v === 'none' ? null : v})}
-                                    >
-                                        <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">None</SelectItem>
-                                            {allClubs.filter(c => c.id !== clubId && !c.former_name_club_id).map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                                 <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Label className="text-xs">Former Name Club Record</Label>
+                                        <Select 
+                                            value={editData.former_name_club_id || ''} 
+                                            onValueChange={(v) => setEditData({...editData, former_name_club_id: v === 'none' ? null : v})}
+                                        >
+                                            <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {allClubs.filter(c => c.id !== clubId && c.id !== editData.former_name_club_2_id).map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">2nd Former Name (if multiple)</Label>
+                                        <Select 
+                                            value={editData.former_name_club_2_id || ''} 
+                                            onValueChange={(v) => setEditData({...editData, former_name_club_2_id: v === 'none' ? null : v})}
+                                        >
+                                            <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {allClubs.filter(c => c.id !== clubId && c.id !== editData.former_name_club_id).map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
                                     <div className="flex-1">
                                         <Label className="text-xs flex items-center gap-2">
                                             <input 
@@ -1049,6 +1082,17 @@ export default function ClubDetail() {
                                                 className="rounded"
                                             />
                                             This record is a former name
+                                        </Label>
+                                    </div>
+                                    <div className="flex-1">
+                                        <Label className="text-xs flex items-center gap-2">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={editData.reverted_to_original || false}
+                                                onChange={(e) => setEditData({...editData, reverted_to_original: e.target.checked})}
+                                                className="rounded"
+                                            />
+                                            Reverted to original name
                                         </Label>
                                     </div>
                                     <div>
