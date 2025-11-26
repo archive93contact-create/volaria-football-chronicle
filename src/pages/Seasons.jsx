@@ -249,71 +249,72 @@ export default function Seasons() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Trophy className="w-5 h-5 text-amber-500" />
-                                    League Champions by Nation - {selectedYear}
+                                    Top Flight Champions - {selectedYear}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-0">
                                 {sortedNations.length === 0 ? (
                                     <p className="text-center py-8 text-slate-500">No league champion data for {selectedYear}</p>
                                 ) : (
-                                    <div className="space-y-4">
-                                        {sortedNations.map(({ nation, champions }) => {
-                                            const coeff = coefficients.find(c => c.nation_id === nation.id);
-                                            return (
-                                                <div key={nation.id} className="border rounded-lg overflow-hidden">
-                                                    <div className="bg-slate-100 p-3 flex items-center gap-3">
-                                                        {nation.flag_url && (
-                                                            <img src={nation.flag_url} alt={nation.name} className="w-8 h-5 object-cover rounded" />
-                                                        )}
-                                                        <Link to={createPageUrl(`NationDetail?id=${nation.id}`)} className="font-bold hover:text-emerald-600">
-                                                            {nation.name}
-                                                        </Link>
-                                                        {coeff && (
-                                                            <Badge variant="outline" className="text-xs">
-                                                                Rank #{coeff.rank}
-                                                            </Badge>
-                                                        )}
-                                                        {nation.membership && (
-                                                            <Badge className={nation.membership === 'VCC' ? 'bg-amber-500' : 'bg-blue-500'}>
-                                                                {nation.membership}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                    <Table>
-                                                        <TableHeader>
-                                                            <TableRow className="bg-slate-50">
-                                                                <TableHead>League</TableHead>
-                                                                <TableHead>Tier</TableHead>
-                                                                <TableHead>Champion</TableHead>
-                                                                <TableHead className="hidden md:table-cell">Runner-up</TableHead>
-                                                            </TableRow>
-                                                        </TableHeader>
-                                                        <TableBody>
-                                                            {champions.sort((a, b) => (a.league.tier || 1) - (b.league.tier || 1)).map((item, idx) => (
-                                                                <TableRow key={idx}>
-                                                                    <TableCell>
-                                                                        <Link to={createPageUrl(`LeagueDetail?id=${item.league.id}`)} className="hover:text-emerald-600">
-                                                                            {item.league.name}
-                                                                        </Link>
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Badge variant="outline">{item.league.tier || 1}</Badge>
-                                                                    </TableCell>
-                                                                    <TableCell className="font-semibold text-emerald-600 flex items-center gap-1">
-                                                                        {item.league.tier === 1 && <Trophy className="w-4 h-4 text-amber-500" />}
-                                                                        {item.champion}
-                                                                    </TableCell>
-                                                                    <TableCell className="hidden md:table-cell text-slate-500">
-                                                                        {item.runnerUp || '-'}
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-slate-50">
+                                                <TableHead className="w-12">#</TableHead>
+                                                <TableHead>Nation</TableHead>
+                                                <TableHead>League</TableHead>
+                                                <TableHead>Champion</TableHead>
+                                                <TableHead className="hidden md:table-cell">Runner-up</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {sortedNations.map(({ nation, champions }, idx) => {
+                                                const coeff = coefficients.find(c => c.nation_id === nation.id);
+                                                const topFlight = champions.find(c => c.league.tier === 1) || champions[0];
+                                                if (!topFlight) return null;
+                                                
+                                                return (
+                                                    <TableRow key={nation.id} className="hover:bg-slate-50">
+                                                        <TableCell className="text-slate-400 font-medium">
+                                                            {coeff?.rank || idx + 1}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Link 
+                                                                to={createPageUrl(`NationDetail?id=${nation.id}`)} 
+                                                                className="flex items-center gap-2 hover:text-emerald-600"
+                                                            >
+                                                                {nation.flag_url && (
+                                                                    <img src={nation.flag_url} alt="" className="w-6 h-4 object-cover rounded" />
+                                                                )}
+                                                                <span className="font-medium">{nation.name}</span>
+                                                                {nation.membership && (
+                                                                    <Badge className={`text-xs ${nation.membership === 'VCC' ? 'bg-amber-500' : 'bg-blue-500'}`}>
+                                                                        {nation.membership}
+                                                                    </Badge>
+                                                                )}
+                                                            </Link>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Link 
+                                                                to={createPageUrl(`LeagueDetail?id=${topFlight.league.id}`)} 
+                                                                className="text-slate-600 hover:text-emerald-600"
+                                                            >
+                                                                {topFlight.league.name}
+                                                            </Link>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span className="flex items-center gap-2 font-semibold text-emerald-700">
+                                                                <Trophy className="w-4 h-4 text-amber-500" />
+                                                                {topFlight.champion}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="hidden md:table-cell text-slate-500">
+                                                            {topFlight.runnerUp || '-'}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
                                 )}
                             </CardContent>
                         </Card>
