@@ -195,6 +195,49 @@ export default function ClubNarratives({ club, seasons, leagues }) {
         }
     }
 
+    // Remarkable season after promotion (high finish relative to league size)
+    for (let i = 1; i < sortedSeasons.length; i++) {
+        if (sortedSeasons[i - 1].status === 'promoted' && sortedSeasons[i].status !== 'champion') {
+            const leagueSize = sortedSeasons[i].played ? Math.round((sortedSeasons[i].played / 2) + 1) : null;
+            const position = sortedSeasons[i].position;
+            
+            if (leagueSize && position) {
+                const topHalf = position <= Math.ceil(leagueSize / 2);
+                const topQuarter = position <= Math.ceil(leagueSize / 4);
+                const topThird = position <= Math.ceil(leagueSize / 3);
+                
+                if (topQuarter && position <= 3) {
+                    narratives.push({
+                        icon: TrendingUp,
+                        color: 'text-emerald-600',
+                        bg: 'bg-emerald-50',
+                        title: 'Sensational First Season',
+                        text: `Finished ${position === 2 ? '2nd' : '3rd'} in ${sortedSeasons[i].year} immediately after promotion - an incredible debut.`
+                    });
+                    break;
+                } else if (topQuarter) {
+                    narratives.push({
+                        icon: TrendingUp,
+                        color: 'text-green-600',
+                        bg: 'bg-green-50',
+                        title: 'Outstanding First Season',
+                        text: `Finished ${position}${position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th'} out of ${leagueSize} in ${sortedSeasons[i].year} straight after promotion.`
+                    });
+                    break;
+                } else if (topThird && leagueSize >= 12) {
+                    narratives.push({
+                        icon: TrendingUp,
+                        color: 'text-green-500',
+                        bg: 'bg-green-50',
+                        title: 'Impressive First Season',
+                        text: `Finished ${position}${position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th'} of ${leagueSize} in ${sortedSeasons[i].year} after promotion - a strong debut.`
+                    });
+                    break;
+                }
+            }
+        }
+    }
+
     // Relegated after being champions (same tier only)
     for (let i = 1; i < sortedSeasons.length; i++) {
         const prevTier = getLeagueTier(sortedSeasons[i - 1].league_id);
