@@ -199,22 +199,19 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
                             </div>
                             <div>
                                 <Label>Club</Label>
-                                {formData.home_club_nation ? (
-                                    <Select value={formData.home_club_name} onValueChange={(v) => updateField('home_club_name', v)}>
-                                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select club" /></SelectTrigger>
-                                        <SelectContent>
-                                            {getClubsForNation(formData.home_club_nation).map(c => (
-                                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    <Input 
-                                        value={formData.home_club_name} 
-                                        onChange={(e) => updateField('home_club_name', e.target.value)}
-                                        placeholder="Or type club name"
-                                        className="mt-1"
-                                    />
+                                <Input 
+                                    value={formData.home_club_name} 
+                                    onChange={(e) => updateField('home_club_name', e.target.value)}
+                                    placeholder="Type club name"
+                                    className="mt-1"
+                                    list="home-clubs-list"
+                                />
+                                {formData.home_club_nation && (
+                                    <datalist id="home-clubs-list">
+                                        {getClubsForNation(formData.home_club_nation).map(c => (
+                                            <option key={c.id} value={c.name} />
+                                        ))}
+                                    </datalist>
                                 )}
                             </div>
                         </div>
@@ -242,22 +239,19 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
                             </div>
                             <div>
                                 <Label>Club</Label>
-                                {formData.away_club_nation ? (
-                                    <Select value={formData.away_club_name} onValueChange={(v) => updateField('away_club_name', v)}>
-                                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select club" /></SelectTrigger>
-                                        <SelectContent>
-                                            {getClubsForNation(formData.away_club_nation).map(c => (
-                                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    <Input 
-                                        value={formData.away_club_name} 
-                                        onChange={(e) => updateField('away_club_name', e.target.value)}
-                                        placeholder="Or type club name"
-                                        className="mt-1"
-                                    />
+                                <Input 
+                                    value={formData.away_club_name} 
+                                    onChange={(e) => updateField('away_club_name', e.target.value)}
+                                    placeholder="Type club name"
+                                    className="mt-1"
+                                    list="away-clubs-list"
+                                />
+                                {formData.away_club_nation && (
+                                    <datalist id="away-clubs-list">
+                                        {getClubsForNation(formData.away_club_nation).map(c => (
+                                            <option key={c.id} value={c.name} />
+                                        ))}
+                                    </datalist>
                                 )}
                             </div>
                         </div>

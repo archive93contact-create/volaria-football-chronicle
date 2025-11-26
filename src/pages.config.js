@@ -16,6 +16,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import ClubCoefficients from './pages/ClubCoefficients';
 import Seasons from './pages/Seasons';
+import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "Contact": Contact,
     "ClubCoefficients": ClubCoefficients,
     "Seasons": Seasons,
+    "UpdateContinentalStats": UpdateContinentalStats,
 }
 
 export const pagesConfig = {

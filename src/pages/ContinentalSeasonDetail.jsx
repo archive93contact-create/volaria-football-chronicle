@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, ChevronRight, Star, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trophy, ChevronRight, Star, Edit2, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -168,9 +168,16 @@ export default function ContinentalSeasonDetail() {
                             <TabsTrigger value="bracket">Bracket View</TabsTrigger>
                             <TabsTrigger value="rounds">By Round</TabsTrigger>
                         </TabsList>
-                        <Button onClick={() => setIsAddMatchOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
-                            <Plus className="w-4 h-4 mr-2" /> Add Match
-                        </Button>
+                        <div className="flex gap-2">
+                            <Link to={createPageUrl(`UpdateContinentalStats?season=${seasonId}`)}>
+                                <Button variant="outline">
+                                    <RefreshCw className="w-4 h-4 mr-2" /> Sync Club Stats
+                                </Button>
+                            </Link>
+                            <Button onClick={() => setIsAddMatchOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+                                <Plus className="w-4 h-4 mr-2" /> Add Match
+                            </Button>
+                        </div>
                     </div>
 
                     <TabsContent value="bracket">
