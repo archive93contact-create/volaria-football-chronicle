@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageUploader from '@/components/common/ImageUploader';
 import LeagueHistoryChart from '@/components/clubs/LeagueHistoryChart';
+import ClubNarratives from '@/components/clubs/ClubNarratives';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -460,9 +461,14 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
+                {/* Club Narratives */}
+                <ClubNarratives club={club} seasons={combinedSeasons} leagues={allLeagues} />
+
                 {/* League History Chart */}
                 {combinedSeasons.length >= 2 && (
-                    <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} />
+                    <div className="mt-8">
+                        <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} />
+                    </div>
                 )}
 
                 <Tabs defaultValue="seasons" className="space-y-6">
