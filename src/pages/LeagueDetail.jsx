@@ -25,7 +25,7 @@ export default function LeagueDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
     const [selectedSeason, setSelectedSeason] = useState('');
-    const [viewingSeason, setViewingSeason] = useState(null);
+    const [activeTab, setActiveTab] = useState('table');
 
     const { data: league } = useQuery({
         queryKey: ['league', leagueId],
@@ -73,6 +73,29 @@ export default function LeagueDetail() {
         onSuccess: () => {
             queryClient.invalidateQueries(['leagues']);
             navigate(createPageUrl('Nations'));
+        },
+    });
+
+    const deleteClubMutation = useMutation({
+        mutationFn: (clubId) => base44.entities.Club.delete(clubId),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['leagueClubs']);
+            queryClient.invalidateQueries(['clubs']);
+        },
+    });
+
+    const deleteSeasonMutation = useMutation({
+        mutationFn: async (seasonId) => {
+            // Delete all table entries for this season first
+            const tables = leagueTables.filter(t => t.season_id === seasonId);
+            for (const table of tables) {
+                await base44.entities.LeagueTable.delete(table.id);
+            }
+            await base44.entities.Season.delete(seasonId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['leagueSeasons']);
+            queryClient.invalidateQueries(['leagueTables']);
         },
     });
 
@@ -157,7 +180,7 @@ export default function LeagueDetail() {
                     {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                 </div>
 
-                <Tabs defaultValue="table" className="space-y-6">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="table">League Table</TabsTrigger>
                         <TabsTrigger value="clubs">Clubs ({clubs.length})</TabsTrigger>
@@ -243,17 +266,33 @@ export default function LeagueDetail() {
                                 ) : (
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         {clubs.map(club => (
-                                            <Link key={club.id} to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-3 p-3 rounded-lg border hover:shadow-md transition-shadow">
-                                                {club.logo_url ? (
-                                                    <img src={club.logo_url} alt={club.name} className="w-10 h-10 object-contain" />
-                                                ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center"><Shield className="w-5 h-5 text-slate-400" /></div>
-                                                )}
-                                                <div className="truncate">
-                                                    <div className="font-medium truncate">{club.name}</div>
-                                                    {club.city && <div className="text-xs text-slate-500">{club.city}</div>}
-                                                </div>
-                                            </Link>
+                                            <div key={club.id} className="flex items-center gap-3 p-3 rounded-lg border hover:shadow-md transition-shadow group">
+                                                <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-3 flex-1">
+                                                    {club.logo_url ? (
+                                                        <img src={club.logo_url} alt={club.name} className="w-10 h-10 object-contain" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center"><Shield className="w-5 h-5 text-slate-400" /></div>
+                                                    )}
+                                                    <div className="truncate">
+                                                        <div className="font-medium truncate">{club.name}</div>
+                                                        {club.city && <div className="text-xs text-slate-500">{club.city}</div>}
+                                                    </div>
+                                                </Link>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 hover:bg-red-50">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader><AlertDialogTitle>Delete {club.name}?</AlertDialogTitle></AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => deleteClubMutation.mutate(club.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
@@ -285,7 +324,7 @@ export default function LeagueDetail() {
                                         </TableHeader>
                                         <TableBody>
                                             {seasons.map(season => (
-                                                <TableRow key={season.id} className="cursor-pointer hover:bg-slate-50" onClick={() => { setSelectedSeason(season.year); }}>
+                                                <TableRow key={season.id} className="hover:bg-slate-50">
                                                     <TableCell className="font-medium">{season.year}</TableCell>
                                                     <TableCell className="text-emerald-600 font-semibold flex items-center gap-1">
                                                         <Trophy className="w-4 h-4 text-amber-500" />
@@ -294,9 +333,26 @@ export default function LeagueDetail() {
                                                     <TableCell className="hidden md:table-cell">{season.runner_up}</TableCell>
                                                     <TableCell className="hidden lg:table-cell text-slate-500">{season.top_scorer}</TableCell>
                                                     <TableCell>
-                                                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSeason(season.year); }}>
-                                                            View Table
-                                                        </Button>
+                                                        <div className="flex gap-1">
+                                                            <Button variant="ghost" size="sm" onClick={() => { setSelectedSeason(season.year); setActiveTab('table'); }}>
+                                                                View Table
+                                                            </Button>
+                                                            <Link to={createPageUrl(`EditSeason?id=${season.id}`)}>
+                                                                <Button variant="ghost" size="sm"><Edit2 className="w-3 h-3" /></Button>
+                                                            </Link>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700"><Trash2 className="w-3 h-3" /></Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader><AlertDialogTitle>Delete {season.year} season?</AlertDialogTitle></AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </div>
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
