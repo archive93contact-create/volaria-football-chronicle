@@ -122,6 +122,33 @@ export default function ClubDetail() {
         enabled: !!club?.successor_club_id,
     });
 
+    // Fetch former name club data if exists
+    const { data: formerNameClub } = useQuery({
+        queryKey: ['formerNameClub', club?.former_name_club_id],
+        queryFn: async () => {
+            const clubs = await base44.entities.Club.filter({ id: club.former_name_club_id });
+            return clubs[0];
+        },
+        enabled: !!club?.former_name_club_id,
+    });
+
+    // Fetch former name club's seasons
+    const { data: formerNameSeasons = [] } = useQuery({
+        queryKey: ['formerNameSeasons', club?.former_name_club_id],
+        queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.former_name_club_id }, '-year'),
+        enabled: !!club?.former_name_club_id,
+    });
+
+    // Fetch current name club if this is a former name record
+    const { data: currentNameClub } = useQuery({
+        queryKey: ['currentNameClub', club?.current_name_club_id],
+        queryFn: async () => {
+            const clubs = await base44.entities.Club.filter({ id: club.current_name_club_id });
+            return clubs[0];
+        },
+        enabled: !!club?.current_name_club_id,
+    });
+
     // Combine seasons from current club and predecessors
     const combinedSeasons = [...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2].sort((a, b) => b.year.localeCompare(a.year));
 
