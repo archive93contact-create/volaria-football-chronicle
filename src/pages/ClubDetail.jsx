@@ -410,8 +410,13 @@ export default function ClubDetail() {
                             <div><Label>Club Name</Label><Input value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
                             <div><Label>Nickname</Label><Input value={editData.nickname || ''} onChange={(e) => setEditData({...editData, nickname: e.target.value})} className="mt-1" /></div>
                         </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div><Label>Region</Label><Input value={editData.region || ''} onChange={(e) => setEditData({...editData, region: e.target.value})} className="mt-1" placeholder="Largest area" /></div>
+                            <div><Label>District</Label><Input value={editData.district || ''} onChange={(e) => setEditData({...editData, district: e.target.value})} className="mt-1" placeholder="Medium area" /></div>
+                            <div><Label>Settlement</Label><Input value={editData.settlement || ''} onChange={(e) => setEditData({...editData, settlement: e.target.value})} className="mt-1" placeholder="Town/city" /></div>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div><Label>City</Label><Input value={editData.city || ''} onChange={(e) => setEditData({...editData, city: e.target.value})} className="mt-1" /></div>
+                            <div><Label>City (legacy)</Label><Input value={editData.city || ''} onChange={(e) => setEditData({...editData, city: e.target.value})} className="mt-1" /></div>
                             <div><Label>Founded Year</Label><Input type="number" value={editData.founded_year || ''} onChange={(e) => setEditData({...editData, founded_year: e.target.value})} className="mt-1" /></div>
                         </div>
                         <div>

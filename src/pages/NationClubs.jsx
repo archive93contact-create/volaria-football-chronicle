@@ -46,7 +46,35 @@ export default function NationClubs() {
         enabled: !!nationId,
     });
 
+    const { data: allLeagueTables = [] } = useQuery({
+        queryKey: ['allLeagueTables', nationId],
+        queryFn: async () => {
+            // Get all league tables for leagues in this nation
+            const nationLeagueIds = leagues.map(l => l.id);
+            const tables = await base44.entities.LeagueTable.list();
+            return tables.filter(t => nationLeagueIds.includes(t.league_id));
+        },
+        enabled: leagues.length > 0,
+    });
+
     const isTuruliand = nation?.name?.toLowerCase() === 'turuliand';
+
+    // Calculate seasons from league table data
+    const getCalculatedSeasons = (clubId) => {
+        const clubTables = allLeagueTables.filter(t => t.club_id === clubId);
+        let topFlightSeasons = 0;
+        let tfaSeasons = 0;
+        
+        clubTables.forEach(table => {
+            const league = leagues.find(l => l.id === table.league_id);
+            if (league) {
+                if (league.tier === 1) topFlightSeasons++;
+                if (league.tier <= 4) tfaSeasons++;
+            }
+        });
+        
+        return { topFlightSeasons, tfaSeasons };
+    };
 
     // Extract unique filter values
     const filterOptions = useMemo(() => {
@@ -348,19 +376,27 @@ export default function NationClubs() {
                                                     {club.founded_year || '-'}
                                                 </TableCell>
                                                 <TableCell className="text-center hidden lg:table-cell">
-                                                    {club.seasons_top_flight > 0 ? (
-                                                        <span className="font-medium">{club.seasons_top_flight}</span>
+                                                {(() => {
+                                                    const calc = getCalculatedSeasons(club.id);
+                                                    const val = club.seasons_top_flight || calc.topFlightSeasons;
+                                                    return val > 0 ? (
+                                                        <span className="font-medium">{val}</span>
                                                     ) : (
                                                         <span className="text-slate-300">-</span>
-                                                    )}
+                                                    );
+                                                })()}
                                                 </TableCell>
                                                 {isTuruliand && (
                                                     <TableCell className="text-center hidden xl:table-cell">
-                                                        {club.seasons_in_tfa > 0 ? (
-                                                            <span className="font-medium text-blue-600">{club.seasons_in_tfa}</span>
-                                                        ) : (
-                                                            <span className="text-slate-300">-</span>
-                                                        )}
+                                                        {(() => {
+                                                            const calc = getCalculatedSeasons(club.id);
+                                                            const val = club.seasons_in_tfa || calc.tfaSeasons;
+                                                            return val > 0 ? (
+                                                                <span className="font-medium text-blue-600">{val}</span>
+                                                            ) : (
+                                                                <span className="text-slate-300">-</span>
+                                                            );
+                                                        })()}
                                                     </TableCell>
                                                 )}
                                             </TableRow>
