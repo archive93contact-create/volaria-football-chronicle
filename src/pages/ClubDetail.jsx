@@ -647,7 +647,13 @@ export default function ClubDetail() {
                 )}
 
                 {/* Club Narratives */}
-                <ClubNarratives club={{...club, ...combinedStats}} seasons={combinedSeasons} leagues={allLeagues} />
+                <ClubNarratives 
+                    club={{...club, ...combinedStats}} 
+                    seasons={combinedSeasons} 
+                    leagues={allLeagues} 
+                    allClubs={allClubs}
+                    allLeagueTables={clubSeasons.concat(predecessorSeasons, predecessorSeasons2, formerNameSeasons, formerNameSeasons2)}
+                />
 
                 {/* League History Chart */}
                 {combinedSeasons.length >= 2 && (
