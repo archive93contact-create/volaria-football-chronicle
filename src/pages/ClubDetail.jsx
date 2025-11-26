@@ -395,9 +395,40 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
+                {/* Defunct/Successor Notice */}
+                {club.is_defunct && successorClub && (
+                    <Card className="border-0 shadow-sm mb-8 bg-amber-50 border-l-4 border-l-amber-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Shield className="w-6 h-6 text-amber-600" />
+                            <div>
+                                <span className="text-amber-800">This club is now defunct.</span>
+                                <Link to={createPageUrl(`ClubDetail?id=${successorClub.id}`)} className="ml-2 font-semibold text-amber-700 hover:underline">
+                                    View successor: {successorClub.name} →
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Predecessor Notice */}
+                {predecessorClub && (
+                    <Card className="border-0 shadow-sm mb-8 bg-blue-50 border-l-4 border-l-blue-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Shield className="w-6 h-6 text-blue-600" />
+                            <div>
+                                <span className="text-blue-800">This club continues the legacy of </span>
+                                <Link to={createPageUrl(`ClubDetail?id=${predecessorClub.id}`)} className="font-semibold text-blue-700 hover:underline">
+                                    {predecessorClub.name}
+                                </Link>
+                                {predecessorClub.defunct_year && <span className="text-blue-600"> (defunct {predecessorClub.defunct_year})</span>}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* League History Chart */}
-                {clubSeasons.length >= 2 && (
-                    <LeagueHistoryChart seasons={clubSeasons} leagues={allLeagues} />
+                {combinedSeasons.length >= 2 && (
+                    <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} />
                 )}
 
                 <Tabs defaultValue="seasons" className="space-y-6">
@@ -411,13 +442,14 @@ export default function ClubDetail() {
                         <Card className="border-0 shadow-sm">
                             <CardHeader><CardTitle>Season by Season</CardTitle></CardHeader>
                             <CardContent>
-                                {clubSeasons.length === 0 ? (
+                                {combinedSeasons.length === 0 ? (
                                     <p className="text-center py-8 text-slate-500">No season history yet</p>
                                 ) : (
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="bg-slate-100">
                                                 <TableHead>Season</TableHead>
+                                                <TableHead>Club</TableHead>
                                                 <TableHead>League</TableHead>
                                                 <TableHead className="text-center">Pos</TableHead>
                                                 <TableHead className="text-center">P</TableHead>
@@ -430,11 +462,15 @@ export default function ClubDetail() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {clubSeasons.map((season) => {
+                                            {combinedSeasons.map((season) => {
                                                 const seasonLeague = allLeagues.find(l => l.id === season.league_id);
+                                                const isPredecessor = season.club_id === club.predecessor_club_id;
                                                 return (
-                                                    <TableRow key={season.id} style={{ backgroundColor: season.highlight_color || 'transparent' }}>
+                                                    <TableRow key={season.id} style={{ backgroundColor: season.highlight_color || (isPredecessor ? '#f1f5f9' : 'transparent') }}>
                                                         <TableCell className="font-medium">{season.year}</TableCell>
+                                                        <TableCell className={isPredecessor ? 'text-slate-500 italic' : ''}>
+                                                            {isPredecessor ? predecessorClub?.name : club.name}
+                                                        </TableCell>
                                                         <TableCell>
                                                             {seasonLeague ? (
                                                                 <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className="hover:text-emerald-600 hover:underline">
@@ -686,6 +722,69 @@ export default function ClubDetail() {
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>Honours</Label><Textarea value={editData.honours || ''} onChange={(e) => setEditData({...editData, honours: e.target.value})} rows={3} className="mt-1" /></div>
                         
+                        {/* Club Succession Section */}
+                        <div className="border-t pt-4 mt-4">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Club Succession</h4>
+                            <div className="space-y-3 p-3 bg-slate-50 rounded-lg">
+                                <div>
+                                    <Label className="text-xs">Predecessor Club (this club continues from)</Label>
+                                    <Select 
+                                        value={editData.predecessor_club_id || ''} 
+                                        onValueChange={(v) => setEditData({...editData, predecessor_club_id: v === 'none' ? null : v})}
+                                    >
+                                        <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            {allClubs.filter(c => c.id !== clubId && !c.predecessor_club_id).map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex-1">
+                                        <Label className="text-xs flex items-center gap-2">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={editData.is_defunct || false}
+                                                onChange={(e) => setEditData({...editData, is_defunct: e.target.checked})}
+                                                className="rounded"
+                                            />
+                                            This club is defunct/disbanded
+                                        </Label>
+                                    </div>
+                                    {editData.is_defunct && (
+                                        <div className="w-32">
+                                            <Label className="text-xs">Defunct Year</Label>
+                                            <Input 
+                                                type="number" 
+                                                value={editData.defunct_year || ''} 
+                                                onChange={(e) => setEditData({...editData, defunct_year: parseInt(e.target.value) || null})} 
+                                                className="mt-1" 
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                                {editData.is_defunct && (
+                                    <div>
+                                        <Label className="text-xs">Successor Club (this club became)</Label>
+                                        <Select 
+                                            value={editData.successor_club_id || ''} 
+                                            onValueChange={(v) => setEditData({...editData, successor_club_id: v === 'none' ? null : v})}
+                                        >
+                                            <SelectTrigger className="mt-1"><SelectValue placeholder="None" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {allClubs.filter(c => c.id !== clubId).map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Continental Honours Section */}
                         <div className="border-t pt-4 mt-4">
                             <h4 className="font-semibold mb-3 flex items-center gap-2"><Star className="w-4 h-4" /> Continental Honours</h4>
