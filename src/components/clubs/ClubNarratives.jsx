@@ -1,0 +1,238 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield } from 'lucide-react';
+
+export default function ClubNarratives({ club, seasons, leagues }) {
+    const narratives = [];
+    
+    if (!club || seasons.length === 0) return null;
+
+    // Sort seasons chronologically
+    const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
+    const latestSeason = sortedSeasons[sortedSeasons.length - 1];
+    const firstSeason = sortedSeasons[0];
+
+    // Helper to get league tier
+    const getLeagueTier = (leagueId) => {
+        const league = leagues.find(l => l.id === leagueId);
+        return league?.tier || 1;
+    };
+
+    const getLeagueName = (leagueId) => {
+        const league = leagues.find(l => l.id === leagueId);
+        return league?.name || 'Unknown League';
+    };
+
+    // Find first top-flight season
+    const firstTopFlight = sortedSeasons.find(s => getLeagueTier(s.league_id) === 1);
+    if (firstTopFlight) {
+        narratives.push({
+            icon: Star,
+            color: 'text-amber-500',
+            bg: 'bg-amber-50',
+            title: 'Top Flight Debut',
+            text: `Made their top-flight debut in ${firstTopFlight.year}, entering the elite tier of football.`
+        });
+    }
+
+    // First ever championship
+    const firstTitle = sortedSeasons.find(s => s.status === 'champion');
+    if (firstTitle) {
+        const tier = getLeagueTier(firstTitle.league_id);
+        narratives.push({
+            icon: Trophy,
+            color: 'text-yellow-500',
+            bg: 'bg-yellow-50',
+            title: tier === 1 ? 'First League Title' : `First Tier ${tier} Title`,
+            text: `Claimed their maiden ${tier === 1 ? 'top-flight' : `Tier ${tier}`} championship in ${firstTitle.year}, a historic moment for the club.`
+        });
+    }
+
+    // Multiple titles - dynasty narrative
+    const championships = sortedSeasons.filter(s => s.status === 'champion' && getLeagueTier(s.league_id) === 1);
+    if (championships.length >= 3) {
+        narratives.push({
+            icon: Award,
+            color: 'text-purple-500',
+            bg: 'bg-purple-50',
+            title: 'Dominant Force',
+            text: `With ${championships.length} top-flight titles, the club has established itself as one of the most successful in history.`
+        });
+    }
+
+    // Back-to-back titles
+    for (let i = 1; i < championships.length; i++) {
+        const prevYear = championships[i - 1].year;
+        const currYear = championships[i].year;
+        // Simple consecutive year check
+        if (currYear.split('-')[0] === (parseInt(prevYear.split('-')[0]) + 1).toString()) {
+            narratives.push({
+                icon: Flame,
+                color: 'text-orange-500',
+                bg: 'bg-orange-50',
+                title: 'Back-to-Back Champions',
+                text: `Defended their title successfully in ${currYear}, showing remarkable consistency at the top.`
+            });
+            break;
+        }
+    }
+
+    // First relegation
+    const firstRelegation = sortedSeasons.find(s => s.status === 'relegated');
+    if (firstRelegation) {
+        narratives.push({
+            icon: TrendingDown,
+            color: 'text-red-500',
+            bg: 'bg-red-50',
+            title: 'First Relegation',
+            text: `Suffered their first relegation in ${firstRelegation.year}, a difficult chapter in the club's history.`
+        });
+    }
+
+    // Promotion story
+    const firstPromotion = sortedSeasons.find(s => s.status === 'promoted');
+    if (firstPromotion) {
+        narratives.push({
+            icon: TrendingUp,
+            color: 'text-green-500',
+            bg: 'bg-green-50',
+            title: 'Rising Up',
+            text: `Earned promotion in ${firstPromotion.year}, taking a step up the football pyramid.`
+        });
+    }
+
+    // Best ever finish
+    if (club.best_finish && club.best_finish_year) {
+        const tierText = club.best_finish_tier ? ` in Tier ${club.best_finish_tier}` : '';
+        const posText = club.best_finish === 1 ? '1st' : club.best_finish === 2 ? '2nd' : club.best_finish === 3 ? '3rd' : `${club.best_finish}th`;
+        narratives.push({
+            icon: Target,
+            color: 'text-emerald-500',
+            bg: 'bg-emerald-50',
+            title: 'Peak Performance',
+            text: `Achieved their best ever league finish of ${posText}${tierText} in ${club.best_finish_year}.`
+        });
+    }
+
+    // VCC success
+    if (club.vcc_titles > 0) {
+        narratives.push({
+            icon: Star,
+            color: 'text-blue-500',
+            bg: 'bg-blue-50',
+            title: 'Continental Glory',
+            text: `Lifted the Volaria Champions Cup ${club.vcc_titles} time${club.vcc_titles > 1 ? 's' : ''} (${club.vcc_title_years}), reaching the pinnacle of continental football.`
+        });
+    } else if (club.vcc_best_finish === 'Final') {
+        narratives.push({
+            icon: Shield,
+            color: 'text-blue-400',
+            bg: 'bg-blue-50',
+            title: 'So Close to Glory',
+            text: `Reached the VCC Final in ${club.vcc_best_finish_year}, falling agonisingly short of continental triumph.`
+        });
+    }
+
+    // CCC success
+    if (club.ccc_titles > 0) {
+        narratives.push({
+            icon: Trophy,
+            color: 'text-indigo-500',
+            bg: 'bg-indigo-50',
+            title: 'Continental Cup Winners',
+            text: `Won the Continental Cup ${club.ccc_titles} time${club.ccc_titles > 1 ? 's' : ''} (${club.ccc_title_years}).`
+        });
+    }
+
+    // Longevity narrative
+    if (club.seasons_played >= 20) {
+        narratives.push({
+            icon: Calendar,
+            color: 'text-slate-500',
+            bg: 'bg-slate-50',
+            title: 'Established Institution',
+            text: `With ${club.seasons_played} seasons of recorded history, the club is a cornerstone of their nation's football.`
+        });
+    }
+
+    // Top flight mainstay
+    if (club.seasons_top_flight >= 10) {
+        narratives.push({
+            icon: Star,
+            color: 'text-amber-600',
+            bg: 'bg-amber-50',
+            title: 'Top Flight Regulars',
+            text: `Spent ${club.seasons_top_flight} seasons in the top division, demonstrating sustained excellence.`
+        });
+    }
+
+    // Yo-yo club (multiple promotions and relegations)
+    if ((club.promotions || 0) >= 3 && (club.relegations || 0) >= 3) {
+        narratives.push({
+            icon: TrendingUp,
+            color: 'text-orange-500',
+            bg: 'bg-orange-50',
+            title: 'The Yo-Yo Years',
+            text: `A turbulent history with ${club.promotions} promotions and ${club.relegations} relegations - never a dull moment.`
+        });
+    }
+
+    // Goal machine
+    if (club.total_goals_scored >= 500) {
+        narratives.push({
+            icon: Flame,
+            color: 'text-red-500',
+            bg: 'bg-red-50',
+            title: 'Goal Machine',
+            text: `Scored ${club.total_goals_scored} goals across their recorded history, averaging ${(club.total_goals_scored / club.seasons_played).toFixed(1)} per season.`
+        });
+    }
+
+    // Founding narrative
+    if (club.founded_year) {
+        const age = new Date().getFullYear() - club.founded_year;
+        if (age >= 100) {
+            narratives.push({
+                icon: BookOpen,
+                color: 'text-amber-700',
+                bg: 'bg-amber-50',
+                title: 'Century of History',
+                text: `Founded in ${club.founded_year}, the club has over a century of footballing tradition.`
+            });
+        } else if (age >= 50) {
+            narratives.push({
+                icon: BookOpen,
+                color: 'text-slate-600',
+                bg: 'bg-slate-50',
+                title: 'Half Century Club',
+                text: `Established in ${club.founded_year}, with ${age} years of history behind them.`
+            });
+        }
+    }
+
+    if (narratives.length === 0) return null;
+
+    return (
+        <Card className="border-0 shadow-sm">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-emerald-600" />
+                    Club Story
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="grid gap-3 md:grid-cols-2">
+                    {narratives.slice(0, 8).map((narrative, idx) => (
+                        <div key={idx} className={`flex gap-3 p-3 rounded-lg ${narrative.bg}`}>
+                            <narrative.icon className={`w-5 h-5 ${narrative.color} flex-shrink-0 mt-0.5`} />
+                            <div>
+                                <h4 className="font-semibold text-slate-800 text-sm">{narrative.title}</h4>
+                                <p className="text-slate-600 text-sm">{narrative.text}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
