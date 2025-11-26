@@ -65,7 +65,7 @@ export default function LeagueDetail() {
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.League.update(leagueId, data),
         onSuccess: () => {
-            queryClient.invalidateQueries(['league', leagueId]);
+            queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
             setIsEditing(false);
         },
     });
@@ -73,7 +73,7 @@ export default function LeagueDetail() {
     const deleteMutation = useMutation({
         mutationFn: () => base44.entities.League.delete(leagueId),
         onSuccess: () => {
-            queryClient.invalidateQueries(['leagues']);
+            queryClient.invalidateQueries({ queryKey: ['leagues'] });
             navigate(createPageUrl('Nations'));
         },
     });
@@ -88,15 +88,15 @@ export default function LeagueDetail() {
             await base44.entities.Season.delete(seasonId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['leagueSeasons', leagueId]);
-            queryClient.invalidateQueries(['leagueTables', leagueId]);
+            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
         },
     });
 
     const updateSeasonMutation = useMutation({
         mutationFn: ({ id, data }) => base44.entities.Season.update(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries(['leagueSeasons', leagueId]);
+            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
             setEditingSeason(null);
         },
     });
@@ -104,8 +104,8 @@ export default function LeagueDetail() {
     const deleteClubMutation = useMutation({
         mutationFn: (clubId) => base44.entities.Club.delete(clubId),
         onSuccess: () => {
-            queryClient.invalidateQueries(['leagueClubs', leagueId]);
-            queryClient.invalidateQueries(['clubs']);
+            queryClient.invalidateQueries({ queryKey: ['leagueClubs', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['clubs'] });
         },
     });
 
