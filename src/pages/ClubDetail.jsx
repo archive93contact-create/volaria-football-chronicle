@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, MapPin, Users, Calendar, Trophy, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, MapPin, Users, Calendar, Trophy, TrendingUp, TrendingDown, Target, Star, Award } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -233,6 +234,95 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
+                {/* Continental Honours */}
+                {((club.vcc_titles > 0) || (club.ccc_titles > 0) || club.vcc_appearances > 0 || club.ccc_appearances > 0) && (
+                    <Card className="border-0 shadow-sm mb-8">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Star className="w-5 h-5 text-amber-500" />
+                                Continental Honours
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* VCC Section */}
+                                {(club.vcc_titles > 0 || club.vcc_appearances > 0 || club.vcc_best_finish) && (
+                                    <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Badge className="bg-amber-500 text-white">VCC</Badge>
+                                            <span className="font-semibold text-amber-800">Volarian Champions Cup</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {club.vcc_titles > 0 && (
+                                                <div className="flex items-center gap-2">
+                                                    <Trophy className="w-5 h-5 text-amber-500" />
+                                                    <span className="font-bold text-amber-700">{club.vcc_titles} Title{club.vcc_titles > 1 ? 's' : ''}</span>
+                                                    {club.vcc_title_years && <span className="text-amber-600 text-sm">({club.vcc_title_years})</span>}
+                                                </div>
+                                            )}
+                                            {club.vcc_runner_up > 0 && (
+                                                <div className="flex items-center gap-2 text-slate-600">
+                                                    <Award className="w-4 h-4" />
+                                                    <span>{club.vcc_runner_up} Runner-up{club.vcc_runner_up > 1 ? 's' : ''}</span>
+                                                </div>
+                                            )}
+                                            {club.vcc_best_finish && !club.vcc_titles && (
+                                                <div className="flex items-center gap-2 text-slate-600">
+                                                    <Target className="w-4 h-4" />
+                                                    <span>Best: {club.vcc_best_finish}</span>
+                                                    {club.vcc_best_finish_year && <span className="text-sm">({club.vcc_best_finish_year})</span>}
+                                                </div>
+                                            )}
+                                            {club.vcc_appearances > 0 && (
+                                                <div className="text-sm text-slate-500">
+                                                    {club.vcc_appearances} appearance{club.vcc_appearances > 1 ? 's' : ''}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* CCC Section */}
+                                {(club.ccc_titles > 0 || club.ccc_appearances > 0 || club.ccc_best_finish) && (
+                                    <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Badge className="bg-blue-500 text-white">CCC</Badge>
+                                            <span className="font-semibold text-blue-800">Continental Challenge Cup</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {club.ccc_titles > 0 && (
+                                                <div className="flex items-center gap-2">
+                                                    <Trophy className="w-5 h-5 text-blue-500" />
+                                                    <span className="font-bold text-blue-700">{club.ccc_titles} Title{club.ccc_titles > 1 ? 's' : ''}</span>
+                                                    {club.ccc_title_years && <span className="text-blue-600 text-sm">({club.ccc_title_years})</span>}
+                                                </div>
+                                            )}
+                                            {club.ccc_runner_up > 0 && (
+                                                <div className="flex items-center gap-2 text-slate-600">
+                                                    <Award className="w-4 h-4" />
+                                                    <span>{club.ccc_runner_up} Runner-up{club.ccc_runner_up > 1 ? 's' : ''}</span>
+                                                </div>
+                                            )}
+                                            {club.ccc_best_finish && !club.ccc_titles && (
+                                                <div className="flex items-center gap-2 text-slate-600">
+                                                    <Target className="w-4 h-4" />
+                                                    <span>Best: {club.ccc_best_finish}</span>
+                                                    {club.ccc_best_finish_year && <span className="text-sm">({club.ccc_best_finish_year})</span>}
+                                                </div>
+                                            )}
+                                            {club.ccc_appearances > 0 && (
+                                                <div className="text-sm text-slate-500">
+                                                    {club.ccc_appearances} appearance{club.ccc_appearances > 1 ? 's' : ''}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* All-Time Stats */}
                 {club.seasons_played > 0 && (
                     <Card className="border-0 shadow-sm mb-8">
@@ -271,6 +361,7 @@ export default function ClubDetail() {
                 <Tabs defaultValue="seasons" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
+                        <TabsTrigger value="continental">Continental</TabsTrigger>
                         <TabsTrigger value="info">Club Info</TabsTrigger>
                     </TabsList>
 
@@ -330,6 +421,83 @@ export default function ClubDetail() {
                                         </TableBody>
                                     </Table>
                                 )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="continental">
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader><CardTitle>Continental Competition Record</CardTitle></CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* VCC Stats */}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Badge className="bg-amber-500 text-white">VCC</Badge>
+                                            <h3 className="font-semibold">Volarian Champions Cup</h3>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                                <span className="text-slate-600">Appearances</span>
+                                                <span className="font-bold text-lg">{club.vcc_appearances || 0}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                                                <span className="text-amber-700">Titles Won</span>
+                                                <span className="font-bold text-lg text-amber-600">{club.vcc_titles || 0}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                                <span className="text-slate-600">Finals Lost</span>
+                                                <span className="font-bold text-lg">{club.vcc_runner_up || 0}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                                <span className="text-slate-600">Best Finish</span>
+                                                <div className="text-right">
+                                                    <span className="font-bold">{club.vcc_best_finish || 'N/A'}</span>
+                                                    {club.vcc_best_finish_year && <span className="text-sm text-slate-500 ml-1">({club.vcc_best_finish_year})</span>}
+                                                </div>
+                                            </div>
+                                            {club.vcc_title_years && (
+                                                <div className="p-3 bg-amber-50 rounded-lg">
+                                                    <span className="text-amber-700 text-sm">Title Years: {club.vcc_title_years}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* CCC Stats */}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Badge className="bg-blue-500 text-white">CCC</Badge>
+                                            <h3 className="font-semibold">Continental Challenge Cup</h3>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                                <span className="text-slate-600">Appearances</span>
+                                                <span className="font-bold text-lg">{club.ccc_appearances || 0}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                                <span className="text-blue-700">Titles Won</span>
+                                                <span className="font-bold text-lg text-blue-600">{club.ccc_titles || 0}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                                <span className="text-slate-600">Finals Lost</span>
+                                                <span className="font-bold text-lg">{club.ccc_runner_up || 0}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                                <span className="text-slate-600">Best Finish</span>
+                                                <div className="text-right">
+                                                    <span className="font-bold">{club.ccc_best_finish || 'N/A'}</span>
+                                                    {club.ccc_best_finish_year && <span className="text-sm text-slate-500 ml-1">({club.ccc_best_finish_year})</span>}
+                                                </div>
+                                            </div>
+                                            {club.ccc_title_years && (
+                                                <div className="p-3 bg-blue-50 rounded-lg">
+                                                    <span className="text-blue-700 text-sm">Title Years: {club.ccc_title_years}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -475,6 +643,40 @@ export default function ClubDetail() {
                         <div><Label>Manager</Label><Input value={editData.manager || ''} onChange={(e) => setEditData({...editData, manager: e.target.value})} className="mt-1" /></div>
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>Honours</Label><Textarea value={editData.honours || ''} onChange={(e) => setEditData({...editData, honours: e.target.value})} rows={3} className="mt-1" /></div>
+                        
+                        {/* Continental Honours Section */}
+                        <div className="border-t pt-4 mt-4">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Star className="w-4 h-4" /> Continental Honours</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-3 p-3 bg-amber-50 rounded-lg">
+                                    <Label className="text-amber-800">VCC (Champions Cup)</Label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><Label className="text-xs">Titles</Label><Input type="number" value={editData.vcc_titles || ''} onChange={(e) => setEditData({...editData, vcc_titles: parseInt(e.target.value) || 0})} className="mt-1" /></div>
+                                        <div><Label className="text-xs">Runner-up</Label><Input type="number" value={editData.vcc_runner_up || ''} onChange={(e) => setEditData({...editData, vcc_runner_up: parseInt(e.target.value) || 0})} className="mt-1" /></div>
+                                    </div>
+                                    <div><Label className="text-xs">Title Years</Label><Input value={editData.vcc_title_years || ''} onChange={(e) => setEditData({...editData, vcc_title_years: e.target.value})} placeholder="e.g., 2020, 2022" className="mt-1" /></div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><Label className="text-xs">Best Finish</Label><Input value={editData.vcc_best_finish || ''} onChange={(e) => setEditData({...editData, vcc_best_finish: e.target.value})} placeholder="e.g., Semi-final" className="mt-1" /></div>
+                                        <div><Label className="text-xs">Best Year</Label><Input value={editData.vcc_best_finish_year || ''} onChange={(e) => setEditData({...editData, vcc_best_finish_year: e.target.value})} className="mt-1" /></div>
+                                    </div>
+                                    <div><Label className="text-xs">Appearances</Label><Input type="number" value={editData.vcc_appearances || ''} onChange={(e) => setEditData({...editData, vcc_appearances: parseInt(e.target.value) || 0})} className="mt-1" /></div>
+                                </div>
+                                <div className="space-y-3 p-3 bg-blue-50 rounded-lg">
+                                    <Label className="text-blue-800">CCC (Challenge Cup)</Label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><Label className="text-xs">Titles</Label><Input type="number" value={editData.ccc_titles || ''} onChange={(e) => setEditData({...editData, ccc_titles: parseInt(e.target.value) || 0})} className="mt-1" /></div>
+                                        <div><Label className="text-xs">Runner-up</Label><Input type="number" value={editData.ccc_runner_up || ''} onChange={(e) => setEditData({...editData, ccc_runner_up: parseInt(e.target.value) || 0})} className="mt-1" /></div>
+                                    </div>
+                                    <div><Label className="text-xs">Title Years</Label><Input value={editData.ccc_title_years || ''} onChange={(e) => setEditData({...editData, ccc_title_years: e.target.value})} placeholder="e.g., 2019, 2021" className="mt-1" /></div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><Label className="text-xs">Best Finish</Label><Input value={editData.ccc_best_finish || ''} onChange={(e) => setEditData({...editData, ccc_best_finish: e.target.value})} placeholder="e.g., Quarter-final" className="mt-1" /></div>
+                                        <div><Label className="text-xs">Best Year</Label><Input value={editData.ccc_best_finish_year || ''} onChange={(e) => setEditData({...editData, ccc_best_finish_year: e.target.value})} className="mt-1" /></div>
+                                    </div>
+                                    <div><Label className="text-xs">Appearances</Label><Input type="number" value={editData.ccc_appearances || ''} onChange={(e) => setEditData({...editData, ccc_appearances: parseInt(e.target.value) || 0})} className="mt-1" /></div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}><X className="w-4 h-4 mr-2" /> Cancel</Button>
                             <Button onClick={handleSave} disabled={updateMutation.isPending} className="bg-emerald-600"><Save className="w-4 h-4 mr-2" /> Save</Button>
