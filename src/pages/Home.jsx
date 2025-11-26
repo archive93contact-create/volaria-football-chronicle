@@ -41,13 +41,13 @@ export default function Home() {
                     <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-8">
                             <Globe className="w-4 h-4" />
-                            The Complete Football Universe
+                            18+ Years of Fictional Football
                         </div>
                         <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6">
                             Volaria
                         </h1>
                         <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-12">
-                            Explore 37 nations, their leagues, clubs, and the complete history of football across the continent
+                            Welcome to my fictional football world — home to the TFA Football League, 100+ seasons of history, and 1000s of clubs with their own stories
                         </p>
                         
                         <div className="flex flex-wrap justify-center gap-4">
@@ -57,10 +57,10 @@ export default function Home() {
                                     <ChevronRight className="w-5 h-5 ml-2" />
                                 </Button>
                             </Link>
-                            <Link to={createPageUrl('ContinentalCompetitions')}>
+                            <Link to={createPageUrl('AddNation')}>
                                 <Button size="lg" variant="outline" className="text-lg px-8 border-white/30 text-white hover:bg-white/10">
-                                    <Star className="w-5 h-5 mr-2" />
-                                    Continental Cups
+                                    <Plus className="w-5 h-5 mr-2" />
+                                    Add Nation
                                 </Button>
                             </Link>
                         </div>
