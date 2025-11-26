@@ -126,6 +126,7 @@ export default function AddSeason() {
 
             const currentTier = league.tier || 1;
             const isTopTier = currentTier === 1;
+            const isTFALeague = currentTier <= 4; // TFA = top 4 tiers
 
             // Process each club in the table - create new or update existing
             const clubIdMap = {};
@@ -203,7 +204,9 @@ export default function AddSeason() {
                         total_goals_conceded: (existingClub.total_goals_conceded || 0) + (row.goals_against || 0),
                         promotions: (existingClub.promotions || 0) + (isPromoted ? 1 : 0),
                         relegations: (existingClub.relegations || 0) + (isRelegated ? 1 : 0),
-                    };
+                        seasons_top_flight: (existingClub.seasons_top_flight || 0) + (isTopTier ? 1 : 0),
+                        seasons_in_tfa: (existingClub.seasons_in_tfa || 0) + (isTFALeague ? 1 : 0),
+                        };
 
                     // Only update current league if this is the most recent season
                     if (shouldUpdateCurrentLeague) {
@@ -239,6 +242,8 @@ export default function AddSeason() {
                         total_goals_conceded: row.goals_against || 0,
                         promotions: isPromoted ? 1 : 0,
                         relegations: isRelegated ? 1 : 0,
+                        seasons_top_flight: isTopTier ? 1 : 0,
+                        seasons_in_tfa: isTFALeague ? 1 : 0,
                     });
                     clubIdMap[clubName] = newClub.id;
                 }

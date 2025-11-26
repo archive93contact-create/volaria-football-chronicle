@@ -33,13 +33,14 @@ export default function AddClub() {
 
     const [formData, setFormData] = useState({
         name: '', nation_id: preselectedNationId || '', league_id: preselectedLeagueId || '',
-        logo_url: '', city: '', stadium: '', stadium_capacity: '', founded_year: '',
+        logo_url: '', city: '', region: '', district: '', settlement: '',
+        stadium: '', stadium_capacity: '', founded_year: '',
         nickname: '', primary_color: '#1e40af', secondary_color: '#ffffff',
         history: '', honours: '', notable_players: '', rivals: '', manager: ''
     });
 
     const [bulkClubs, setBulkClubs] = useState([
-        { name: '', city: '', founded_year: '', nickname: '' }
+        { name: '', region: '', district: '', settlement: '', founded_year: '', nickname: '' }
     ]);
 
     const createMutation = useMutation({
@@ -86,7 +87,7 @@ export default function AddClub() {
     };
 
     const addBulkRow = () => {
-        setBulkClubs([...bulkClubs, { name: '', city: '', founded_year: '', nickname: '' }]);
+        setBulkClubs([...bulkClubs, { name: '', region: '', district: '', settlement: '', founded_year: '', nickname: '' }]);
     };
 
     const removeBulkRow = (index) => {
@@ -162,8 +163,22 @@ export default function AddClub() {
                                                     </Select>
                                                 </div>
                                                 <div>
-                                                    <Label>City</Label>
-                                                    <Input value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="mt-1" />
+                                                    <Label>City (legacy)</Label>
+                                                    <Input value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="mt-1" placeholder="Optional" />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <Label>Region</Label>
+                                                    <Input value={formData.region} onChange={(e) => setFormData({...formData, region: e.target.value})} className="mt-1" placeholder="Largest area" />
+                                                </div>
+                                                <div>
+                                                    <Label>District</Label>
+                                                    <Input value={formData.district} onChange={(e) => setFormData({...formData, district: e.target.value})} className="mt-1" placeholder="Medium area" />
+                                                </div>
+                                                <div>
+                                                    <Label>Settlement</Label>
+                                                    <Input value={formData.settlement} onChange={(e) => setFormData({...formData, settlement: e.target.value})} className="mt-1" placeholder="Town/city" />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-3 gap-4">
@@ -266,20 +281,24 @@ export default function AddClub() {
                                     </div>
                                 </div>
 
-                                <div className="border rounded-lg overflow-hidden">
-                                    <div className="bg-slate-100 px-4 py-2 grid grid-cols-12 gap-2 text-sm font-medium text-slate-600">
-                                        <div className="col-span-4">Club Name *</div>
-                                        <div className="col-span-3">City</div>
+                                <div className="border rounded-lg overflow-hidden overflow-x-auto">
+                                    <div className="bg-slate-100 px-4 py-2 grid grid-cols-16 gap-2 text-sm font-medium text-slate-600 min-w-[800px]">
+                                        <div className="col-span-3">Club Name *</div>
+                                        <div className="col-span-2">Region</div>
+                                        <div className="col-span-2">District</div>
+                                        <div className="col-span-3">Settlement</div>
                                         <div className="col-span-2">Founded</div>
-                                        <div className="col-span-2">Nickname</div>
+                                        <div className="col-span-3">Nickname</div>
                                         <div className="col-span-1"></div>
                                     </div>
                                     {bulkClubs.map((club, index) => (
-                                        <div key={index} className="px-4 py-2 grid grid-cols-12 gap-2 border-t">
-                                            <Input className="col-span-4" placeholder="Club name" value={club.name} onChange={(e) => updateBulkRow(index, 'name', e.target.value)} />
-                                            <Input className="col-span-3" placeholder="City" value={club.city} onChange={(e) => updateBulkRow(index, 'city', e.target.value)} />
+                                        <div key={index} className="px-4 py-2 grid grid-cols-16 gap-2 border-t min-w-[800px]">
+                                            <Input className="col-span-3" placeholder="Club name" value={club.name} onChange={(e) => updateBulkRow(index, 'name', e.target.value)} />
+                                            <Input className="col-span-2" placeholder="Region" value={club.region} onChange={(e) => updateBulkRow(index, 'region', e.target.value)} />
+                                            <Input className="col-span-2" placeholder="District" value={club.district} onChange={(e) => updateBulkRow(index, 'district', e.target.value)} />
+                                            <Input className="col-span-3" placeholder="Settlement" value={club.settlement} onChange={(e) => updateBulkRow(index, 'settlement', e.target.value)} />
                                             <Input className="col-span-2" type="number" placeholder="Year" value={club.founded_year} onChange={(e) => updateBulkRow(index, 'founded_year', e.target.value)} />
-                                            <Input className="col-span-2" placeholder="Nickname" value={club.nickname} onChange={(e) => updateBulkRow(index, 'nickname', e.target.value)} />
+                                            <Input className="col-span-3" placeholder="Nickname" value={club.nickname} onChange={(e) => updateBulkRow(index, 'nickname', e.target.value)} />
                                             <div className="col-span-1 flex justify-center">
                                                 {bulkClubs.length > 1 && (
                                                     <Button variant="ghost" size="icon" onClick={() => removeBulkRow(index)} className="text-red-500 h-9 w-9">
