@@ -5,6 +5,11 @@ import NationDetail from './pages/NationDetail';
 import ContinentalCompetitions from './pages/ContinentalCompetitions';
 import CompetitionDetail from './pages/CompetitionDetail';
 import CountryCoefficients from './pages/CountryCoefficients';
+import AddLeague from './pages/AddLeague';
+import AddClub from './pages/AddClub';
+import LeagueDetail from './pages/LeagueDetail';
+import ClubDetail from './pages/ClubDetail';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -15,9 +20,14 @@ export const PAGES = {
     "ContinentalCompetitions": ContinentalCompetitions,
     "CompetitionDetail": CompetitionDetail,
     "CountryCoefficients": CountryCoefficients,
+    "AddLeague": AddLeague,
+    "AddClub": AddClub,
+    "LeagueDetail": LeagueDetail,
+    "ClubDetail": ClubDetail,
 }
 
 export const pagesConfig = {
     mainPage: "Home",
     Pages: PAGES,
+    Layout: __Layout,
 };
