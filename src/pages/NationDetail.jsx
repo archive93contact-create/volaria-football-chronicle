@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import PageHeader from '@/components/common/PageHeader';
 import ImageUploader from '@/components/common/ImageUploader';
+import NationNarratives from '@/components/nations/NationNarratives';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {

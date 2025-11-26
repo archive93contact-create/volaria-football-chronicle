@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImageUploader from '@/components/common/ImageUploader';
+import LeagueNarratives from '@/components/leagues/LeagueNarratives';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
