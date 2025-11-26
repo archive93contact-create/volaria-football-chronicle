@@ -25,8 +25,7 @@ export default function LeagueDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
     const [selectedSeason, setSelectedSeason] = useState('');
-    const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
-    const [seasonForm, setSeasonForm] = useState({ year: '', champion_name: '', runner_up: '', top_scorer: '', promoted_teams: '', relegated_teams: '', notes: '' });
+    const [viewingSeason, setViewingSeason] = useState(null);
 
     const { data: league } = useQuery({
         queryKey: ['league', leagueId],
@@ -77,14 +76,7 @@ export default function LeagueDetail() {
         },
     });
 
-    const createSeasonMutation = useMutation({
-        mutationFn: (data) => base44.entities.Season.create({ ...data, league_id: leagueId }),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['leagueSeasons']);
-            setIsAddSeasonOpen(false);
-            setSeasonForm({ year: '', champion_name: '', runner_up: '', top_scorer: '', promoted_teams: '', relegated_teams: '', notes: '' });
-        },
-    });
+
 
     const handleEdit = () => {
         setEditData(league);
@@ -187,11 +179,11 @@ export default function LeagueDetail() {
                             </CardHeader>
                             <CardContent>
                                 {currentSeasonTable.length === 0 ? (
-                                    <p className="text-center py-8 text-slate-500">No table data for this season</p>
+                                    <p className="text-center py-8 text-slate-500">No table data for this season. <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)} className="text-emerald-600 hover:underline">Add a season with table data</Link></p>
                                 ) : (
                                     <Table>
                                         <TableHeader>
-                                            <TableRow>
+                                            <TableRow className="bg-slate-100">
                                                 <TableHead className="w-12">#</TableHead>
                                                 <TableHead>Club</TableHead>
                                                 <TableHead className="text-center">P</TableHead>
@@ -206,8 +198,13 @@ export default function LeagueDetail() {
                                         </TableHeader>
                                         <TableBody>
                                             {currentSeasonTable.map((row) => (
-                                                <TableRow key={row.id} className={row.position === 1 ? 'bg-amber-50' : ''}>
-                                                    <TableCell className="font-bold">{row.position}</TableCell>
+                                                <TableRow key={row.id} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
+                                                    <TableCell className="font-bold">
+                                                        <span className="flex items-center gap-1">
+                                                            {row.position}
+                                                            {row.status === 'champion' && <Trophy className="w-4 h-4 text-amber-500" />}
+                                                        </span>
+                                                    </TableCell>
                                                     <TableCell className="font-medium">{row.club_name}</TableCell>
                                                     <TableCell className="text-center">{row.played}</TableCell>
                                                     <TableCell className="text-center">{row.won}</TableCell>
@@ -215,7 +212,7 @@ export default function LeagueDetail() {
                                                     <TableCell className="text-center">{row.lost}</TableCell>
                                                     <TableCell className="text-center hidden md:table-cell">{row.goals_for}</TableCell>
                                                     <TableCell className="text-center hidden md:table-cell">{row.goals_against}</TableCell>
-                                                    <TableCell className="text-center">{row.goal_difference}</TableCell>
+                                                    <TableCell className="text-center">{row.goal_difference > 0 ? `+${row.goal_difference}` : row.goal_difference}</TableCell>
                                                     <TableCell className="text-center font-bold">{row.points}</TableCell>
                                                 </TableRow>
                                             ))}
@@ -262,31 +259,9 @@ export default function LeagueDetail() {
                         <Card className="border-0 shadow-sm">
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>Season History</CardTitle>
-                                <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
-                                        <div className="space-y-4 py-4">
-                                            <div><Label>Season Year *</Label><Input value={seasonForm.year} onChange={(e) => setSeasonForm({...seasonForm, year: e.target.value})} placeholder="e.g., 2023-24" className="mt-1" /></div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div><Label>Champion</Label><Input value={seasonForm.champion_name} onChange={(e) => setSeasonForm({...seasonForm, champion_name: e.target.value})} className="mt-1" /></div>
-                                                <div><Label>Runner-up</Label><Input value={seasonForm.runner_up} onChange={(e) => setSeasonForm({...seasonForm, runner_up: e.target.value})} className="mt-1" /></div>
-                                            </div>
-                                            <div><Label>Top Scorer</Label><Input value={seasonForm.top_scorer} onChange={(e) => setSeasonForm({...seasonForm, top_scorer: e.target.value})} className="mt-1" /></div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div><Label>Promoted Teams</Label><Input value={seasonForm.promoted_teams} onChange={(e) => setSeasonForm({...seasonForm, promoted_teams: e.target.value})} className="mt-1" /></div>
-                                                <div><Label>Relegated Teams</Label><Input value={seasonForm.relegated_teams} onChange={(e) => setSeasonForm({...seasonForm, relegated_teams: e.target.value})} className="mt-1" /></div>
-                                            </div>
-                                            <div><Label>Notes</Label><Textarea value={seasonForm.notes} onChange={(e) => setSeasonForm({...seasonForm, notes: e.target.value})} className="mt-1" /></div>
-                                            <div className="flex justify-end gap-2">
-                                                <Button variant="outline" onClick={() => setIsAddSeasonOpen(false)}>Cancel</Button>
-                                                <Button onClick={() => createSeasonMutation.mutate(seasonForm)} disabled={!seasonForm.year} className="bg-emerald-600">Add Season</Button>
-                                            </div>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
+                                    <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                                </Link>
                             </CardHeader>
                             <CardContent>
                                 {seasons.length === 0 ? (
@@ -299,15 +274,24 @@ export default function LeagueDetail() {
                                                 <TableHead>Champion</TableHead>
                                                 <TableHead className="hidden md:table-cell">Runner-up</TableHead>
                                                 <TableHead className="hidden lg:table-cell">Top Scorer</TableHead>
+                                                <TableHead className="w-24"></TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {seasons.map(season => (
-                                                <TableRow key={season.id}>
+                                                <TableRow key={season.id} className="cursor-pointer hover:bg-slate-50" onClick={() => { setSelectedSeason(season.year); }}>
                                                     <TableCell className="font-medium">{season.year}</TableCell>
-                                                    <TableCell className="text-emerald-600 font-semibold">{season.champion_name}</TableCell>
+                                                    <TableCell className="text-emerald-600 font-semibold flex items-center gap-1">
+                                                        <Trophy className="w-4 h-4 text-amber-500" />
+                                                        {season.champion_name}
+                                                    </TableCell>
                                                     <TableCell className="hidden md:table-cell">{season.runner_up}</TableCell>
                                                     <TableCell className="hidden lg:table-cell text-slate-500">{season.top_scorer}</TableCell>
+                                                    <TableCell>
+                                                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSeason(season.year); }}>
+                                                            View Table
+                                                        </Button>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
