@@ -238,37 +238,17 @@ export default function ClubDetail() {
                                                       </CardContent>
                                                   </Card>
                                               )}
-                                              {(() => {
-                                                                                                // Calculate worst finish from seasons if not stored
-                                                                                                let worstFinish = club.worst_finish;
-                                                                                                let worstTier = club.worst_finish_tier;
-                                                                                                if (!worstFinish && combinedSeasons.length > 0) {
-                                                                                                    let worst = null;
-                                                                                                    combinedSeasons.forEach(s => {
-                                                                                                        const tier = allLeagues.find(l => l.id === s.league_id)?.tier || 1;
-                                                                                                        const score = tier * 100 + s.position;
-                                                                                                        if (!worst || score > worst.score) {
-                                                                                                            worst = { position: s.position, tier, score };
-                                                                                                        }
-                                                                                                    });
-                                                                                                    if (worst) {
-                                                                                                        worstFinish = worst.position;
-                                                                                                        worstTier = worst.tier;
-                                                                                                    }
-                                                                                                }
-                                                                                                if (!worstFinish) return null;
-                                                                                                return (
-                                                                                                    <Card className="border-0 shadow-sm">
-                                                                                                        <CardContent className="p-4 text-center">
-                                                                                                            <TrendingDown className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                                                                                                            <div className="text-2xl font-bold">{worstFinish === 1 ? '1st' : worstFinish === 2 ? '2nd' : worstFinish === 3 ? '3rd' : `${worstFinish}th`}</div>
-                                                                                                            <div className="text-xs text-slate-500">
-                                                                                                                Worst Finish {worstTier ? `(Tier ${worstTier})` : ''}
-                                                                                                            </div>
-                                                                                                        </CardContent>
-                                                                                                    </Card>
-                                                                                                );
-                                                                                             })()}
+                                              {club.worst_finish && (
+                                                                      <Card className="border-0 shadow-sm">
+                                                                          <CardContent className="p-4 text-center">
+                                                                              <TrendingDown className="w-6 h-6 text-slate-400 mx-auto mb-2" />
+                                                                              <div className="text-2xl font-bold">{club.worst_finish === 1 ? '1st' : club.worst_finish === 2 ? '2nd' : club.worst_finish === 3 ? '3rd' : `${club.worst_finish}th`}</div>
+                                                                              <div className="text-xs text-slate-500">
+                                                                                  Worst Finish {club.worst_finish_tier ? `(Tier ${club.worst_finish_tier})` : ''}
+                                                                              </div>
+                                                                          </CardContent>
+                                                                      </Card>
+                                                                  )}
                     {club.seasons_played > 0 && (
                         <Card className="border-0 shadow-sm">
                             <CardContent className="p-4 text-center">

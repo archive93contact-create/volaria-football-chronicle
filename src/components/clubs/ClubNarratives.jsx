@@ -326,6 +326,33 @@ export default function ClubNarratives({ club, seasons, leagues }) {
         }
     }
 
+    // Longest stint in a tier narrative
+    if (sortedSeasons.length >= 3) {
+        const tierCounts = {};
+        sortedSeasons.forEach(s => {
+            const tier = getLeagueTier(s.league_id);
+            if (tier) {
+                tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+            }
+        });
+
+        const longestTier = Object.entries(tierCounts).reduce((max, [tier, count]) => {
+            return count > max.count ? { tier: parseInt(tier), count } : max;
+        }, { tier: 0, count: 0 });
+
+        if (longestTier.count >= 3) {
+            const tierName = longestTier.tier === 1 ? 'top flight' : `Tier ${longestTier.tier}`;
+            const percentage = Math.round((longestTier.count / sortedSeasons.length) * 100);
+            narratives.push({
+                icon: Calendar,
+                color: longestTier.tier === 1 ? 'text-amber-600' : 'text-blue-500',
+                bg: longestTier.tier === 1 ? 'bg-amber-50' : 'bg-blue-50',
+                title: longestTier.tier === 1 ? 'Top Flight Stalwarts' : `Tier ${longestTier.tier} Specialists`,
+                text: `Spent ${longestTier.count} seasons in the ${tierName} (${percentage}% of their recorded history).`
+            });
+        }
+    }
+
     // TFA-specific narratives (Turuliand top 4 tiers)
     const isTuruliand = club.nation_id && leagues.some(l => l.nation_id === club.nation_id && l.name?.includes('TFA'));
     if (isTuruliand && sortedSeasons.length > 0) {
