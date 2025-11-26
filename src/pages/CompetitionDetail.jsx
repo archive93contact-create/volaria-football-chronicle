@@ -210,7 +210,10 @@ export default function CompetitionDetail() {
                     </CardHeader>
                     <CardContent>
                         {seasons.length === 0 ? (
-                            <div className="text-center py-12 text-slate-500">No seasons recorded yet. Add your first season above.</div>
+                            <div className="text-center py-12 text-slate-500">
+                                <p className="mb-2">No seasons recorded yet.</p>
+                                <p className="text-sm">Add a season above, then click on it to add knockout matches (Round of 32, Quarter-finals, etc.)</p>
+                            </div>
                         ) : (
                             <Table>
                                 <TableHeader>
@@ -254,7 +257,7 @@ export default function CompetitionDetail() {
                                             <TableCell>
                                                 <div className="flex gap-1">
                                                     <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)}>
-                                                        <Button variant="ghost" size="sm" className="h-8">View</Button>
+                                                        <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700">Matches</Button>
                                                     </Link>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
                                                     <AlertDialog>
