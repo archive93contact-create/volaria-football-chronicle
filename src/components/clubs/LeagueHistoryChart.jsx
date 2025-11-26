@@ -81,6 +81,24 @@ export default function LeagueHistoryChart({ seasons, leagues, nationName }) {
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                            {/* Top Flight shading (Tier 1) */}
+                            <ReferenceArea 
+                                y1={1} 
+                                y2={20} 
+                                fill="#fef3c7" 
+                                fillOpacity={0.6}
+                            />
+                            
+                            {/* TFA Football League shading (Tiers 1-4) for Turuliand */}
+                            {nationName?.toLowerCase() === 'turuliand' && maxTier > 4 && (
+                                <ReferenceArea 
+                                    y1={21} 
+                                    y2={80} 
+                                    fill="#dbeafe" 
+                                    fillOpacity={0.4}
+                                />
+                            )}
+                            
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis 
                                 dataKey="year" 
