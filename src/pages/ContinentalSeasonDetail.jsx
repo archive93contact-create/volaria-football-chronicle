@@ -20,7 +20,6 @@ export default function ContinentalSeasonDetail() {
     
     const [isAddMatchOpen, setIsAddMatchOpen] = useState(false);
     const [editingMatch, setEditingMatch] = useState(null);
-    const [selectedRound, setSelectedRound] = useState('all');
 
     const { data: season } = useQuery({
         queryKey: ['continentalSeason', seasonId],
