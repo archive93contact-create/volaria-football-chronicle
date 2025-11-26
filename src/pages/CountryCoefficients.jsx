@@ -104,7 +104,17 @@ export default function CountryCoefficients() {
         return { icon: Minus, color: 'text-slate-400', text: '–' };
     };
 
-    const CoeffForm = () => (
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const closeForm = () => {
+        setIsAddOpen(false);
+        setEditingCoeff(null);
+        resetForm();
+    };
+
+    const coeffForm = (
         <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -118,31 +128,31 @@ export default function CountryCoefficients() {
                 </div>
                 <div>
                     <Label>Coefficient Year</Label>
-                    <Input value={formData.coefficient_year} onChange={(e) => setFormData({...formData, coefficient_year: e.target.value})} placeholder="e.g., 2024-25" className="mt-1" />
+                    <Input value={formData.coefficient_year || ''} onChange={(e) => handleInputChange('coefficient_year', e.target.value)} placeholder="e.g., 2024-25" className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
                 <div>
                     <Label>Rank *</Label>
-                    <Input type="number" value={formData.rank} onChange={(e) => setFormData({...formData, rank: e.target.value})} className="mt-1" />
+                    <Input type="number" value={formData.rank || ''} onChange={(e) => handleInputChange('rank', e.target.value)} className="mt-1" />
                 </div>
                 <div>
                     <Label>Total Points</Label>
-                    <Input type="number" step="0.001" value={formData.total_points} onChange={(e) => setFormData({...formData, total_points: e.target.value})} className="mt-1" />
+                    <Input type="number" step="0.001" value={formData.total_points || ''} onChange={(e) => handleInputChange('total_points', e.target.value)} className="mt-1" />
                 </div>
                 <div>
                     <Label>Previous Rank</Label>
-                    <Input type="number" value={formData.previous_rank} onChange={(e) => setFormData({...formData, previous_rank: e.target.value})} className="mt-1" />
+                    <Input type="number" value={formData.previous_rank || ''} onChange={(e) => handleInputChange('previous_rank', e.target.value)} className="mt-1" />
                 </div>
             </div>
             <div className="border-t pt-4">
                 <Label className="text-sm text-slate-500 mb-2 block">Points by Year (Last 5 seasons)</Label>
                 <div className="grid grid-cols-5 gap-2">
-                    <div><Label className="text-xs">Year 1</Label><Input type="number" step="0.001" value={formData.year_1_points} onChange={(e) => setFormData({...formData, year_1_points: e.target.value})} className="mt-1" /></div>
-                    <div><Label className="text-xs">Year 2</Label><Input type="number" step="0.001" value={formData.year_2_points} onChange={(e) => setFormData({...formData, year_2_points: e.target.value})} className="mt-1" /></div>
-                    <div><Label className="text-xs">Year 3</Label><Input type="number" step="0.001" value={formData.year_3_points} onChange={(e) => setFormData({...formData, year_3_points: e.target.value})} className="mt-1" /></div>
-                    <div><Label className="text-xs">Year 4</Label><Input type="number" step="0.001" value={formData.year_4_points} onChange={(e) => setFormData({...formData, year_4_points: e.target.value})} className="mt-1" /></div>
-                    <div><Label className="text-xs">Year 5</Label><Input type="number" step="0.001" value={formData.year_5_points} onChange={(e) => setFormData({...formData, year_5_points: e.target.value})} className="mt-1" /></div>
+                    <div><Label className="text-xs">Year 1</Label><Input type="number" step="0.001" value={formData.year_1_points || ''} onChange={(e) => handleInputChange('year_1_points', e.target.value)} className="mt-1" /></div>
+                    <div><Label className="text-xs">Year 2</Label><Input type="number" step="0.001" value={formData.year_2_points || ''} onChange={(e) => handleInputChange('year_2_points', e.target.value)} className="mt-1" /></div>
+                    <div><Label className="text-xs">Year 3</Label><Input type="number" step="0.001" value={formData.year_3_points || ''} onChange={(e) => handleInputChange('year_3_points', e.target.value)} className="mt-1" /></div>
+                    <div><Label className="text-xs">Year 4</Label><Input type="number" step="0.001" value={formData.year_4_points || ''} onChange={(e) => handleInputChange('year_4_points', e.target.value)} className="mt-1" /></div>
+                    <div><Label className="text-xs">Year 5</Label><Input type="number" step="0.001" value={formData.year_5_points || ''} onChange={(e) => handleInputChange('year_5_points', e.target.value)} className="mt-1" /></div>
                 </div>
             </div>
             <div className="border-t pt-4">
@@ -150,16 +160,16 @@ export default function CountryCoefficients() {
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <Label>VCC Spots</Label>
-                        <Input type="number" value={formData.vcc_spots} onChange={(e) => setFormData({...formData, vcc_spots: e.target.value})} className="mt-1" />
+                        <Input type="number" value={formData.vcc_spots || ''} onChange={(e) => handleInputChange('vcc_spots', e.target.value)} className="mt-1" />
                     </div>
                     <div>
                         <Label>CCC Spots</Label>
-                        <Input type="number" value={formData.ccc_spots} onChange={(e) => setFormData({...formData, ccc_spots: e.target.value})} className="mt-1" />
+                        <Input type="number" value={formData.ccc_spots || ''} onChange={(e) => handleInputChange('ccc_spots', e.target.value)} className="mt-1" />
                     </div>
                 </div>
             </div>
             <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => { setIsAddOpen(false); setEditingCoeff(null); resetForm(); }}>Cancel</Button>
+                <Button variant="outline" onClick={closeForm}>Cancel</Button>
                 <Button onClick={handleSubmit} disabled={!formData.nation_name || !formData.rank} className="bg-emerald-600 hover:bg-emerald-700">
                     {editingCoeff ? 'Save Changes' : 'Add Entry'}
                 </Button>
@@ -182,7 +192,7 @@ export default function CountryCoefficients() {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                         <DialogHeader><DialogTitle>Add Coefficient Entry</DialogTitle></DialogHeader>
-                        <CoeffForm />
+                        {coeffForm}
                     </DialogContent>
                 </Dialog>
             </PageHeader>
@@ -309,7 +319,7 @@ export default function CountryCoefficients() {
             <Dialog open={!!editingCoeff} onOpenChange={(open) => { if (!open) { setEditingCoeff(null); resetForm(); } }}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader><DialogTitle>Edit Coefficient Entry</DialogTitle></DialogHeader>
-                    <CoeffForm />
+                    {coeffForm}
                 </DialogContent>
             </Dialog>
         </div>
