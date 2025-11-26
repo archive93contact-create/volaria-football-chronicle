@@ -732,26 +732,26 @@ export default function ClubDetail() {
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
                                                 <span className="text-slate-600">Appearances</span>
-                                                <span className="font-bold text-lg">{club.ccc_appearances || 0}</span>
+                                                <span className="font-bold text-lg">{combinedStats?.ccc_appearances || 0}</span>
                                             </div>
                                             <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                                                 <span className="text-blue-700">Titles Won</span>
-                                                <span className="font-bold text-lg text-blue-600">{club.ccc_titles || 0}</span>
+                                                <span className="font-bold text-lg text-blue-600">{combinedStats?.ccc_titles || 0}</span>
                                             </div>
                                             <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
                                                 <span className="text-slate-600">Finals Lost</span>
-                                                <span className="font-bold text-lg">{club.ccc_runner_up || 0}</span>
+                                                <span className="font-bold text-lg">{combinedStats?.ccc_runner_up || 0}</span>
                                             </div>
                                             <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
                                                 <span className="text-slate-600">Best Finish</span>
                                                 <div className="text-right">
-                                                    <span className="font-bold">{club.ccc_best_finish || 'N/A'}</span>
-                                                    {club.ccc_best_finish_year && <span className="text-sm text-slate-500 ml-1">({club.ccc_best_finish_year})</span>}
+                                                    <span className="font-bold">{combinedStats?.ccc_best_finish || 'N/A'}</span>
+                                                    {combinedStats?.ccc_best_finish_year && <span className="text-sm text-slate-500 ml-1">({combinedStats.ccc_best_finish_year})</span>}
                                                 </div>
                                             </div>
-                                            {club.ccc_title_years && (
+                                            {combinedStats?.ccc_title_years && (
                                                 <div className="p-3 bg-blue-50 rounded-lg">
-                                                    <span className="text-blue-700 text-sm">Title Years: {club.ccc_title_years}</span>
+                                                    <span className="text-blue-700 text-sm">Title Years: {combinedStats.ccc_title_years}</span>
                                                 </div>
                                             )}
                                         </div>
