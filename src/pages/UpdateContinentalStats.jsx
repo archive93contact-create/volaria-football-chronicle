@@ -29,8 +29,11 @@ const ROUND_DISPLAY = {
 
 export default function UpdateContinentalStats() {
     const queryClient = useQueryClient();
+    const urlParams = new URLSearchParams(window.location.search);
+    const preSelectedSeason = urlParams.get('season');
+    
     const [selectedCompetition, setSelectedCompetition] = useState('');
-    const [selectedSeason, setSelectedSeason] = useState('');
+    const [selectedSeason, setSelectedSeason] = useState(preSelectedSeason || '');
     const [results, setResults] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
 
