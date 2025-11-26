@@ -393,7 +393,7 @@ export default function ClubDetail() {
                 )}
 
                 {/* Continental Honours */}
-                {((club.vcc_titles > 0) || (club.ccc_titles > 0) || club.vcc_appearances > 0 || club.ccc_appearances > 0) && (
+                {((combinedStats?.vcc_titles > 0) || (combinedStats?.ccc_titles > 0) || combinedStats?.vcc_appearances > 0 || combinedStats?.ccc_appearances > 0) && (
                     <Card className="border-0 shadow-sm mb-8">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -404,36 +404,36 @@ export default function ClubDetail() {
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* VCC Section */}
-                                {(club.vcc_titles > 0 || club.vcc_appearances > 0 || club.vcc_best_finish) && (
+                                {(combinedStats?.vcc_titles > 0 || combinedStats?.vcc_appearances > 0 || combinedStats?.vcc_best_finish) && (
                                     <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200">
                                         <div className="flex items-center gap-2 mb-3">
                                             <Badge className="bg-amber-500 text-white">VCC</Badge>
                                             <span className="font-semibold text-amber-800">Volarian Champions Cup</span>
                                         </div>
                                         <div className="space-y-2">
-                                            {club.vcc_titles > 0 && (
+                                            {combinedStats?.vcc_titles > 0 && (
                                                 <div className="flex items-center gap-2">
                                                     <Trophy className="w-5 h-5 text-amber-500" />
-                                                    <span className="font-bold text-amber-700">{club.vcc_titles} Title{club.vcc_titles > 1 ? 's' : ''}</span>
-                                                    {club.vcc_title_years && <span className="text-amber-600 text-sm">({club.vcc_title_years})</span>}
+                                                    <span className="font-bold text-amber-700">{combinedStats.vcc_titles} Title{combinedStats.vcc_titles > 1 ? 's' : ''}</span>
+                                                    {combinedStats.vcc_title_years && <span className="text-amber-600 text-sm">({combinedStats.vcc_title_years})</span>}
                                                 </div>
                                             )}
-                                            {club.vcc_runner_up > 0 && (
+                                            {combinedStats?.vcc_runner_up > 0 && (
                                                 <div className="flex items-center gap-2 text-slate-600">
                                                     <Award className="w-4 h-4" />
-                                                    <span>{club.vcc_runner_up} Runner-up{club.vcc_runner_up > 1 ? 's' : ''}</span>
+                                                    <span>{combinedStats.vcc_runner_up} Runner-up{combinedStats.vcc_runner_up > 1 ? 's' : ''}</span>
                                                 </div>
                                             )}
-                                            {club.vcc_best_finish && !club.vcc_titles && (
+                                            {combinedStats?.vcc_best_finish && !combinedStats?.vcc_titles && (
                                                 <div className="flex items-center gap-2 text-slate-600">
                                                     <Target className="w-4 h-4" />
-                                                    <span>Best: {club.vcc_best_finish}</span>
-                                                    {club.vcc_best_finish_year && <span className="text-sm">({club.vcc_best_finish_year})</span>}
+                                                    <span>Best: {combinedStats.vcc_best_finish}</span>
+                                                    {combinedStats.vcc_best_finish_year && <span className="text-sm">({combinedStats.vcc_best_finish_year})</span>}
                                                 </div>
                                             )}
-                                            {club.vcc_appearances > 0 && (
+                                            {combinedStats?.vcc_appearances > 0 && (
                                                 <div className="text-sm text-slate-500">
-                                                    {club.vcc_appearances} appearance{club.vcc_appearances > 1 ? 's' : ''}
+                                                    {combinedStats.vcc_appearances} appearance{combinedStats.vcc_appearances > 1 ? 's' : ''}
                                                 </div>
                                             )}
                                         </div>
@@ -441,36 +441,36 @@ export default function ClubDetail() {
                                 )}
 
                                 {/* CCC Section */}
-                                {(club.ccc_titles > 0 || club.ccc_appearances > 0 || club.ccc_best_finish) && (
+                                {(combinedStats?.ccc_titles > 0 || combinedStats?.ccc_appearances > 0 || combinedStats?.ccc_best_finish) && (
                                     <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
                                         <div className="flex items-center gap-2 mb-3">
                                             <Badge className="bg-blue-500 text-white">CCC</Badge>
                                             <span className="font-semibold text-blue-800">Continental Challenge Cup</span>
                                         </div>
                                         <div className="space-y-2">
-                                            {club.ccc_titles > 0 && (
+                                            {combinedStats?.ccc_titles > 0 && (
                                                 <div className="flex items-center gap-2">
                                                     <Trophy className="w-5 h-5 text-blue-500" />
-                                                    <span className="font-bold text-blue-700">{club.ccc_titles} Title{club.ccc_titles > 1 ? 's' : ''}</span>
-                                                    {club.ccc_title_years && <span className="text-blue-600 text-sm">({club.ccc_title_years})</span>}
+                                                    <span className="font-bold text-blue-700">{combinedStats.ccc_titles} Title{combinedStats.ccc_titles > 1 ? 's' : ''}</span>
+                                                    {combinedStats.ccc_title_years && <span className="text-blue-600 text-sm">({combinedStats.ccc_title_years})</span>}
                                                 </div>
                                             )}
-                                            {club.ccc_runner_up > 0 && (
+                                            {combinedStats?.ccc_runner_up > 0 && (
                                                 <div className="flex items-center gap-2 text-slate-600">
                                                     <Award className="w-4 h-4" />
-                                                    <span>{club.ccc_runner_up} Runner-up{club.ccc_runner_up > 1 ? 's' : ''}</span>
+                                                    <span>{combinedStats.ccc_runner_up} Runner-up{combinedStats.ccc_runner_up > 1 ? 's' : ''}</span>
                                                 </div>
                                             )}
-                                            {club.ccc_best_finish && !club.ccc_titles && (
+                                            {combinedStats?.ccc_best_finish && !combinedStats?.ccc_titles && (
                                                 <div className="flex items-center gap-2 text-slate-600">
                                                     <Target className="w-4 h-4" />
-                                                    <span>Best: {club.ccc_best_finish}</span>
-                                                    {club.ccc_best_finish_year && <span className="text-sm">({club.ccc_best_finish_year})</span>}
+                                                    <span>Best: {combinedStats.ccc_best_finish}</span>
+                                                    {combinedStats.ccc_best_finish_year && <span className="text-sm">({combinedStats.ccc_best_finish_year})</span>}
                                                 </div>
                                             )}
-                                            {club.ccc_appearances > 0 && (
+                                            {combinedStats?.ccc_appearances > 0 && (
                                                 <div className="text-sm text-slate-500">
-                                                    {club.ccc_appearances} appearance{club.ccc_appearances > 1 ? 's' : ''}
+                                                    {combinedStats.ccc_appearances} appearance{combinedStats.ccc_appearances > 1 ? 's' : ''}
                                                 </div>
                                             )}
                                         </div>
