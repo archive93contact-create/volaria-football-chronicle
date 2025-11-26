@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, MapPin, Users, Calendar, Trophy } from 'lucide-react';
+import { Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, MapPin, Users, Calendar, Trophy, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,6 +56,17 @@ export default function ClubDetail() {
         queryKey: ['leaguesByNation', club?.nation_id],
         queryFn: () => base44.entities.League.filter({ nation_id: club.nation_id }),
         enabled: !!club?.nation_id,
+    });
+
+    const { data: clubSeasons = [] } = useQuery({
+        queryKey: ['clubSeasons', clubId],
+        queryFn: () => base44.entities.LeagueTable.filter({ club_id: clubId }, '-year'),
+        enabled: !!clubId,
+    });
+
+    const { data: allLeagues = [] } = useQuery({
+        queryKey: ['allLeagues'],
+        queryFn: () => base44.entities.League.list(),
     });
 
     const updateMutation = useMutation({
@@ -141,49 +154,241 @@ export default function ClubDetail() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    {club.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Calendar className="w-6 h-6 text-emerald-500 mx-auto mb-2" /><div className="text-2xl font-bold">{club.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
-                    {club.stadium && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-lg font-bold truncate">{club.stadium}</div><div className="text-xs text-slate-500">Stadium</div></CardContent></Card>}
-                    {club.stadium_capacity && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Users className="w-6 h-6 text-blue-500 mx-auto mb-2" /><div className="text-2xl font-bold">{club.stadium_capacity.toLocaleString()}</div><div className="text-xs text-slate-500">Capacity</div></CardContent></Card>}
-                    {league && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" /><div className="text-sm font-bold truncate">{league.name}</div><div className="text-xs text-slate-500">Current League</div></CardContent></Card>}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+                    {club.league_titles > 0 && (
+                        <Card className="border-0 shadow-sm bg-amber-50">
+                            <CardContent className="p-4 text-center">
+                                <Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" />
+                                <div className="text-2xl font-bold text-amber-700">{club.league_titles}</div>
+                                <div className="text-xs text-amber-600">League Titles</div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {club.best_finish && (
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="p-4 text-center">
+                                <Target className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
+                                <div className="text-2xl font-bold">{club.best_finish === 1 ? '1st' : club.best_finish === 2 ? '2nd' : club.best_finish === 3 ? '3rd' : `${club.best_finish}th`}</div>
+                                <div className="text-xs text-slate-500">Best Finish</div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {club.seasons_played > 0 && (
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="p-4 text-center">
+                                <Calendar className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                                <div className="text-2xl font-bold">{club.seasons_played}</div>
+                                <div className="text-xs text-slate-500">Seasons</div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {club.promotions > 0 && (
+                        <Card className="border-0 shadow-sm bg-green-50">
+                            <CardContent className="p-4 text-center">
+                                <TrendingUp className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                                <div className="text-2xl font-bold text-green-700">{club.promotions}</div>
+                                <div className="text-xs text-green-600">Promotions</div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {club.relegations > 0 && (
+                        <Card className="border-0 shadow-sm bg-red-50">
+                            <CardContent className="p-4 text-center">
+                                <TrendingDown className="w-6 h-6 text-red-500 mx-auto mb-2" />
+                                <div className="text-2xl font-bold text-red-700">{club.relegations}</div>
+                                <div className="text-xs text-red-600">Relegations</div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {league && (
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="p-4 text-center">
+                                <Shield className="w-6 h-6 text-slate-500 mx-auto mb-2" />
+                                <div className="text-sm font-bold truncate">{league.name}</div>
+                                <div className="text-xs text-slate-500">Current League</div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6">
-                        {club.history && (
-                            <Card className="border-0 shadow-sm">
-                                <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
-                                <CardContent><p className="text-slate-600 whitespace-pre-line">{club.history}</p></CardContent>
-                            </Card>
-                        )}
-                        {club.honours && (
-                            <Card className="border-0 shadow-sm">
-                                <CardHeader><CardTitle>Honours</CardTitle></CardHeader>
-                                <CardContent><p className="text-slate-600 whitespace-pre-line">{club.honours}</p></CardContent>
-                            </Card>
-                        )}
-                    </div>
-                    <div className="space-y-6">
-                        {club.manager && (
-                            <Card className="border-0 shadow-sm">
-                                <CardHeader><CardTitle>Manager</CardTitle></CardHeader>
-                                <CardContent><p className="font-semibold">{club.manager}</p></CardContent>
-                            </Card>
-                        )}
-                        {club.notable_players && (
-                            <Card className="border-0 shadow-sm">
-                                <CardHeader><CardTitle>Notable Players</CardTitle></CardHeader>
-                                <CardContent><p className="text-slate-600 whitespace-pre-line">{club.notable_players}</p></CardContent>
-                            </Card>
-                        )}
-                        {club.rivals && (
-                            <Card className="border-0 shadow-sm">
-                                <CardHeader><CardTitle>Rivals</CardTitle></CardHeader>
-                                <CardContent><p className="text-slate-600 whitespace-pre-line">{club.rivals}</p></CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </div>
+                {/* Title Years */}
+                {club.title_years && (
+                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                                <Trophy className="w-8 h-8 text-amber-500" />
+                                <div>
+                                    <div className="font-semibold text-amber-800">League Championship Titles</div>
+                                    <div className="text-amber-700">{club.title_years}</div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* All-Time Stats */}
+                {club.seasons_played > 0 && (
+                    <Card className="border-0 shadow-sm mb-8">
+                        <CardHeader><CardTitle>All-Time League Statistics</CardTitle></CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+                                <div className="p-3 bg-slate-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-green-600">{club.total_wins || 0}</div>
+                                    <div className="text-xs text-slate-500">Wins</div>
+                                </div>
+                                <div className="p-3 bg-slate-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-slate-600">{club.total_draws || 0}</div>
+                                    <div className="text-xs text-slate-500">Draws</div>
+                                </div>
+                                <div className="p-3 bg-slate-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-red-600">{club.total_losses || 0}</div>
+                                    <div className="text-xs text-slate-500">Losses</div>
+                                </div>
+                                <div className="p-3 bg-slate-50 rounded-lg">
+                                    <div className="text-2xl font-bold">{club.total_goals_scored || 0}</div>
+                                    <div className="text-xs text-slate-500">Goals Scored</div>
+                                </div>
+                                <div className="p-3 bg-slate-50 rounded-lg">
+                                    <div className="text-2xl font-bold">{club.total_goals_conceded || 0}</div>
+                                    <div className="text-xs text-slate-500">Goals Conceded</div>
+                                </div>
+                                <div className="p-3 bg-slate-50 rounded-lg">
+                                    <div className="text-2xl font-bold">{(club.total_goals_scored || 0) - (club.total_goals_conceded || 0)}</div>
+                                    <div className="text-xs text-slate-500">Goal Difference</div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <Tabs defaultValue="seasons" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
+                        <TabsTrigger value="info">Club Info</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="seasons">
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader><CardTitle>Season by Season</CardTitle></CardHeader>
+                            <CardContent>
+                                {clubSeasons.length === 0 ? (
+                                    <p className="text-center py-8 text-slate-500">No season history yet</p>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-slate-100">
+                                                <TableHead>Season</TableHead>
+                                                <TableHead>League</TableHead>
+                                                <TableHead className="text-center">Pos</TableHead>
+                                                <TableHead className="text-center">P</TableHead>
+                                                <TableHead className="text-center">W</TableHead>
+                                                <TableHead className="text-center">D</TableHead>
+                                                <TableHead className="text-center">L</TableHead>
+                                                <TableHead className="text-center hidden md:table-cell">GF</TableHead>
+                                                <TableHead className="text-center hidden md:table-cell">GA</TableHead>
+                                                <TableHead className="text-center">Pts</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {clubSeasons.map((season) => {
+                                                const seasonLeague = allLeagues.find(l => l.id === season.league_id);
+                                                return (
+                                                    <TableRow key={season.id} style={{ backgroundColor: season.highlight_color || 'transparent' }}>
+                                                        <TableCell className="font-medium">{season.year}</TableCell>
+                                                        <TableCell>
+                                                            {seasonLeague ? (
+                                                                <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className="hover:text-emerald-600 hover:underline">
+                                                                    {seasonLeague.name}
+                                                                </Link>
+                                                            ) : '-'}
+                                                        </TableCell>
+                                                        <TableCell className="text-center">
+                                                            <span className="flex items-center justify-center gap-1">
+                                                                {season.position}
+                                                                {season.status === 'champion' && <Trophy className="w-4 h-4 text-amber-500" />}
+                                                                {season.status === 'promoted' && <TrendingUp className="w-4 h-4 text-green-500" />}
+                                                                {season.status === 'relegated' && <TrendingDown className="w-4 h-4 text-red-500" />}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="text-center">{season.played}</TableCell>
+                                                        <TableCell className="text-center">{season.won}</TableCell>
+                                                        <TableCell className="text-center">{season.drawn}</TableCell>
+                                                        <TableCell className="text-center">{season.lost}</TableCell>
+                                                        <TableCell className="text-center hidden md:table-cell">{season.goals_for}</TableCell>
+                                                        <TableCell className="text-center hidden md:table-cell">{season.goals_against}</TableCell>
+                                                        <TableCell className="text-center font-bold">{season.points}</TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="info">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-6">
+                                {club.founded_year && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardContent className="p-4 flex items-center gap-4">
+                                            <Calendar className="w-8 h-8 text-emerald-500" />
+                                            <div>
+                                                <div className="text-sm text-slate-500">Founded</div>
+                                                <div className="text-xl font-bold">{club.founded_year}</div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {club.stadium && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardContent className="p-4 flex items-center gap-4">
+                                            <MapPin className="w-8 h-8 text-blue-500" />
+                                            <div>
+                                                <div className="text-sm text-slate-500">Stadium</div>
+                                                <div className="text-xl font-bold">{club.stadium}</div>
+                                                {club.stadium_capacity && <div className="text-sm text-slate-500">Capacity: {club.stadium_capacity.toLocaleString()}</div>}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {club.history && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
+                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.history}</p></CardContent>
+                                    </Card>
+                                )}
+                                {club.honours && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader><CardTitle>Honours</CardTitle></CardHeader>
+                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.honours}</p></CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                            <div className="space-y-6">
+                                {club.manager && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader><CardTitle>Manager</CardTitle></CardHeader>
+                                        <CardContent><p className="font-semibold">{club.manager}</p></CardContent>
+                                    </Card>
+                                )}
+                                {club.notable_players && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader><CardTitle>Notable Players</CardTitle></CardHeader>
+                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.notable_players}</p></CardContent>
+                                    </Card>
+                                )}
+                                {club.rivals && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader><CardTitle>Rivals</CardTitle></CardHeader>
+                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.rivals}</p></CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </div>
 
             {/* Edit Dialog */}
