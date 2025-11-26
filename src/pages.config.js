@@ -9,6 +9,7 @@ import AddLeague from './pages/AddLeague';
 import AddClub from './pages/AddClub';
 import LeagueDetail from './pages/LeagueDetail';
 import ClubDetail from './pages/ClubDetail';
+import AddSeason from './pages/AddSeason';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "AddClub": AddClub,
     "LeagueDetail": LeagueDetail,
     "ClubDetail": ClubDetail,
+    "AddSeason": AddSeason,
 }
 
 export const pagesConfig = {
