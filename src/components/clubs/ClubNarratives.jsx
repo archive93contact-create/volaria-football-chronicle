@@ -64,7 +64,6 @@ export default function ClubNarratives({ club, seasons, leagues }) {
     for (let i = 1; i < championships.length; i++) {
         const prevYear = championships[i - 1].year;
         const currYear = championships[i].year;
-        // Simple consecutive year check
         if (currYear.split('-')[0] === (parseInt(prevYear.split('-')[0]) + 1).toString()) {
             narratives.push({
                 icon: Flame,
@@ -75,6 +74,80 @@ export default function ClubNarratives({ club, seasons, leagues }) {
             });
             break;
         }
+    }
+
+    // Back-to-back promotions
+    const promotions = sortedSeasons.filter(s => s.status === 'promoted');
+    for (let i = 1; i < promotions.length; i++) {
+        const prevYear = promotions[i - 1].year;
+        const currYear = promotions[i].year;
+        if (currYear.split('-')[0] === (parseInt(prevYear.split('-')[0]) + 1).toString()) {
+            narratives.push({
+                icon: TrendingUp,
+                color: 'text-green-600',
+                bg: 'bg-green-50',
+                title: 'Back-to-Back Promotions',
+                text: `Achieved consecutive promotions in ${prevYear} and ${currYear}, rocketing up the pyramid.`
+            });
+            break;
+        }
+    }
+
+    // Back-to-back relegations
+    const relegations = sortedSeasons.filter(s => s.status === 'relegated');
+    for (let i = 1; i < relegations.length; i++) {
+        const prevYear = relegations[i - 1].year;
+        const currYear = relegations[i].year;
+        if (currYear.split('-')[0] === (parseInt(prevYear.split('-')[0]) + 1).toString()) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-600',
+                bg: 'bg-red-50',
+                title: 'Freefall',
+                text: `Suffered back-to-back relegations in ${prevYear} and ${currYear}, a desperate period for the club.`
+            });
+            break;
+        }
+    }
+
+    // Won title after promotion
+    for (let i = 1; i < sortedSeasons.length; i++) {
+        if (sortedSeasons[i].status === 'champion' && sortedSeasons[i - 1].status === 'promoted') {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-amber-600',
+                bg: 'bg-amber-50',
+                title: 'From Promoted to Champions',
+                text: `Won the title in ${sortedSeasons[i].year} just one season after promotion - a remarkable achievement.`
+            });
+            break;
+        }
+    }
+
+    // Relegated after being champions
+    for (let i = 1; i < sortedSeasons.length; i++) {
+        if (sortedSeasons[i].status === 'relegated' && sortedSeasons[i - 1].status === 'champion') {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-500',
+                bg: 'bg-red-50',
+                title: 'Fall from Grace',
+                text: `Relegated in ${sortedSeasons[i].year} just one year after winning the title - a stunning collapse.`
+            });
+            break;
+        }
+    }
+
+    // Promoted as champions (won the league to get promoted)
+    const promotedAsChamps = sortedSeasons.filter(s => s.status === 'promoted' && s.position === 1);
+    if (promotedAsChamps.length > 0) {
+        narratives.push({
+            icon: Trophy,
+            color: 'text-green-500',
+            bg: 'bg-green-50',
+            title: 'Champions & Promoted',
+            text: `Won ${promotedAsChamps.length} lower-tier title${promotedAsChamps.length > 1 ? 's' : ''} to earn promotion.`
+        });
     }
 
     // First relegation
@@ -141,6 +214,47 @@ export default function ClubNarratives({ club, seasons, leagues }) {
             bg: 'bg-indigo-50',
             title: 'Continental Cup Winners',
             text: `Won the Continental Cup ${club.ccc_titles} time${club.ccc_titles > 1 ? 's' : ''} (${club.ccc_title_years}).`
+        });
+    } else if (club.ccc_best_finish === 'Final') {
+        narratives.push({
+            icon: Shield,
+            color: 'text-indigo-400',
+            bg: 'bg-indigo-50',
+            title: 'CCC Heartbreak',
+            text: `Reached the CCC Final in ${club.ccc_best_finish_year}, narrowly missing out on continental silverware.`
+        });
+    }
+
+    // Multiple VCC appearances
+    if (club.vcc_appearances >= 5) {
+        narratives.push({
+            icon: Star,
+            color: 'text-amber-500',
+            bg: 'bg-amber-50',
+            title: 'VCC Regulars',
+            text: `Made ${club.vcc_appearances} appearances in the Volaria Champions Cup, a fixture on the continental stage.`
+        });
+    }
+
+    // Continental double (VCC + league in same era)
+    if (club.vcc_titles > 0 && club.league_titles > 0) {
+        narratives.push({
+            icon: Award,
+            color: 'text-yellow-600',
+            bg: 'bg-yellow-50',
+            title: 'Domestic & Continental Success',
+            text: `One of the elite clubs to have won both domestic league titles and the VCC.`
+        });
+    }
+
+    // Won both VCC and CCC
+    if (club.vcc_titles > 0 && club.ccc_titles > 0) {
+        narratives.push({
+            icon: Star,
+            color: 'text-purple-500',
+            bg: 'bg-purple-50',
+            title: 'Complete Continental Set',
+            text: `Won both the VCC and CCC, conquering both continental competitions.`
         });
     }
 
