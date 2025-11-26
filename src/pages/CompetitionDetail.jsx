@@ -19,11 +19,11 @@ export default function CompetitionDetail() {
     const queryClient = useQueryClient();
     
     const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
-    const [editingSeason, setEditingSeason] = useState(null);
-    const [seasonForm, setSeasonForm] = useState({
+    const [seasonFormData, setSeasonFormData] = useState({
         year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '',
         final_score: '', final_venue: '', top_scorer: '', notes: ''
     });
+    const [editingSeason, setEditingSeason] = useState(null);
 
     const { data: competition } = useQuery({
         queryKey: ['competition', compId],
@@ -73,19 +73,23 @@ export default function CompetitionDetail() {
     });
 
     const resetSeasonForm = () => {
-        setSeasonForm({ year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '', final_score: '', final_venue: '', top_scorer: '', notes: '' });
+        setSeasonFormData({ year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '', final_score: '', final_venue: '', top_scorer: '', notes: '' });
+    };
+
+    const updateSeasonField = (field, value) => {
+        setSeasonFormData(prev => ({ ...prev, [field]: value }));
     };
 
     const openEditSeason = (season) => {
-        setSeasonForm(season);
+        setSeasonFormData(season);
         setEditingSeason(season);
     };
 
     const handleSeasonSubmit = () => {
         if (editingSeason) {
-            updateSeasonMutation.mutate({ id: editingSeason.id, data: seasonForm });
+            updateSeasonMutation.mutate({ id: editingSeason.id, data: seasonFormData });
         } else {
-            createSeasonMutation.mutate(seasonForm);
+            createSeasonMutation.mutate(seasonFormData);
         }
     };
 
@@ -98,50 +102,50 @@ export default function CompetitionDetail() {
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Season Year *</Label>
-                    <Input value={seasonForm.year} onChange={(e) => setSeasonForm({...seasonForm, year: e.target.value})} placeholder="e.g., 2023-24" className="mt-1" />
+                    <Input value={seasonFormData.year || ''} onChange={(e) => updateSeasonField('year', e.target.value)} placeholder="e.g., 2023-24" className="mt-1" />
                 </div>
                 <div>
                     <Label>Final Score</Label>
-                    <Input value={seasonForm.final_score} onChange={(e) => setSeasonForm({...seasonForm, final_score: e.target.value})} placeholder="e.g., 2-1" className="mt-1" />
+                    <Input value={seasonFormData.final_score || ''} onChange={(e) => updateSeasonField('final_score', e.target.value)} placeholder="e.g., 2-1" className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Champion</Label>
-                    <Input value={seasonForm.champion_name} onChange={(e) => setSeasonForm({...seasonForm, champion_name: e.target.value})} placeholder="Winning club" className="mt-1" />
+                    <Input value={seasonFormData.champion_name || ''} onChange={(e) => updateSeasonField('champion_name', e.target.value)} placeholder="Winning club" className="mt-1" />
                 </div>
                 <div>
                     <Label>Champion Nation</Label>
-                    <Input value={seasonForm.champion_nation} onChange={(e) => setSeasonForm({...seasonForm, champion_nation: e.target.value})} className="mt-1" />
+                    <Input value={seasonFormData.champion_nation || ''} onChange={(e) => updateSeasonField('champion_nation', e.target.value)} className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Runner-up</Label>
-                    <Input value={seasonForm.runner_up} onChange={(e) => setSeasonForm({...seasonForm, runner_up: e.target.value})} className="mt-1" />
+                    <Input value={seasonFormData.runner_up || ''} onChange={(e) => updateSeasonField('runner_up', e.target.value)} className="mt-1" />
                 </div>
                 <div>
                     <Label>Runner-up Nation</Label>
-                    <Input value={seasonForm.runner_up_nation} onChange={(e) => setSeasonForm({...seasonForm, runner_up_nation: e.target.value})} className="mt-1" />
+                    <Input value={seasonFormData.runner_up_nation || ''} onChange={(e) => updateSeasonField('runner_up_nation', e.target.value)} className="mt-1" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Final Venue</Label>
-                    <Input value={seasonForm.final_venue} onChange={(e) => setSeasonForm({...seasonForm, final_venue: e.target.value})} className="mt-1" />
+                    <Input value={seasonFormData.final_venue || ''} onChange={(e) => updateSeasonField('final_venue', e.target.value)} className="mt-1" />
                 </div>
                 <div>
                     <Label>Top Scorer</Label>
-                    <Input value={seasonForm.top_scorer} onChange={(e) => setSeasonForm({...seasonForm, top_scorer: e.target.value})} placeholder="e.g., John Smith (10 goals)" className="mt-1" />
+                    <Input value={seasonFormData.top_scorer || ''} onChange={(e) => updateSeasonField('top_scorer', e.target.value)} placeholder="e.g., John Smith (10 goals)" className="mt-1" />
                 </div>
             </div>
             <div>
                 <Label>Notes</Label>
-                <Textarea value={seasonForm.notes} onChange={(e) => setSeasonForm({...seasonForm, notes: e.target.value})} rows={3} className="mt-1" />
+                <Textarea value={seasonFormData.notes || ''} onChange={(e) => updateSeasonField('notes', e.target.value)} rows={3} className="mt-1" />
             </div>
             <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => { setIsAddSeasonOpen(false); setEditingSeason(null); resetSeasonForm(); }}>Cancel</Button>
-                <Button onClick={handleSeasonSubmit} disabled={!seasonForm.year} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={handleSeasonSubmit} disabled={!seasonFormData.year} className="bg-emerald-600 hover:bg-emerald-700">
                     {editingSeason ? 'Save Changes' : 'Add Season'}
                 </Button>
             </div>
