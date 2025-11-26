@@ -108,8 +108,60 @@ export default function NationDetail() {
         return acc;
     }, {});
 
+    // Build custom header style if nation has colors
+    const headerStyle = nation.primary_color ? {
+        background: `linear-gradient(135deg, ${nation.primary_color}, ${nation.secondary_color || nation.primary_color}90)`
+    } : null;
+
     return (
         <div className="min-h-screen bg-slate-50">
+            {headerStyle ? (
+                <div className="relative overflow-hidden" style={headerStyle}>
+                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+                        <nav className="flex items-center gap-2 text-sm text-white/70 mb-6">
+                            <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
+                            <ChevronRight className="w-4 h-4" />
+                            <Link to={createPageUrl('Nations')} className="hover:text-white">Nations</Link>
+                            <ChevronRight className="w-4 h-4" />
+                            <span className="text-white">{nation.name}</span>
+                        </nav>
+                        <div className="flex items-center gap-6">
+                            {nation.flag_url && (
+                                <div className="hidden sm:block w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl p-3 shadow-2xl">
+                                    <img src={nation.flag_url} alt={nation.name} className="w-full h-full object-contain" />
+                                </div>
+                            )}
+                            <div className="flex-1">
+                                <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">{nation.name}</h1>
+                                {(nation.description || nation.federation_name) && (
+                                    <p className="mt-3 text-lg text-white/80 max-w-2xl">{nation.description || nation.federation_name}</p>
+                                )}
+                            </div>
+                            <div className="flex gap-2">
+                                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
+                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle>
+                                            <AlertDialogDescription>This will permanently delete this nation.</AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
             <PageHeader 
                 title={nation.name}
                 subtitle={nation.description || nation.federation_name}
@@ -147,6 +199,7 @@ export default function NationDetail() {
                     </AlertDialog>
                 </div>
             </PageHeader>
+            )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Quick Stats */}
@@ -443,6 +496,42 @@ export default function NationDetail() {
                                 rows={5}
                                 className="mt-1"
                             />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Primary Color (from flag)</Label>
+                                <div className="flex gap-2 mt-1">
+                                    <Input
+                                        type="color"
+                                        value={editData.primary_color || '#1e40af'}
+                                        onChange={(e) => setEditData({...editData, primary_color: e.target.value})}
+                                        className="w-14 h-10 p-1 cursor-pointer"
+                                    />
+                                    <Input
+                                        value={editData.primary_color || ''}
+                                        onChange={(e) => setEditData({...editData, primary_color: e.target.value})}
+                                        placeholder="#1e40af"
+                                        className="flex-1"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Secondary Color (from flag)</Label>
+                                <div className="flex gap-2 mt-1">
+                                    <Input
+                                        type="color"
+                                        value={editData.secondary_color || '#3b82f6'}
+                                        onChange={(e) => setEditData({...editData, secondary_color: e.target.value})}
+                                        className="w-14 h-10 p-1 cursor-pointer"
+                                    />
+                                    <Input
+                                        value={editData.secondary_color || ''}
+                                        onChange={(e) => setEditData({...editData, secondary_color: e.target.value})}
+                                        placeholder="#3b82f6"
+                                        className="flex-1"
+                                    />
+                                </div>
+                            </div>
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}>
