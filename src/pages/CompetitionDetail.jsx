@@ -18,7 +18,7 @@ export default function CompetitionDetail() {
     const compId = urlParams.get('id');
     const queryClient = useQueryClient();
     
-    const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
+
     const [editingSeason, setEditingSeason] = useState(null);
     const [seasonForm, setSeasonForm] = useState({
         year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '',
@@ -184,15 +184,9 @@ export default function CompetitionDetail() {
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Roll of Honour</CardTitle>
-                        <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-xl">
-                                <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
-                                <SeasonForm />
-                            </DialogContent>
-                        </Dialog>
+                        <Link to={createPageUrl(`AddCompetitionSeason?competition_id=${compId}`)}>
+                            <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                        </Link>
                     </CardHeader>
                     <CardContent>
                         {seasons.length === 0 ? (
@@ -212,8 +206,12 @@ export default function CompetitionDetail() {
                                 </TableHeader>
                                 <TableBody>
                                     {seasons.map(season => (
-                                        <TableRow key={season.id}>
-                                            <TableCell className="font-medium">{season.year}</TableCell>
+                                        <TableRow key={season.id} className="hover:bg-slate-50">
+                                            <TableCell className="font-medium">
+                                                <Link to={createPageUrl(`CompetitionSeasonDetail?id=${season.id}`)} className="hover:text-emerald-600 hover:underline">
+                                                    {season.year}
+                                                </Link>
+                                            </TableCell>
                                             <TableCell className="font-semibold text-emerald-600">{season.champion_name}</TableCell>
                                             <TableCell className="hidden md:table-cell text-slate-500">{season.champion_nation}</TableCell>
                                             <TableCell>{season.runner_up}</TableCell>
@@ -221,6 +219,9 @@ export default function CompetitionDetail() {
                                             <TableCell className="hidden lg:table-cell text-slate-500">{season.final_venue}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-1">
+                                                    <Link to={createPageUrl(`CompetitionSeasonDetail?id=${season.id}`)}>
+                                                        <Button variant="ghost" size="sm" className="h-8">View</Button>
+                                                    </Link>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button></AlertDialogTrigger>
