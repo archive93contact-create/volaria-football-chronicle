@@ -205,7 +205,13 @@ export default function LeagueDetail() {
                                                             {row.status === 'champion' && <Trophy className="w-4 h-4 text-amber-500" />}
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell className="font-medium">{row.club_name}</TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {row.club_id ? (
+                                                            <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
+                                                                {row.club_name}
+                                                            </Link>
+                                                        ) : row.club_name}
+                                                    </TableCell>
                                                     <TableCell className="text-center">{row.played}</TableCell>
                                                     <TableCell className="text-center">{row.won}</TableCell>
                                                     <TableCell className="text-center">{row.drawn}</TableCell>
