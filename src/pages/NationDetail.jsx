@@ -272,10 +272,61 @@ export default function NationDetail() {
                             </Card>
                         )}
 
-                        {/* Notable Clubs */}
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                                <CardTitle className="text-lg">All Clubs</CardTitle>
+                        {/* Most Successful Clubs */}
+                            {clubs.length > 0 && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-lg">Most Successful Clubs</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-3">
+                                            {clubs
+                                                .map(club => ({
+                                                    ...club,
+                                                    totalTitles: (club.league_titles || 0) + (club.lower_tier_titles || 0)
+                                                }))
+                                                .filter(club => club.totalTitles > 0)
+                                                .sort((a, b) => b.league_titles - a.league_titles || b.totalTitles - a.totalTitles)
+                                                .slice(0, 10)
+                                                .map((club, idx) => (
+                                                    <Link 
+                                                        key={club.id} 
+                                                        to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <span className="w-6 text-center font-bold text-slate-400">{idx + 1}</span>
+                                                        {club.logo_url ? (
+                                                            <img src={club.logo_url} alt={club.name} className="w-8 h-8 object-contain" />
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                                                                <Shield className="w-4 h-4 text-slate-400" />
+                                                            </div>
+                                                        )}
+                                                        <span className="font-medium text-sm text-slate-700 flex-1 truncate">{club.name}</span>
+                                                        <div className="flex items-center gap-2 text-xs">
+                                                            {club.league_titles > 0 && (
+                                                                <span className="flex items-center gap-1 text-amber-600 font-semibold">
+                                                                    <Trophy className="w-3 h-3" /> {club.league_titles}
+                                                                </span>
+                                                            )}
+                                                            {club.lower_tier_titles > 0 && (
+                                                                <span className="text-slate-500">+{club.lower_tier_titles}</span>
+                                                            )}
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            {clubs.filter(c => (c.league_titles || 0) + (c.lower_tier_titles || 0) > 0).length === 0 && (
+                                                <p className="text-slate-500 text-sm">No title winners yet</p>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* All Clubs */}
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                                    <CardTitle className="text-lg">All Clubs</CardTitle>
                                 <Link to={createPageUrl(`AddClub?nation_id=${nationId}`)}>
                                     <Button size="sm" variant="ghost">
                                         <Plus className="w-4 h-4" />
