@@ -21,15 +21,15 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
                 reasons.push('Official rivalry');
             }
 
-            // 2. Geographic proximity (same settlement/district)
+            // 2. Geographic proximity (same settlement/district/region)
             if (club.settlement && club.settlement === otherClub.settlement) {
-                score += 30;
+                score += 40;
                 reasons.push('Same city');
             } else if (club.district && club.district === otherClub.district) {
-                score += 15;
+                score += 25;
                 reasons.push('Same district');
             } else if (club.region && club.region === otherClub.region) {
-                score += 5;
+                score += 15;
                 reasons.push('Same region');
             }
 

@@ -327,7 +327,31 @@ export default function ClubDetail() {
                                 )}
                             </div>
                             {club.nickname && <p className="text-white/80 text-lg mt-1">"{club.nickname}"</p>}
-                            {club.city && <p className="text-white/70 flex items-center gap-1 mt-2"><MapPin className="w-4 h-4" /> {club.city}</p>}
+                            {(club.settlement || club.district || club.region || club.city) && (
+                                    <div className="flex items-center gap-2 mt-2 text-white/80 flex-wrap">
+                                        <MapPin className="w-4 h-4" />
+                                        {club.settlement && (
+                                            <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.settlement)}&type=settlement&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">
+                                                {club.settlement}
+                                            </Link>
+                                        )}
+                                        {club.settlement && club.district && <span className="text-white/50">•</span>}
+                                        {club.district && (
+                                            <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.district)}&type=district&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">
+                                                {club.district}
+                                            </Link>
+                                        )}
+                                        {(club.settlement || club.district) && club.region && <span className="text-white/50">•</span>}
+                                        {club.region && (
+                                            <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.region)}&type=region&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">
+                                                {club.region}
+                                            </Link>
+                                        )}
+                                        {!club.settlement && !club.district && !club.region && club.city && (
+                                            <span>{club.city}</span>
+                                        )}
+                                    </div>
+                                )}
                         </div>
                         <div className="flex gap-2">
                             <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
