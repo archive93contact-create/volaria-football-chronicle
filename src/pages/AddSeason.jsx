@@ -177,6 +177,8 @@ export default function AddSeason() {
         setTableRows(updated);
     };
 
+    const currentTier = seasonData.tier || league?.tier || 1;
+
     const createSeasonMutation = useMutation({
         mutationFn: async (data) => {
             const isTopTier = currentTier === 1;

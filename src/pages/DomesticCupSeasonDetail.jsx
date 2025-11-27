@@ -111,7 +111,13 @@ export default function DomesticCupSeasonDetail() {
     };
 
     // Find giant killings (lower tier beating higher tier)
+    // Exclude byes and TBD matches
     const giantKillings = matches.filter(m => {
+        // Skip if either team is TBD, BYE, or empty
+        if (!m.home_club_name || !m.away_club_name) return false;
+        if (m.home_club_name === 'TBD' || m.away_club_name === 'TBD') return false;
+        if (m.home_club_name.toLowerCase() === 'bye' || m.away_club_name.toLowerCase() === 'bye') return false;
+        
         const homeTier = getClubTier(m.home_club_name);
         const awayTier = getClubTier(m.away_club_name);
         if (!homeTier || !awayTier) return false;
