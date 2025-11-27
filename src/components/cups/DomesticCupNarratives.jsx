@@ -63,6 +63,16 @@ export default function DomesticCupNarratives({ cup, seasons, clubs = [] }) {
             color: 'text-amber-600',
             bg: 'bg-amber-50'
         });
+    } else if (sortedClubs.length === 1 && seasons.length === 1) {
+        // First ever champion
+        const [clubName] = sortedClubs[0];
+        narratives.push({
+            icon: Star,
+            title: 'Inaugural Champions',
+            text: `${clubName} made history as the first ever winners of the ${cup.short_name || cup.name}.`,
+            color: 'text-amber-600',
+            bg: 'bg-amber-50'
+        });
     }
 
     // 3. Multiple Title Holders
