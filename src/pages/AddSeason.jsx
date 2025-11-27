@@ -321,9 +321,6 @@ export default function AddSeason() {
                 playoff_notes: data.playoff_notes || null,
                 notes: data.notes
             });
-            const isTopTier = currentTier === 1;
-            const isTFALeague = currentTier <= 4; // TFA = top 4 tiers
-
             // Process each club in the table - create new or update existing
             const clubIdMap = {};
             for (const row of tableRows.filter(r => r.club_name.trim())) {
