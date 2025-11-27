@@ -27,7 +27,7 @@ function estimatePopulation(clubCount, locationType) {
 
 export default function LocationDetail() {
     const urlParams = new URLSearchParams(window.location.search);
-    const locationName = urlParams.get('name');
+    const locationNameParam = urlParams.get('name');
     const locationType = urlParams.get('type') || 'settlement';
     const nationId = urlParams.get('nation_id');
 
@@ -48,20 +48,44 @@ export default function LocationDetail() {
 
     const nation = nations.find(n => n.id === nationId);
 
-    // Find all clubs in this location
+    // Find the actual location name with correct case from clubs data
+    const locationName = useMemo(() => {
+        if (!locationNameParam) return null;
+        const searchName = locationNameParam.toLowerCase();
+        
+        for (const club of clubs) {
+            if (nationId && club.nation_id !== nationId) continue;
+            
+            if (locationType === 'region' && club.region?.toLowerCase() === searchName) {
+                return club.region;
+            } else if (locationType === 'district' && club.district?.toLowerCase() === searchName) {
+                return club.district;
+            } else if (locationType === 'settlement') {
+                if (club.settlement?.toLowerCase() === searchName) return club.settlement;
+                if (club.city?.toLowerCase() === searchName) return club.city;
+            }
+        }
+        // Fallback: capitalize first letter of each word
+        return locationNameParam.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }, [clubs, locationNameParam, locationType, nationId]);
+
+    // Find all clubs in this location (case-insensitive matching)
     const locationClubs = useMemo(() => {
+        if (!locationNameParam) return [];
+        const searchName = locationNameParam.toLowerCase();
+        
         return clubs.filter(club => {
             if (nationId && club.nation_id !== nationId) return false;
             
             if (locationType === 'region') {
-                return club.region === locationName;
+                return club.region?.toLowerCase() === searchName;
             } else if (locationType === 'district') {
-                return club.district === locationName;
+                return club.district?.toLowerCase() === searchName;
             } else {
-                return club.settlement === locationName || club.city === locationName;
+                return club.settlement?.toLowerCase() === searchName || club.city?.toLowerCase() === searchName;
             }
         });
-    }, [clubs, locationName, locationType, nationId]);
+    }, [clubs, locationNameParam, locationType, nationId]);
 
     // Get sub-locations
     const subLocations = useMemo(() => {
@@ -139,7 +163,7 @@ export default function LocationDetail() {
     const typeIcon = locationType === 'region' ? Globe : locationType === 'district' ? Building2 : Home;
     const TypeIcon = typeIcon;
 
-    if (!locationName) {
+    if (!locationNameParam) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <p className="text-slate-500">Location not found</p>
@@ -147,17 +171,20 @@ export default function LocationDetail() {
         );
     }
 
+    // Display name with proper formatting
+    const displayName = locationName || locationNameParam;
+
     return (
         <div className="min-h-screen bg-slate-50">
             <PageHeader 
-                title={locationName}
+                title={displayName}
                 subtitle={`${locationType.charAt(0).toUpperCase() + locationType.slice(1)} in ${nation?.name || 'Volaria'}`}
                 image={nation?.flag_url}
                 breadcrumbs={[
                     { label: 'Nations', url: createPageUrl('Nations') },
                     ...(nation ? [{ label: nation.name, url: createPageUrl(`NationDetail?id=${nation.id}`) }] : []),
                     { label: 'Locations', url: createPageUrl(`Locations${nationId ? `?nation_id=${nationId}` : ''}`) },
-                    { label: locationName }
+                    { label: displayName }
                 ]}
             />
 
@@ -240,7 +267,7 @@ export default function LocationDetail() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Shield className="w-5 h-5 text-emerald-600" />
-                                    Clubs in {locationName}
+                                    Clubs in {displayName}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
