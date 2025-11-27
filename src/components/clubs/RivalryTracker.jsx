@@ -55,7 +55,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         const workingLeagueTables = leagueTables.length > 0 ? leagueTables : fetchedLeagueTables;
 
         const rivalryScores = {};
-        const clubTables = leagueTables.filter(t => t.club_id === club.id);
+        const clubTables = workingLeagueTables.filter(t => t.club_id === club.id);
 
         // Find nation name for this club
         const clubNation = nations.find(n => n.id === club.nation_id);
