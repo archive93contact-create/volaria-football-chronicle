@@ -54,8 +54,17 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
         geographicBonus += settlementCount * 15000;
     }
     
+    // For small division sizes, cap the effective club count
+    // A nation with 8-team divisions can't realistically support 50+ pro clubs
+    let effectiveClubCount = clubCount;
+    if (topDivisionSize > 0 && topDivisionSize <= 10) {
+        // Small top division = cap the clubs that count toward population
+        const maxEffectiveClubs = topDivisionSize * 4; // e.g., 8-team league → max 32 clubs count
+        effectiveClubCount = Math.min(clubCount, maxEffectiveClubs);
+    }
+    
     // Blend club-based estimate with geographic data
-    const clubBasedEstimate = clubCount * basePerClub * divisionSizeFactor * tierMultiplier * leagueMultiplier;
+    const clubBasedEstimate = effectiveClubCount * basePerClub * divisionSizeFactor * tierMultiplier * leagueMultiplier;
     
     // If we have geographic data, weight it more heavily
     let estimated;
