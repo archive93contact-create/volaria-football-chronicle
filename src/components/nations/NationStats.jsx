@@ -255,9 +255,9 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
             proClubs,
             language,
             capital,
-            regions,
-            districts,
-            settlements,
+            regions: geoRegions,
+            districts: geoDistricts,
+            settlements: geoSettlements,
             currentClubCount: clubs.length
         };
     }, [nation, clubs, leagues, coefficient]);
