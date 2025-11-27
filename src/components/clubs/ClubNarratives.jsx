@@ -380,6 +380,22 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             title: 'Cup Semi-Finalists',
             text: `Best cup run ended at the semi-final stage${club.domestic_cup_best_finish_year ? ` in ${club.domestic_cup_best_finish_year}` : ''}.`
         });
+    } else if (club.domestic_cup_best_finish === 'Quarter-final') {
+        narratives.push({
+            icon: Target,
+            color: 'text-blue-400',
+            bg: 'bg-blue-50',
+            title: 'Cup Quarter-Finalists',
+            text: `Best cup run reached the quarter-finals${club.domestic_cup_best_finish_year ? ` in ${club.domestic_cup_best_finish_year}` : ''}.`
+        });
+    } else if (club.domestic_cup_best_finish && club.domestic_cup_best_finish !== 'Winner' && club.domestic_cup_best_finish !== 'Final') {
+        narratives.push({
+            icon: Award,
+            color: 'text-slate-500',
+            bg: 'bg-slate-50',
+            title: 'Cup Competitors',
+            text: `Best domestic cup performance: ${club.domestic_cup_best_finish}${club.domestic_cup_best_finish_year ? ` (${club.domestic_cup_best_finish_year})` : ''}.`
+        });
     }
 
     // Domestic cup runner-up
