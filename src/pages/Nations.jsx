@@ -76,7 +76,7 @@ export default function Nations() {
         queryFn: () => base44.entities.Club.list(),
     });
 
-    const regions = [...new Set(nations.filter(n => n.region).map(n => n.region))];
+    const filterRegions = [...new Set(nations.filter(n => n.region).map(n => n.region))];
 
     // Compute nation stats
     const nationStats = useMemo(() => {
