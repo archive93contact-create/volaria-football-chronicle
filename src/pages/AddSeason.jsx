@@ -260,7 +260,7 @@ export default function AddSeason() {
                 for (const div of divisions) {
                     if (!div.name || div.rows.length === 0) continue;
 
-                    // Create season for each division
+                    // Create season for each division - use per-division promotion/relegation spots
                     const divSeason = await base44.entities.Season.create({
                         league_id: leagueId,
                         year: data.year,
@@ -277,8 +277,8 @@ export default function AddSeason() {
                         promotion_color: data.promotion_color,
                         relegation_color: data.relegation_color,
                         playoff_color: data.playoff_color,
-                        promotion_spots: data.promotion_spots,
-                        relegation_spots: data.relegation_spots,
+                        promotion_spots: div.promotion_spots || data.promotion_spots,
+                        relegation_spots: div.relegation_spots || data.relegation_spots,
                         playoff_spots_start: data.playoff_spots_start || null,
                         playoff_spots_end: data.playoff_spots_end || null,
                         playoff_format: data.playoff_format || null,
