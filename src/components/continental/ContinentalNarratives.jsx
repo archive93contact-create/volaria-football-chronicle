@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Calendar, Globe, Star, TrendingUp, Award, Users, MapPin } from 'lucide-react';
 
 export default function ContinentalNarratives({ competition, seasons, nations = [] }) {
-    if (!competition || seasons.length === 0) return null;
+    if (!competition) return null;
 
     const narratives = [];
 
-    // 1. Competition Age / Heritage
+    // 1. Competition Age / Heritage - show for any competition with a founded year
     if (competition.founded_year) {
         const age = new Date().getFullYear() - competition.founded_year;
         if (age >= 50) {
@@ -18,10 +18,18 @@ export default function ContinentalNarratives({ competition, seasons, nations = 
                 color: 'text-amber-600',
                 bg: 'bg-amber-50'
             });
+        } else if (age >= 1) {
+            narratives.push({
+                icon: Calendar,
+                title: age <= 5 ? 'New Era' : 'Growing Legacy',
+                text: `Founded in ${competition.founded_year}, this competition is ${age} year${age > 1 ? 's' : ''} into its journey.`,
+                color: 'text-emerald-600',
+                bg: 'bg-emerald-50'
+            });
         }
     }
 
-    // 2. Total Editions
+    // 2. Total Editions - show even with few seasons
     if (seasons.length >= 10) {
         narratives.push({
             icon: Trophy,
@@ -29,6 +37,16 @@ export default function ContinentalNarratives({ competition, seasons, nations = 
             text: `With ${seasons.length} editions completed, this is one of Volaria's most established continental competitions.`,
             color: 'text-emerald-600',
             bg: 'bg-emerald-50'
+        });
+    } else if (seasons.length >= 1) {
+        narratives.push({
+            icon: Trophy,
+            title: seasons.length === 1 ? 'Inaugural Chapter' : 'Building History',
+            text: seasons.length === 1 
+                ? `The first edition has been completed, marking the beginning of continental glory.`
+                : `${seasons.length} editions have been contested so far, with more history yet to be written.`,
+            color: 'text-blue-600',
+            bg: 'bg-blue-50'
         });
     }
 
