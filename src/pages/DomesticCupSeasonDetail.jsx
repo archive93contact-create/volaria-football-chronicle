@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import AdminOnly from '@/components/common/AdminOnly';
 
 const ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -285,9 +286,11 @@ export default function DomesticCupSeasonDetail() {
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Tournament Bracket</CardTitle>
-                        <Button onClick={() => { setMatchFormData({ round: 'Quarter-final', match_number: 1 }); setIsAddMatchOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
-                            <Plus className="w-4 h-4 mr-2" /> Add Match
-                        </Button>
+                        <AdminOnly>
+                            <Button onClick={() => { setMatchFormData({ round: 'Quarter-final', match_number: 1 }); setIsAddMatchOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
+                                <Plus className="w-4 h-4 mr-2" /> Add Match
+                            </Button>
+                        </AdminOnly>
                     </CardHeader>
                     <CardContent>
                         {matches.length === 0 ? (

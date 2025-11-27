@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import DomesticCupNarratives from '@/components/cups/DomesticCupNarratives';
 import SyncCupStatsButton from '@/components/common/SyncCupStats';
 import CupHistory from '@/components/cups/CupHistory';
+import AdminOnly from '@/components/common/AdminOnly';
 
 export default function DomesticCupDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -116,22 +117,24 @@ export default function DomesticCupDetail() {
                             <h1 className="text-3xl md:text-5xl font-bold text-white">{cup.name}</h1>
                             {cup.description && <p className="mt-2 text-white/80 max-w-2xl">{cup.description}</p>}
                         </div>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader><AlertDialogTitle>Delete {cup.name}?</AlertDialogTitle></AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => {
-                                        base44.entities.DomesticCup.delete(cupId).then(() => {
-                                            navigate(createPageUrl(`DomesticCups?nation_id=${cup.nation_id}`));
-                                        });
-                                    }} className="bg-red-600">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                        <AdminOnly>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader><AlertDialogTitle>Delete {cup.name}?</AlertDialogTitle></AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => {
+                                            base44.entities.DomesticCup.delete(cupId).then(() => {
+                                                navigate(createPageUrl(`DomesticCups?nation_id=${cup.nation_id}`));
+                                            });
+                                        }} className="bg-red-600">Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </AdminOnly>
                     </div>
                 </div>
             </div>
@@ -200,9 +203,11 @@ export default function DomesticCupDetail() {
                                 />
                             </div>
                         </div>
-                        <Link to={createPageUrl(`AddDomesticCupSeason?cup_id=${cupId}`)}>
-                            <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                        </Link>
+                        <AdminOnly>
+                            <Link to={createPageUrl(`AddDomesticCupSeason?cup_id=${cupId}`)}>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                            </Link>
+                        </AdminOnly>
                     </CardHeader>
                     <CardContent>
                         {seasons.length === 0 ? (
@@ -265,24 +270,26 @@ export default function DomesticCupDetail() {
                                                         <Link to={createPageUrl(`DomesticCupSeasonDetail?id=${season.id}`)}>
                                                             <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700">Bracket</Button>
                                                         </Link>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
-                                                            setSeasonFormData(season);
-                                                            setEditingSeason(season);
-                                                        }}>
-                                                            <Edit2 className="w-3 h-3" />
-                                                        </Button>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader><AlertDialogTitle>Delete {season.year}?</AlertDialogTitle></AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
+                                                        <AdminOnly>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                                                                setSeasonFormData(season);
+                                                                setEditingSeason(season);
+                                                            }}>
+                                                                <Edit2 className="w-3 h-3" />
+                                                            </Button>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader><AlertDialogTitle>Delete {season.year}?</AlertDialogTitle></AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </AdminOnly>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>

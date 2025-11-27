@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import PageHeader from '@/components/common/PageHeader';
+import AdminOnly from '@/components/common/AdminOnly';
 
 export default function DomesticCups() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -190,15 +191,17 @@ export default function DomesticCups() {
                     { label: 'Domestic Cups' }
                 ]}
             >
-                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Cup</Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-xl">
-                        <DialogHeader><DialogTitle>Add Domestic Cup</DialogTitle></DialogHeader>
-                        {formContent}
-                    </DialogContent>
-                </Dialog>
+                <AdminOnly>
+                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Cup</Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-xl">
+                            <DialogHeader><DialogTitle>Add Domestic Cup</DialogTitle></DialogHeader>
+                            {formContent}
+                        </DialogContent>
+                    </Dialog>
+                </AdminOnly>
             </PageHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -256,6 +259,7 @@ export default function DomesticCups() {
                                                     </p>
                                                 )}
                                             </div>
+                                            <AdminOnly>
                                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(cup)}>
                                                     <Edit2 className="w-4 h-4" />
@@ -273,6 +277,7 @@ export default function DomesticCups() {
                                                     </AlertDialogContent>
                                                 </AlertDialog>
                                             </div>
+                                        </AdminOnly>
                                         </div>
                                         {cup.description && <p className="text-sm text-slate-600 mb-3 line-clamp-2">{cup.description}</p>}
                                         <div className="flex items-center gap-4 text-sm text-slate-500">
