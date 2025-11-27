@@ -1,22 +1,19 @@
 // Shared population estimation utilities for consistent calculations across the app
 
-// Estimate nation population based on clubs, leagues, tiers, and division sizes
+// Estimate nation population based on clubs, leagues, tiers, division sizes, and geographic spread
 export function estimateNationPopulation(clubCount, leagueCount, membership, maxTier, options = {}) {
     if (clubCount === 0) return { value: 0, display: '0', tier: 'Unknown' };
     
-    const { topDivisionSize = 0, avgDivisionSize = 0, totalDivisions = 0 } = options;
+    const { topDivisionSize = 0, avgDivisionSize = 0, totalDivisions = 0, regionCount = 0, districtCount = 0, settlementCount = 0 } = options;
     
     // Base population per club varies by membership tier
-    // VCC nations tend to be larger/wealthier with more clubs per capita
-    let basePerClub = membership === 'VCC' ? 70000 : membership === 'CCC' ? 50000 : 55000;
+    let basePerClub = membership === 'VCC' ? 65000 : membership === 'CCC' ? 45000 : 50000;
     
-    // Division size factor - this is KEY for distinguishing nation sizes
-    // Large top flights (18-20 teams) = major nations like Turuliand
-    // Small top flights (8 teams) = smaller nations like Faelandia
+    // Division size factor - KEY for distinguishing nation sizes
     let divisionSizeFactor = 1.0;
     if (topDivisionSize > 0) {
         if (topDivisionSize >= 20) {
-            divisionSizeFactor = 1.8; // Major footballing nation
+            divisionSizeFactor = 1.8;
         } else if (topDivisionSize >= 18) {
             divisionSizeFactor = 1.5;
         } else if (topDivisionSize >= 16) {
@@ -28,19 +25,46 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
         } else if (topDivisionSize >= 10) {
             divisionSizeFactor = 0.8;
         } else if (topDivisionSize >= 8) {
-            divisionSizeFactor = 0.6; // 8-team league = smaller nation
+            divisionSizeFactor = 0.6;
         } else {
-            divisionSizeFactor = 0.4; // Very small
+            divisionSizeFactor = 0.4;
         }
     }
     
-    // Tier depth - more tiers means deeper pyramid = larger country
-    const tierMultiplier = 1 + ((maxTier || 1) * 0.08); // Up to 1.32x for 4 tiers
+    // Tier depth - more tiers = larger country
+    const tierMultiplier = 1 + ((maxTier || 1) * 0.08);
     
-    // League count - more leagues indicates more structure/size
-    const leagueMultiplier = 1 + (Math.min(leagueCount, 10) * 0.05); // Up to 1.5x for 10 leagues
+    // League count bonus
+    const leagueMultiplier = 1 + (Math.min(leagueCount, 10) * 0.05);
     
-    const estimated = Math.round(clubCount * basePerClub * divisionSizeFactor * tierMultiplier * leagueMultiplier);
+    // Geographic spread - regions, districts, settlements indicate real nation size
+    // Each region represents a major administrative area (~500k-2M people)
+    // Each district is a sub-area (~50k-200k people)
+    // Each settlement with a club is a town/city (~10k-100k people)
+    let geographicBonus = 0;
+    if (regionCount > 0) {
+        geographicBonus += regionCount * 400000; // Regions add significant population
+    }
+    if (districtCount > 0) {
+        geographicBonus += districtCount * 80000; // Districts add moderate population
+    }
+    if (settlementCount > 0) {
+        // Settlements already represented by clubs, but add rural population around them
+        geographicBonus += settlementCount * 15000;
+    }
+    
+    // Blend club-based estimate with geographic data
+    const clubBasedEstimate = clubCount * basePerClub * divisionSizeFactor * tierMultiplier * leagueMultiplier;
+    
+    // If we have geographic data, weight it more heavily
+    let estimated;
+    if (regionCount > 0 || districtCount > 0) {
+        // Geographic data available - blend 40% club-based, 60% geographic
+        estimated = Math.round((clubBasedEstimate * 0.4) + (geographicBonus * 0.6) + (clubBasedEstimate * 0.3));
+    } else {
+        // No geographic data - use club-based only
+        estimated = Math.round(clubBasedEstimate);
+    }
     
     // Return formatted with tier description
     let display, tier;
