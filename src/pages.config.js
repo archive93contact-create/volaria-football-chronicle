@@ -24,6 +24,7 @@ import AddDomesticCupSeason from './pages/AddDomesticCupSeason';
 import DomesticCupSeasonDetail from './pages/DomesticCupSeasonDetail';
 import Locations from './pages/Locations';
 import LocationDetail from './pages/LocationDetail';
+import LeagueComparison from './pages/LeagueComparison';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "DomesticCupSeasonDetail": DomesticCupSeasonDetail,
     "Locations": Locations,
     "LocationDetail": LocationDetail,
+    "LeagueComparison": LeagueComparison,
 }
 
 export const pagesConfig = {
