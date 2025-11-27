@@ -353,6 +353,44 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         });
     }
 
+    // Domestic Cup success
+    if (club.domestic_cup_titles > 0) {
+        narratives.push({
+            icon: Trophy,
+            color: 'text-amber-500',
+            bg: 'bg-amber-50',
+            title: 'Cup Kings',
+            text: `Won ${club.domestic_cup_titles} domestic cup title${club.domestic_cup_titles > 1 ? 's' : ''}${club.domestic_cup_title_years ? ` (${club.domestic_cup_title_years})` : ''}.`
+        });
+    } else if (club.domestic_cup_best_finish === 'Final') {
+        narratives.push({
+            icon: Shield,
+            color: 'text-amber-400',
+            bg: 'bg-amber-50',
+            title: 'Cup Final Heartbreak',
+            text: `Reached the domestic cup final${club.domestic_cup_best_finish_year ? ` in ${club.domestic_cup_best_finish_year}` : ''}, falling at the last hurdle.`
+        });
+    } else if (club.domestic_cup_best_finish === 'Semi-final') {
+        narratives.push({
+            icon: Target,
+            color: 'text-blue-500',
+            bg: 'bg-blue-50',
+            title: 'Cup Semi-Finalists',
+            text: `Best cup run ended at the semi-final stage${club.domestic_cup_best_finish_year ? ` in ${club.domestic_cup_best_finish_year}` : ''}.`
+        });
+    }
+
+    // Domestic cup runner-up
+    if (club.domestic_cup_runner_up >= 2) {
+        narratives.push({
+            icon: Award,
+            color: 'text-slate-500',
+            bg: 'bg-slate-50',
+            title: 'Cup Final Veterans',
+            text: `Reached ${club.domestic_cup_runner_up} cup finals without winning - the heartbreak continues.`
+        });
+    }
+
     // Multiple VCC appearances
     if (club.vcc_appearances >= 5) {
         narratives.push({
