@@ -254,23 +254,37 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             }
         }
         
-        // 11. Relegated club struggles - came down but still got relegated again
-        if (prevSeason) {
-            // Find clubs that were relegated to this league from above
-            const relegatedFromAbove = newClubs.filter(c => !promotedFromBelow.includes(c.club_name));
-            const doubleRelegation = relegatedFromAbove.filter(c => 
-                season.relegated_teams?.split(',').map(t => t.trim()).includes(c.club_name)
+        // 11. Relegated club struggles - came down from tier above and got relegated again
+        // Need to check if they were relegated FROM the tier above in the previous year
+        if (season.relegated_teams) {
+            const relegatedThisYear = season.relegated_teams.split(',').map(t => t.trim());
+            
+            // Find seasons from tier above (lower tier number = higher tier) in previous year
+            const tierAbove = (season.tier || league.tier || 1) - 1;
+            const higherTierPrevSeasons = allSeasons.filter(s => 
+                s.year === previousYear && 
+                (s.tier === tierAbove || (!s.tier && allSeasons.some(ls => ls.league_id === s.league_id)))
+            );
+            
+            // Get clubs that were relegated from tier above last year
+            const relegatedFromAboveLastYear = higherTierPrevSeasons
+                .filter(s => s.relegated_teams)
+                .flatMap(s => s.relegated_teams.split(',').map(t => t.trim()));
+            
+            // Find clubs that were relegated from above AND are now relegated again
+            const doubleRelegation = relegatedThisYear.filter(clubName => 
+                relegatedFromAboveLastYear.includes(clubName)
             );
             
             if (doubleRelegation.length > 0) {
                 const fallenClub = doubleRelegation[0];
-                const club = getClub(fallenClub.club_name);
+                const club = getClub(fallenClub);
                 results.push({
                     icon: TrendingDown,
                     color: 'text-red-600',
                     bg: 'bg-gradient-to-r from-red-50 to-rose-50',
                     title: 'Freefall Continues',
-                    text: `${fallenClub.club_name} suffered back-to-back relegations, unable to arrest their slide down the pyramid.`,
+                    text: `${fallenClub} suffered back-to-back relegations, unable to arrest their slide down the pyramid.`,
                     clubId: club?.id
                 });
             }
