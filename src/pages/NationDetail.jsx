@@ -583,12 +583,30 @@ export default function NationDetail() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Capital City</Label>
-                                <Input
-                                    value={editData.capital || ''}
-                                    onChange={(e) => setEditData({...editData, capital: e.target.value})}
-                                    className="mt-1"
-                                    placeholder="Will be auto-generated if empty"
-                                />
+                                <div className="mt-1 space-y-2">
+                                    <Input
+                                        value={editData.capital || ''}
+                                        onChange={(e) => setEditData({...editData, capital: e.target.value})}
+                                        placeholder="Type or select from settlements"
+                                    />
+                                    {clubs.length > 0 && (
+                                        <Select 
+                                            value="" 
+                                            onValueChange={(value) => setEditData({...editData, capital: value})}
+                                        >
+                                            <SelectTrigger className="text-sm">
+                                                <SelectValue placeholder="Or select existing settlement..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {[...new Set(clubs.map(c => c.settlement || c.city).filter(Boolean))].sort().map(settlement => (
+                                                    <SelectItem key={settlement} value={settlement}>
+                                                        {settlement} {editData.capital === settlement ? '⭐' : ''}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <Label>Language</Label>

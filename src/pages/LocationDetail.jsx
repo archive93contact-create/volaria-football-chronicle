@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { MapPin, Users, Shield, ChevronRight, Trophy, Globe, Building2, Home, TrendingUp, Star } from 'lucide-react';
+import { MapPin, Users, Shield, ChevronRight, Trophy, Globe, Building2, Home, TrendingUp, Star, Landmark } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
+import LocationNarratives from '@/components/locations/LocationNarratives';
 
 // Estimate population based on clubs
 function estimatePopulation(clubCount, locationType) {
@@ -47,6 +48,10 @@ export default function LocationDetail() {
     });
 
     const nation = nations.find(n => n.id === nationId);
+    
+    // Check if this location is the capital
+    const isCapital = nation?.capital && locationNameParam && 
+        nation.capital.toLowerCase() === locationNameParam.toLowerCase();
 
     // Find the actual location name with correct case from clubs data
     const locationName = useMemo(() => {
@@ -177,8 +182,13 @@ export default function LocationDetail() {
     return (
         <div className="min-h-screen bg-slate-50">
             <PageHeader 
-                title={displayName}
-                subtitle={`${locationType.charAt(0).toUpperCase() + locationType.slice(1)} in ${nation?.name || 'Volaria'}`}
+                title={
+                    <span className="flex items-center gap-2">
+                        {displayName}
+                        {isCapital && <Landmark className="w-6 h-6 text-amber-400" title="Capital City" />}
+                    </span>
+                }
+                subtitle={`${isCapital ? 'Capital • ' : ''}${locationType.charAt(0).toUpperCase() + locationType.slice(1)} in ${nation?.name || 'Volaria'}`}
                 image={nation?.flag_url}
                 breadcrumbs={[
                     { label: 'Nations', url: createPageUrl('Nations') },
@@ -189,6 +199,29 @@ export default function LocationDetail() {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Capital Badge */}
+                {isCapital && (
+                    <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-l-amber-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Landmark className="w-8 h-8 text-amber-600" />
+                            <div>
+                                <span className="font-semibold text-amber-800">National Capital of {nation?.name}</span>
+                                <p className="text-sm text-amber-700">The political and cultural heart of the nation, home to the country's most prestigious institutions.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Location Narratives */}
+                <LocationNarratives 
+                    locationName={displayName}
+                    locationType={locationType}
+                    clubs={locationClubs}
+                    leagues={leagues}
+                    nation={nation}
+                    isCapital={isCapital}
+                />
+
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
                     <Card className="border-0 shadow-sm">
