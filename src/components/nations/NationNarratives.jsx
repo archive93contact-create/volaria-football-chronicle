@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Trophy, Star, Calendar, Award, Shield, Users, Globe, TrendingUp, Flame } from 'lucide-react';
 
-export default function NationNarratives({ nation, leagues, clubs, seasons, continentalSeasons }) {
+export default function NationNarratives({ nation, leagues, clubs, seasons, continentalSeasons, domesticCups = [], cupSeasons = [] }) {
     const narratives = [];
     
     if (!nation) return null;
@@ -67,17 +67,63 @@ export default function NationNarratives({ nation, leagues, clubs, seasons, cont
         });
     }
 
-    // Most successful club in nation
+    // Most successful club in nation (total domestic trophies: league + cup)
     if (clubs.length > 0) {
-        const clubsWithTitles = clubs.filter(c => c.league_titles > 0).sort((a, b) => b.league_titles - a.league_titles);
-        if (clubsWithTitles.length > 0) {
-            const topClub = clubsWithTitles[0];
+        const clubsWithTrophies = clubs.map(c => ({
+            ...c,
+            totalDomesticTrophies: (c.league_titles || 0) + (c.domestic_cup_titles || 0)
+        })).filter(c => c.totalDomesticTrophies > 0).sort((a, b) => b.totalDomesticTrophies - a.totalDomesticTrophies);
+        
+        if (clubsWithTrophies.length > 0) {
+            const topClub = clubsWithTrophies[0];
             narratives.push({
                 icon: Trophy,
                 color: 'text-amber-500',
                 bg: 'bg-amber-50',
-                title: 'National Champions',
-                text: `${topClub.name} leads with ${topClub.league_titles} top-flight title${topClub.league_titles > 1 ? 's' : ''}.`
+                title: 'Most Decorated Club',
+                text: `${topClub.name} leads with ${topClub.totalDomesticTrophies} domestic trophies (${topClub.league_titles || 0} league, ${topClub.domestic_cup_titles || 0} cup).`
+            });
+        }
+    }
+
+    // Domestic cup narratives
+    if (domesticCups.length > 0) {
+        narratives.push({
+            icon: Award,
+            color: 'text-orange-500',
+            bg: 'bg-orange-50',
+            title: 'Cup Competition',
+            text: domesticCups.length === 1 
+                ? `The ${domesticCups[0].name} is the nation's premier knockout competition.`
+                : `${domesticCups.length} domestic cup competitions provide knockout football drama.`
+        });
+    }
+
+    // Most successful cup club
+    if (clubs.length > 0) {
+        const cupWinners = clubs.filter(c => c.domestic_cup_titles > 0).sort((a, b) => b.domestic_cup_titles - a.domestic_cup_titles);
+        if (cupWinners.length > 0 && cupWinners[0].domestic_cup_titles >= 2) {
+            const topCupClub = cupWinners[0];
+            narratives.push({
+                icon: Award,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
+                title: 'Cup Kings',
+                text: `${topCupClub.name} dominates cup football with ${topCupClub.domestic_cup_titles} titles.`
+            });
+        }
+    }
+
+    // Cup competition diversity
+    if (cupSeasons.length > 0) {
+        const cupWinnerNames = [...new Set(cupSeasons.filter(s => s.champion_name).map(s => s.champion_name))];
+        if (cupWinnerNames.length >= 5) {
+            narratives.push({
+                icon: Flame,
+                color: 'text-orange-500',
+                bg: 'bg-orange-50',
+                title: 'Cup Magic',
+                text: `${cupWinnerNames.length} different clubs have lifted the cup - the magic of knockout football.`
             });
         }
     }

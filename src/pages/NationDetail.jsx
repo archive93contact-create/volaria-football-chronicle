@@ -64,6 +64,17 @@ export default function NationDetail() {
         queryFn: () => base44.entities.DomesticCup.filter({ nation_id: nationId }),
     });
 
+    const { data: cupSeasons = [] } = useQuery({
+        queryKey: ['nationCupSeasons', nationId],
+        queryFn: async () => {
+            const cupIds = domesticCups.map(c => c.id);
+            if (cupIds.length === 0) return [];
+            const allCupSeasons = await base44.entities.DomesticCupSeason.list();
+            return allCupSeasons.filter(s => cupIds.includes(s.cup_id));
+        },
+        enabled: domesticCups.length > 0,
+    });
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Nation.update(nationId, data),
         onSuccess: () => {
@@ -233,7 +244,7 @@ export default function NationDetail() {
                 <LeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
 
                 {/* Nation Narratives */}
-                <NationNarratives nation={nation} leagues={leagues} clubs={clubs} />
+                <NationNarratives nation={nation} leagues={leagues} clubs={clubs} domesticCups={domesticCups} cupSeasons={cupSeasons} />
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 mt-8">
@@ -395,7 +406,7 @@ export default function NationDetail() {
                             </Card>
                         )}
 
-                        {/* Most Successful Clubs */}
+                        {/* Most Successful Clubs - by total domestic trophies */}
                             {clubs.length > 0 && (
                                 <Card className="border-0 shadow-sm">
                                     <CardHeader className="pb-2">
@@ -406,10 +417,11 @@ export default function NationDetail() {
                                             {clubs
                                                 .map(club => ({
                                                     ...club,
+                                                    totalDomesticTrophies: (club.league_titles || 0) + (club.domestic_cup_titles || 0),
                                                     totalTitles: (club.league_titles || 0) + (club.lower_tier_titles || 0)
                                                 }))
-                                                .filter(club => club.totalTitles > 0)
-                                                .sort((a, b) => b.league_titles - a.league_titles || b.totalTitles - a.totalTitles)
+                                                .filter(club => club.totalDomesticTrophies > 0)
+                                                .sort((a, b) => b.totalDomesticTrophies - a.totalDomesticTrophies || b.league_titles - a.league_titles)
                                                 .slice(0, 10)
                                                 .map((club, idx) => (
                                                     <Link 
@@ -427,19 +439,24 @@ export default function NationDetail() {
                                                         )}
                                                         <span className="font-medium text-sm text-slate-700 flex-1 truncate">{club.name}</span>
                                                         <div className="flex items-center gap-2 text-xs">
+                                                            <span className="flex items-center gap-1 text-amber-600 font-bold">
+                                                                <Star className="w-3 h-3" /> {club.totalDomesticTrophies}
+                                                            </span>
                                                             {club.league_titles > 0 && (
-                                                                <span className="flex items-center gap-1 text-amber-600 font-semibold">
+                                                                <span className="flex items-center gap-1 text-slate-500">
                                                                     <Trophy className="w-3 h-3" /> {club.league_titles}
                                                                 </span>
                                                             )}
-                                                            {club.lower_tier_titles > 0 && (
-                                                                <span className="text-slate-500">+{club.lower_tier_titles}</span>
+                                                            {club.domestic_cup_titles > 0 && (
+                                                                <span className="flex items-center gap-1 text-orange-500">
+                                                                    <Award className="w-3 h-3" /> {club.domestic_cup_titles}
+                                                                </span>
                                                             )}
                                                         </div>
                                                     </Link>
                                                 ))}
-                                            {clubs.filter(c => (c.league_titles || 0) + (c.lower_tier_titles || 0) > 0).length === 0 && (
-                                                <p className="text-slate-500 text-sm">No title winners yet</p>
+                                            {clubs.filter(c => (c.league_titles || 0) + (c.domestic_cup_titles || 0) > 0).length === 0 && (
+                                                <p className="text-slate-500 text-sm">No trophy winners yet</p>
                                             )}
                                         </div>
                                     </CardContent>

@@ -381,13 +381,17 @@ export default function ClubDetail() {
                             </CardContent>
                         </Card>
                     )}
-                    {/* Cup Best Finish */}
-                    {combinedStats?.domestic_cup_best_finish && !combinedStats?.domestic_cup_titles && (
-                        <Card className="border-0 shadow-sm">
+                    {/* Cup Best Finish - show for all clubs that have any cup history */}
+                    {(combinedStats?.domestic_cup_best_finish || combinedStats?.domestic_cup_titles > 0 || combinedStats?.domestic_cup_runner_up > 0) && (
+                        <Card className="border-0 shadow-sm bg-orange-50">
                             <CardContent className="p-4 text-center">
-                                <Award className="w-6 h-6 text-orange-400 mx-auto mb-2" />
-                                <div className="text-lg font-bold">{combinedStats.domestic_cup_best_finish}</div>
-                                <div className="text-xs text-slate-500">Best Cup Finish</div>
+                                <Award className="w-6 h-6 text-orange-500 mx-auto mb-2" />
+                                <div className="text-lg font-bold text-orange-700">
+                                    {combinedStats?.domestic_cup_titles > 0 
+                                        ? 'Winner' 
+                                        : combinedStats?.domestic_cup_best_finish || 'Final'}
+                                </div>
+                                <div className="text-xs text-orange-600">Best Cup Finish</div>
                             </CardContent>
                         </Card>
                     )}
@@ -482,20 +486,7 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
-                {/* Domestic Cup Title Years */}
-                {combinedStats?.domestic_cup_title_years && (
-                    <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-orange-50 to-amber-50">
-                        <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                                <Award className="w-8 h-8 text-orange-500" />
-                                <div>
-                                    <div className="font-semibold text-orange-800">Domestic Cup Titles</div>
-                                    <div className="text-orange-700">{combinedStats.domestic_cup_title_years}</div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+
 
                 {/* Continental Title Years */}
                 {(combinedStats?.vcc_title_years || combinedStats?.ccc_title_years) && (
@@ -517,33 +508,7 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
-                {/* Domestic Cup Honours */}
-                {((combinedStats?.domestic_cup_titles > 0) || combinedStats?.domestic_cup_best_finish) && (
-                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-orange-50">
-                        <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
-                                <Award className="w-8 h-8 text-amber-500" />
-                                <div>
-                                    <div className="font-semibold text-amber-800">Domestic Cup</div>
-                                    {combinedStats.domestic_cup_titles > 0 ? (
-                                        <div className="text-amber-700">
-                                            {combinedStats.domestic_cup_titles} title{combinedStats.domestic_cup_titles > 1 ? 's' : ''}
-                                            {combinedStats.domestic_cup_title_years && ` (${combinedStats.domestic_cup_title_years})`}
-                                        </div>
-                                    ) : (
-                                        <div className="text-amber-600">
-                                            Best: {combinedStats.domestic_cup_best_finish}
-                                            {combinedStats.domestic_cup_best_finish_year && ` (${combinedStats.domestic_cup_best_finish_year})`}
-                                        </div>
-                                    )}
-                                    {combinedStats.domestic_cup_runner_up > 0 && (
-                                        <div className="text-sm text-amber-600">{combinedStats.domestic_cup_runner_up} runner-up finish{combinedStats.domestic_cup_runner_up > 1 ? 'es' : ''}</div>
-                                    )}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+
 
                 {/* Continental Honours */}
                 {((combinedStats?.vcc_titles > 0) || (combinedStats?.ccc_titles > 0) || combinedStats?.vcc_appearances > 0 || combinedStats?.ccc_appearances > 0) && (

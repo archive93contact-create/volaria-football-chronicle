@@ -266,8 +266,8 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         });
     }
 
-    // Promoted via playoffs
-    const playoffPromotions = sortedSeasons.filter(s => s.status === 'playoff_winner' || (s.status === 'promoted' && s.position > 2));
+    // Promoted via playoffs - only count actual playoff winners
+    const playoffPromotions = sortedSeasons.filter(s => s.status === 'playoff_winner');
     if (playoffPromotions.length > 0) {
         narratives.push({
             icon: Award,
@@ -353,7 +353,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         });
     }
 
-    // Domestic Cup success
+    // Domestic Cup success - check runner-up count as a proxy for "Final" best finish
     if (club.domestic_cup_titles > 0) {
         narratives.push({
             icon: Trophy,
@@ -362,13 +362,15 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             title: 'Cup Kings',
             text: `Won ${club.domestic_cup_titles} domestic cup title${club.domestic_cup_titles > 1 ? 's' : ''}${club.domestic_cup_title_years ? ` (${club.domestic_cup_title_years})` : ''}.`
         });
-    } else if (club.domestic_cup_best_finish === 'Final') {
+    } else if (club.domestic_cup_best_finish === 'Final' || club.domestic_cup_runner_up > 0) {
         narratives.push({
             icon: Shield,
             color: 'text-amber-400',
             bg: 'bg-amber-50',
             title: 'Cup Final Heartbreak',
-            text: `Reached the domestic cup final${club.domestic_cup_best_finish_year ? ` in ${club.domestic_cup_best_finish_year}` : ''}, falling at the last hurdle.`
+            text: club.domestic_cup_runner_up > 1 
+                ? `Reached ${club.domestic_cup_runner_up} cup finals without winning - the wait continues.`
+                : `Reached the domestic cup final${club.domestic_cup_best_finish_year ? ` in ${club.domestic_cup_best_finish_year}` : ''}, falling at the last hurdle.`
         });
     } else if (club.domestic_cup_best_finish === 'Semi-final') {
         narratives.push({
