@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Save, ArrowLeft, Loader2, Plus, Trash2, Trophy, ArrowUp, ArrowDown, ClipboardPaste, Layers } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Plus, Trash2, Trophy, ArrowUp, ArrowDown, ClipboardPaste, Layers, ShieldAlert } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
+import { useIsAdmin } from '@/components/common/AdminOnly';
 
 export default function AddSeason() {
+    const { isAdmin, isLoading: authLoading } = useIsAdmin();
+    
+    if (authLoading) {
+        return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
+    }
+    
+    if (!isAdmin) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <Card className="max-w-md">
+                    <CardContent className="text-center py-8">
+                        <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                        <h2 className="text-xl font-bold mb-2">Admin Access Required</h2>
+                        <p className="text-slate-500 mb-4">Only administrators can add content.</p>
+                        <Link to={createPageUrl('Home')}><Button>Back to Home</Button></Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const urlParams = new URLSearchParams(window.location.search);
