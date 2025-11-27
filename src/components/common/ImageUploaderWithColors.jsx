@@ -105,18 +105,23 @@ export default function ImageUploaderWithColors({
         }
     };
 
-    const extractColorsFromUrl = (url) => {
+    const extractColorsFromUrl = (url, existingUrl) => {
         if (!url || !onColorsChange) return;
         
         setIsExtracting(true);
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
-            const colors = extractColors(img, 2);
-            onColorsChange(colors[0], colors[1]);
+            try {
+                const colors = extractColors(img, 2);
+                onColorsChange(colors[0], colors[1]);
+            } catch (error) {
+                console.error('Color extraction failed:', error);
+            }
             setIsExtracting(false);
         };
         img.onerror = () => {
+            console.error('Failed to load image for color extraction');
             setIsExtracting(false);
         };
         img.src = url;
@@ -134,8 +139,9 @@ export default function ImageUploaderWithColors({
                         crossOrigin="anonymous"
                     />
                     <button
-                        onClick={() => onUpload('')}
+                        onClick={() => onUpload(null)}
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        type="button"
                     >
                         <X className="w-3 h-3" />
                     </button>

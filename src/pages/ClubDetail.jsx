@@ -280,8 +280,11 @@ export default function ClubDetail() {
             ...editData,
             founded_year: editData.founded_year ? parseInt(editData.founded_year) : null,
             stadium_capacity: editData.stadium_capacity ? parseInt(editData.stadium_capacity) : null,
-            logo_url: editData.logo_url || null,
         };
+        // Only include logo_url if it has a value (don't send null to clear it unintentionally)
+        if (editData.logo_url !== undefined) {
+            submitData.logo_url = editData.logo_url || null;
+        }
         updateMutation.mutate(submitData);
     };
 
@@ -292,7 +295,7 @@ export default function ClubDetail() {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.secondary_color || '#ffffff'}40)` }}>
+            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.secondary_color || club.primary_color || '#3b82f6'})` }}>
                 <div className="absolute inset-0 bg-black/30" />
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <nav className="flex items-center gap-2 text-sm text-white/70 mb-4 flex-wrap">
