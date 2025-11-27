@@ -23,6 +23,7 @@ import HeadToHeadMatrix from '@/components/leagues/HeadToHeadMatrix';
 import LeagueRivalries from '@/components/leagues/LeagueRivalries';
 import AdminOnly from '@/components/common/AdminOnly';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
+import SeasonStorylines from '@/components/seasons/SeasonStorylines';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -68,6 +69,13 @@ export default function LeagueDetail() {
     const { data: leagueTables = [] } = useQuery({
         queryKey: ['leagueTables', leagueId],
         queryFn: () => base44.entities.LeagueTable.filter({ league_id: leagueId }),
+    });
+
+    // Fetch all clubs for this nation (for season storylines)
+    const { data: allNationClubs = [] } = useQuery({
+        queryKey: ['allNationClubsForStorylines', league?.nation_id],
+        queryFn: () => base44.entities.Club.filter({ nation_id: league.nation_id }),
+        enabled: !!league?.nation_id,
     });
 
     const updateMutation = useMutation({
@@ -234,6 +242,20 @@ export default function LeagueDetail() {
 
                 {/* Fierce Rivalries */}
                 <LeagueRivalries clubs={clubs} leagueTables={leagueTables} />
+
+                {/* Season Storylines for selected season */}
+                {(selectedSeason || uniqueYears[0]) && (
+                    <div className="mb-8">
+                        <SeasonStorylines 
+                            season={seasons.find(s => s.year === (selectedSeason || uniqueYears[0]))}
+                            league={league}
+                            leagueTable={currentSeasonTable}
+                            allSeasons={seasons}
+                            allLeagueTables={leagueTables}
+                            clubs={allNationClubs}
+                        />
+                    </div>
+                )}
 
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
