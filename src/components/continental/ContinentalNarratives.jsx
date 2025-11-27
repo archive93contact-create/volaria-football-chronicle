@@ -117,6 +117,15 @@ export default function ContinentalNarratives({ competition, seasons, nations = 
             color: 'text-indigo-600',
             bg: 'bg-indigo-50'
         });
+    } else if (sortedNations.length === 1 && seasons.length >= 1) {
+        const [nationName] = sortedNations[0];
+        narratives.push({
+            icon: Globe,
+            title: 'First Nation',
+            text: `${nationName} is the first nation to produce continental champions in this competition.`,
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50'
+        });
     }
 
     // 6. Nations Represented
@@ -126,6 +135,14 @@ export default function ContinentalNarratives({ competition, seasons, nations = 
             icon: MapPin,
             title: 'Continental Reach',
             text: `Clubs from ${uniqueNations} different nations have lifted the trophy, showcasing the competition's continental appeal.`,
+            color: 'text-purple-600',
+            bg: 'bg-purple-50'
+        });
+    } else if (uniqueNations >= 2) {
+        narratives.push({
+            icon: MapPin,
+            title: 'Growing Footprint',
+            text: `Clubs from ${uniqueNations} nations have won the trophy so far.`,
             color: 'text-purple-600',
             bg: 'bg-purple-50'
         });
