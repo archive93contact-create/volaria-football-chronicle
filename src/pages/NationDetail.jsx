@@ -283,35 +283,33 @@ export default function NationDetail() {
                         </div>
 
                         {/* Domestic Cups Section */}
-                        {(domesticCups.length > 0 || leagues.length > 0) && (
-                            <div className="mt-8 mb-6">
+                        {(domesticCups.length > 0 || true) && (
+                            <div className="mt-8">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
-                                        <Award className="w-5 h-5 text-amber-500" />
-                                        Domestic Cups
-                                    </h3>
+                                    <h3 className="text-lg font-semibold text-slate-700">Domestic Cups</h3>
                                     <Link to={createPageUrl(`DomesticCups?nation_id=${nationId}`)}>
                                         <Button size="sm" variant="outline">
-                                            <Plus className="w-4 h-4 mr-1" /> Add Cup
+                                            <Award className="w-4 h-4 mr-2" />
+                                            {domesticCups.length > 0 ? 'Manage Cups' : 'Add Cup'}
                                         </Button>
                                     </Link>
                                 </div>
-                                {domesticCups.length === 0 ? (
-                                    <p className="text-sm text-slate-500">No domestic cups added yet</p>
-                                ) : (
+                                {domesticCups.length > 0 && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {domesticCups.map(cup => (
                                             <Link key={cup.id} to={createPageUrl(`DomesticCupDetail?id=${cup.id}`)}>
-                                                <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                                                    <CardContent className="p-4 flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${cup.primary_color || '#1e40af'}, ${cup.secondary_color || '#fbbf24'})` }}>
-                                                            <Trophy className="w-5 h-5 text-white" />
+                                                <Card className="border-0 shadow-sm hover:shadow-lg transition-all">
+                                                    <CardContent className="p-4 flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${cup.primary_color || '#1e40af'}, ${cup.secondary_color || '#fbbf24'})` }}>
+                                                            <Trophy className="w-6 h-6 text-white" />
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="font-medium truncate">{cup.name}</div>
-                                                            {cup.eligible_tiers && <div className="text-xs text-slate-500">Tiers {cup.eligible_tiers}</div>}
+                                                        <div className="flex-1">
+                                                            <h4 className="font-bold text-slate-900">{cup.name}</h4>
+                                                            {cup.current_champion && (
+                                                                <p className="text-sm text-emerald-600">🏆 {cup.current_champion}</p>
+                                                            )}
                                                         </div>
-                                                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                                                        <ChevronRight className="w-5 h-5 text-slate-400" />
                                                     </CardContent>
                                                 </Card>
                                             </Link>
