@@ -1,19 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Search, Plus, Trophy, Shield, MapPin, Filter } from 'lucide-react';
+import { Search, Plus, Trophy, Shield, MapPin, Filter, ArrowUpDown, LayoutGrid, List, Users, BarChart3, Star, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
+
+// Estimate population based on clubs and membership
+function estimatePopulation(clubCount, leagueCount, membership) {
+    let basePerClub = 50000;
+    let membershipMultiplier = membership === 'VCC' ? 1.3 : membership === 'CCC' ? 0.85 : 1.0;
+    const estimated = Math.round(clubCount * basePerClub * (1 + leagueCount * 0.05) * membershipMultiplier);
+    return estimated;
+}
+
+// Estimate league strength
+function estimateStrength(clubs, coefficient, membership) {
+    let score = membership === 'VCC' ? 15 : membership === 'CCC' ? 5 : 0;
+    if (coefficient?.rank) {
+        if (coefficient.rank <= 5) score += 35;
+        else if (coefficient.rank <= 10) score += 25;
+        else if (coefficient.rank <= 20) score += 15;
+        else score += 8;
+    }
+    score += clubs.filter(c => c.vcc_titles > 0).length * 10;
+    score += clubs.filter(c => c.ccc_titles > 0).length * 5;
+    return Math.min(score, 100);
+}
 
 export default function Nations() {
     const [search, setSearch] = useState('');
     const [regionFilter, setRegionFilter] = useState('all');
+    const [membershipFilter, setMembershipFilter] = useState('all');
+    const [sortBy, setSortBy] = useState('rank');
+    const [viewMode, setViewMode] = useState('grid');
 
     const { data: nations = [], isLoading } = useQuery({
         queryKey: ['nations'],
@@ -37,26 +64,48 @@ export default function Nations() {
 
     const regions = [...new Set(nations.filter(n => n.region).map(n => n.region))];
 
-    const filteredNations = nations
+    // Compute nation stats
+    const nationStats = useMemo(() => {
+        return nations.map(nation => {
+            const nationLeagues = leagues.filter(l => l.nation_id === nation.id);
+            const nationClubs = clubs.filter(c => c.nation_id === nation.id);
+            const coeff = coefficients.find(c => c.nation_id === nation.id);
+            const population = estimatePopulation(nationClubs.length, nationLeagues.length, nation.membership);
+            const strength = estimateStrength(nationClubs, coeff, nation.membership);
+            const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
+            
+            return {
+                ...nation,
+                leagueCount: nationLeagues.length,
+                clubCount: nationClubs.length,
+                coefficient: coeff,
+                rank: coeff?.rank || 999,
+                population,
+                strength,
+                maxTier
+            };
+        });
+    }, [nations, leagues, clubs, coefficients]);
+
+    const filteredNations = nationStats
         .filter(nation => {
             const matchesSearch = nation.name.toLowerCase().includes(search.toLowerCase());
             const matchesRegion = regionFilter === 'all' || nation.region === regionFilter;
-            return matchesSearch && matchesRegion;
+            const matchesMembership = membershipFilter === 'all' || nation.membership === membershipFilter;
+            return matchesSearch && matchesRegion && matchesMembership;
         })
         .sort((a, b) => {
-            const coeffA = coefficients.find(c => c.nation_id === a.id);
-            const coeffB = coefficients.find(c => c.nation_id === b.id);
-            
-            // Both have rankings - sort by rank
-            if (coeffA && coeffB) {
-                return (coeffA.rank || 999) - (coeffB.rank || 999);
+            switch (sortBy) {
+                case 'name': return a.name.localeCompare(b.name);
+                case 'population': return b.population - a.population;
+                case 'clubs': return b.clubCount - a.clubCount;
+                case 'leagues': return b.leagueCount - a.leagueCount;
+                case 'strength': return b.strength - a.strength;
+                case 'rank':
+                default:
+                    if (a.rank !== b.rank) return a.rank - b.rank;
+                    return a.name.localeCompare(b.name);
             }
-            // Only A has ranking - A comes first
-            if (coeffA) return -1;
-            // Only B has ranking - B comes first
-            if (coeffB) return 1;
-            // Neither has ranking - sort alphabetically
-            return a.name.localeCompare(b.name);
         });
 
     return (
@@ -86,23 +135,68 @@ export default function Nations() {
                             className="pl-10 h-12 bg-white border-slate-200"
                         />
                     </div>
-                    {regions.length > 0 && (
-                        <Select value={regionFilter} onValueChange={setRegionFilter}>
-                            <SelectTrigger className="w-full sm:w-48 h-12 bg-white">
-                                <Filter className="w-4 h-4 mr-2 text-slate-400" />
-                                <SelectValue placeholder="All Regions" />
+                    <div className="flex flex-wrap gap-2">
+                        {regions.length > 0 && (
+                            <Select value={regionFilter} onValueChange={setRegionFilter}>
+                                <SelectTrigger className="w-[150px] h-12 bg-white">
+                                    <Globe className="w-4 h-4 mr-2 text-slate-400" />
+                                    <SelectValue placeholder="Region" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Regions</SelectItem>
+                                    {regions.map(region => (
+                                        <SelectItem key={region} value={region}>{region}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                        <Select value={membershipFilter} onValueChange={setMembershipFilter}>
+                            <SelectTrigger className="w-[140px] h-12 bg-white">
+                                <Star className="w-4 h-4 mr-2 text-slate-400" />
+                                <SelectValue placeholder="Membership" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Regions</SelectItem>
-                                {regions.map(region => (
-                                    <SelectItem key={region} value={region}>{region}</SelectItem>
-                                ))}
+                                <SelectItem value="all">All Members</SelectItem>
+                                <SelectItem value="VCC">VCC (Full)</SelectItem>
+                                <SelectItem value="CCC">CCC (Associate)</SelectItem>
                             </SelectContent>
                         </Select>
-                    )}
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                            <SelectTrigger className="w-[150px] h-12 bg-white">
+                                <ArrowUpDown className="w-4 h-4 mr-2 text-slate-400" />
+                                <SelectValue placeholder="Sort by" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="rank">Ranking</SelectItem>
+                                <SelectItem value="name">Name (A-Z)</SelectItem>
+                                <SelectItem value="population">Population</SelectItem>
+                                <SelectItem value="clubs">Most Clubs</SelectItem>
+                                <SelectItem value="leagues">Most Leagues</SelectItem>
+                                <SelectItem value="strength">Strength</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <div className="flex border rounded-lg bg-white">
+                            <Button 
+                                variant={viewMode === 'grid' ? 'secondary' : 'ghost'} 
+                                size="icon" 
+                                className="h-12 w-12"
+                                onClick={() => setViewMode('grid')}
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                                variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
+                                size="icon" 
+                                className="h-12 w-12"
+                                onClick={() => setViewMode('list')}
+                            >
+                                <List className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Grid */}
+                {/* Content */}
                 {isLoading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {[...Array(12)].map((_, i) => (
@@ -117,56 +211,139 @@ export default function Nations() {
                             <p className="text-slate-500">Try adjusting your search or filters</p>
                         </CardContent>
                     </Card>
+                ) : viewMode === 'list' ? (
+                    <Card className="border-0 shadow-sm overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-slate-100">
+                                    <TableHead className="w-12">#</TableHead>
+                                    <TableHead>Nation</TableHead>
+                                    <TableHead>Membership</TableHead>
+                                    <TableHead className="text-center">Rank</TableHead>
+                                    <TableHead className="text-center">Clubs</TableHead>
+                                    <TableHead className="text-center">Leagues</TableHead>
+                                    <TableHead className="text-center">Tiers</TableHead>
+                                    <TableHead className="text-right">Population</TableHead>
+                                    <TableHead className="text-center">Strength</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredNations.map((nation, idx) => (
+                                    <TableRow key={nation.id} className="hover:bg-slate-50">
+                                        <TableCell className="font-medium text-slate-500">{idx + 1}</TableCell>
+                                        <TableCell>
+                                            <Link to={createPageUrl(`NationDetail?id=${nation.id}`)} className="flex items-center gap-3 hover:text-emerald-600">
+                                                {nation.flag_url ? (
+                                                    <img src={nation.flag_url} alt="" className="w-8 h-5 object-cover rounded" />
+                                                ) : (
+                                                    <div className="w-8 h-5 bg-slate-200 rounded" />
+                                                )}
+                                                <div>
+                                                    <div className="font-semibold">{nation.name}</div>
+                                                    {nation.region && <div className="text-xs text-slate-500">{nation.region}</div>}
+                                                </div>
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell>
+                                            {nation.membership && (
+                                                <Badge className={nation.membership === 'VCC' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}>
+                                                    {nation.membership}
+                                                </Badge>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {nation.rank < 999 ? (
+                                                <span className="font-bold">{nation.rank}</span>
+                                            ) : (
+                                                <span className="text-slate-400">—</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center font-medium">{nation.clubCount}</TableCell>
+                                        <TableCell className="text-center">{nation.leagueCount}</TableCell>
+                                        <TableCell className="text-center">{nation.maxTier > 0 ? nation.maxTier : '—'}</TableCell>
+                                        <TableCell className="text-right">
+                                            {nation.population >= 1000000 
+                                                ? `${(nation.population / 1000000).toFixed(1)}M`
+                                                : `${Math.round(nation.population / 1000)}K`
+                                            }
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full rounded-full ${
+                                                            nation.strength >= 60 ? 'bg-emerald-500' : 
+                                                            nation.strength >= 40 ? 'bg-blue-500' : 
+                                                            nation.strength >= 20 ? 'bg-purple-500' : 'bg-slate-400'
+                                                        }`}
+                                                        style={{ width: `${nation.strength}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-xs text-slate-500 w-6">{nation.strength}</span>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Card>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredNations.map((nation) => {
-                            const nationLeagues = leagues.filter(l => l.nation_id === nation.id);
-                            const nationClubs = clubs.filter(c => c.nation_id === nation.id);
-                            
-                            return (
-                                <Link 
-                                    key={nation.id} 
-                                    to={createPageUrl(`NationDetail?id=${nation.id}`)}
-                                    className="group"
-                                >
-                                    <Card className="overflow-hidden border-0 shadow-sm hover:shadow-2xl transition-all duration-500 bg-white group-hover:-translate-y-2 h-full">
-                                        <div className="aspect-[3/2] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-8 relative overflow-hidden">
-                                            {nation.flag_url ? (
-                                                <img 
-                                                    src={nation.flag_url} 
-                                                    alt={nation.name}
-                                                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700"
-                                                />
-                                            ) : (
-                                                <div className="w-24 h-16 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center">
-                                                    <MapPin className="w-10 h-10 text-slate-400" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <CardContent className="p-5">
-                                            <h3 className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
-                                                {nation.name}
-                                            </h3>
-                                            {nation.region && (
-                                                <p className="text-sm text-slate-500 mt-1">{nation.region}</p>
-                                            )}
-                                            <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-100">
-                                                <div className="flex items-center gap-2 text-sm text-slate-600">
-                                                    <Trophy className="w-4 h-4 text-amber-500" />
-                                                    <span className="font-medium">{nationLeagues.length}</span>
-                                                    <span className="text-slate-400">leagues</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-sm text-slate-600">
-                                                    <Shield className="w-4 h-4 text-blue-500" />
-                                                    <span className="font-medium">{nationClubs.length}</span>
-                                                    <span className="text-slate-400">clubs</span>
-                                                </div>
+                        {filteredNations.map((nation) => (
+                            <Link 
+                                key={nation.id} 
+                                to={createPageUrl(`NationDetail?id=${nation.id}`)}
+                                className="group"
+                            >
+                                <Card className="overflow-hidden border-0 shadow-sm hover:shadow-2xl transition-all duration-500 bg-white group-hover:-translate-y-2 h-full">
+                                    <div className="aspect-[3/2] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-8 relative overflow-hidden">
+                                        {nation.flag_url ? (
+                                            <img 
+                                                src={nation.flag_url} 
+                                                alt={nation.name}
+                                                className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700"
+                                            />
+                                        ) : (
+                                            <div className="w-24 h-16 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center">
+                                                <MapPin className="w-10 h-10 text-slate-400" />
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                </Link>
-                            );
-                        })}
+                                        )}
+                                        {nation.rank < 999 && (
+                                            <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full text-xs font-bold text-slate-700">
+                                                #{nation.rank}
+                                            </div>
+                                        )}
+                                        {nation.membership && (
+                                            <div className="absolute top-2 left-2">
+                                                <Badge className={nation.membership === 'VCC' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'}>
+                                                    {nation.membership}
+                                                </Badge>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <CardContent className="p-5">
+                                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                                            {nation.name}
+                                        </h3>
+                                        {nation.region && (
+                                            <p className="text-sm text-slate-500 mt-1">{nation.region}</p>
+                                        )}
+                                        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-100">
+                                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                <Trophy className="w-4 h-4 text-amber-500" />
+                                                <span className="font-medium">{nation.leagueCount}</span>
+                                                <span className="text-slate-400">leagues</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                <Shield className="w-4 h-4 text-blue-500" />
+                                                <span className="font-medium">{nation.clubCount}</span>
+                                                <span className="text-slate-400">clubs</span>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
                     </div>
                 )}
             </div>
