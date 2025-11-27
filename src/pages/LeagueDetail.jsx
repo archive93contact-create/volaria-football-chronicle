@@ -20,6 +20,7 @@ import LeagueCompetitiveness from '@/components/leagues/LeagueCompetitiveness';
 import PromotionRelegationFlow from '@/components/leagues/PromotionRelegationFlow';
 import LeagueClubsMap from '@/components/leagues/LeagueClubsMap';
 import HeadToHeadMatrix from '@/components/leagues/HeadToHeadMatrix';
+import LeagueRivalries from '@/components/leagues/LeagueRivalries';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
 
 export default function LeagueDetail() {
@@ -227,6 +228,9 @@ export default function LeagueDetail() {
                     <LeagueClubsMap clubs={clubs} nation={nation} />
                     <HeadToHeadMatrix clubs={clubs} leagueTables={leagueTables} />
                 </div>
+
+                {/* Fierce Rivalries */}
+                <LeagueRivalries clubs={clubs} leagueTables={leagueTables} />
 
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>

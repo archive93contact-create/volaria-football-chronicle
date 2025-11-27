@@ -768,8 +768,8 @@ export default function ClubDetail() {
                     allLeagueTables={allNationLeagueTables}
                 />
 
-                {/* Dynasty & Rivalry */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                {/* Dynasty & Rivalry - Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                     <DynastyTracker club={club} combinedStats={combinedStats} />
                     <RivalryTracker club={club} allClubs={allClubs} allLeagueTables={allNationLeagueTables} />
                 </div>
