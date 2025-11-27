@@ -10,19 +10,21 @@ import { Badge } from "@/components/ui/badge";
 export default function RivalryTracker({ club, allClubs = [], allLeagueTables = [] }) {
     // Fetch continental data for continental rivalries
     const { data: continentalMatches = [] } = useQuery({
-        queryKey: ['continentalMatchesForRivalry', club?.name],
+        queryKey: ['continentalMatchesForRivalry'],
         queryFn: () => base44.entities.ContinentalMatch.list(),
-        enabled: !!club?.name,
-    });
-
-    const { data: continentalSeasons = [] } = useQuery({
-        queryKey: ['continentalSeasonsForRivalry'],
-        queryFn: () => base44.entities.ContinentalSeason.list(),
+        enabled: !!club?.id,
     });
 
     const { data: nations = [] } = useQuery({
         queryKey: ['nationsForRivalry'],
         queryFn: () => base44.entities.Nation.list(),
+    });
+
+    // Fetch clubs if not provided
+    const { data: fetchedClubs = [] } = useQuery({
+        queryKey: ['clubsForRivalry', club?.nation_id],
+        queryFn: () => base44.entities.Club.filter({ nation_id: club.nation_id }),
+        enabled: !!club?.nation_id && allClubs.length === 0,
     });
 
     // Fetch league tables if not provided
@@ -32,10 +34,11 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         enabled: !!club?.nation_id && allLeagueTables.length === 0,
     });
 
+    const clubs = allClubs.length > 0 ? allClubs : fetchedClubs;
     const leagueTables = allLeagueTables.length > 0 ? allLeagueTables : fetchedLeagueTables;
 
     const rivalries = useMemo(() => {
-        if (!club || allClubs.length === 0) return [];
+        if (!club || clubs.length === 0) return [];
 
         const rivalryScores = {};
         const clubTables = leagueTables.filter(t => t.club_id === club.id);
@@ -49,7 +52,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             m.home_club_name === club.name || m.away_club_name === club.name
         );
 
-        allClubs.filter(c => c.id !== club.id).forEach(otherClub => {
+        clubs.filter(c => c.id !== club.id).forEach(otherClub => {
             let score = 0;
             const reasons = [];
             let isContinentalRival = false;
@@ -173,7 +176,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             .filter(r => r.score > 0) // Show any rivalry with a score
             .sort((a, b) => b.score - a.score)
             .slice(0, 8);
-    }, [club, allClubs, leagueTables, continentalMatches, nations]);
+    }, [club, clubs, leagueTables, continentalMatches, nations]);
 
     if (rivalries.length === 0) return null;
 
