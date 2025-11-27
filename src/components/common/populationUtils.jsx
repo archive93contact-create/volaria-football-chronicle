@@ -75,35 +75,46 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
 export function estimateSustainableProClubs(population, topDivisionSize, maxTier, membership, strengthScore) {
     if (population === 0) return { min: 0, max: 0, display: '0' };
     
-    // Base: roughly 1 pro club per 100k-150k population
-    const basePerCapita = membership === 'VCC' ? 90000 : membership === 'CCC' ? 110000 : 100000;
+    // More realistic: 1 pro club per 200k-400k population depending on wealth
+    const basePerCapita = membership === 'VCC' ? 180000 : membership === 'CCC' ? 250000 : 300000;
     
     // Calculate base sustainable clubs from population
-    let baseClubs = Math.floor(population / basePerCapita);
+    let baseClubs = population / basePerCapita;
     
-    // Adjust based on league strength - stronger leagues attract more investment
-    const strengthMultiplier = 1 + (strengthScore / 200); // 0-50% boost based on strength
+    // Small division sizes mean less economic capacity - apply a dampening factor
+    // 8-team leagues = 0.5x, 12-team = 0.75x, 16-team = 0.9x, 20+ = 1.0x
+    let divisionFactor = 1.0;
+    if (topDivisionSize <= 8) divisionFactor = 0.5;
+    else if (topDivisionSize <= 10) divisionFactor = 0.65;
+    else if (topDivisionSize <= 12) divisionFactor = 0.75;
+    else if (topDivisionSize <= 14) divisionFactor = 0.85;
+    else if (topDivisionSize <= 16) divisionFactor = 0.9;
     
-    // Top division size indicates league maturity and economic capacity
-    let divisionBonus = 0;
-    if (topDivisionSize >= 20) divisionBonus = 15;
-    else if (topDivisionSize >= 16) divisionBonus = 10;
-    else if (topDivisionSize >= 12) divisionBonus = 5;
+    // Strength gives a modest boost (0-25%)
+    const strengthMultiplier = 1 + (strengthScore / 400);
     
-    // More tiers = deeper professional pyramid
-    const tierBonus = Math.min(maxTier, 4) * 5; // Up to 4 tiers count as professional
+    // Professional tiers - but diminishing returns after tier 2
+    // Tier 1 = full pro, Tier 2 = mostly pro, Tier 3-4 = semi-pro at best
+    const proTierMultiplier = maxTier === 1 ? 1.0 : 
+                              maxTier === 2 ? 1.3 : 
+                              maxTier === 3 ? 1.5 : 
+                              maxTier >= 4 ? 1.6 : 1.0;
     
-    const estimated = Math.round((baseClubs * strengthMultiplier) + divisionBonus + tierBonus);
+    const estimated = Math.round(baseClubs * divisionFactor * strengthMultiplier * proTierMultiplier);
     
-    // Calculate range (±15%)
-    const min = Math.max(4, Math.round(estimated * 0.85));
-    const max = Math.round(estimated * 1.15);
+    // Calculate range (±20%)
+    const min = Math.max(topDivisionSize || 8, Math.round(estimated * 0.8));
+    const max = Math.round(estimated * 1.2);
+    
+    // Ensure minimum makes sense - at least enough for top division
+    const finalMin = Math.max(min, topDivisionSize || 8);
+    const finalMax = Math.max(max, finalMin);
     
     return {
         value: estimated,
-        min,
-        max,
-        display: min === max ? `${min}` : `${min}-${max}`
+        min: finalMin,
+        max: finalMax,
+        display: finalMin === finalMax ? `${finalMin}` : `${finalMin}-${finalMax}`
     };
 }
 
