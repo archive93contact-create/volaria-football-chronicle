@@ -21,6 +21,7 @@ import ClubComparison from './pages/ClubComparison';
 import DomesticCups from './pages/DomesticCups';
 import DomesticCupDetail from './pages/DomesticCupDetail';
 import AddDomesticCupSeason from './pages/AddDomesticCupSeason';
+import DomesticCupSeasonDetail from './pages/DomesticCupSeasonDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "DomesticCups": DomesticCups,
     "DomesticCupDetail": DomesticCupDetail,
     "AddDomesticCupSeason": AddDomesticCupSeason,
+    "DomesticCupSeasonDetail": DomesticCupSeasonDetail,
 }
 
 export const pagesConfig = {
