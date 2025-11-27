@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { TrendingUp, TrendingDown, Minus, Trophy, Star, Shield, RefreshCw, Calendar, Target, Swords } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Trophy, Star, Shield, RefreshCw, Calendar, Target, Swords, Loader2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
 import AdminOnly from '@/components/common/AdminOnly';
+import { calculateCoefficients } from '@/components/coefficients/CoefficientCalculator';
 
 export default function Coefficients() {
+    const queryClient = useQueryClient();
+    const [isRecalculating, setIsRecalculating] = useState(false);
+
     const { data: countryCoefficients = [] } = useQuery({
         queryKey: ['coefficients'],
         queryFn: () => base44.entities.CountryCoefficient.list('rank'),
@@ -26,6 +30,11 @@ export default function Coefficients() {
     const { data: nations = [] } = useQuery({
         queryKey: ['nations'],
         queryFn: () => base44.entities.Nation.list('name'),
+    });
+
+    const { data: clubs = [] } = useQuery({
+        queryKey: ['allClubs'],
+        queryFn: () => base44.entities.Club.list(),
     });
 
     const { data: matches = [] } = useQuery({
@@ -42,6 +51,33 @@ export default function Coefficients() {
         queryKey: ['continentalCompetitions'],
         queryFn: () => base44.entities.ContinentalCompetition.list(),
     });
+
+    // Auto-recalculate when match data changes
+    const handleRecalculate = async () => {
+        if (matches.length === 0 || seasons.length === 0) return;
+        
+        setIsRecalculating(true);
+        const result = calculateCoefficients(seasons, matches, competitions, nations, clubs, countryCoefficients);
+        
+        // Delete existing and create new
+        for (const coeff of countryCoefficients) {
+            await base44.entities.CountryCoefficient.delete(coeff.id);
+        }
+        for (const coeff of clubCoefficients) {
+            await base44.entities.ClubCoefficient.delete(coeff.id);
+        }
+        
+        for (const coeff of result.nationCoefficients) {
+            await base44.entities.CountryCoefficient.create(coeff);
+        }
+        for (const coeff of result.clubCoefficients) {
+            await base44.entities.ClubCoefficient.create(coeff);
+        }
+        
+        queryClient.invalidateQueries(['coefficients']);
+        queryClient.invalidateQueries(['clubCoefficients']);
+        setIsRecalculating(false);
+    };
 
     const getRankChange = (current, previous) => {
         if (!previous) return null;
@@ -328,11 +364,18 @@ export default function Coefficients() {
                 breadcrumbs={[{ label: 'Coefficients' }]}
             >
                 <AdminOnly>
-                    <Link to={createPageUrl('RecalculateCoefficients')}>
-                        <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 mt-4">
-                            <RefreshCw className="w-4 h-4 mr-2" /> Recalculate
-                        </Button>
-                    </Link>
+                    <Button 
+                        variant="outline" 
+                        className="border-white/30 text-white hover:bg-white/10 mt-4"
+                        onClick={handleRecalculate}
+                        disabled={isRecalculating}
+                    >
+                        {isRecalculating ? (
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...</>
+                        ) : (
+                            <><RefreshCw className="w-4 h-4 mr-2" /> Recalculate</>
+                        )}
+                    </Button>
                 </AdminOnly>
             </PageHeader>
 
