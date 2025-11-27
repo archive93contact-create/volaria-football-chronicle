@@ -280,7 +280,7 @@ export default function AddDomesticCupSeason() {
         }));
     };
 
-    const setMatchWinner = (roundName, matchNumber, winnerName, winnerId) => {
+    const setMatchWinner = (roundName, matchNumber, winnerName, winnerId, winnerTier) => {
         setBracketMatches(prev => {
             const updated = prev.map(m => {
                 if (m.round === roundName && m.match_number === matchNumber) {
@@ -301,9 +301,9 @@ export default function AddDomesticCupSeason() {
                 return updated.map(m => {
                     if (m.round === nextRound && m.match_number === nextMatchNumber) {
                         if (isFirstOfPair) {
-                            return { ...m, home_club_name: winnerName, home_club_id: winnerId };
+                            return { ...m, home_club_name: winnerName, home_club_id: winnerId, home_tier: winnerTier };
                         } else {
-                            return { ...m, away_club_name: winnerName, away_club_id: winnerId };
+                            return { ...m, away_club_name: winnerName, away_club_id: winnerId, away_tier: winnerTier };
                         }
                     }
                     return m;
