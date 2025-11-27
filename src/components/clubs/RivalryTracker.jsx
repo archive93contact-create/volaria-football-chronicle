@@ -114,7 +114,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             }
 
             // 3. Shared league seasons
-            const otherClubTables = leagueTables.filter(t => t.club_id === otherClub.id);
+            const otherClubTables = workingLeagueTables.filter(t => t.club_id === otherClub.id);
             const sharedSeasons = clubTables.filter(ct => 
                 otherClubTables.some(ot => ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year))
             );
