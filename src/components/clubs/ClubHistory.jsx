@@ -16,13 +16,53 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         const foundingYear = club.founded_year || parseInt(firstSeason?.year?.split('-')[0]);
         const ordinal = (n) => n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`;
 
-        // Founding event - more immersive
+        // Founding event - culturally immersive based on club name
         if (foundingYear) {
             const locations = [club.settlement, club.district, club.region].filter(Boolean);
             const locationText = locations.length > 0 ? locations[0] : club.city;
+            const name = club.name || '';
             
             let foundingText;
-            if (club.nickname) {
+            
+            // Analyze club name for cultural context
+            if (/^(FK|IF|BK|SK|IK)\s/i.test(name) || /\s(FK|IF|BK|SK|IK)$/i.test(name)) {
+                // Nordic
+                const prefix = name.match(/^(FK|IF|BK|SK|IK)/i)?.[0]?.toUpperCase();
+                const meanings = { 'FK': 'Fotbollsklubb', 'IF': 'Idrottsförening', 'BK': 'Bollklubb', 'SK': 'Sportklubb', 'IK': 'Idrottsklubb' };
+                foundingText = `Founded in the Nordic sporting tradition${locationText ? ` in ${locationText}` : ''}. ${prefix && meanings[prefix] ? `"${prefix}" (${meanings[prefix]}) reflects their multi-sport origins.` : ''}`;
+            } else if (/Celtic|Gaelic|Hibernian|Shamrock|Harps/i.test(name)) {
+                foundingText = `Born from Celtic and Irish cultural heritage${locationText ? ` in ${locationText}` : ''}, the club carries the spirit of their community.`;
+            } else if (/Rovers|Wanderers|Rangers/i.test(name)) {
+                foundingText = `Established${locationText ? ` in ${locationText}` : ''} with the pioneering spirit of early football, the name reflecting the wandering nature of the game's origins.`;
+            } else if (/^Real\s/i.test(name)) {
+                foundingText = `Founded${locationText ? ` in ${locationText}` : ''} with royal patronage, the "Real" title bestowing prestige and tradition upon the club.`;
+            } else if (/^Atlético|Athletic/i.test(name)) {
+                foundingText = `Established${locationText ? ` in ${locationText}` : ''} with athletic and sporting ideals at its heart, following Iberian football traditions.`;
+            } else if (/^(Dynamo|Dinamo)/i.test(name)) {
+                foundingText = `Founded${locationText ? ` in ${locationText}` : ''} with links to power and industry, following the Eastern European tradition of worker-affiliated clubs.`;
+            } else if (/^Spartak/i.test(name)) {
+                foundingText = `Established${locationText ? ` in ${locationText}` : ''}, named after Spartacus as a symbol of workers' sport and resistance.`;
+            } else if (/^Lokomotiv/i.test(name)) {
+                foundingText = `Born from the railway workers${locationText ? ` of ${locationText}` : ''}, a proud tradition of industry-connected football.`;
+            } else if (/^(Borussia)/i.test(name)) {
+                foundingText = `Founded${locationText ? ` in ${locationText}` : ''} with "Borussia" - the Latin name for Prussia - representing regional pride and identity.`;
+            } else if (/^Eintracht/i.test(name)) {
+                foundingText = `Established${locationText ? ` in ${locationText}` : ''} under the name "Eintracht" - meaning unity and harmony in German.`;
+            } else if (/United/i.test(name)) {
+                foundingText = `Formed${locationText ? ` in ${locationText}` : ''} from the unification of local football interests, the "United" name symbolizing community togetherness.`;
+            } else if (/Town|City|Borough/i.test(name)) {
+                foundingText = `Established as the pride of ${locationText || 'their community'}, representing the civic spirit of their home.`;
+            } else if (/^Inter/i.test(name)) {
+                foundingText = `Founded${locationText ? ` in ${locationText}` : ''} with an internationalist spirit, welcoming players and fans from all backgrounds.`;
+            } else if (/Juventus/i.test(name)) {
+                foundingText = `Established${locationText ? ` in ${locationText}` : ''} with "Juventus" - Latin for "youth" - symbolizing vitality and ambition.`;
+            } else if (/^Ajax/i.test(name)) {
+                foundingText = `Named after the legendary Greek hero Ajax${locationText ? `, the club was founded in ${locationText}` : ''}, embodying strength and courage.`;
+            } else if (/Sporting/i.test(name)) {
+                foundingText = `Founded${locationText ? ` in ${locationText}` : ''} in the Lusophone sporting tradition, with multi-sport origins shaping their identity.`;
+            } else if (/Shakhtar/i.test(name)) {
+                foundingText = `Born from the mining communities${locationText ? ` of ${locationText}` : ''}, "Shakhtar" meaning "miner" - a club built on working-class foundations.`;
+            } else if (club.nickname) {
                 foundingText = `${club.name}, known as "${club.nickname}", was founded${locationText ? ` in ${locationText}` : ''}.`;
             } else if (locationText) {
                 foundingText = `The club was established in ${locationText}, marking the beginning of a footballing journey.`;
