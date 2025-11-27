@@ -97,6 +97,16 @@ export default function Coefficients() {
         return nation?.id;
     };
 
+    // Get actual years for column headers based on coefficient data
+    const getYearLabel = (yearsAgo) => {
+        // Find the most recent season year
+        const sortedSeasons = [...seasons].sort((a, b) => (b.year || '').localeCompare(a.year || ''));
+        const latestYear = sortedSeasons[0]?.year;
+        if (!latestYear) return `Y-${yearsAgo}`;
+        const year = parseInt(latestYear) - yearsAgo + 1;
+        return isNaN(year) ? `Y-${yearsAgo}` : String(year);
+    };
+
     // Separate by membership
     const vccCountries = countryCoefficients.filter(c => {
         const nation = nations.find(n => n.id === c.nation_id || n.name === c.nation_name);
@@ -218,10 +228,10 @@ export default function Coefficients() {
                 <TableRow>
                     <TableHead className="w-16">Rank</TableHead>
                     <TableHead>Nation</TableHead>
-                    <TableHead className="text-center text-xs">Y-4</TableHead>
-                    <TableHead className="text-center text-xs">Y-3</TableHead>
-                    <TableHead className="text-center text-xs">Y-2</TableHead>
-                    <TableHead className="text-center text-xs">Y-1</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(4)}</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(3)}</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(2)}</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(1)}</TableHead>
                     <TableHead className="text-center font-bold">Total</TableHead>
                     <TableHead className="text-center">{type === 'VCC' ? 'VCC' : 'CCC'} Spots</TableHead>
                 </TableRow>

@@ -99,7 +99,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
                 m.home_club_name === otherClub.name || m.away_club_name === otherClub.name
             );
 
-            if (continentalVsOpponent.length >= 2) {
+            if (continentalVsOpponent.length >= 1) {
                 let finals = 0, semis = 0, quarters = 0;
                 continentalVsOpponent.forEach(m => {
                     if (m.round === 'Final') finals++;
@@ -107,12 +107,14 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
                     else if (m.round?.includes('Quarter')) quarters++;
                 });
 
-                // Only count as fierce if met in final OR multiple semis
-                if (finals >= 1 || semis >= 2) {
-                    const otherNation = nations.find(n => n.id === otherClub.nation_id);
-                    const isSameNation = otherNation?.name === clubNationName;
-                    
-                    score += finals * 100 + semis * 30 + quarters * 10 + continentalVsOpponent.length * 5;
+                const otherNation = nations.find(n => n.id === otherClub.nation_id);
+                const isSameNation = otherNation?.name === clubNationName;
+
+                // Continental rivalry if: met in final, or met in semi (especially domestic), or multiple knockout meetings
+                const hasSignificantMeeting = finals >= 1 || semis >= 1 || (continentalVsOpponent.length >= 2 && (quarters >= 1 || continentalVsOpponent.length >= 3));
+                
+                if (hasSignificantMeeting) {
+                    score += finals * 100 + semis * 50 + quarters * 20 + continentalVsOpponent.length * 10;
                     isContinentalRival = true;
                     
                     if (finals >= 1) {
@@ -121,8 +123,14 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
                     if (semis >= 1) {
                         reasons.push(`${semis} continental semi${semis > 1 ? 's' : ''}`);
                     }
+                    if (quarters >= 1 && !finals && !semis) {
+                        reasons.push(`${quarters} QF meeting${quarters > 1 ? 's' : ''}`);
+                    }
                     if (isSameNation) {
                         reasons.push('Domestic clash on continental stage');
+                    }
+                    if (continentalVsOpponent.length >= 2 && !finals && !semis) {
+                        reasons.push(`${continentalVsOpponent.length} continental meetings`);
                     }
                     
                     continentalDetails = {
