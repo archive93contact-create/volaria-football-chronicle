@@ -186,6 +186,9 @@ export default function LocationDetail() {
         return {};
     }, [locationClubs, locationType]);
 
+    // Display name with proper formatting
+    const displayName = locationName || locationNameParam;
+
     // Stats
     const stats = useMemo(() => {
         const totalTrophies = locationClubs.reduce((sum, c) => sum + (c.league_titles || 0) + (c.domestic_cup_titles || 0), 0);
@@ -201,7 +204,7 @@ export default function LocationDetail() {
             continentalTrophies,
             topFlightClubs
         };
-    }, [locationClubs, leagues, locationType]);
+    }, [locationClubs, leagues, locationType, isCapital, displayName]);
 
     const typeIcon = locationType === 'region' ? Globe : locationType === 'district' ? Building2 : Home;
     const TypeIcon = typeIcon;
@@ -213,9 +216,6 @@ export default function LocationDetail() {
             </div>
         );
     }
-
-    // Display name with proper formatting
-    const displayName = locationName || locationNameParam;
 
     return (
         <div className="min-h-screen bg-slate-50">
