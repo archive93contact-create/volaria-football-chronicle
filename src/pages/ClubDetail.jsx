@@ -346,6 +346,23 @@ export default function ClubDetail() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+                    {/* Total Trophies */}
+                    {(() => {
+                        const totalTrophies = (combinedStats?.league_titles || 0) + 
+                                              (combinedStats?.domestic_cup_titles || 0) + 
+                                              (combinedStats?.vcc_titles || 0) + 
+                                              (combinedStats?.ccc_titles || 0);
+                        if (totalTrophies === 0) return null;
+                        return (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-100 to-yellow-100">
+                                <CardContent className="p-4 text-center">
+                                    <Star className="w-6 h-6 text-amber-600 mx-auto mb-2" />
+                                    <div className="text-2xl font-bold text-amber-800">{totalTrophies}</div>
+                                    <div className="text-xs text-amber-700">Total Trophies</div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })()}
                     {combinedStats?.league_titles > 0 && (
                         <Card className="border-0 shadow-sm bg-amber-50">
                             <CardContent className="p-4 text-center">
@@ -361,6 +378,16 @@ export default function ClubDetail() {
                                 <Award className="w-6 h-6 text-orange-500 mx-auto mb-2" />
                                 <div className="text-2xl font-bold text-orange-700">{combinedStats.domestic_cup_titles}</div>
                                 <div className="text-xs text-orange-600">Cup Titles</div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {/* Cup Best Finish */}
+                    {combinedStats?.domestic_cup_best_finish && !combinedStats?.domestic_cup_titles && (
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="p-4 text-center">
+                                <Award className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+                                <div className="text-lg font-bold">{combinedStats.domestic_cup_best_finish}</div>
+                                <div className="text-xs text-slate-500">Best Cup Finish</div>
                             </CardContent>
                         </Card>
                     )}
@@ -442,13 +469,48 @@ export default function ClubDetail() {
 
                 {/* Title Years */}
                 {combinedStats?.title_years && (
-                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50">
+                    <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-amber-50 to-yellow-50">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
                                 <Trophy className="w-8 h-8 text-amber-500" />
                                 <div>
                                     <div className="font-semibold text-amber-800">League Championship Titles</div>
                                     <div className="text-amber-700">{combinedStats.title_years}</div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Domestic Cup Title Years */}
+                {combinedStats?.domestic_cup_title_years && (
+                    <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-orange-50 to-amber-50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                                <Award className="w-8 h-8 text-orange-500" />
+                                <div>
+                                    <div className="font-semibold text-orange-800">Domestic Cup Titles</div>
+                                    <div className="text-orange-700">{combinedStats.domestic_cup_title_years}</div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Continental Title Years */}
+                {(combinedStats?.vcc_title_years || combinedStats?.ccc_title_years) && (
+                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-purple-50 to-indigo-50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                                <Star className="w-8 h-8 text-purple-500" />
+                                <div>
+                                    <div className="font-semibold text-purple-800">Continental Titles</div>
+                                    {combinedStats.vcc_title_years && (
+                                        <div className="text-purple-700">VCC: {combinedStats.vcc_title_years}</div>
+                                    )}
+                                    {combinedStats.ccc_title_years && (
+                                        <div className="text-indigo-700">CCC: {combinedStats.ccc_title_years}</div>
+                                    )}
                                 </div>
                             </div>
                         </CardContent>
