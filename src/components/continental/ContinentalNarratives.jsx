@@ -71,6 +71,16 @@ export default function ContinentalNarratives({ competition, seasons, nations = 
             color: 'text-amber-600',
             bg: 'bg-amber-50'
         });
+    } else if (sortedClubs.length === 1) {
+        // Only one edition - show the inaugural champion
+        const [clubName, data] = sortedClubs[0];
+        narratives.push({
+            icon: Star,
+            title: 'Inaugural Champion',
+            text: `${clubName} etched their name in history as the first ever winners of this continental competition.`,
+            color: 'text-amber-600',
+            bg: 'bg-amber-50'
+        });
     }
 
     // 4. Competitive Balance - Different Winners
