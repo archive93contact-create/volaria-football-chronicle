@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import LeagueHistoryChart from '@/components/clubs/LeagueHistoryChart';
 import ClubNarratives from '@/components/clubs/ClubNarratives';
-import ClubProfile from '@/components/clubs/ClubProfile';
+import ClubHistory from '@/components/clubs/ClubHistory';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -745,12 +745,13 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
-                {/* Club Profile - AI Generated History */}
-                <ClubProfile 
+                {/* Club History Timeline */}
+                <ClubHistory 
                     club={{...club, ...combinedStats}}
                     nation={nation}
                     league={league}
                     seasons={combinedSeasons}
+                    leagues={allLeagues}
                 />
 
                 {/* Club Narratives */}
