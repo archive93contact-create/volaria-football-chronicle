@@ -1213,6 +1213,33 @@ export default function ClubDetail() {
                             </div>
                         </div>
 
+                        {/* Domestic Cup Honours Section */}
+                        <div className="border-t pt-4 mt-4">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2"><Award className="w-4 h-4" /> Domestic Cup</h4>
+                            <div className="grid grid-cols-3 gap-3 p-3 bg-amber-50 rounded-lg">
+                                <div>
+                                    <Label className="text-xs">Titles</Label>
+                                    <Input type="number" value={editData.domestic_cup_titles || ''} onChange={(e) => setEditData({...editData, domestic_cup_titles: parseInt(e.target.value) || 0})} className="mt-1" />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Runner-up</Label>
+                                    <Input type="number" value={editData.domestic_cup_runner_up || ''} onChange={(e) => setEditData({...editData, domestic_cup_runner_up: parseInt(e.target.value) || 0})} className="mt-1" />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Title Years</Label>
+                                    <Input value={editData.domestic_cup_title_years || ''} onChange={(e) => setEditData({...editData, domestic_cup_title_years: e.target.value})} placeholder="e.g., 2020, 2022" className="mt-1" />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Best Finish</Label>
+                                    <Input value={editData.domestic_cup_best_finish || ''} onChange={(e) => setEditData({...editData, domestic_cup_best_finish: e.target.value})} placeholder="e.g., Final, Semi-final" className="mt-1" />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Best Finish Year</Label>
+                                    <Input value={editData.domestic_cup_best_finish_year || ''} onChange={(e) => setEditData({...editData, domestic_cup_best_finish_year: e.target.value})} className="mt-1" />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Continental Honours Section */}
                         <div className="border-t pt-4 mt-4">
                             <h4 className="font-semibold mb-3 flex items-center gap-2"><Star className="w-4 h-4" /> Continental Honours</h4>
