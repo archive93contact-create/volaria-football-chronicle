@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import { syncCupStatsToClubs } from '@/components/common/SyncCupStats';
 import { useIsAdmin } from '@/components/common/AdminOnly';
-import { Card, CardContent } from "@/components/ui/card";
 import { ShieldAlert } from 'lucide-react';
 
 // Calculate the next power of 2 for bracket sizing
