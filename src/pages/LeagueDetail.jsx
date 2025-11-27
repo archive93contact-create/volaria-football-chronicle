@@ -16,6 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImageUploader from '@/components/common/ImageUploader';
 import LeagueNarratives from '@/components/leagues/LeagueNarratives';
+import LeagueCompetitiveness from '@/components/leagues/LeagueCompetitiveness';
+import PromotionRelegationFlow from '@/components/leagues/PromotionRelegationFlow';
+import LeagueClubsMap from '@/components/leagues/LeagueClubsMap';
+import HeadToHeadMatrix from '@/components/leagues/HeadToHeadMatrix';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
 
 export default function LeagueDetail() {
