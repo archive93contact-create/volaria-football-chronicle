@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { RefreshCw, Check, AlertCircle, Trophy, Shield, ChevronRight, Loader2 } from 'lucide-react';
+import { RefreshCw, Check, AlertCircle, Trophy, Shield, ChevronRight, Loader2, TrendingUp, TrendingDown, Minus, Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,9 +55,22 @@ export default function RecalculateCoefficients() {
     });
 
     const handleCalculate = () => {
-        const result = calculateCoefficients(seasons, matches, competitions, nations, clubs);
+        const result = calculateCoefficients(seasons, matches, competitions, nations, clubs, existingCountryCoeffs);
         setCalculatedData(result);
         setSaved(false);
+    };
+
+    const getRankChange = (current, previous) => {
+        if (!previous) return null;
+        const diff = previous - current;
+        if (diff > 0) return { icon: TrendingUp, color: 'text-green-500', text: `+${diff}` };
+        if (diff < 0) return { icon: TrendingDown, color: 'text-red-500', text: `${diff}` };
+        return { icon: Minus, color: 'text-slate-400', text: '–' };
+    };
+
+    const getNationFlag = (nationName) => {
+        const nation = nations.find(n => n.name === nationName);
+        return nation?.flag_url;
     };
 
     const handleSave = async () => {
@@ -209,33 +222,77 @@ export default function RecalculateCoefficients() {
                         </TabsList>
 
                         <TabsContent value="nations">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-6">
                                 {/* VCC Nations */}
                                 <Card className="border-0 shadow-lg overflow-hidden">
                                     <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-500">
                                         <CardTitle className="text-white flex items-center gap-2">
                                             <Trophy className="w-5 h-5" /> VCC Country Rankings
+                                            {calculatedData?.previousVccChampionNation && (
+                                                <span className="text-sm font-normal ml-2">
+                                                    (Holder: {calculatedData.previousVccChampionNation})
+                                                </span>
+                                            )}
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className="w-12">#</TableHead>
-                                                    <TableHead>Nation</TableHead>
-                                                    <TableHead className="text-right">Total</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {vccNations.map(nation => (
-                                                    <TableRow key={nation.nation_name}>
-                                                        <TableCell className="font-bold">{nation.rank}</TableCell>
-                                                        <TableCell className="font-medium">{nation.nation_name}</TableCell>
-                                                        <TableCell className="text-right font-bold">{nation.total_points.toFixed(3)}</TableCell>
+                                        <div className="overflow-x-auto">
+                                            <Table>
+                                                <TableHeader className="bg-slate-100">
+                                                    <TableRow>
+                                                        <TableHead className="w-16">Rank</TableHead>
+                                                        <TableHead>Nation</TableHead>
+                                                        <TableHead className="text-center">Y1</TableHead>
+                                                        <TableHead className="text-center">Y2</TableHead>
+                                                        <TableHead className="text-center">Y3</TableHead>
+                                                        <TableHead className="text-center">Y4</TableHead>
+                                                        <TableHead className="text-center font-bold">Total</TableHead>
+                                                        <TableHead className="text-center">Spots</TableHead>
                                                     </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {vccNations.map((nation, idx) => {
+                                                        const rankChange = getRankChange(nation.rank, nation.previous_rank);
+                                                        return (
+                                                            <TableRow key={nation.nation_name} className={idx < 5 ? 'bg-amber-50/50' : ''}>
+                                                                <TableCell>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={`font-bold text-lg ${idx < 5 ? 'text-amber-600' : ''}`}>{nation.rank}</span>
+                                                                        {rankChange && <rankChange.icon className={`w-4 h-4 ${rankChange.color}`} />}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {getNationFlag(nation.nation_name) && (
+                                                                            <img src={getNationFlag(nation.nation_name)} alt="" className="w-6 h-4 object-cover rounded" />
+                                                                        )}
+                                                                        <span className="font-semibold">{nation.nation_name}</span>
+                                                                        {nation.champion_qualifier && (
+                                                                            <Star className="w-4 h-4 text-amber-500" title="Title Holder" />
+                                                                        )}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_1_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center font-bold text-lg">{nation.total_points.toFixed(3)}</TableCell>
+                                                                <TableCell className="text-center">
+                                                                    <div className="flex items-center justify-center gap-1">
+                                                                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-bold text-sm">
+                                                                            {nation.vcc_spots}
+                                                                        </span>
+                                                                        {nation.champion_qualifier && (
+                                                                            <span className="text-xs text-amber-600">+TH</span>
+                                                                        )}
+                                                                    </div>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </CardContent>
                                 </Card>
 
@@ -244,34 +301,98 @@ export default function RecalculateCoefficients() {
                                     <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-500">
                                         <CardTitle className="text-white flex items-center gap-2">
                                             <Shield className="w-5 h-5" /> CCC Country Rankings
+                                            {calculatedData?.previousCccChampionNation && (
+                                                <span className="text-sm font-normal ml-2">
+                                                    (Holder: {calculatedData.previousCccChampionNation})
+                                                </span>
+                                            )}
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className="w-12">#</TableHead>
-                                                    <TableHead>Nation</TableHead>
-                                                    <TableHead className="text-right">Total</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {cccNations.map(nation => (
-                                                    <TableRow key={nation.nation_name}>
-                                                        <TableCell className="font-bold">{nation.rank}</TableCell>
-                                                        <TableCell className="font-medium">{nation.nation_name}</TableCell>
-                                                        <TableCell className="text-right font-bold">{nation.total_points.toFixed(3)}</TableCell>
+                                        <div className="overflow-x-auto">
+                                            <Table>
+                                                <TableHeader className="bg-slate-100">
+                                                    <TableRow>
+                                                        <TableHead className="w-16">Rank</TableHead>
+                                                        <TableHead>Nation</TableHead>
+                                                        <TableHead className="text-center">Y1</TableHead>
+                                                        <TableHead className="text-center">Y2</TableHead>
+                                                        <TableHead className="text-center">Y3</TableHead>
+                                                        <TableHead className="text-center">Y4</TableHead>
+                                                        <TableHead className="text-center font-bold">Total</TableHead>
+                                                        <TableHead className="text-center">Spots</TableHead>
                                                     </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {cccNations.map((nation, idx) => {
+                                                        const rankChange = getRankChange(nation.rank, nation.previous_rank);
+                                                        return (
+                                                            <TableRow key={nation.nation_name} className={idx < 9 ? 'bg-blue-50/50' : ''}>
+                                                                <TableCell>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={`font-bold text-lg ${idx < 9 ? 'text-blue-600' : ''}`}>{nation.rank}</span>
+                                                                        {rankChange && <rankChange.icon className={`w-4 h-4 ${rankChange.color}`} />}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {getNationFlag(nation.nation_name) && (
+                                                                            <img src={getNationFlag(nation.nation_name)} alt="" className="w-6 h-4 object-cover rounded" />
+                                                                        )}
+                                                                        <span className="font-semibold">{nation.nation_name}</span>
+                                                                        {nation.champion_qualifier && (
+                                                                            <Star className="w-4 h-4 text-blue-500" title="Title Holder" />
+                                                                        )}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_1_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center font-bold text-lg">{nation.total_points.toFixed(3)}</TableCell>
+                                                                <TableCell className="text-center">
+                                                                    <div className="flex items-center justify-center gap-1">
+                                                                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
+                                                                            {nation.ccc_spots}
+                                                                        </span>
+                                                                        {nation.champion_qualifier && (
+                                                                            <span className="text-xs text-blue-600">+TH</span>
+                                                                        )}
+                                                                    </div>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </CardContent>
                                 </Card>
+                            </div>
+
+                            {/* Legend */}
+                            <div className="mt-6 flex flex-wrap gap-6 text-sm text-slate-600">
+                                <div className="flex items-center gap-2">
+                                    <Star className="w-4 h-4 text-amber-500" />
+                                    <span>Title Holder (auto-qualifies)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium">+TH</span>
+                                    <span>Extra spot for title holder nation</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp className="w-4 h-4 text-green-500" />
+                                    <span>Rank Improved</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <TrendingDown className="w-4 h-4 text-red-500" />
+                                    <span>Rank Dropped</span>
+                                </div>
                             </div>
                         </TabsContent>
 
                         <TabsContent value="clubs">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-6">
                                 {/* VCC Clubs */}
                                 <Card className="border-0 shadow-lg overflow-hidden">
                                     <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-500">
@@ -279,23 +400,42 @@ export default function RecalculateCoefficients() {
                                             <Trophy className="w-5 h-5" /> VCC Club Rankings
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="p-0 max-h-[500px] overflow-y-auto">
+                                    <CardContent className="p-0 max-h-[600px] overflow-y-auto">
                                         <Table>
-                                            <TableHeader>
+                                            <TableHeader className="bg-slate-100 sticky top-0">
                                                 <TableRow>
                                                     <TableHead className="w-12">#</TableHead>
                                                     <TableHead>Club</TableHead>
                                                     <TableHead>Nation</TableHead>
-                                                    <TableHead className="text-right">Total</TableHead>
+                                                    <TableHead className="text-center">Y1</TableHead>
+                                                    <TableHead className="text-center">Y2</TableHead>
+                                                    <TableHead className="text-center">Y3</TableHead>
+                                                    <TableHead className="text-center">Y4</TableHead>
+                                                    <TableHead className="text-center font-bold">Total</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {vccClubs.map(club => (
-                                                    <TableRow key={`${club.club_name}-${club.nation_name}`}>
-                                                        <TableCell className="font-bold">{club.rank}</TableCell>
-                                                        <TableCell className="font-medium">{club.club_name}</TableCell>
-                                                        <TableCell className="text-slate-500 text-sm">{club.nation_name}</TableCell>
-                                                        <TableCell className="text-right font-bold">{club.total_points.toFixed(3)}</TableCell>
+                                                {vccClubs.map((club, idx) => (
+                                                    <TableRow key={`${club.club_name}-${club.nation_name}`} className={idx < 10 ? 'bg-amber-50/50' : ''}>
+                                                        <TableCell className={`font-bold ${idx < 10 ? 'text-amber-600' : ''}`}>{club.rank}</TableCell>
+                                                        <TableCell>
+                                                            <Link to={createPageUrl(`ClubDetail?id=${club.club_id}`)} className="font-medium hover:text-emerald-600">
+                                                                {club.club_name}
+                                                            </Link>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-2">
+                                                                {getNationFlag(club.nation_name) && (
+                                                                    <img src={getNationFlag(club.nation_name)} alt="" className="w-5 h-3 object-cover rounded" />
+                                                                )}
+                                                                <span className="text-slate-500 text-sm">{club.nation_name}</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_1_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center font-bold text-lg">{club.total_points.toFixed(3)}</TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -310,23 +450,42 @@ export default function RecalculateCoefficients() {
                                             <Shield className="w-5 h-5" /> CCC Club Rankings
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="p-0 max-h-[500px] overflow-y-auto">
+                                    <CardContent className="p-0 max-h-[600px] overflow-y-auto">
                                         <Table>
-                                            <TableHeader>
+                                            <TableHeader className="bg-slate-100 sticky top-0">
                                                 <TableRow>
                                                     <TableHead className="w-12">#</TableHead>
                                                     <TableHead>Club</TableHead>
                                                     <TableHead>Nation</TableHead>
-                                                    <TableHead className="text-right">Total</TableHead>
+                                                    <TableHead className="text-center">Y1</TableHead>
+                                                    <TableHead className="text-center">Y2</TableHead>
+                                                    <TableHead className="text-center">Y3</TableHead>
+                                                    <TableHead className="text-center">Y4</TableHead>
+                                                    <TableHead className="text-center font-bold">Total</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {cccClubs.map(club => (
-                                                    <TableRow key={`${club.club_name}-${club.nation_name}`}>
-                                                        <TableCell className="font-bold">{club.rank}</TableCell>
-                                                        <TableCell className="font-medium">{club.club_name}</TableCell>
-                                                        <TableCell className="text-slate-500 text-sm">{club.nation_name}</TableCell>
-                                                        <TableCell className="text-right font-bold">{club.total_points.toFixed(3)}</TableCell>
+                                                {cccClubs.map((club, idx) => (
+                                                    <TableRow key={`${club.club_name}-${club.nation_name}`} className={idx < 10 ? 'bg-blue-50/50' : ''}>
+                                                        <TableCell className={`font-bold ${idx < 10 ? 'text-blue-600' : ''}`}>{club.rank}</TableCell>
+                                                        <TableCell>
+                                                            <Link to={createPageUrl(`ClubDetail?id=${club.club_id}`)} className="font-medium hover:text-emerald-600">
+                                                                {club.club_name}
+                                                            </Link>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-2">
+                                                                {getNationFlag(club.nation_name) && (
+                                                                    <img src={getNationFlag(club.nation_name)} alt="" className="w-5 h-3 object-cover rounded" />
+                                                                )}
+                                                                <span className="text-slate-500 text-sm">{club.nation_name}</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_1_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center font-bold text-lg">{club.total_points.toFixed(3)}</TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>

@@ -91,7 +91,7 @@ function calculateMatchPoints(match, clubName, clubNation, pointsTable) {
 }
 
 // Calculate coefficients for all nations and clubs
-export function calculateCoefficients(continentalSeasons, continentalMatches, competitions, nations, clubs) {
+export function calculateCoefficients(continentalSeasons, continentalMatches, competitions, nations, clubs, existingCountryCoeffs = []) {
     // Determine which competition is VCC and which is CCC
     const vccComp = competitions.find(c => c.short_name === 'VCC' || c.name.includes('Champions'));
     const cccComp = competitions.find(c => c.short_name === 'CCC' || c.name.includes('Challenge') || c.name.includes('Continental'));
@@ -99,6 +99,13 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
     // Get the last 4 years
     const allYears = [...new Set(continentalSeasons.map(s => s.year))].sort().reverse();
     const last4Years = allYears.slice(0, 4);
+    
+    // Get previous champions for qualification spots
+    const latestYear = allYears[0];
+    const vccSeasons = continentalSeasons.filter(s => s.competition_id === vccComp?.id).sort((a, b) => b.year.localeCompare(a.year));
+    const cccSeasons = continentalSeasons.filter(s => s.competition_id === cccComp?.id).sort((a, b) => b.year.localeCompare(a.year));
+    const previousVccChampionNation = vccSeasons[0]?.champion_nation;
+    const previousCccChampionNation = cccSeasons[0]?.champion_nation;
     
     // Initialize club and nation trackers
     const clubPoints = {}; // { clubName: { year1: pts, year2: pts, ... } }
@@ -218,6 +225,11 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
         
         const nationRecord = nations.find(n => n.name === nation.nationName);
         
+        // Get previous rank from existing coefficients
+        const existingCoeff = existingCountryCoeffs.find(
+            c => c.nation_name === nation.nationName && c.membership === nation.membership
+        );
+        
         return {
             nation_name: nation.nationName,
             nation_id: nationRecord?.id,
@@ -228,23 +240,54 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
             year_4_points: year4,
             total_points: total,
             coefficient_year: yearKeys[0] || 'Current',
+            previous_rank: existingCoeff?.rank || null,
         };
     });
     
     // Sort and assign ranks (separate for VCC and CCC)
-    const sortAndRank = (items) => {
+    const sortAndRank = (items, isNation = false) => {
         const vcc = items.filter(i => i.membership === 'VCC').sort((a, b) => b.total_points - a.total_points);
         const ccc = items.filter(i => i.membership === 'CCC').sort((a, b) => b.total_points - a.total_points);
         
-        vcc.forEach((item, idx) => { item.rank = idx + 1; });
-        ccc.forEach((item, idx) => { item.rank = idx + 1; });
+        vcc.forEach((item, idx) => { 
+            item.rank = idx + 1;
+            if (isNation) {
+                // VCC: Top 5 nations get 2 spots, rest get 1
+                // Previous champion's nation gets +1 extra spot (so they only need 1 from league)
+                const isChampionNation = item.nation_name === previousVccChampionNation;
+                if (idx < 5) {
+                    item.vcc_spots = isChampionNation ? 1 : 2; // Champion nation only needs 1 league spot
+                    item.champion_qualifier = isChampionNation;
+                } else {
+                    item.vcc_spots = isChampionNation ? 0 : 1;
+                    item.champion_qualifier = isChampionNation;
+                }
+            }
+        });
+        ccc.forEach((item, idx) => { 
+            item.rank = idx + 1;
+            if (isNation) {
+                // CCC: Top 9 nations get 2 spots, rest get 1
+                // Previous champion's nation gets +1 extra spot
+                const isChampionNation = item.nation_name === previousCccChampionNation;
+                if (idx < 9) {
+                    item.ccc_spots = isChampionNation ? 1 : 2;
+                    item.champion_qualifier = isChampionNation;
+                } else {
+                    item.ccc_spots = isChampionNation ? 0 : 1;
+                    item.champion_qualifier = isChampionNation;
+                }
+            }
+        });
         
         return [...vcc, ...ccc];
     };
     
     return {
-        clubCoefficients: sortAndRank(clubCoefficients),
-        nationCoefficients: sortAndRank(nationCoefficients),
+        clubCoefficients: sortAndRank(clubCoefficients, false),
+        nationCoefficients: sortAndRank(nationCoefficients, true),
         years: last4Years,
+        previousVccChampionNation,
+        previousCccChampionNation,
     };
 }
