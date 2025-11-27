@@ -74,17 +74,59 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
     }, [editingMatch, isOpen]);
 
     const createMutation = useMutation({
-        mutationFn: (data) => base44.entities.ContinentalMatch.create({ ...data, season_id: seasonId }),
+        mutationFn: async (data) => {
+            const match = await base44.entities.ContinentalMatch.create({ ...data, season_id: seasonId });
+            // If this is a Final match with a winner, update the season
+            if (data.round === 'Final' && data.winner) {
+                const loser = data.winner === data.home_club_name ? data.away_club_name : data.home_club_name;
+                const winnerNation = data.winner === data.home_club_name ? data.home_club_nation : data.away_club_nation;
+                const loserNation = data.winner === data.home_club_name ? data.away_club_nation : data.home_club_nation;
+                const finalScore = data.is_single_leg 
+                    ? `${data.home_score_leg1}-${data.away_score_leg1}${data.penalties ? ` (${data.penalties} pens)` : ''}`
+                    : `${data.home_aggregate}-${data.away_aggregate} agg${data.penalties ? ` (${data.penalties} pens)` : ''}`;
+                await base44.entities.ContinentalSeason.update(seasonId, {
+                    champion_name: data.winner,
+                    champion_nation: winnerNation,
+                    runner_up: loser,
+                    runner_up_nation: loserNation,
+                    final_score: finalScore,
+                    final_venue: data.venue || null
+                });
+            }
+            return match;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries(['continentalMatches', seasonId]);
+            queryClient.invalidateQueries(['continentalSeason', seasonId]);
             onClose();
         },
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }) => base44.entities.ContinentalMatch.update(id, data),
+        mutationFn: async ({ id, data }) => {
+            const match = await base44.entities.ContinentalMatch.update(id, data);
+            // If this is a Final match with a winner, update the season
+            if (data.round === 'Final' && data.winner) {
+                const loser = data.winner === data.home_club_name ? data.away_club_name : data.home_club_name;
+                const winnerNation = data.winner === data.home_club_name ? data.home_club_nation : data.away_club_nation;
+                const loserNation = data.winner === data.home_club_name ? data.away_club_nation : data.home_club_nation;
+                const finalScore = data.is_single_leg 
+                    ? `${data.home_score_leg1}-${data.away_score_leg1}${data.penalties ? ` (${data.penalties} pens)` : ''}`
+                    : `${data.home_aggregate}-${data.away_aggregate} agg${data.penalties ? ` (${data.penalties} pens)` : ''}`;
+                await base44.entities.ContinentalSeason.update(seasonId, {
+                    champion_name: data.winner,
+                    champion_nation: winnerNation,
+                    runner_up: loser,
+                    runner_up_nation: loserNation,
+                    final_score: finalScore,
+                    final_venue: data.venue || null
+                });
+            }
+            return match;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries(['continentalMatches', seasonId]);
+            queryClient.invalidateQueries(['continentalSeason', seasonId]);
             onClose();
         },
     });

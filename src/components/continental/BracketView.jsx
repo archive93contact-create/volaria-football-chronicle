@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Shield } from 'lucide-react';
+import { Trophy, Shield, ChevronRight } from 'lucide-react';
 
 const ROUND_ORDER = ['Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -15,6 +15,29 @@ export default function BracketView({ matches, getNationFlag, clubs = [], onEdit
     }, {});
 
     const sortedRounds = ROUND_ORDER.filter(r => matchesByRound[r]);
+
+    // Build progression map: which clubs came from which previous round matches
+    const progressionMap = useMemo(() => {
+        const map = {};
+        for (let i = 1; i < sortedRounds.length; i++) {
+            const currentRound = sortedRounds[i];
+            const prevRound = sortedRounds[i - 1];
+            const currentMatches = matchesByRound[currentRound] || [];
+            const prevMatches = matchesByRound[prevRound] || [];
+            
+            currentMatches.forEach(match => {
+                // Find which previous match each club came from
+                [match.home_club_name, match.away_club_name].forEach(clubName => {
+                    const sourceMatch = prevMatches.find(pm => pm.winner === clubName);
+                    if (sourceMatch) {
+                        if (!map[match.id]) map[match.id] = {};
+                        map[match.id][clubName] = sourceMatch.id;
+                    }
+                });
+            });
+        }
+        return map;
+    }, [sortedRounds, matchesByRound]);
 
     // Helper to find club ID by name
     const getClubByName = (name) => {
@@ -34,12 +57,15 @@ export default function BracketView({ matches, getNationFlag, clubs = [], onEdit
         );
     }
 
-    const ClubLink = ({ name, nation, isWinner, score, showScore = true }) => {
+    const ClubLink = ({ name, nation, isWinner, score, showScore = true, cameFromMatch }) => {
         const club = getClubByName(name);
         const flag = getNationFlag(nation);
         
         return (
             <div className={`flex items-center gap-2 py-2 px-3 ${isWinner ? 'bg-emerald-50' : ''}`}>
+                {cameFromMatch && (
+                    <ChevronRight className="w-3 h-3 text-slate-300 flex-shrink-0" />
+                )}
                 {flag && (
                     <img src={flag} alt="" className="w-5 h-3 object-contain flex-shrink-0" />
                 )}
@@ -65,13 +91,18 @@ export default function BracketView({ matches, getNationFlag, clubs = [], onEdit
         );
     };
 
-    const MatchCard = ({ match, isFinal }) => {
+    const MatchCard = ({ match, isFinal, roundIdx }) => {
         const homeIsWinner = match.winner === match.home_club_name;
         const awayIsWinner = match.winner === match.away_club_name;
         
         // For two-leg ties, show aggregate
         const homeScore = match.is_single_leg ? match.home_score_leg1 : match.home_aggregate;
         const awayScore = match.is_single_leg ? match.away_score_leg1 : match.away_aggregate;
+
+        // Check if clubs came from previous round
+        const matchProgression = progressionMap[match.id] || {};
+        const homeCameFrom = matchProgression[match.home_club_name];
+        const awayCameFrom = matchProgression[match.away_club_name];
 
         return (
             <div 
@@ -89,6 +120,7 @@ export default function BracketView({ matches, getNationFlag, clubs = [], onEdit
                     nation={match.home_club_nation}
                     isWinner={homeIsWinner}
                     score={homeScore}
+                    cameFromMatch={homeCameFrom}
                 />
                 <div className="border-t border-slate-100" />
                 <ClubLink 
@@ -96,6 +128,7 @@ export default function BracketView({ matches, getNationFlag, clubs = [], onEdit
                     nation={match.away_club_nation}
                     isWinner={awayIsWinner}
                     score={awayScore}
+                    cameFromMatch={awayCameFrom}
                 />
                 {!match.is_single_leg && (match.home_score_leg1 !== null || match.away_score_leg1 !== null) && (
                     <div className="bg-slate-50 px-3 py-1 text-xs text-slate-500 border-t">
@@ -141,11 +174,21 @@ export default function BracketView({ matches, getNationFlag, clubs = [], onEdit
                                     paddingBottom: `${(spacingMultiplier - 1) * 40}px`
                                 }}
                             >
-                                {roundMatches.map((match) => (
+                                {roundMatches.map((match, matchIdx) => (
                                     <div key={match.id} className="flex items-center">
-                                        <MatchCard match={match} isFinal={isFinal} />
+                                        {roundIdx > 0 && (
+                                            <div className="w-6 flex flex-col items-center mr-1">
+                                                <div className="w-px h-4 bg-slate-300" />
+                                                <div className="w-3 h-px bg-slate-300" />
+                                            </div>
+                                        )}
+                                        <MatchCard match={match} isFinal={isFinal} roundIdx={roundIdx} />
                                         {roundIdx < sortedRounds.length - 1 && (
-                                            <div className="w-8 h-px bg-slate-300 ml-2" />
+                                            <div className="flex items-center">
+                                                <div className="w-4 h-px bg-slate-300" />
+                                                <div className="w-px h-8 bg-slate-300" style={{ marginTop: matchIdx % 2 === 0 ? '0' : '-32px', marginBottom: matchIdx % 2 === 0 ? '-32px' : '0' }} />
+                                                <div className="w-4 h-px bg-slate-300" />
+                                            </div>
                                         )}
                                     </div>
                                 ))}

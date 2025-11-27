@@ -90,7 +90,7 @@ export default function Coefficients() {
                 if (!clubName) return;
                 const key = `${clubName}|${compType}`;
                 if (!history[key]) {
-                    history[key] = { appearances: new Set(), bestRound: null, bestRoundYears: [], lastYear: null };
+                    history[key] = { appearances: new Set(), bestRound: null, bestRoundYears: [], lastYear: null, titles: [], runnersUp: [] };
                 }
                 history[key].appearances.add(season.year);
                 if (!history[key].lastYear || season.year > history[key].lastYear) {
@@ -108,10 +108,33 @@ export default function Coefficients() {
             });
         });
 
+        // Add titles and runners-up from seasons
+        seasons.forEach(season => {
+            const comp = competitions.find(c => c.id === season.competition_id);
+            const compType = comp?.short_name === 'VCC' || comp?.name?.includes('Champions') ? 'VCC' : 'CCC';
+            
+            if (season.champion_name) {
+                const key = `${season.champion_name}|${compType}`;
+                if (!history[key]) {
+                    history[key] = { appearances: new Set(), bestRound: 'Final', bestRoundYears: [], lastYear: season.year, titles: [], runnersUp: [] };
+                }
+                history[key].titles.push(season.year);
+            }
+            if (season.runner_up) {
+                const key = `${season.runner_up}|${compType}`;
+                if (!history[key]) {
+                    history[key] = { appearances: new Set(), bestRound: 'Final', bestRoundYears: [], lastYear: season.year, titles: [], runnersUp: [] };
+                }
+                history[key].runnersUp.push(season.year);
+            }
+        });
+
         // Convert Sets to counts
         Object.values(history).forEach(h => {
             h.appearanceCount = h.appearances.size;
             h.bestRoundYears.sort();
+            h.titles = h.titles || [];
+            h.runnersUp = h.runnersUp || [];
         });
         
         return history;
@@ -141,12 +164,28 @@ export default function Coefficients() {
             .slice(0, 10);
     }, [matches]);
 
+    // Get the years from the data for column headers
+    const coeffYears = useMemo(() => {
+        const years = new Set();
+        countryCoefficients.forEach(c => {
+            if (c.year_1_points) years.add('Y1');
+            if (c.year_2_points) years.add('Y2');
+            if (c.year_3_points) years.add('Y3');
+            if (c.year_4_points) years.add('Y4');
+        });
+        return ['Y4', 'Y3', 'Y2', 'Y1']; // Oldest to newest (left to right)
+    }, [countryCoefficients]);
+
     const renderCountryTable = (data, type) => (
         <Table>
             <TableHeader className="bg-slate-100">
                 <TableRow>
                     <TableHead className="w-16">Rank</TableHead>
                     <TableHead>Nation</TableHead>
+                    <TableHead className="text-center text-xs">Y-4</TableHead>
+                    <TableHead className="text-center text-xs">Y-3</TableHead>
+                    <TableHead className="text-center text-xs">Y-2</TableHead>
+                    <TableHead className="text-center text-xs">Y-1</TableHead>
                     <TableHead className="text-center font-bold">Total</TableHead>
                     <TableHead className="text-center">{type === 'VCC' ? 'VCC' : 'CCC'} Spots</TableHead>
                 </TableRow>
@@ -173,6 +212,10 @@ export default function Coefficients() {
                                     <span className="font-semibold">{coeff.nation_name}</span>
                                 </Link>
                             </TableCell>
+                            <TableCell className="text-center text-sm text-slate-500">{coeff.year_4_points?.toFixed(3) || '-'}</TableCell>
+                            <TableCell className="text-center text-sm text-slate-500">{coeff.year_3_points?.toFixed(3) || '-'}</TableCell>
+                            <TableCell className="text-center text-sm text-slate-500">{coeff.year_2_points?.toFixed(3) || '-'}</TableCell>
+                            <TableCell className="text-center text-sm text-slate-600">{coeff.year_1_points?.toFixed(3) || '-'}</TableCell>
                             <TableCell className="text-center font-bold text-lg">{coeff.total_points?.toFixed(3)}</TableCell>
                             <TableCell className="text-center">
                                 <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-sm ${
@@ -210,6 +253,7 @@ export default function Coefficients() {
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>Club</TableHead>
                     <TableHead>Nation</TableHead>
+                    <TableHead className="text-center">Honours</TableHead>
                     <TableHead className="text-center">Apps</TableHead>
                     <TableHead className="text-center">Best</TableHead>
                     <TableHead className="text-center">Last</TableHead>
@@ -235,6 +279,21 @@ export default function Coefficients() {
                                         <img src={getNationFlag(club.nation_name)} alt="" className="w-5 h-3 object-cover rounded" />
                                     )}
                                     <span className="text-slate-500 text-sm">{club.nation_name}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                    {history.titles?.length > 0 && (
+                                        <Badge className="bg-amber-500 text-white text-xs px-1.5">
+                                            W{history.titles.length > 1 ? ` ×${history.titles.length}` : ''}
+                                        </Badge>
+                                    )}
+                                    {history.runnersUp?.length > 0 && (
+                                        <Badge variant="outline" className="border-slate-400 text-slate-600 text-xs px-1.5">
+                                            RU{history.runnersUp.length > 1 ? ` ×${history.runnersUp.length}` : ''}
+                                        </Badge>
+                                    )}
+                                    {(!history.titles?.length && !history.runnersUp?.length) && '-'}
                                 </div>
                             </TableCell>
                             <TableCell className="text-center">{history.appearanceCount || '-'}</TableCell>
