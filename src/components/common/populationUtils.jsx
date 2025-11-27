@@ -71,6 +71,42 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
     return { value: estimated, display, tier };
 }
 
+// Estimate the number of professional clubs a nation can sustain
+export function estimateSustainableProClubs(population, topDivisionSize, maxTier, membership, strengthScore) {
+    if (population === 0) return { min: 0, max: 0, display: '0' };
+    
+    // Base: roughly 1 pro club per 100k-150k population
+    const basePerCapita = membership === 'VCC' ? 90000 : membership === 'CCC' ? 110000 : 100000;
+    
+    // Calculate base sustainable clubs from population
+    let baseClubs = Math.floor(population / basePerCapita);
+    
+    // Adjust based on league strength - stronger leagues attract more investment
+    const strengthMultiplier = 1 + (strengthScore / 200); // 0-50% boost based on strength
+    
+    // Top division size indicates league maturity and economic capacity
+    let divisionBonus = 0;
+    if (topDivisionSize >= 20) divisionBonus = 15;
+    else if (topDivisionSize >= 16) divisionBonus = 10;
+    else if (topDivisionSize >= 12) divisionBonus = 5;
+    
+    // More tiers = deeper professional pyramid
+    const tierBonus = Math.min(maxTier, 4) * 5; // Up to 4 tiers count as professional
+    
+    const estimated = Math.round((baseClubs * strengthMultiplier) + divisionBonus + tierBonus);
+    
+    // Calculate range (±15%)
+    const min = Math.max(4, Math.round(estimated * 0.85));
+    const max = Math.round(estimated * 1.15);
+    
+    return {
+        value: estimated,
+        min,
+        max,
+        display: min === max ? `${min}` : `${min}-${max}`
+    };
+}
+
 // Estimate population for a single settlement based on its clubs
 export function estimateSettlementPopulation(locationName, clubs, isCapital = false, nationPopulation = 0) {
     const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
