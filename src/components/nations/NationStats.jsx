@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPageUrl } from '@/utils';
-import { MapPin, Users, Globe, Trophy, BarChart3, Languages } from 'lucide-react';
+import { MapPin, Users, Globe, Trophy, BarChart3, Languages, Building2 } from 'lucide-react';
 import { estimateNationPopulation, estimateSustainableProClubs } from '@/components/common/populationUtils';
 
 // Analyze patterns from club/league names to determine cultural identity
@@ -247,7 +247,8 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
             capital,
             regions,
             districts,
-            settlements
+            settlements,
+            currentClubCount: clubs.length
         };
     }, [nation, clubs, leagues, coefficient]);
 
@@ -308,13 +309,20 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
                     </div>
 
                     {/* Sustainable Pro Clubs */}
-                    <div className="p-3 bg-emerald-50 rounded-lg">
+                    <div className="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg">
                         <div className="flex items-center gap-2 text-emerald-600 text-xs mb-1">
-                            <Trophy className="w-3 h-3" />
+                            <Building2 className="w-3 h-3" />
                             Pro Club Capacity
                         </div>
-                        <div className="font-semibold text-emerald-700">{stats.proClubs.display}</div>
-                        <div className="text-xs text-emerald-600">sustainable clubs</div>
+                        <div className="font-semibold text-emerald-800">{stats.proClubs.display}</div>
+                        <div className="text-xs text-emerald-600">
+                            {stats.currentClubCount > stats.proClubs.max 
+                                ? `${stats.currentClubCount - stats.proClubs.max} over capacity`
+                                : stats.currentClubCount < stats.proClubs.min 
+                                    ? `Room for ${stats.proClubs.min - stats.currentClubCount} more`
+                                    : 'At sustainable level'
+                            }
+                        </div>
                     </div>
 
                     {/* Regions */}
