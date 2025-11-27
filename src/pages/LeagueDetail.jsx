@@ -21,6 +21,7 @@ import PromotionRelegationFlow from '@/components/leagues/PromotionRelegationFlo
 import LeagueClubsMap from '@/components/leagues/LeagueClubsMap';
 import HeadToHeadMatrix from '@/components/leagues/HeadToHeadMatrix';
 import LeagueRivalries from '@/components/leagues/LeagueRivalries';
+import AdminOnly from '@/components/common/AdminOnly';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
 
 export default function LeagueDetail() {
@@ -181,23 +182,25 @@ export default function LeagueDetail() {
                             <h1 className="text-3xl md:text-4xl font-bold text-white">{league.name}</h1>
                             {league.description && <p className="mt-2 text-white/80">{league.description}</p>}
                         </div>
-                        <div className="flex gap-2">
-                            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                                <Edit2 className="w-4 h-4 mr-2" /> Edit
-                            </Button>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader><AlertDialogTitle>Delete {league.name}?</AlertDialogTitle></AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
+                        <AdminOnly>
+                            <div className="flex gap-2">
+                                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
+                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader><AlertDialogTitle>Delete {league.name}?</AlertDialogTitle></AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        </AdminOnly>
                     </div>
                 </div>
             </div>
@@ -309,9 +312,11 @@ export default function LeagueDetail() {
                         <Card className="border-0 shadow-sm">
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>Clubs</CardTitle>
-                                <Link to={createPageUrl(`AddClub?nation_id=${league.nation_id}&league_id=${leagueId}`)}>
-                                    <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Club</Button>
-                                </Link>
+                                <AdminOnly>
+                                    <Link to={createPageUrl(`AddClub?nation_id=${league.nation_id}&league_id=${leagueId}`)}>
+                                        <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Club</Button>
+                                    </Link>
+                                </AdminOnly>
                             </CardHeader>
                             <CardContent>
                                 {clubs.length === 0 ? (
@@ -426,9 +431,11 @@ export default function LeagueDetail() {
                         <Card className="border-0 shadow-sm">
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>Season History</CardTitle>
-                                <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
-                                    <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                                </Link>
+                                <AdminOnly>
+                                    <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
+                                        <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                                    </Link>
+                                </AdminOnly>
                             </CardHeader>
                             <CardContent>
                                 {seasons.length === 0 ? (

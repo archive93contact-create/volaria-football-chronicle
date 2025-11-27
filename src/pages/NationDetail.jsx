@@ -18,6 +18,7 @@ import PageHeader from '@/components/common/PageHeader';
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import NationNarratives from '@/components/nations/NationNarratives';
 import GoldenEras from '@/components/nations/GoldenEras';
+import AdminOnly from '@/components/common/AdminOnly';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
 import { useNavigate } from 'react-router-dom';
@@ -185,26 +186,28 @@ export default function NationDetail() {
                                     <p className="mt-3 text-lg text-white/80 max-w-2xl">{nation.description || nation.federation_name}</p>
                                 )}
                             </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle>
-                                            <AlertDialogDescription>This will permanently delete this nation.</AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
+                            <AdminOnly>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
+                                        <Edit2 className="w-4 h-4 mr-2" /> Edit
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle>
+                                                <AlertDialogDescription>This will permanently delete this nation.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </AdminOnly>
                         </div>
                     </div>
                 </div>
@@ -218,33 +221,35 @@ export default function NationDetail() {
                     { label: nation.name }
                 ]}
             >
-                <div className="flex gap-2">
-                    <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                        <Edit2 className="w-4 h-4 mr-2" />
-                        Edit
-                    </Button>
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20">
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will permanently delete this nation. This action cannot be undone.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600 hover:bg-red-700">
-                                    Delete
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
+                <AdminOnly>
+                    <div className="flex gap-2">
+                        <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
+                            <Edit2 className="w-4 h-4 mr-2" />
+                            Edit
+                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20">
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete this nation. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600 hover:bg-red-700">
+                                        Delete
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </AdminOnly>
             </PageHeader>
             )}
 
@@ -302,12 +307,14 @@ export default function NationDetail() {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold text-slate-900">League Structure</h2>
-                            <Link to={createPageUrl(`AddLeague?nation_id=${nationId}`)}>
-                                <Button className="bg-emerald-600 hover:bg-emerald-700">
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add League
-                                </Button>
-                            </Link>
+                            <AdminOnly>
+                                <Link to={createPageUrl(`AddLeague?nation_id=${nationId}`)}>
+                                    <Button className="bg-emerald-600 hover:bg-emerald-700">
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add League
+                                    </Button>
+                                </Link>
+                            </AdminOnly>
                         </div>
 
                         {/* Domestic Cups Section */}
