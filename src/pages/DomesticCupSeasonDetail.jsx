@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { ChevronRight, Trophy, Edit2, Trash2, Plus, Check, Users } from 'lucide-react';
+import { ChevronRight, Trophy, Edit2, Trash2, Plus, Check, Users, Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -62,6 +63,22 @@ export default function DomesticCupSeasonDetail() {
         enabled: !!cup?.nation_id,
     });
 
+    const { data: leagues = [] } = useQuery({
+        queryKey: ['nationLeagues', cup?.nation_id],
+        queryFn: () => base44.entities.League.filter({ nation_id: cup.nation_id }),
+        enabled: !!cup?.nation_id,
+    });
+
+    const { data: leagueTables = [] } = useQuery({
+        queryKey: ['yearLeagueTables', season?.year, cup?.nation_id],
+        queryFn: async () => {
+            const nationLeagueIds = leagues.map(l => l.id);
+            const tables = await base44.entities.LeagueTable.list();
+            return tables.filter(t => t.year === season.year && nationLeagueIds.includes(t.league_id));
+        },
+        enabled: !!season?.year && leagues.length > 0,
+    });
+
     const updateMatchMutation = useMutation({
         mutationFn: ({ id, data }) => base44.entities.DomesticCupMatch.update(id, data),
         onSuccess: () => {
@@ -85,6 +102,23 @@ export default function DomesticCupSeasonDetail() {
     });
 
     const getClubByName = (name) => clubs.find(c => c.name?.toLowerCase().trim() === name?.toLowerCase().trim());
+
+    const getClubTier = (clubName) => {
+        const table = leagueTables.find(t => t.club_name?.toLowerCase().trim() === clubName?.toLowerCase().trim());
+        if (!table) return null;
+        const league = leagues.find(l => l.id === table.league_id);
+        return league?.tier || null;
+    };
+
+    // Find giant killings (lower tier beating higher tier)
+    const giantKillings = matches.filter(m => {
+        const homeTier = getClubTier(m.home_club_name);
+        const awayTier = getClubTier(m.away_club_name);
+        if (!homeTier || !awayTier) return false;
+        if (m.winner === m.home_club_name && homeTier > awayTier) return true;
+        if (m.winner === m.away_club_name && awayTier > homeTier) return true;
+        return false;
+    });
 
     // Group matches by round
     const matchesByRound = matches.reduce((acc, m) => {
@@ -177,18 +211,57 @@ export default function DomesticCupSeasonDetail() {
                             <div className="flex items-center justify-center gap-8 flex-wrap">
                                 <div className="text-center">
                                     {championClub?.logo_url && <img src={championClub.logo_url} alt="" className="w-16 h-16 object-contain mx-auto mb-2" />}
-                                    <div className="font-bold text-lg text-emerald-700">{season.champion_name}</div>
+                                    <Link to={createPageUrl(`ClubDetail?id=${championClub?.id}`)} className="font-bold text-lg text-emerald-700 hover:underline">{season.champion_name}</Link>
                                     <div className="text-xs text-slate-500">Champion</div>
+                                    {getClubTier(season.champion_name) && (
+                                        <Badge variant="outline" className="mt-1">Tier {getClubTier(season.champion_name)}</Badge>
+                                    )}
                                 </div>
                                 <div className="text-center">
+                                    <Trophy className="w-8 h-8 text-amber-500 mx-auto mb-1" />
                                     <div className="text-3xl font-bold">{season.final_score || 'vs'}</div>
                                     {season.final_venue && <div className="text-xs text-slate-500">{season.final_venue}</div>}
                                 </div>
                                 <div className="text-center">
                                     {runnerUpClub?.logo_url && <img src={runnerUpClub.logo_url} alt="" className="w-16 h-16 object-contain mx-auto mb-2" />}
-                                    <div className="font-bold text-lg">{season.runner_up}</div>
+                                    <Link to={createPageUrl(`ClubDetail?id=${runnerUpClub?.id}`)} className="font-bold text-lg hover:underline">{season.runner_up}</Link>
                                     <div className="text-xs text-slate-500">Runner-up</div>
+                                    {getClubTier(season.runner_up) && (
+                                        <Badge variant="outline" className="mt-1">Tier {getClubTier(season.runner_up)}</Badge>
+                                    )}
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Giant Killings */}
+                {giantKillings.length > 0 && (
+                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-purple-50 to-pink-50">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="flex items-center gap-2 text-purple-700">
+                                <Zap className="w-5 h-5" />
+                                Giant Killings ({giantKillings.length})
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-2 md:grid-cols-2">
+                                {giantKillings.map((m, idx) => {
+                                    const winnerTier = getClubTier(m.winner);
+                                    const loser = m.winner === m.home_club_name ? m.away_club_name : m.home_club_name;
+                                    const loserTier = getClubTier(loser);
+                                    return (
+                                        <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                                            <Zap className="w-4 h-4 text-purple-500" />
+                                            <span className="font-medium text-purple-700">{m.winner}</span>
+                                            <Badge variant="outline" className="text-xs">T{winnerTier}</Badge>
+                                            <span className="text-slate-500">beat</span>
+                                            <span>{loser}</span>
+                                            <Badge variant="outline" className="text-xs">T{loserTier}</Badge>
+                                            <span className="text-xs text-slate-400 ml-auto">{m.round}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </CardContent>
                     </Card>
