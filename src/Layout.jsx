@@ -13,7 +13,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Seasons', icon: Trophy, page: 'Seasons' },
         { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
         { name: 'Country Rankings', icon: BarChart3, page: 'CountryCoefficients' },
-        { name: 'Club Rankings', icon: Shield, page: 'ClubCoefficients' },
+
         { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
         { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
         { name: 'Locations', icon: Globe, page: 'Locations' },

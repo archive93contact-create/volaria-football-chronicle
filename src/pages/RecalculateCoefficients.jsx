@@ -242,10 +242,9 @@ export default function RecalculateCoefficients() {
                                                     <TableRow>
                                                         <TableHead className="w-16">Rank</TableHead>
                                                         <TableHead>Nation</TableHead>
-                                                        <TableHead className="text-center">Y1</TableHead>
-                                                        <TableHead className="text-center">Y2</TableHead>
-                                                        <TableHead className="text-center">Y3</TableHead>
-                                                        <TableHead className="text-center">Y4</TableHead>
+                                                        {calculatedData?.yearsOldestFirst?.map((year, i) => (
+                                                            <TableHead key={year} className="text-center">{year}</TableHead>
+                                                        ))}
                                                         <TableHead className="text-center font-bold">Total</TableHead>
                                                         <TableHead className="text-center">Spots</TableHead>
                                                     </TableRow>
@@ -272,10 +271,10 @@ export default function RecalculateCoefficients() {
                                                                         )}
                                                                     </div>
                                                                 </TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_1_points?.toFixed(3) || '-'}</TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_2_points?.toFixed(3) || '-'}</TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_3_points?.toFixed(3) || '-'}</TableCell>
                                                                 <TableCell className="text-center text-slate-600">{nation.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_1_points?.toFixed(3) || '-'}</TableCell>
                                                                 <TableCell className="text-center font-bold text-lg">{nation.total_points.toFixed(3)}</TableCell>
                                                                 <TableCell className="text-center">
                                                                     <div className="flex items-center justify-center gap-1">
@@ -315,10 +314,9 @@ export default function RecalculateCoefficients() {
                                                     <TableRow>
                                                         <TableHead className="w-16">Rank</TableHead>
                                                         <TableHead>Nation</TableHead>
-                                                        <TableHead className="text-center">Y1</TableHead>
-                                                        <TableHead className="text-center">Y2</TableHead>
-                                                        <TableHead className="text-center">Y3</TableHead>
-                                                        <TableHead className="text-center">Y4</TableHead>
+                                                        {calculatedData?.yearsOldestFirst?.map((year, i) => (
+                                                            <TableHead key={year} className="text-center">{year}</TableHead>
+                                                        ))}
                                                         <TableHead className="text-center font-bold">Total</TableHead>
                                                         <TableHead className="text-center">Spots</TableHead>
                                                     </TableRow>
@@ -345,10 +343,10 @@ export default function RecalculateCoefficients() {
                                                                         )}
                                                                     </div>
                                                                 </TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_1_points?.toFixed(3) || '-'}</TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_2_points?.toFixed(3) || '-'}</TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_3_points?.toFixed(3) || '-'}</TableCell>
                                                                 <TableCell className="text-center text-slate-600">{nation.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                                <TableCell className="text-center text-slate-600">{nation.year_1_points?.toFixed(3) || '-'}</TableCell>
                                                                 <TableCell className="text-center font-bold text-lg">{nation.total_points.toFixed(3)}</TableCell>
                                                                 <TableCell className="text-center">
                                                                     <div className="flex items-center justify-center gap-1">
@@ -407,10 +405,9 @@ export default function RecalculateCoefficients() {
                                                     <TableHead className="w-12">#</TableHead>
                                                     <TableHead>Club</TableHead>
                                                     <TableHead>Nation</TableHead>
-                                                    <TableHead className="text-center">Y1</TableHead>
-                                                    <TableHead className="text-center">Y2</TableHead>
-                                                    <TableHead className="text-center">Y3</TableHead>
-                                                    <TableHead className="text-center">Y4</TableHead>
+                                                    {calculatedData?.yearsOldestFirst?.map((year) => (
+                                                        <TableHead key={year} className="text-center">{year}</TableHead>
+                                                    ))}
                                                     <TableHead className="text-center font-bold">Total</TableHead>
                                                 </TableRow>
                                             </TableHeader>
@@ -431,10 +428,10 @@ export default function RecalculateCoefficients() {
                                                                 <span className="text-slate-500 text-sm">{club.nation_name}</span>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell className="text-center text-slate-600">{club.year_1_points?.toFixed(3) || '-'}</TableCell>
-                                                        <TableCell className="text-center text-slate-600">{club.year_2_points?.toFixed(3) || '-'}</TableCell>
-                                                        <TableCell className="text-center text-slate-600">{club.year_3_points?.toFixed(3) || '-'}</TableCell>
                                                         <TableCell className="text-center text-slate-600">{club.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_1_points?.toFixed(3) || '-'}</TableCell>
                                                         <TableCell className="text-center font-bold text-lg">{club.total_points.toFixed(3)}</TableCell>
                                                     </TableRow>
                                                 ))}
@@ -457,10 +454,9 @@ export default function RecalculateCoefficients() {
                                                     <TableHead className="w-12">#</TableHead>
                                                     <TableHead>Club</TableHead>
                                                     <TableHead>Nation</TableHead>
-                                                    <TableHead className="text-center">Y1</TableHead>
-                                                    <TableHead className="text-center">Y2</TableHead>
-                                                    <TableHead className="text-center">Y3</TableHead>
-                                                    <TableHead className="text-center">Y4</TableHead>
+                                                    {calculatedData?.yearsOldestFirst?.map((year) => (
+                                                        <TableHead key={year} className="text-center">{year}</TableHead>
+                                                    ))}
                                                     <TableHead className="text-center font-bold">Total</TableHead>
                                                 </TableRow>
                                             </TableHeader>
@@ -481,10 +477,10 @@ export default function RecalculateCoefficients() {
                                                                 <span className="text-slate-500 text-sm">{club.nation_name}</span>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell className="text-center text-slate-600">{club.year_1_points?.toFixed(3) || '-'}</TableCell>
-                                                        <TableCell className="text-center text-slate-600">{club.year_2_points?.toFixed(3) || '-'}</TableCell>
-                                                        <TableCell className="text-center text-slate-600">{club.year_3_points?.toFixed(3) || '-'}</TableCell>
                                                         <TableCell className="text-center text-slate-600">{club.year_4_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_3_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_2_points?.toFixed(3) || '-'}</TableCell>
+                                                        <TableCell className="text-center text-slate-600">{club.year_1_points?.toFixed(3) || '-'}</TableCell>
                                                         <TableCell className="text-center font-bold text-lg">{club.total_points.toFixed(3)}</TableCell>
                                                     </TableRow>
                                                 ))}

@@ -14,7 +14,6 @@ import NationClubs from './pages/NationClubs';
 import ContinentalSeasonDetail from './pages/ContinentalSeasonDetail';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import ClubCoefficients from './pages/ClubCoefficients';
 import Seasons from './pages/Seasons';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import ClubComparison from './pages/ClubComparison';
@@ -46,7 +45,6 @@ export const PAGES = {
     "ContinentalSeasonDetail": ContinentalSeasonDetail,
     "About": About,
     "Contact": Contact,
-    "ClubCoefficients": ClubCoefficients,
     "Seasons": Seasons,
     "UpdateContinentalStats": UpdateContinentalStats,
     "ClubComparison": ClubComparison,

@@ -283,10 +283,14 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
         return [...vcc, ...ccc];
     };
     
+    // Reverse years so oldest is first (for display)
+    const yearsOldestFirst = [...last4Years].reverse();
+    
     return {
         clubCoefficients: sortAndRank(clubCoefficients, false),
         nationCoefficients: sortAndRank(nationCoefficients, true),
         years: last4Years,
+        yearsOldestFirst,
         previousVccChampionNation,
         previousCccChampionNation,
     };
