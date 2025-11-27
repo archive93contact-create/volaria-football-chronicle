@@ -212,7 +212,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         });
 
         return Object.values(rivalryScores)
-            .filter(r => r.score > 0) // Show any rivalry with a score
+            .filter(r => r.score >= 40) // Only show Strong or higher rivalries
             .sort((a, b) => b.score - a.score)
             .slice(0, 8);
     }, [club, domesticClubs, fetchedNationClubs, allClubsData, leagueTables, fetchedLeagueTables, continentalMatches, nations]);
