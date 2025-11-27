@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPageUrl } from '@/utils';
 import { MapPin, Users, Globe, Trophy, BarChart3, Languages } from 'lucide-react';
-import { estimateNationPopulation } from '@/components/common/populationUtils';
+import { estimateNationPopulation, estimateSustainableProClubs } from '@/components/common/populationUtils';
 
 // Analyze patterns from club/league names to determine cultural identity
 function analyzeNamingPatterns(clubs, leagues) {
@@ -230,6 +230,7 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
             totalDivisions: leagues.length
         });
         const strength = estimateLeagueStrength(clubs, leagues, coefficient, nation.membership);
+        const proClubs = estimateSustainableProClubs(population.value, topDivisionSize, maxTier, nation.membership, strength.score);
         const language = nation.language ? { name: nation.language } : generateLanguage(nation.name, clubs, leagues);
         const capital = nation.capital || generateCapital(nation.name, clubs, leagues);
         
@@ -241,6 +242,7 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
         return {
             population,
             strength,
+            proClubs,
             language,
             capital,
             regions,
@@ -303,6 +305,16 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
                         </div>
                         <div className={`font-semibold ${stats.strength.color}`}>{stats.strength.tier}</div>
                         <div className="text-xs text-slate-500">Score: {stats.strength.score}/100</div>
+                    </div>
+
+                    {/* Sustainable Pro Clubs */}
+                    <div className="p-3 bg-emerald-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-emerald-600 text-xs mb-1">
+                            <Trophy className="w-3 h-3" />
+                            Pro Club Capacity
+                        </div>
+                        <div className="font-semibold text-emerald-700">{stats.proClubs.display}</div>
+                        <div className="text-xs text-emerald-600">sustainable clubs</div>
                     </div>
 
                     {/* Regions */}
