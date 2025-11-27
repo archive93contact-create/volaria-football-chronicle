@@ -279,6 +279,7 @@ export default function ClubDetail() {
             ...editData,
             founded_year: editData.founded_year ? parseInt(editData.founded_year) : null,
             stadium_capacity: editData.stadium_capacity ? parseInt(editData.stadium_capacity) : null,
+            logo_url: editData.logo_url || null,
         };
         updateMutation.mutate(submitData);
     };
