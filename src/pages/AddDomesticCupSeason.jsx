@@ -260,6 +260,26 @@ export default function AddDomesticCupSeason() {
         setSelectedClubs(newClubs);
     };
 
+    const selectAllFromLeague = (leagueId) => {
+        const yearTables = allLeagueTables.filter(t => t.year === seasonData.year && t.league_id === leagueId);
+        const newClubs = [...selectedClubs];
+        yearTables.forEach(table => {
+            const club = allClubs.find(c => c.id === table.club_id) || { id: table.club_id, name: table.club_name };
+            const league = leagues.find(l => l.id === leagueId);
+            if (!newClubs.find(sc => sc.name === table.club_name)) {
+                newClubs.push({
+                    id: club.id,
+                    name: table.club_name,
+                    league: league?.name,
+                    tier: league?.tier,
+                    position: table.position,
+                    logo_url: club.logo_url
+                });
+            }
+        });
+        setSelectedClubs(newClubs);
+    };
+
     const createSeasonMutation = useMutation({
         mutationFn: async () => {
             // Find final match to get champion and runner-up
@@ -442,6 +462,30 @@ export default function AddDomesticCupSeason() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+
+                                        {/* Quick Add by League */}
+                                        {leagues.length > 0 && (
+                                            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                                                <Label className="text-xs text-blue-800 mb-2 block">Quick Add: Select entire league</Label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {leagues.sort((a, b) => a.tier - b.tier).map(league => {
+                                                        const leagueClubsInYear = allLeagueTables.filter(t => t.year === seasonData.year && t.league_id === league.id).length;
+                                                        if (leagueClubsInYear === 0) return null;
+                                                        return (
+                                                            <Button 
+                                                                key={league.id}
+                                                                variant="outline" 
+                                                                size="sm"
+                                                                onClick={() => selectAllFromLeague(league.id)}
+                                                                className="text-xs"
+                                                            >
+                                                                + {league.name} ({leagueClubsInYear})
+                                                            </Button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Selected Clubs */}
                                         {selectedClubs.length > 0 && (
