@@ -105,9 +105,9 @@ export default function AddSeason() {
         const updated = [...tableRows];
         updated[index].status = status;
         if (status === 'champion') updated[index].highlight_color = seasonData.champion_color;
-        else if (status === 'promoted') updated[index].highlight_color = seasonData.promotion_color;
+        else if (status === 'promoted' || status === 'playoff_winner') updated[index].highlight_color = seasonData.promotion_color;
         else if (status === 'relegated') updated[index].highlight_color = seasonData.relegation_color;
-        else if (status === 'playoff') updated[index].highlight_color = seasonData.playoff_color;
+        else if (status === 'playoff' || status === 'playoff_runner_up') updated[index].highlight_color = seasonData.playoff_color;
         else updated[index].highlight_color = '';
         setTableRows(updated);
     };
@@ -125,7 +125,7 @@ export default function AddSeason() {
                 champion_name: tableRows.find(r => r.status === 'champion')?.club_name || '',
                 runner_up: tableRows.find(r => r.position === 2)?.club_name || '',
                 top_scorer: data.top_scorer,
-                promoted_teams: tableRows.filter(r => r.status === 'promoted').map(r => r.club_name).join(', '),
+                promoted_teams: tableRows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
                 relegated_teams: tableRows.filter(r => r.status === 'relegated').map(r => r.club_name).join(', '),
                 champion_color: data.champion_color,
                 promotion_color: data.promotion_color,
@@ -159,7 +159,7 @@ export default function AddSeason() {
                 if (existingClub) {
                     // Update existing club stats
                     const isChampion = row.status === 'champion';
-                    const isPromoted = row.status === 'promoted';
+                    const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
                     const isRelegated = row.status === 'relegated';
 
                     // Only count league titles if this is tier 1 (top tier)
@@ -237,7 +237,7 @@ export default function AddSeason() {
                 } else {
                     // Create new club
                     const isChampion = row.status === 'champion';
-                    const isPromoted = row.status === 'promoted';
+                    const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
                     const isRelegated = row.status === 'relegated';
 
                     const newClub = await base44.entities.Club.create({
@@ -385,7 +385,7 @@ export default function AddSeason() {
                                 <Input type="number" min="0" value={seasonData.relegation_spots} onChange={(e) => setSeasonData({...seasonData, relegation_spots: parseInt(e.target.value) || 0})} className="mt-1" />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
                                 <Label>Tier Override (if moved)</Label>
                                 <Input type="number" min="1" value={seasonData.tier || ''} onChange={(e) => setSeasonData({...seasonData, tier: e.target.value ? parseInt(e.target.value) : null})} placeholder={`Default: ${league?.tier || 1}`} className="mt-1" />
@@ -397,6 +397,13 @@ export default function AddSeason() {
                             <div>
                                 <Label>Division Group</Label>
                                 <Input value={seasonData.division_group} onChange={(e) => setSeasonData({...seasonData, division_group: e.target.value})} placeholder="e.g., Regional" className="mt-1" />
+                            </div>
+                            <div className="flex items-end">
+                                {seasonData.division_name && (
+                                    <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                        ℹ️ Create separate season entries for each division (e.g., "North" then "South")
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <div>
@@ -576,10 +583,12 @@ export default function AddSeason() {
                                                             <SelectItem value="none">None</SelectItem>
                                                             <SelectItem value="champion">🏆 Champion</SelectItem>
                                                             <SelectItem value="promoted">⬆️ Promoted</SelectItem>
-                                                            <SelectItem value="relegated">⬇️ Relegated</SelectItem>
+                                                            <SelectItem value="playoff_winner">🏆⬆️ Playoff Winner</SelectItem>
+                                                            <SelectItem value="playoff_runner_up">🔄❌ Playoff Runner-up</SelectItem>
                                                             <SelectItem value="playoff">🔄 Playoff</SelectItem>
+                                                            <SelectItem value="relegated">⬇️ Relegated</SelectItem>
                                                             <SelectItem value="european">⭐ European</SelectItem>
-                                                        </SelectContent>
+                                                            </SelectContent>
                                                     </Select>
                                                 </TableCell>
                                             </TableRow>
