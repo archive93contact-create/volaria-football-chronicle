@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { MapPin, Users, Shield, ChevronRight, Search, Globe, Building2, Home, Star } from 'lucide-react';
+import { MapPin, Users, Shield, ChevronRight, Search, Globe, Building2, Home, Star, Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from '@/components/common/PageHeader';
 
 // Estimate population based on clubs in location with pseudo-random variance
@@ -55,6 +56,8 @@ export default function Locations() {
     
     const [search, setSearch] = useState('');
     const [activeTab, setActiveTab] = useState(locationType);
+    const [sortBy, setSortBy] = useState('clubs');
+    const [filterNation, setFilterNation] = useState(nationId || 'all');
 
     const { data: nations = [] } = useQuery({
         queryKey: ['nations'],
@@ -67,7 +70,9 @@ export default function Locations() {
     });
 
     const nation = nations.find(n => n.id === nationId);
-    const filteredClubs = nationId ? clubs.filter(c => c.nation_id === nationId) : clubs;
+    const displayClubs = filterNation && filterNation !== 'all' 
+        ? clubs.filter(c => c.nation_id === filterNation) 
+        : clubs;
 
     // Extract all unique locations
     const locations = useMemo(() => {
@@ -75,7 +80,7 @@ export default function Locations() {
         const districts = new Map();
         const settlements = new Map();
 
-        filteredClubs.forEach(club => {
+        displayClubs.forEach(club => {
             const clubNation = nations.find(n => n.id === club.nation_id);
             
             if (club.region) {
@@ -129,11 +134,44 @@ export default function Locations() {
         });
 
         return {
-            regions: Array.from(regions.values()).sort((a, b) => b.clubs.length - a.clubs.length),
-            districts: Array.from(districts.values()).sort((a, b) => b.clubs.length - a.clubs.length),
-            settlements: Array.from(settlements.values()).sort((a, b) => b.clubs.length - a.clubs.length)
+            regions: Array.from(regions.values()),
+            districts: Array.from(districts.values()),
+            settlements: Array.from(settlements.values())
         };
-    }, [filteredClubs, nations]);
+    }, [displayClubs, nations]);
+
+    // Helper to get population value for sorting
+    const getPopulationValue = (location) => {
+        const seed = location.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const pseudoRandom = (min, max) => {
+            const x = Math.sin(seed) * 10000;
+            const rand = x - Math.floor(x);
+            return Math.floor(rand * (max - min + 1)) + min;
+        };
+        const baseMultipliers = { region: 400000, district: 80000, settlement: 20000 };
+        const isCapital = location.type === 'settlement' && location.nation?.capital?.toLowerCase() === location.name.toLowerCase();
+        let base = baseMultipliers[location.type] || 50000;
+        if (isCapital) base = Math.max(base * 5, 300000);
+        const variance = 0.7 + (pseudoRandom(0, 70) / 100);
+        let population = Math.floor((location.clubs.length * base + base * 0.3) * variance);
+        if (isCapital && population < 600000) population = 600000 + (location.clubs.length * 120000);
+        return population;
+    };
+
+    // Sort locations
+    const sortLocations = (items) => {
+        return [...items].sort((a, b) => {
+            switch (sortBy) {
+                case 'name':
+                    return a.name.localeCompare(b.name);
+                case 'population':
+                    return getPopulationValue(b) - getPopulationValue(a);
+                case 'clubs':
+                default:
+                    return b.clubs.length - a.clubs.length;
+            }
+        });
+    };
 
     // Filter by search
     const filterBySearch = (items) => {
@@ -227,9 +265,9 @@ export default function Locations() {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Search */}
-                <div className="mb-6">
-                    <div className="relative max-w-md">
+                {/* Search and Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <Input
                             placeholder="Search locations..."
@@ -237,6 +275,36 @@ export default function Locations() {
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-10"
                         />
+                    </div>
+                    <div className="flex gap-2">
+                        <Select value={filterNation} onValueChange={setFilterNation}>
+                            <SelectTrigger className="w-[180px]">
+                                <Filter className="w-4 h-4 mr-2 text-slate-400" />
+                                <SelectValue placeholder="All Nations" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Nations</SelectItem>
+                                {nations.sort((a, b) => a.name.localeCompare(b.name)).map(n => (
+                                    <SelectItem key={n.id} value={n.id}>
+                                        <span className="flex items-center gap-2">
+                                            {n.flag_url && <img src={n.flag_url} alt="" className="w-4 h-3 object-cover" />}
+                                            {n.name}
+                                        </span>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                            <SelectTrigger className="w-[160px]">
+                                <ArrowUpDown className="w-4 h-4 mr-2 text-slate-400" />
+                                <SelectValue placeholder="Sort by" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="clubs">Most Clubs</SelectItem>
+                                <SelectItem value="population">Population</SelectItem>
+                                <SelectItem value="name">Name (A-Z)</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
@@ -276,7 +344,7 @@ export default function Locations() {
 
                     <TabsContent value="all">
                         <div className="space-y-3">
-                            {filterBySearch([...locations.regions, ...locations.districts, ...locations.settlements])
+                            {sortLocations(filterBySearch([...locations.regions, ...locations.districts, ...locations.settlements]))
                                 .slice(0, 50)
                                 .map(renderLocationCard)}
                         </div>
@@ -284,7 +352,7 @@ export default function Locations() {
 
                     <TabsContent value="region">
                         <div className="space-y-3">
-                            {filterBySearch(locations.regions).map(renderLocationCard)}
+                            {sortLocations(filterBySearch(locations.regions)).map(renderLocationCard)}
                             {locations.regions.length === 0 && (
                                 <p className="text-center text-slate-500 py-8">No regions defined yet</p>
                             )}
@@ -293,7 +361,7 @@ export default function Locations() {
 
                     <TabsContent value="district">
                         <div className="space-y-3">
-                            {filterBySearch(locations.districts).map(renderLocationCard)}
+                            {sortLocations(filterBySearch(locations.districts)).map(renderLocationCard)}
                             {locations.districts.length === 0 && (
                                 <p className="text-center text-slate-500 py-8">No districts defined yet</p>
                             )}
@@ -302,7 +370,7 @@ export default function Locations() {
 
                     <TabsContent value="settlement">
                         <div className="space-y-3">
-                            {filterBySearch(locations.settlements).map(renderLocationCard)}
+                            {sortLocations(filterBySearch(locations.settlements)).map(renderLocationCard)}
                             {locations.settlements.length === 0 && (
                                 <p className="text-center text-slate-500 py-8">No settlements defined yet</p>
                             )}
