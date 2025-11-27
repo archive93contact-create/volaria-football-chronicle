@@ -186,6 +186,20 @@ export default function DomesticCupNarratives({ cup, seasons, clubs = [] }) {
         });
     }
 
+    // Show finalist info for single/few seasons  
+    if (seasons.length >= 1 && seasons.length <= 3) {
+        const latestSeason = seasons[0];
+        if (latestSeason.runner_up) {
+            narratives.push({
+                icon: Award,
+                title: 'Final Showdown',
+                text: `The ${latestSeason.year} final saw ${latestSeason.champion_name} triumph over ${latestSeason.runner_up}${latestSeason.final_score ? ` (${latestSeason.final_score})` : ''}.`,
+                color: 'text-slate-600',
+                bg: 'bg-slate-100'
+            });
+        }
+    }
+
     if (narratives.length === 0) return null;
 
     return (
