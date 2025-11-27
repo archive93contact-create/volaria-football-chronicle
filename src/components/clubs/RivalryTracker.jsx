@@ -46,7 +46,13 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
     const leagueTables = (allLeagueTables && allLeagueTables.length > 0) ? allLeagueTables : fetchedLeagueTables;
 
     const rivalries = useMemo(() => {
-        if (!club || domesticClubs.length === 0) return [];
+        // Need club and at least some data to work with
+        if (!club) return [];
+        // Wait for domestic clubs to load
+        if (domesticClubs.length === 0 && fetchedNationClubs.length === 0) return [];
+        
+        const workingDomesticClubs = domesticClubs.length > 0 ? domesticClubs : fetchedNationClubs;
+        const workingLeagueTables = leagueTables.length > 0 ? leagueTables : fetchedLeagueTables;
 
         const rivalryScores = {};
         const clubTables = leagueTables.filter(t => t.club_id === club.id);
