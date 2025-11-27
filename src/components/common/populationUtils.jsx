@@ -1,8 +1,10 @@
 // Shared population estimation utilities for consistent calculations across the app
 
-// Estimate nation population based on clubs, leagues, and tiers
-export function estimateNationPopulation(clubCount, leagueCount, membership, maxTier) {
+// Estimate nation population based on clubs, leagues, tiers, and division sizes
+export function estimateNationPopulation(clubCount, leagueCount, membership, maxTier, options = {}) {
     if (clubCount === 0) return { value: 0, display: '0', tier: 'Unknown' };
+    
+    const { topDivisionSize = 0, avgDivisionSize = 0, totalDivisions = 0 } = options;
     
     // Base population per club varies by membership tier
     let basePerClub = membership === 'VCC' ? 75000 : membership === 'CCC' ? 45000 : 50000;
@@ -13,7 +15,39 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
     // More tiers = deeper pyramid = larger country
     const tierMultiplier = 1 + ((maxTier || 1) * 0.1);
     
-    const estimated = Math.round(clubCount * basePerClub * leagueMultiplier * tierMultiplier);
+    // Division size factor - larger top divisions indicate bigger economies
+    // Top divisions of 20+ teams suggest a major footballing nation
+    // Small top divisions (8-12) suggest smaller nation with fewer sustainable pro clubs
+    let divisionSizeFactor = 1.0;
+    if (topDivisionSize > 0) {
+        if (topDivisionSize >= 20) {
+            divisionSizeFactor = 1.4; // Large top flight = major nation
+        } else if (topDivisionSize >= 16) {
+            divisionSizeFactor = 1.2; // Standard size
+        } else if (topDivisionSize >= 12) {
+            divisionSizeFactor = 1.0; // Medium
+        } else if (topDivisionSize >= 8) {
+            divisionSizeFactor = 0.75; // Smaller nation
+        } else {
+            divisionSizeFactor = 0.5; // Very small/limited pro football
+        }
+    }
+    
+    // Professional club density - if avg division size is small relative to club count,
+    // it may indicate many amateur/semi-pro clubs in a smaller nation
+    let densityFactor = 1.0;
+    if (avgDivisionSize > 0 && totalDivisions > 0) {
+        const professionalClubs = avgDivisionSize * Math.min(totalDivisions, 4); // Top 4 tiers = pro
+        const proRatio = professionalClubs / clubCount;
+        // If only a small fraction are "professional tier", reduce population estimate
+        if (proRatio < 0.3) {
+            densityFactor = 0.7; // Many lower-league/amateur clubs
+        } else if (proRatio < 0.5) {
+            densityFactor = 0.85;
+        }
+    }
+    
+    const estimated = Math.round(clubCount * basePerClub * leagueMultiplier * tierMultiplier * divisionSizeFactor * densityFactor);
     
     // Return formatted with tier description
     let display, tier;
