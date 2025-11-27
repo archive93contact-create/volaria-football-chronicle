@@ -170,7 +170,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         });
 
         return Object.values(rivalryScores)
-            .filter(r => r.score >= 30) // Show rivalries with reasonable score
+            .filter(r => r.score > 0) // Show any rivalry with a score
             .sort((a, b) => b.score - a.score)
             .slice(0, 8);
     }, [club, allClubs, leagueTables, continentalMatches, nations]);
