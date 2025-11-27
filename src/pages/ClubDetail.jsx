@@ -440,6 +440,34 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
+                {/* Domestic Cup Honours */}
+                {((club.domestic_cup_titles > 0) || club.domestic_cup_best_finish) && (
+                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-orange-50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                                <Award className="w-8 h-8 text-amber-500" />
+                                <div>
+                                    <div className="font-semibold text-amber-800">Domestic Cup</div>
+                                    {club.domestic_cup_titles > 0 ? (
+                                        <div className="text-amber-700">
+                                            {club.domestic_cup_titles} title{club.domestic_cup_titles > 1 ? 's' : ''}
+                                            {club.domestic_cup_title_years && ` (${club.domestic_cup_title_years})`}
+                                        </div>
+                                    ) : (
+                                        <div className="text-amber-600">
+                                            Best: {club.domestic_cup_best_finish}
+                                            {club.domestic_cup_best_finish_year && ` (${club.domestic_cup_best_finish_year})`}
+                                        </div>
+                                    )}
+                                    {club.domestic_cup_runner_up > 0 && (
+                                        <div className="text-sm text-amber-600">{club.domestic_cup_runner_up} runner-up finish{club.domestic_cup_runner_up > 1 ? 'es' : ''}</div>
+                                    )}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Continental Honours */}
                 {((combinedStats?.vcc_titles > 0) || (combinedStats?.ccc_titles > 0) || combinedStats?.vcc_appearances > 0 || combinedStats?.ccc_appearances > 0) && (
                     <Card className="border-0 shadow-sm mb-8">
