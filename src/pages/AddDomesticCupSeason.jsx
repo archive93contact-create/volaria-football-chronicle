@@ -149,27 +149,50 @@ export default function AddDomesticCupSeason() {
         return years.sort().reverse();
     }, [allLeagueTables]);
 
-    // Generate bracket when clubs are selected
+    // Generate bracket with proper seeding and byes
     const generateBracket = () => {
-        const rounds = calculateRounds(selectedClubs.length);
+        const numTeams = selectedClubs.length;
+        const bracketSize = nextPowerOf2(numTeams);
+        const numByes = bracketSize - numTeams;
+        const rounds = calculateRounds(numTeams);
         const matches = [];
         
-        // Shuffle clubs for draw
-        const shuffled = [...selectedClubs].sort(() => Math.random() - 0.5);
+        // Sort clubs by tier (lower = better) then by position (lower = better)
+        const seededClubs = [...selectedClubs].sort((a, b) => {
+            if (a.tier !== b.tier) return a.tier - b.tier;
+            return a.position - b.position;
+        });
+        
+        // Top seeds get byes (clubs with lowest tier and position)
+        const clubsWithByes = seededClubs.slice(0, numByes);
+        const clubsInFirstRound = seededClubs.slice(numByes);
+        
+        // Shuffle the remaining clubs for the first round draw while keeping some seeding
+        // Put higher seeds against lower seeds
+        const firstRoundPairs = [];
+        const half = Math.floor(clubsInFirstRound.length / 2);
+        for (let i = 0; i < half; i++) {
+            // Pair top half with bottom half (reversed)
+            firstRoundPairs.push({
+                home: clubsInFirstRound[i],
+                away: clubsInFirstRound[clubsInFirstRound.length - 1 - i]
+            });
+        }
         
         // Generate first round matches
         const firstRound = rounds[0];
         if (firstRound) {
-            for (let i = 0; i < firstRound.matches; i++) {
-                const homeClub = shuffled[i * 2];
-                const awayClub = shuffled[i * 2 + 1];
+            for (let i = 0; i < firstRoundPairs.length; i++) {
+                const pair = firstRoundPairs[i];
                 matches.push({
                     round: firstRound.name,
                     match_number: i + 1,
-                    home_club_id: homeClub?.id || '',
-                    home_club_name: homeClub?.name || 'TBD',
-                    away_club_id: awayClub?.id || '',
-                    away_club_name: awayClub?.name || 'TBD',
+                    home_club_id: pair.home?.id || '',
+                    home_club_name: pair.home?.name || 'TBD',
+                    home_tier: pair.home?.tier,
+                    away_club_id: pair.away?.id || '',
+                    away_club_name: pair.away?.name || 'TBD',
+                    away_tier: pair.away?.tier,
                     home_score: null,
                     away_score: null,
                     winner: ''
@@ -177,8 +200,46 @@ export default function AddDomesticCupSeason() {
             }
         }
         
-        // Generate empty matches for subsequent rounds
-        for (let r = 1; r < rounds.length; r++) {
+        // Generate second round with byes filled in
+        if (rounds.length > 1) {
+            const secondRound = rounds[1];
+            const firstRoundMatchCount = firstRoundPairs.length;
+            
+            // Figure out how many second round matches and which get bye clubs
+            for (let i = 0; i < secondRound.matches; i++) {
+                // Check if this match slot should have a bye club
+                const byeClub = clubsWithByes[i];
+                if (byeClub && i < numByes) {
+                    matches.push({
+                        round: secondRound.name,
+                        match_number: i + 1,
+                        home_club_id: byeClub.id || '',
+                        home_club_name: byeClub.name,
+                        home_tier: byeClub.tier,
+                        away_club_id: '',
+                        away_club_name: 'TBD', // Will be filled by first round winner
+                        home_score: null,
+                        away_score: null,
+                        winner: ''
+                    });
+                } else {
+                    matches.push({
+                        round: secondRound.name,
+                        match_number: i + 1,
+                        home_club_id: '',
+                        home_club_name: 'TBD',
+                        away_club_id: '',
+                        away_club_name: 'TBD',
+                        home_score: null,
+                        away_score: null,
+                        winner: ''
+                    });
+                }
+            }
+        }
+        
+        // Generate empty matches for subsequent rounds (after second)
+        for (let r = 2; r < rounds.length; r++) {
             for (let i = 0; i < rounds[r].matches; i++) {
                 matches.push({
                     round: rounds[r].name,
