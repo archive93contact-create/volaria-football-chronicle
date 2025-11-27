@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
+import SeasonNarratives from '@/components/seasons/SeasonNarratives';
 
 export default function Seasons() {
     const [selectedYear, setSelectedYear] = useState('');
@@ -211,6 +212,16 @@ export default function Seasons() {
                                 </CardContent>
                             </Card>
                         </div>
+
+                        {/* Season Narratives */}
+                        <SeasonNarratives 
+                            selectedYear={selectedYear}
+                            seasons={yearSeasons}
+                            continentalSeasons={yearContinentalSeasons}
+                            leagues={leagues}
+                            nations={nations}
+                            allSeasons={seasons}
+                        />
 
                         {/* Season Stats */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
