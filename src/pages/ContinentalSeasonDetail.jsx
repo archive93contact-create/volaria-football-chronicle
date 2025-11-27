@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import AddMatchDialog from '@/components/continental/AddMatchDialog';
 import BracketView from '@/components/continental/BracketView';
+import AdminOnly from '@/components/common/AdminOnly';
 
 const ROUND_ORDER = ['Group Stage', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -168,16 +169,18 @@ export default function ContinentalSeasonDetail() {
                             <TabsTrigger value="bracket">Bracket View</TabsTrigger>
                             <TabsTrigger value="rounds">By Round</TabsTrigger>
                         </TabsList>
-                        <div className="flex gap-2">
-                            <Link to={createPageUrl(`UpdateContinentalStats?season=${seasonId}`)}>
-                                <Button variant="outline">
-                                    <RefreshCw className="w-4 h-4 mr-2" /> Sync Club Stats
+                        <AdminOnly>
+                            <div className="flex gap-2">
+                                <Link to={createPageUrl(`UpdateContinentalStats?season=${seasonId}`)}>
+                                    <Button variant="outline">
+                                        <RefreshCw className="w-4 h-4 mr-2" /> Sync Club Stats
+                                    </Button>
+                                </Link>
+                                <Button onClick={() => setIsAddMatchOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+                                    <Plus className="w-4 h-4 mr-2" /> Add Match
                                 </Button>
-                            </Link>
-                            <Button onClick={() => setIsAddMatchOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
-                                <Plus className="w-4 h-4 mr-2" /> Add Match
-                            </Button>
-                        </div>
+                            </div>
+                        </AdminOnly>
                     </div>
 
                     <TabsContent value="bracket">
@@ -241,27 +244,29 @@ export default function ContinentalSeasonDetail() {
                                                                     <img src={getNationFlag(match.away_club_nation)} alt="" className="w-5 h-3 object-contain" />
                                                                 )}
                                                             </div>
-                                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <Button variant="ghost" size="sm" onClick={() => setEditingMatch(match)}>
-                                                                    <Edit2 className="w-3 h-3" />
-                                                                </Button>
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <Button variant="ghost" size="sm" className="text-red-500">
-                                                                            <Trash2 className="w-3 h-3" />
-                                                                        </Button>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader>
-                                                                            <AlertDialogTitle>Delete this match?</AlertDialogTitle>
-                                                                        </AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                            <AlertDialogAction onClick={() => deleteMatchMutation.mutate(match.id)} className="bg-red-600">Delete</AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            </div>
+                                                            <AdminOnly>
+                                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <Button variant="ghost" size="sm" onClick={() => setEditingMatch(match)}>
+                                                                        <Edit2 className="w-3 h-3" />
+                                                                    </Button>
+                                                                    <AlertDialog>
+                                                                        <AlertDialogTrigger asChild>
+                                                                            <Button variant="ghost" size="sm" className="text-red-500">
+                                                                                <Trash2 className="w-3 h-3" />
+                                                                            </Button>
+                                                                        </AlertDialogTrigger>
+                                                                        <AlertDialogContent>
+                                                                            <AlertDialogHeader>
+                                                                                <AlertDialogTitle>Delete this match?</AlertDialogTitle>
+                                                                            </AlertDialogHeader>
+                                                                            <AlertDialogFooter>
+                                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                                <AlertDialogAction onClick={() => deleteMatchMutation.mutate(match.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                                            </AlertDialogFooter>
+                                                                        </AlertDialogContent>
+                                                                    </AlertDialog>
+                                                                </div>
+                                                            </AdminOnly>
                                                         </div>
                                                     ))}
                                             </div>

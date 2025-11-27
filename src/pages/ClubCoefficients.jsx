@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
+import AdminOnly from '@/components/common/AdminOnly';
 
 export default function ClubCoefficients() {
     const queryClient = useQueryClient();
@@ -232,19 +233,21 @@ export default function ClubCoefficients() {
                             <TableCell className="text-center hidden lg:table-cell text-slate-600">{coeff.year_4_points?.toFixed(3) || '-'}</TableCell>
                             <TableCell className="text-center hidden lg:table-cell text-slate-600">{coeff.year_5_points?.toFixed(3) || '-'}</TableCell>
                             <TableCell>
-                                <div className="flex gap-1">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(coeff)}><Edit2 className="w-3 h-3" /></Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button></AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader><AlertDialogTitle>Delete {coeff.club_name}?</AlertDialogTitle></AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => deleteMutation.mutate(coeff.id)} className="bg-red-600">Delete</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
+                                <AdminOnly>
+                                    <div className="flex gap-1">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(coeff)}><Edit2 className="w-3 h-3" /></Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button></AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader><AlertDialogTitle>Delete {coeff.club_name}?</AlertDialogTitle></AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => deleteMutation.mutate(coeff.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
+                                </AdminOnly>
                             </TableCell>
                         </TableRow>
                     );
@@ -260,17 +263,19 @@ export default function ClubCoefficients() {
                 subtitle="Rankings based on continental competition performance"
                 breadcrumbs={[{ label: 'Club Coefficients' }]}
             >
-                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 mt-4">
-                            <Plus className="w-4 h-4 mr-2" /> Add Entry
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                        <DialogHeader><DialogTitle>Add Club Coefficient</DialogTitle></DialogHeader>
-                        {coeffForm}
-                    </DialogContent>
-                </Dialog>
+                <AdminOnly>
+                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-emerald-600 hover:bg-emerald-700 mt-4">
+                                <Plus className="w-4 h-4 mr-2" /> Add Entry
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader><DialogTitle>Add Club Coefficient</DialogTitle></DialogHeader>
+                            {coeffForm}
+                        </DialogContent>
+                    </Dialog>
+                </AdminOnly>
             </PageHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -280,7 +285,9 @@ export default function ClubCoefficients() {
                             <Shield className="w-16 h-16 text-slate-300 mb-4" />
                             <h3 className="text-xl font-semibold text-slate-700 mb-2">No Club Coefficients Yet</h3>
                             <p className="text-slate-500 mb-6">Add club rankings based on continental performance</p>
-                            <Button onClick={() => setIsAddOpen(true)}><Plus className="w-4 h-4 mr-2" /> Add Entry</Button>
+                            <AdminOnly>
+                                <Button onClick={() => setIsAddOpen(true)}><Plus className="w-4 h-4 mr-2" /> Add Entry</Button>
+                            </AdminOnly>
                         </CardContent>
                     </Card>
                 ) : (

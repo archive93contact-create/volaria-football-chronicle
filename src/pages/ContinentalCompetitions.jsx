@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import PageHeader from '@/components/common/PageHeader';
+import AdminOnly from '@/components/common/AdminOnly';
 
 export default function ContinentalCompetitions() {
     const queryClient = useQueryClient();
@@ -166,17 +167,19 @@ export default function ContinentalCompetitions() {
                 subtitle="The premier club competitions across Volaria"
                 breadcrumbs={[{ label: 'Continental Competitions' }]}
             >
-                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 mt-4">
-                            <Plus className="w-4 h-4 mr-2" /> Add Competition
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader><DialogTitle>Add Continental Competition</DialogTitle></DialogHeader>
-                        {compFormContent}
-                    </DialogContent>
-                </Dialog>
+                <AdminOnly>
+                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-emerald-600 hover:bg-emerald-700 mt-4">
+                                <Plus className="w-4 h-4 mr-2" /> Add Competition
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader><DialogTitle>Add Continental Competition</DialogTitle></DialogHeader>
+                            {compFormContent}
+                        </DialogContent>
+                    </Dialog>
+                </AdminOnly>
             </PageHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -186,7 +189,9 @@ export default function ContinentalCompetitions() {
                             <Globe className="w-16 h-16 text-slate-300 mb-4" />
                             <h3 className="text-xl font-semibold text-slate-700 mb-2">No Competitions Yet</h3>
                             <p className="text-slate-500 mb-6">Add your first continental competition like VCC or CCC</p>
-                            <Button onClick={() => setIsAddOpen(true)}><Plus className="w-4 h-4 mr-2" /> Add Competition</Button>
+                            <AdminOnly>
+                                <Button onClick={() => setIsAddOpen(true)}><Plus className="w-4 h-4 mr-2" /> Add Competition</Button>
+                            </AdminOnly>
                         </CardContent>
                     </Card>
                 ) : (
@@ -207,22 +212,24 @@ export default function ContinentalCompetitions() {
                                                     {comp.short_name && <p className="text-sm text-slate-500 font-medium">{comp.short_name}</p>}
                                                 </div>
                                             </div>
-                                            <div className="flex gap-1">
-                                                <Button variant="ghost" size="icon" onClick={() => openEdit(comp)}><Edit2 className="w-4 h-4" /></Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="w-4 h-4" /></Button></AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Delete {comp.name}?</AlertDialogTitle>
-                                                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => deleteMutation.mutate(comp.id)} className="bg-red-600">Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
+                                            <AdminOnly>
+                                                <div className="flex gap-1">
+                                                    <Button variant="ghost" size="icon" onClick={() => openEdit(comp)}><Edit2 className="w-4 h-4" /></Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="w-4 h-4" /></Button></AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Delete {comp.name}?</AlertDialogTitle>
+                                                                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => deleteMutation.mutate(comp.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </AdminOnly>
                                         </div>
                                     </CardHeader>
                                     <CardContent>

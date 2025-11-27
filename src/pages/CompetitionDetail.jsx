@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import AdminOnly from '@/components/common/AdminOnly';
 
 export default function CompetitionDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -202,15 +203,17 @@ export default function CompetitionDetail() {
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Roll of Honour</CardTitle>
-                        <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-xl">
-                                <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
-                                {seasonFormContent}
-                            </DialogContent>
-                        </Dialog>
+                        <AdminOnly>
+                            <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-xl">
+                                    <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
+                                    {seasonFormContent}
+                                </DialogContent>
+                            </Dialog>
+                        </AdminOnly>
                     </CardHeader>
                     <CardContent>
                         {seasons.length === 0 ? (
@@ -263,17 +266,19 @@ export default function CompetitionDetail() {
                                                     <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)}>
                                                         <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700">Matches</Button>
                                                     </Link>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button></AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader><AlertDialogTitle>Delete {season.year}?</AlertDialogTitle></AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
+                                                    <AdminOnly>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button></AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader><AlertDialogTitle>Delete {season.year}?</AlertDialogTitle></AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </AdminOnly>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
