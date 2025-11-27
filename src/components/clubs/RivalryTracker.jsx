@@ -46,13 +46,15 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
     const leagueTables = (allLeagueTables && allLeagueTables.length > 0) ? allLeagueTables : fetchedLeagueTables;
 
     const rivalries = useMemo(() => {
-        // Need club and at least some data to work with
+        // Need club to work with
         if (!club) return [];
-        // Wait for domestic clubs to load
-        if (domesticClubs.length === 0 && fetchedNationClubs.length === 0) return [];
         
-        const workingDomesticClubs = domesticClubs.length > 0 ? domesticClubs : fetchedNationClubs;
-        const workingLeagueTables = leagueTables.length > 0 ? leagueTables : fetchedLeagueTables;
+        // Determine which data sources to use - prefer fetched data over props since props may be empty
+        const workingDomesticClubs = fetchedNationClubs.length > 0 ? fetchedNationClubs : domesticClubs;
+        const workingLeagueTables = fetchedLeagueTables.length > 0 ? fetchedLeagueTables : leagueTables;
+        
+        // If no clubs loaded yet, wait
+        if (workingDomesticClubs.length === 0) return [];
 
         const rivalryScores = {};
         const clubTables = workingLeagueTables.filter(t => t.club_id === club.id);
