@@ -114,7 +114,7 @@ export default function RecalculateCoefficients() {
                 title="Recalculate Coefficients"
                 subtitle="Automatically calculate rankings from continental competition results"
                 breadcrumbs={[
-                    { label: 'Country Coefficients', url: createPageUrl('CountryCoefficients') },
+                    { label: 'Coefficients', url: createPageUrl('Coefficients') },
                     { label: 'Recalculate' }
                 ]}
             />

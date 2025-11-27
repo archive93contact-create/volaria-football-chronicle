@@ -4,7 +4,6 @@ import AddNation from './pages/AddNation';
 import NationDetail from './pages/NationDetail';
 import ContinentalCompetitions from './pages/ContinentalCompetitions';
 import CompetitionDetail from './pages/CompetitionDetail';
-import CountryCoefficients from './pages/CountryCoefficients';
 import AddLeague from './pages/AddLeague';
 import AddClub from './pages/AddClub';
 import LeagueDetail from './pages/LeagueDetail';
@@ -25,6 +24,7 @@ import Locations from './pages/Locations';
 import LocationDetail from './pages/LocationDetail';
 import LeagueComparison from './pages/LeagueComparison';
 import RecalculateCoefficients from './pages/RecalculateCoefficients';
+import Coefficients from './pages/Coefficients';
 import __Layout from './Layout.jsx';
 
 
@@ -35,7 +35,6 @@ export const PAGES = {
     "NationDetail": NationDetail,
     "ContinentalCompetitions": ContinentalCompetitions,
     "CompetitionDetail": CompetitionDetail,
-    "CountryCoefficients": CountryCoefficients,
     "AddLeague": AddLeague,
     "AddClub": AddClub,
     "LeagueDetail": LeagueDetail,
@@ -56,6 +55,7 @@ export const PAGES = {
     "LocationDetail": LocationDetail,
     "LeagueComparison": LeagueComparison,
     "RecalculateCoefficients": RecalculateCoefficients,
+    "Coefficients": Coefficients,
 }
 
 export const pagesConfig = {
