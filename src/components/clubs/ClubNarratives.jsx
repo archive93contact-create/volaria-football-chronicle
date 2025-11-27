@@ -402,6 +402,44 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         });
     }
 
+    // Domestic Double (league + cup in same year)
+    if (club.league_titles > 0 && club.domestic_cup_titles > 0 && club.title_years && club.domestic_cup_title_years) {
+        const leagueYears = club.title_years.split(',').map(y => y.trim());
+        const cupYears = club.domestic_cup_title_years.split(',').map(y => y.trim());
+        const doubleYears = leagueYears.filter(y => cupYears.includes(y));
+        if (doubleYears.length > 0) {
+            narratives.push({
+                icon: Award,
+                color: 'text-yellow-600',
+                bg: 'bg-yellow-100',
+                title: doubleYears.length > 1 ? 'Serial Double Winners' : 'The Double',
+                text: doubleYears.length > 1 
+                    ? `Won the domestic double ${doubleYears.length} times (${doubleYears.join(', ')}) - league and cup in the same season.`
+                    : `Achieved the prestigious domestic double in ${doubleYears[0]}, winning both league and cup.`
+            });
+        }
+    }
+
+    // Treble (league + cup + continental)
+    if (club.league_titles > 0 && club.domestic_cup_titles > 0 && (club.vcc_titles > 0 || club.ccc_titles > 0)) {
+        const leagueYears = club.title_years?.split(',').map(y => y.trim()) || [];
+        const cupYears = club.domestic_cup_title_years?.split(',').map(y => y.trim()) || [];
+        const vccYears = club.vcc_title_years?.split(',').map(y => y.trim()) || [];
+        const cccYears = club.ccc_title_years?.split(',').map(y => y.trim()) || [];
+        const continentalYears = [...vccYears, ...cccYears];
+        
+        const trebleYears = leagueYears.filter(y => cupYears.includes(y) && continentalYears.includes(y));
+        if (trebleYears.length > 0) {
+            narratives.push({
+                icon: Star,
+                color: 'text-amber-600',
+                bg: 'bg-gradient-to-r from-amber-100 to-yellow-100',
+                title: 'The Treble',
+                text: `Achieved the legendary treble in ${trebleYears.join(', ')} - league, cup, and continental glory in one season.`
+            });
+        }
+    }
+
     // Continental double (VCC + league in same era)
     if (club.vcc_titles > 0 && club.league_titles > 0) {
         narratives.push({
@@ -421,6 +459,17 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             bg: 'bg-purple-50',
             title: 'Complete Continental Set',
             text: `Won both the VCC and CCC, conquering both continental competitions.`
+        });
+    }
+
+    // League and Cup double without treble
+    if (club.league_titles > 0 && club.domestic_cup_titles > 0 && !(club.vcc_titles > 0 || club.ccc_titles > 0)) {
+        narratives.push({
+            icon: Trophy,
+            color: 'text-amber-500',
+            bg: 'bg-amber-50',
+            title: 'Domestic Dominance',
+            text: `Won both league (${club.league_titles}) and cup (${club.domestic_cup_titles}) titles domestically.`
         });
     }
 
