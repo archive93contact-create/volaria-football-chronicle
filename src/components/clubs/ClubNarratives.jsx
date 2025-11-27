@@ -535,25 +535,212 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         });
     }
 
-    // Founding narrative
-    if (club.founded_year) {
-        const age = new Date().getFullYear() - club.founded_year;
-        if (age >= 100) {
-            narratives.push({
+    // Founding narrative with cultural/linguistic context
+    if (club.founded_year || club.name) {
+        const name = club.name || '';
+        const foundedYear = club.founded_year;
+        const age = foundedYear ? new Date().getFullYear() - foundedYear : null;
+        
+        // Analyze the club name for cultural/linguistic origins
+        let foundingNarrative = null;
+        
+        // Germanic/Nordic patterns
+        if (/^(FK|IF|BK|SK|IK|FC)\s/i.test(name) || /\s(FK|IF|BK|SK|IK)$/i.test(name)) {
+            const prefix = name.match(/^(FK|IF|BK|SK|IK|FC)/i)?.[0]?.toUpperCase();
+            const meanings = {
+                'FK': 'Fotbollsklubb (Football Club)',
+                'IF': 'Idrottsförening (Sports Association)',
+                'BK': 'Bollklubb (Ball Club)',
+                'SK': 'Sportklubb (Sports Club)',
+                'IK': 'Idrottsklubb (Sports Club)',
+                'FC': 'Football Club'
+            };
+            foundingNarrative = {
                 icon: BookOpen,
-                color: 'text-amber-700',
-                bg: 'bg-amber-50',
-                title: 'Century of History',
-                text: `Founded in ${club.founded_year}, the club has over a century of footballing tradition.`
-            });
-        } else if (age >= 50) {
-            narratives.push({
+                color: 'text-blue-600',
+                bg: 'bg-blue-50',
+                title: 'Nordic Traditions',
+                text: foundedYear 
+                    ? `Founded in ${foundedYear} following Nordic sporting traditions. ${prefix ? `The prefix "${prefix}" stands for ${meanings[prefix] || 'a sporting organization'}.` : ''}`
+                    : `A club rooted in Nordic sporting heritage, following traditional naming conventions.`
+            };
+        }
+        // Celtic/Gaelic patterns
+        else if (/Celtic|Gaelic|Hibernian|Shamrock|Harps|Rovers|Wanderers|Athletic/i.test(name)) {
+            const type = /Celtic|Gaelic|Hibernian|Shamrock|Harps/i.test(name) ? 'Celtic' : 'British Isles';
+            foundingNarrative = {
                 icon: BookOpen,
-                color: 'text-slate-600',
-                bg: 'bg-slate-50',
-                title: 'Half Century Club',
-                text: `Established in ${club.founded_year}, with ${age} years of history behind them.`
-            });
+                color: 'text-green-600',
+                bg: 'bg-green-50',
+                title: type === 'Celtic' ? 'Celtic Heritage' : 'British Football Roots',
+                text: foundedYear
+                    ? `Established in ${foundedYear}, the club name reflects ${type === 'Celtic' ? 'proud Celtic and Irish cultural roots' : 'the wandering spirit of early British football clubs'}.`
+                    : `The name evokes ${type === 'Celtic' ? 'Celtic identity and cultural pride' : 'the adventurous nature of pioneering football clubs'}.`
+            };
+        }
+        // Spanish/Latin patterns
+        else if (/^(Real|Atlético|Deportivo|Club|CF|CD|UD|SD)\s/i.test(name) || /\sFC$|Unidos?$/i.test(name)) {
+            const hasReal = /Real/i.test(name);
+            const hasAtletico = /Atlético|Athletic/i.test(name);
+            foundingNarrative = {
+                icon: BookOpen,
+                color: 'text-red-600',
+                bg: 'bg-red-50',
+                title: hasReal ? 'Royal Patronage' : 'Latin Football Culture',
+                text: foundedYear
+                    ? `Founded in ${foundedYear}. ${hasReal ? 'The "Real" prefix denotes royal patronage and prestige.' : hasAtletico ? 'The "Atlético" name reflects athletic sporting origins.' : 'Named in the Latin football tradition.'}`
+                    : `${hasReal ? 'A club bearing the royal "Real" title, signifying prestige and tradition.' : 'Named following Latin American and Iberian football conventions.'}`
+            };
+        }
+        // Eastern European patterns
+        else if (/^(Dynamo|Dinamo|Spartak|Lokomotiv|CSKA|Torpedo|Shakhtar|Zenit|Partizan)/i.test(name)) {
+            const origin = name.match(/^(Dynamo|Dinamo|Spartak|Lokomotiv|CSKA|Torpedo|Shakhtar|Zenit|Partizan)/i)?.[0];
+            const meanings = {
+                'Dynamo': 'associated with power and electricity workers',
+                'Dinamo': 'associated with power and electricity workers',
+                'Spartak': 'named after Spartacus, representing workers and sport',
+                'Lokomotiv': 'representing railway workers',
+                'CSKA': 'the Central Sports Club of the Army',
+                'Torpedo': 'representing factory and automobile workers',
+                'Shakhtar': 'meaning "miner" in Ukrainian',
+                'Zenit': 'meaning "zenith" or peak',
+                'Partizan': 'representing resistance fighters'
+            };
+            foundingNarrative = {
+                icon: BookOpen,
+                color: 'text-red-700',
+                bg: 'bg-red-50',
+                title: 'Eastern Bloc Heritage',
+                text: foundedYear
+                    ? `Founded in ${foundedYear}, ${meanings[origin] ? `the name "${origin}" is ${meanings[origin]}` : 'carrying Eastern European football traditions'}.`
+                    : `The name reflects Eastern European sporting culture, ${meanings[origin] ? meanings[origin] : 'with deep historical roots'}.`
+            };
+        }
+        // Germanic patterns
+        else if (/^(Borussia|Bayern|Eintracht|Fortuna|Schalke|Werder|Hamburger|VfB|VfL|TSV|1\.\s?FC)/i.test(name)) {
+            const hasBorussia = /Borussia/i.test(name);
+            const hasEintracht = /Eintracht/i.test(name);
+            foundingNarrative = {
+                icon: BookOpen,
+                color: 'text-slate-700',
+                bg: 'bg-slate-100',
+                title: 'Germanic Tradition',
+                text: foundedYear
+                    ? `Established in ${foundedYear}. ${hasBorussia ? '"Borussia" is the Latin name for Prussia, reflecting regional pride.' : hasEintracht ? '"Eintracht" means "unity" or "harmony" in German.' : 'Following German football naming conventions.'}`
+                    : `A club with Germanic roots${hasBorussia ? ', with "Borussia" representing Prussian heritage' : hasEintracht ? ', with "Eintracht" symbolizing unity' : ''}.`
+            };
+        }
+        // Italian patterns
+        else if (/^(AC|AS|SS|US|Inter|Juventus|Lazio|Roma|Milan|Napoli|Fiorentina)/i.test(name) || /1\d{3}$/i.test(name)) {
+            const hasInter = /Inter/i.test(name);
+            const hasJuventus = /Juventus/i.test(name);
+            const yearInName = name.match(/1\d{3}$/)?.[0];
+            foundingNarrative = {
+                icon: BookOpen,
+                color: 'text-emerald-700',
+                bg: 'bg-emerald-50',
+                title: 'Italian Football Culture',
+                text: foundedYear
+                    ? `Founded in ${foundedYear}. ${hasInter ? '"Inter" represents internationalism and inclusivity.' : hasJuventus ? '"Juventus" means "youth" in Latin, symbolizing vitality.' : yearInName ? `The year ${yearInName} in the name marks the founding date.` : 'Following Italian calcio traditions.'}`
+                    : `A club rooted in Italian football culture${hasJuventus ? ', with "Juventus" meaning "youth"' : ''}.`
+            };
+        }
+        // Dutch patterns
+        else if (/^(Ajax|PSV|Feyenoord|AZ|SC|Willem|Vitesse|Twente|Groningen)/i.test(name)) {
+            const hasAjax = /Ajax/i.test(name);
+            foundingNarrative = {
+                icon: BookOpen,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
+                title: 'Dutch Football Heritage',
+                text: foundedYear
+                    ? `Founded in ${foundedYear}. ${hasAjax ? 'Named after the Greek hero Ajax, symbolizing strength and bravery.' : 'Part of the rich Dutch footballing tradition.'}`
+                    : `${hasAjax ? 'Named after the legendary Greek warrior Ajax.' : 'A club born from Dutch footballing culture.'}`
+            };
+        }
+        // Worker/Industry clubs
+        else if (/United|Town|City|County|Borough|Works|Athletic|Albion|Rangers|Rovers/i.test(name)) {
+            const type = /United/i.test(name) ? 'United' : 
+                        /Town|City|County|Borough/i.test(name) ? 'Civic' :
+                        /Works/i.test(name) ? 'Industrial' :
+                        /Rangers|Rovers/i.test(name) ? 'Pioneer' : 'Athletic';
+            const descriptions = {
+                'United': 'formed from a merger or representing unity in the community',
+                'Civic': 'representing the pride of their town or city',
+                'Industrial': 'originating from factory or workplace teams',
+                'Pioneer': 'embodying the pioneering spirit of early football',
+                'Athletic': 'emphasizing the athletic and sporting nature of the club'
+            };
+            foundingNarrative = {
+                icon: BookOpen,
+                color: 'text-indigo-600',
+                bg: 'bg-indigo-50',
+                title: type === 'Industrial' ? 'Working Class Roots' : 'Community Foundation',
+                text: foundedYear
+                    ? `Established in ${foundedYear}, ${descriptions[type]}.`
+                    : `A club ${descriptions[type]}, reflecting grassroots football traditions.`
+            };
+        }
+        // Portuguese/Brazilian patterns
+        else if (/^(Sporting|Benfica|Porto|Flamengo|Fluminense|Corinthians|Palmeiras|Santos|Grêmio|Cruzeiro|Botafogo)/i.test(name) || /Esporte\s?Clube|Sport\s?Club/i.test(name)) {
+            const hasSporting = /Sporting/i.test(name);
+            foundingNarrative = {
+                icon: BookOpen,
+                color: 'text-green-700',
+                bg: 'bg-green-50',
+                title: 'Lusophone Football',
+                text: foundedYear
+                    ? `Founded in ${foundedYear} in the Portuguese/Brazilian football tradition. ${hasSporting ? '"Sporting" reflects the club\'s multi-sport origins.' : ''}`
+                    : `Rooted in Lusophone football culture, following naming traditions from Portugal and Brazil.`
+            };
+        }
+        // Default founding story based on age
+        else if (age) {
+            if (age >= 100) {
+                foundingNarrative = {
+                    icon: BookOpen,
+                    color: 'text-amber-700',
+                    bg: 'bg-amber-50',
+                    title: 'Century of History',
+                    text: `Founded in ${foundedYear}, the club has over a century of footballing tradition, making them one of the oldest in the region.`
+                };
+            } else if (age >= 75) {
+                foundingNarrative = {
+                    icon: BookOpen,
+                    color: 'text-amber-600',
+                    bg: 'bg-amber-50',
+                    title: 'Historic Foundation',
+                    text: `Established in ${foundedYear}, the club has ${age} years of history and tradition behind them.`
+                };
+            } else if (age >= 50) {
+                foundingNarrative = {
+                    icon: BookOpen,
+                    color: 'text-slate-600',
+                    bg: 'bg-slate-50',
+                    title: 'Half Century Club',
+                    text: `Founded in ${foundedYear}, with ${age} years of building their legacy.`
+                };
+            } else if (age >= 25) {
+                foundingNarrative = {
+                    icon: BookOpen,
+                    color: 'text-blue-500',
+                    bg: 'bg-blue-50',
+                    title: 'Modern Era Club',
+                    text: `A relatively young club, established in ${foundedYear}, still writing their story.`
+                };
+            } else if (age >= 10) {
+                foundingNarrative = {
+                    icon: BookOpen,
+                    color: 'text-emerald-500',
+                    bg: 'bg-emerald-50',
+                    title: 'Rising Force',
+                    text: `Founded just ${age} years ago in ${foundedYear}, a new chapter in football history.`
+                };
+            }
+        }
+        
+        if (foundingNarrative) {
+            narratives.push(foundingNarrative);
         }
     }
 
