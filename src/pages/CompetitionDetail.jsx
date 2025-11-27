@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Plus, Trophy, Edit2, Trash2, ChevronRight, Star, Calendar } from 'lucide-react';
+import ContinentalNarratives from '@/components/continental/ContinentalNarratives';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -185,6 +186,9 @@ export default function CompetitionDetail() {
                     {competition.number_of_teams && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{competition.number_of_teams}</div><div className="text-xs text-slate-500">Teams</div></CardContent></Card>}
                     {competition.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-lg font-bold text-emerald-600 truncate">{competition.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
                 </div>
+
+                {/* Narratives */}
+                <ContinentalNarratives competition={competition} seasons={seasons} nations={nations} />
 
                 {/* History */}
                 {competition.history && (

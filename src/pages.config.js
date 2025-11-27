@@ -18,6 +18,7 @@ import ClubCoefficients from './pages/ClubCoefficients';
 import Seasons from './pages/Seasons';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import ClubComparison from './pages/ClubComparison';
+import DomesticCups from './pages/DomesticCups';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "Seasons": Seasons,
     "UpdateContinentalStats": UpdateContinentalStats,
     "ClubComparison": ClubComparison,
+    "DomesticCups": DomesticCups,
 }
 
 export const pagesConfig = {
