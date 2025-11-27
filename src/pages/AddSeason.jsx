@@ -179,7 +179,6 @@ export default function AddSeason() {
 
     const createSeasonMutation = useMutation({
         mutationFn: async (data) => {
-            const currentTier = data.tier || league.tier || 1;
             const isTopTier = currentTier === 1;
             const isTFALeague = currentTier <= 4;
 
