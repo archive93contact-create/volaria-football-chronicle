@@ -216,6 +216,18 @@ export default function LeagueDetail() {
                 {/* League Narratives */}
                 <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
 
+                {/* Competitiveness & Flow */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <LeagueCompetitiveness seasons={seasons} leagueTables={leagueTables} />
+                    <PromotionRelegationFlow seasons={seasons} clubs={clubs} leagues={[league]} />
+                </div>
+
+                {/* Geographic & Head-to-Head */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <LeagueClubsMap clubs={clubs} nation={nation} />
+                    <HeadToHeadMatrix clubs={clubs} leagueTables={leagueTables} />
+                </div>
+
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="table">League Table</TabsTrigger>

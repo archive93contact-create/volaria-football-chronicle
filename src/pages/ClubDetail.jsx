@@ -19,6 +19,8 @@ import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors
 import LeagueHistoryChart from '@/components/clubs/LeagueHistoryChart';
 import ClubNarratives from '@/components/clubs/ClubNarratives';
 import ClubHistory from '@/components/clubs/ClubHistory';
+import RivalryTracker from '@/components/clubs/RivalryTracker';
+import DynastyTracker from '@/components/clubs/DynastyTracker';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -765,6 +767,12 @@ export default function ClubDetail() {
                     allClubs={allClubs}
                     allLeagueTables={allNationLeagueTables}
                 />
+
+                {/* Dynasty & Rivalry */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                    <DynastyTracker club={club} combinedStats={combinedStats} />
+                    <RivalryTracker club={club} allClubs={allClubs} allLeagueTables={allNationLeagueTables} />
+                </div>
 
                 {/* League History Chart */}
                 {combinedSeasons.length >= 2 && (

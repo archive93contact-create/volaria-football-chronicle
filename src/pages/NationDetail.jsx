@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import PageHeader from '@/components/common/PageHeader';
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import NationNarratives from '@/components/nations/NationNarratives';
+import GoldenEras from '@/components/nations/GoldenEras';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
 import { useNavigate } from 'react-router-dom';
@@ -256,6 +257,11 @@ export default function NationDetail() {
 
                 {/* Nation Narratives */}
                 <NationNarratives nation={nation} leagues={leagues} clubs={clubs} domesticCups={domesticCups} cupSeasons={cupSeasons} />
+
+                {/* Golden Eras */}
+                <div className="mt-6">
+                    <GoldenEras clubs={clubs} nation={nation} />
+                </div>
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 mt-8">

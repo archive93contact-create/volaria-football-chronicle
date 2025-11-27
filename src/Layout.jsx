@@ -15,6 +15,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Country Rankings', icon: BarChart3, page: 'CountryCoefficients' },
         { name: 'Club Rankings', icon: Shield, page: 'ClubCoefficients' },
         { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
+        { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
         { name: 'Locations', icon: Globe, page: 'Locations' },
         { name: 'About', icon: Info, page: 'About' },
         { name: 'Contact', icon: Mail, page: 'Contact' },
