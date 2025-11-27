@@ -582,42 +582,7 @@ export default function NationDetail() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Primary Color (from flag)</Label>
-                                <div className="flex gap-2 mt-1">
-                                    <Input
-                                        type="color"
-                                        value={editData.primary_color || '#1e40af'}
-                                        onChange={(e) => setEditData({...editData, primary_color: e.target.value})}
-                                        className="w-14 h-10 p-1 cursor-pointer"
-                                    />
-                                    <Input
-                                        value={editData.primary_color || ''}
-                                        onChange={(e) => setEditData({...editData, primary_color: e.target.value})}
-                                        placeholder="#1e40af"
-                                        className="flex-1"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <Label>Secondary Color (from flag)</Label>
-                                <div className="flex gap-2 mt-1">
-                                    <Input
-                                        type="color"
-                                        value={editData.secondary_color || '#3b82f6'}
-                                        onChange={(e) => setEditData({...editData, secondary_color: e.target.value})}
-                                        className="w-14 h-10 p-1 cursor-pointer"
-                                    />
-                                    <Input
-                                        value={editData.secondary_color || ''}
-                                        onChange={(e) => setEditData({...editData, secondary_color: e.target.value})}
-                                        placeholder="#3b82f6"
-                                        className="flex-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}>
                                 <X className="w-4 h-4 mr-2" /> Cancel
