@@ -98,13 +98,25 @@ export default function Coefficients() {
     };
 
     // Get actual years for column headers based on coefficient data
+    // Only show years that have actual data (competitions that happened)
+    const getActualYears = useMemo(() => {
+        if (seasons.length === 0) return { y1: null, y2: null, y3: null, y4: null };
+        
+        // Get all unique years from seasons, sorted descending
+        const years = [...new Set(seasons.map(s => s.year).filter(Boolean))]
+            .sort((a, b) => b.localeCompare(a));
+        
+        return {
+            y1: years[0] || null,  // Most recent
+            y2: years[1] || null,
+            y3: years[2] || null,
+            y4: years[3] || null   // Oldest in 4-year window
+        };
+    }, [seasons]);
+
     const getYearLabel = (yearsAgo) => {
-        // Find the most recent season year
-        const sortedSeasons = [...seasons].sort((a, b) => (b.year || '').localeCompare(a.year || ''));
-        const latestYear = sortedSeasons[0]?.year;
-        if (!latestYear) return `Y-${yearsAgo}`;
-        const year = parseInt(latestYear) - yearsAgo + 1;
-        return isNaN(year) ? `Y-${yearsAgo}` : String(year);
+        const yearMap = { 1: getActualYears.y1, 2: getActualYears.y2, 3: getActualYears.y3, 4: getActualYears.y4 };
+        return yearMap[yearsAgo] || '-';
     };
 
     // Separate by membership

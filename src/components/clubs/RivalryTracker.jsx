@@ -161,7 +161,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         });
 
         return Object.values(rivalryScores)
-            .filter(r => r.score >= 80) // Only fierce rivalries
+            .filter(r => r.score >= 30) // Show rivalries with reasonable score
             .sort((a, b) => b.score - a.score)
             .slice(0, 8);
     }, [club, allClubs, allLeagueTables, continentalMatches, nations]);
@@ -171,8 +171,9 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
     const getIntensityLabel = (score, isContinental) => {
         if (score >= 150) return { label: 'Legendary', color: 'text-purple-600', bg: 'bg-purple-50' };
         if (score >= 100) return { label: 'Fierce', color: 'text-red-600', bg: 'bg-red-50' };
-        if (score >= 80) return { label: 'Intense', color: 'text-orange-600', bg: 'bg-orange-50' };
-        return { label: 'Strong', color: 'text-amber-600', bg: 'bg-amber-50' };
+        if (score >= 60) return { label: 'Intense', color: 'text-orange-600', bg: 'bg-orange-50' };
+        if (score >= 40) return { label: 'Strong', color: 'text-amber-600', bg: 'bg-amber-50' };
+        return { label: 'Rivals', color: 'text-slate-600', bg: 'bg-slate-50' };
     };
 
     return (
