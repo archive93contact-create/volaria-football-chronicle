@@ -10,6 +10,7 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
     let basePerClub = membership === 'VCC' ? 65000 : membership === 'CCC' ? 45000 : 50000;
     
     // Division size factor - KEY for distinguishing nation sizes
+    // Small top divisions (8 teams) strongly indicate small nations
     let divisionSizeFactor = 1.0;
     if (topDivisionSize > 0) {
         if (topDivisionSize >= 20) {
@@ -21,13 +22,13 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
         } else if (topDivisionSize >= 14) {
             divisionSizeFactor = 1.1;
         } else if (topDivisionSize >= 12) {
-            divisionSizeFactor = 0.95;
+            divisionSizeFactor = 0.9;
         } else if (topDivisionSize >= 10) {
-            divisionSizeFactor = 0.8;
+            divisionSizeFactor = 0.65;
         } else if (topDivisionSize >= 8) {
-            divisionSizeFactor = 0.6;
+            divisionSizeFactor = 0.4; // 8-team league = small nation like Iceland/Luxembourg
         } else {
-            divisionSizeFactor = 0.4;
+            divisionSizeFactor = 0.25;
         }
     }
     
