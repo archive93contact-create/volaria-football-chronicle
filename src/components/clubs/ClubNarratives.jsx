@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock } from 'lucide-react';
+import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock, Zap } from 'lucide-react';
 
 export default function ClubNarratives({ club, seasons, leagues, allClubs = [], allLeagueTables = [] }) {
     const narratives = [];
@@ -263,6 +263,18 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             bg: 'bg-green-50',
             title: 'Champions & Promoted',
             text: `Won ${promotedAsChamps.length} lower-tier title${promotedAsChamps.length > 1 ? 's' : ''} to earn promotion.`
+        });
+    }
+
+    // Promoted via playoffs
+    const playoffPromotions = sortedSeasons.filter(s => s.status === 'playoff_winner' || (s.status === 'promoted' && s.position > 2));
+    if (playoffPromotions.length > 0) {
+        narratives.push({
+            icon: Award,
+            color: 'text-blue-500',
+            bg: 'bg-blue-50',
+            title: 'Playoff Specialists',
+            text: `Earned promotion via the playoffs ${playoffPromotions.length} time${playoffPromotions.length > 1 ? 's' : ''} - thriving under pressure.`
         });
     }
 
