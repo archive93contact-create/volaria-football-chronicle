@@ -486,6 +486,21 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
+                {/* Cup Title Years */}
+                {combinedStats?.domestic_cup_title_years && (
+                    <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-orange-50 to-amber-50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                                <Award className="w-8 h-8 text-orange-500" />
+                                <div>
+                                    <div className="font-semibold text-orange-800">Domestic Cup Titles</div>
+                                    <div className="text-orange-700">{combinedStats.domestic_cup_title_years}</div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
 
 
                 {/* Continental Title Years */}
