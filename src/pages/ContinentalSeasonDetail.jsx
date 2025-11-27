@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import AddMatchDialog from '@/components/continental/AddMatchDialog';
 import BracketView from '@/components/continental/BracketView';
+import SeasonNarratives from '@/components/continental/SeasonNarratives';
 import AdminOnly from '@/components/common/AdminOnly';
 
 const ROUND_ORDER = ['Group Stage', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
@@ -54,6 +55,16 @@ export default function ContinentalSeasonDetail() {
     const { data: clubs = [] } = useQuery({
         queryKey: ['allClubs'],
         queryFn: () => base44.entities.Club.list('name'),
+    });
+
+    const { data: allMatches = [] } = useQuery({
+        queryKey: ['allContinentalMatches'],
+        queryFn: () => base44.entities.ContinentalMatch.list(),
+    });
+
+    const { data: allSeasons = [] } = useQuery({
+        queryKey: ['allContinentalSeasons'],
+        queryFn: () => base44.entities.ContinentalSeason.list(),
     });
 
     const deleteMatchMutation = useMutation({
@@ -125,6 +136,15 @@ export default function ContinentalSeasonDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Season Narratives */}
+                <SeasonNarratives 
+                    matches={matches}
+                    season={season}
+                    allMatches={allMatches}
+                    allSeasons={allSeasons}
+                    clubs={clubs}
+                />
+
                 {/* Final Info */}
                 {season.champion_name && (
                     <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50">
