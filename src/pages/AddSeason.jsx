@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Save, ArrowLeft, Loader2, Plus, Trash2, Trophy, ArrowUp, ArrowDown, ClipboardPaste } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Plus, Trash2, Trophy, ArrowUp, ArrowDown, ClipboardPaste, Layers } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
 
@@ -46,8 +47,11 @@ export default function AddSeason() {
     });
 
     const [tableRows, setTableRows] = useState([]);
+    const [divisions, setDivisions] = useState([{ name: '', teams: 18, rows: [] }]);
+    const [activeDivision, setActiveDivision] = useState(0);
     const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
     const [pasteText, setPasteText] = useState('');
+    const [useMultipleDivisions, setUseMultipleDivisions] = useState(false);
 
     const initializeTable = (numTeams) => {
         const rows = [];
@@ -59,6 +63,67 @@ export default function AddSeason() {
             });
         }
         setTableRows(rows);
+    };
+
+    const initializeDivisionTable = (divIndex, numTeams) => {
+        const rows = [];
+        for (let i = 1; i <= numTeams; i++) {
+            rows.push({
+                position: i, club_name: '', played: 0, won: 0, drawn: 0, lost: 0,
+                goals_for: 0, goals_against: 0, goal_difference: 0, points: 0,
+                status: '', highlight_color: ''
+            });
+        }
+        const updated = [...divisions];
+        updated[divIndex].rows = rows;
+        setDivisions(updated);
+    };
+
+    const addDivision = () => {
+        setDivisions([...divisions, { name: '', teams: 18, rows: [] }]);
+    };
+
+    const removeDivision = (index) => {
+        if (divisions.length > 1) {
+            const updated = divisions.filter((_, i) => i !== index);
+            setDivisions(updated);
+            if (activeDivision >= updated.length) {
+                setActiveDivision(updated.length - 1);
+            }
+        }
+    };
+
+    const updateDivision = (index, field, value) => {
+        const updated = [...divisions];
+        updated[index][field] = value;
+        setDivisions(updated);
+    };
+
+    const updateDivisionRow = (divIndex, rowIndex, field, value) => {
+        const updated = [...divisions];
+        const row = updated[divIndex].rows[rowIndex];
+        row[field] = field === 'club_name' || field === 'status' || field === 'highlight_color' 
+            ? value 
+            : parseInt(value) || 0;
+        
+        if (['goals_for', 'goals_against'].includes(field)) {
+            row.goal_difference = row.goals_for - row.goals_against;
+        }
+        if (['won', 'drawn', 'lost'].includes(field)) {
+            row.played = row.won + row.drawn + row.lost;
+        }
+        setDivisions(updated);
+    };
+
+    const setDivisionRowStatus = (divIndex, rowIndex, status) => {
+        const updated = [...divisions];
+        updated[divIndex].rows[rowIndex].status = status;
+        if (status === 'champion') updated[divIndex].rows[rowIndex].highlight_color = seasonData.champion_color;
+        else if (status === 'promoted' || status === 'playoff_winner') updated[divIndex].rows[rowIndex].highlight_color = seasonData.promotion_color;
+        else if (status === 'relegated') updated[divIndex].rows[rowIndex].highlight_color = seasonData.relegation_color;
+        else if (status === 'playoff') updated[divIndex].rows[rowIndex].highlight_color = seasonData.playoff_color;
+        else updated[divIndex].rows[rowIndex].highlight_color = '';
+        setDivisions(updated);
     };
 
     const handleTeamCountChange = (count) => {
@@ -107,7 +172,7 @@ export default function AddSeason() {
         if (status === 'champion') updated[index].highlight_color = seasonData.champion_color;
         else if (status === 'promoted' || status === 'playoff_winner') updated[index].highlight_color = seasonData.promotion_color;
         else if (status === 'relegated') updated[index].highlight_color = seasonData.relegation_color;
-        else if (status === 'playoff' || status === 'playoff_runner_up') updated[index].highlight_color = seasonData.playoff_color;
+        else if (status === 'playoff') updated[index].highlight_color = seasonData.playoff_color;
         else updated[index].highlight_color = '';
         setTableRows(updated);
     };
@@ -125,7 +190,7 @@ export default function AddSeason() {
                 champion_name: tableRows.find(r => r.status === 'champion')?.club_name || '',
                 runner_up: tableRows.find(r => r.position === 2)?.club_name || '',
                 top_scorer: data.top_scorer,
-                promoted_teams: tableRows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
+                promoted_teams: tableRows.filter(r => r.status === 'promoted').map(r => r.club_name).join(', '),
                 relegated_teams: tableRows.filter(r => r.status === 'relegated').map(r => r.club_name).join(', '),
                 champion_color: data.champion_color,
                 promotion_color: data.promotion_color,
@@ -159,7 +224,7 @@ export default function AddSeason() {
                 if (existingClub) {
                     // Update existing club stats
                     const isChampion = row.status === 'champion';
-                    const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
+                    const isPromoted = row.status === 'promoted';
                     const isRelegated = row.status === 'relegated';
 
                     // Only count league titles if this is tier 1 (top tier)
@@ -220,7 +285,7 @@ export default function AddSeason() {
                         total_losses: (existingClub.total_losses || 0) + (row.lost || 0),
                         total_goals_scored: (existingClub.total_goals_scored || 0) + (row.goals_for || 0),
                         total_goals_conceded: (existingClub.total_goals_conceded || 0) + (row.goals_against || 0),
-                        promotions: (existingClub.promotions || 0) + (isPromoted ? 1 : 0),
+                        promotions: (existingClub.promotions || 0) + ((isPromoted || row.status === 'playoff_winner') ? 1 : 0),
                         relegations: (existingClub.relegations || 0) + (isRelegated ? 1 : 0),
                         seasons_top_flight: (existingClub.seasons_top_flight || 0) + (isTopTier ? 1 : 0),
                         seasons_in_tfa: (existingClub.seasons_in_tfa || 0) + (isTFALeague ? 1 : 0),
@@ -272,6 +337,7 @@ export default function AddSeason() {
                 season_id: season.id,
                 league_id: leagueId,
                 year: data.year,
+                division_name: data.division_name || null,
                 club_id: clubIdMap[row.club_name.trim()] || '',
                 ...row
             }));
@@ -385,7 +451,7 @@ export default function AddSeason() {
                                 <Input type="number" min="0" value={seasonData.relegation_spots} onChange={(e) => setSeasonData({...seasonData, relegation_spots: parseInt(e.target.value) || 0})} className="mt-1" />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <div>
                                 <Label>Tier Override (if moved)</Label>
                                 <Input type="number" min="1" value={seasonData.tier || ''} onChange={(e) => setSeasonData({...seasonData, tier: e.target.value ? parseInt(e.target.value) : null})} placeholder={`Default: ${league?.tier || 1}`} className="mt-1" />
@@ -397,13 +463,6 @@ export default function AddSeason() {
                             <div>
                                 <Label>Division Group</Label>
                                 <Input value={seasonData.division_group} onChange={(e) => setSeasonData({...seasonData, division_group: e.target.value})} placeholder="e.g., Regional" className="mt-1" />
-                            </div>
-                            <div className="flex items-end">
-                                {seasonData.division_name && (
-                                    <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
-                                        ℹ️ Create separate season entries for each division (e.g., "North" then "South")
-                                    </p>
-                                )}
                             </div>
                         </div>
                         <div>
@@ -488,117 +547,269 @@ export default function AddSeason() {
                     </CardContent>
                 </Card>
 
-                {/* League Table Builder */}
+                {/* Multiple Divisions Toggle */}
                 <Card className="border-0 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>League Table</CardTitle>
-                        <div className="flex gap-2">
-                            <Dialog open={pasteDialogOpen} onOpenChange={setPasteDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline">
-                                        <ClipboardPaste className="w-4 h-4 mr-2" /> Paste Club List
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Paste Club Names</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4 py-4">
-                                        <p className="text-sm text-slate-500">
-                                            Paste club names (one per line) in order of league position. This will populate the table with club names which you can then edit.
-                                        </p>
-                                        <Textarea
-                                            value={pasteText}
-                                            onChange={(e) => setPasteText(e.target.value)}
-                                            placeholder={"1st Place FC\n2nd Place United\n3rd Place City\n..."}
-                                            rows={12}
-                                            className="font-mono text-sm"
-                                        />
-                                        <p className="text-xs text-slate-400">
-                                            {pasteText.split('\n').filter(l => l.trim()).length} clubs detected
-                                        </p>
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="outline" onClick={() => setPasteDialogOpen(false)}>Cancel</Button>
-                                            <Button onClick={handlePasteClubs} disabled={!pasteText.trim()} className="bg-emerald-600 hover:bg-emerald-700">
-                                                Populate Table
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                            {tableRows.length === 0 && (
-                                <Button onClick={() => initializeTable(seasonData.number_of_teams)}>
-                                    <Plus className="w-4 h-4 mr-2" /> Generate Empty Table
-                                </Button>
-                            )}
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {tableRows.length === 0 ? (
-                            <p className="text-center py-8 text-slate-500">Click "Generate Table" to create the league table with {seasonData.number_of_teams} teams</p>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-slate-100">
-                                            <TableHead className="w-12">#</TableHead>
-                                            <TableHead className="min-w-[180px]">Club</TableHead>
-                                            <TableHead className="w-14 text-center">P</TableHead>
-                                            <TableHead className="w-14 text-center">W</TableHead>
-                                            <TableHead className="w-14 text-center">D</TableHead>
-                                            <TableHead className="w-14 text-center">L</TableHead>
-                                            <TableHead className="w-14 text-center">GF</TableHead>
-                                            <TableHead className="w-14 text-center">GA</TableHead>
-                                            <TableHead className="w-14 text-center">GD</TableHead>
-                                            <TableHead className="w-14 text-center">Pts</TableHead>
-                                            <TableHead className="w-32">Status</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {tableRows.map((row, idx) => (
-                                            <TableRow key={idx} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
-                                                <TableCell className="font-bold">{row.position}</TableCell>
-                                                <TableCell>
-                                                    <Input 
-                                                        value={row.club_name} 
-                                                        onChange={(e) => updateRow(idx, 'club_name', e.target.value)} 
-                                                        placeholder="Club name"
-                                                        className="h-8"
-                                                    />
-                                                </TableCell>
-                                                <TableCell><Input type="number" value={row.played} onChange={(e) => updateRow(idx, 'played', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
-                                                <TableCell><Input type="number" value={row.won} onChange={(e) => updateRow(idx, 'won', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
-                                                <TableCell><Input type="number" value={row.drawn} onChange={(e) => updateRow(idx, 'drawn', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
-                                                <TableCell><Input type="number" value={row.lost} onChange={(e) => updateRow(idx, 'lost', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
-                                                <TableCell><Input type="number" value={row.goals_for} onChange={(e) => updateRow(idx, 'goals_for', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
-                                                <TableCell><Input type="number" value={row.goals_against} onChange={(e) => updateRow(idx, 'goals_against', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
-                                                <TableCell className="text-center font-medium">{row.goal_difference}</TableCell>
-                                                <TableCell><Input type="number" value={row.points} onChange={(e) => updateRow(idx, 'points', e.target.value)} className="h-8 w-14 text-center p-1 font-bold" /></TableCell>
-                                                <TableCell>
-                                                    <Select value={row.status} onValueChange={(v) => setRowStatus(idx, v)}>
-                                                        <SelectTrigger className="h-8 w-28">
-                                                            <SelectValue placeholder="Status" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="none">None</SelectItem>
-                                                            <SelectItem value="champion">🏆 Champion</SelectItem>
-                                                            <SelectItem value="promoted">⬆️ Promoted</SelectItem>
-                                                            <SelectItem value="playoff_winner">🏆⬆️ Playoff Winner</SelectItem>
-                                                            <SelectItem value="playoff_runner_up">🔄❌ Playoff Runner-up</SelectItem>
-                                                            <SelectItem value="playoff">🔄 Playoff</SelectItem>
-                                                            <SelectItem value="relegated">⬇️ Relegated</SelectItem>
-                                                            <SelectItem value="european">⭐ European</SelectItem>
-                                                            </SelectContent>
-                                                    </Select>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                    <CardContent className="p-4">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                checked={useMultipleDivisions} 
+                                onChange={(e) => setUseMultipleDivisions(e.target.checked)}
+                                className="w-5 h-5 rounded"
+                            />
+                            <div>
+                                <div className="font-medium flex items-center gap-2">
+                                    <Layers className="w-4 h-4" />
+                                    Multiple Divisions
+                                </div>
+                                <p className="text-sm text-slate-500">Enable if this season had multiple divisions (e.g., North/South, Group A/B)</p>
                             </div>
-                        )}
+                        </label>
                     </CardContent>
                 </Card>
+
+                {/* League Table Builder - Single Division */}
+                {!useMultipleDivisions && (
+                    <Card className="border-0 shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>League Table</CardTitle>
+                            <div className="flex gap-2">
+                                <Dialog open={pasteDialogOpen} onOpenChange={setPasteDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline">
+                                            <ClipboardPaste className="w-4 h-4 mr-2" /> Paste Club List
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Paste Club Names</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <p className="text-sm text-slate-500">
+                                                Paste club names (one per line) in order of league position.
+                                            </p>
+                                            <Textarea
+                                                value={pasteText}
+                                                onChange={(e) => setPasteText(e.target.value)}
+                                                placeholder={"1st Place FC\n2nd Place United\n3rd Place City\n..."}
+                                                rows={12}
+                                                className="font-mono text-sm"
+                                            />
+                                            <p className="text-xs text-slate-400">
+                                                {pasteText.split('\n').filter(l => l.trim()).length} clubs detected
+                                            </p>
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="outline" onClick={() => setPasteDialogOpen(false)}>Cancel</Button>
+                                                <Button onClick={handlePasteClubs} disabled={!pasteText.trim()} className="bg-emerald-600 hover:bg-emerald-700">
+                                                    Populate Table
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                                {tableRows.length === 0 && (
+                                    <Button onClick={() => initializeTable(seasonData.number_of_teams)}>
+                                        <Plus className="w-4 h-4 mr-2" /> Generate Empty Table
+                                    </Button>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {tableRows.length === 0 ? (
+                                <p className="text-center py-8 text-slate-500">Click "Generate Table" to create the league table with {seasonData.number_of_teams} teams</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-slate-100">
+                                                <TableHead className="w-12">#</TableHead>
+                                                <TableHead className="min-w-[180px]">Club</TableHead>
+                                                <TableHead className="w-14 text-center">P</TableHead>
+                                                <TableHead className="w-14 text-center">W</TableHead>
+                                                <TableHead className="w-14 text-center">D</TableHead>
+                                                <TableHead className="w-14 text-center">L</TableHead>
+                                                <TableHead className="w-14 text-center">GF</TableHead>
+                                                <TableHead className="w-14 text-center">GA</TableHead>
+                                                <TableHead className="w-14 text-center">GD</TableHead>
+                                                <TableHead className="w-14 text-center">Pts</TableHead>
+                                                <TableHead className="w-32">Status</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {tableRows.map((row, idx) => (
+                                                <TableRow key={idx} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
+                                                    <TableCell className="font-bold">{row.position}</TableCell>
+                                                    <TableCell>
+                                                        <Input 
+                                                            value={row.club_name} 
+                                                            onChange={(e) => updateRow(idx, 'club_name', e.target.value)} 
+                                                            placeholder="Club name"
+                                                            className="h-8"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell><Input type="number" value={row.played} onChange={(e) => updateRow(idx, 'played', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                    <TableCell><Input type="number" value={row.won} onChange={(e) => updateRow(idx, 'won', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                    <TableCell><Input type="number" value={row.drawn} onChange={(e) => updateRow(idx, 'drawn', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                    <TableCell><Input type="number" value={row.lost} onChange={(e) => updateRow(idx, 'lost', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                    <TableCell><Input type="number" value={row.goals_for} onChange={(e) => updateRow(idx, 'goals_for', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                    <TableCell><Input type="number" value={row.goals_against} onChange={(e) => updateRow(idx, 'goals_against', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                    <TableCell className="text-center font-medium">{row.goal_difference}</TableCell>
+                                                    <TableCell><Input type="number" value={row.points} onChange={(e) => updateRow(idx, 'points', e.target.value)} className="h-8 w-14 text-center p-1 font-bold" /></TableCell>
+                                                    <TableCell>
+                                                        <Select value={row.status} onValueChange={(v) => setRowStatus(idx, v)}>
+                                                            <SelectTrigger className="h-8 w-28">
+                                                                <SelectValue placeholder="Status" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="none">None</SelectItem>
+                                                                <SelectItem value="champion">🏆 Champion</SelectItem>
+                                                                <SelectItem value="promoted">⬆️ Promoted</SelectItem>
+                                                                <SelectItem value="playoff_winner">🎯 Playoff Winner</SelectItem>
+                                                                <SelectItem value="playoff">🔄 Playoff</SelectItem>
+                                                                <SelectItem value="relegated">⬇️ Relegated</SelectItem>
+                                                                <SelectItem value="european">⭐ European</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* League Table Builder - Multiple Divisions */}
+                {useMultipleDivisions && (
+                    <Card className="border-0 shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <Layers className="w-5 h-5" />
+                                Division Tables
+                            </CardTitle>
+                            <Button onClick={addDivision} variant="outline">
+                                <Plus className="w-4 h-4 mr-2" /> Add Division
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <Tabs value={String(activeDivision)} onValueChange={(v) => setActiveDivision(parseInt(v))}>
+                                <TabsList className="mb-4">
+                                    {divisions.map((div, idx) => (
+                                        <TabsTrigger key={idx} value={String(idx)}>
+                                            {div.name || `Division ${idx + 1}`}
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                                
+                                {divisions.map((div, divIdx) => (
+                                    <TabsContent key={divIdx} value={String(divIdx)}>
+                                        <div className="space-y-4">
+                                            <div className="flex gap-4 items-end">
+                                                <div className="flex-1">
+                                                    <Label>Division Name *</Label>
+                                                    <Input 
+                                                        value={div.name} 
+                                                        onChange={(e) => updateDivision(divIdx, 'name', e.target.value)}
+                                                        placeholder="e.g., North, South, Group A"
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                                <div className="w-32">
+                                                    <Label>Teams</Label>
+                                                    <Input 
+                                                        type="number" 
+                                                        min="2" 
+                                                        max="30"
+                                                        value={div.teams} 
+                                                        onChange={(e) => updateDivision(divIdx, 'teams', parseInt(e.target.value) || 18)}
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                                <Button 
+                                                    onClick={() => initializeDivisionTable(divIdx, div.teams)}
+                                                    variant="outline"
+                                                >
+                                                    Generate Table
+                                                </Button>
+                                                {divisions.length > 1 && (
+                                                    <Button 
+                                                        onClick={() => removeDivision(divIdx)}
+                                                        variant="ghost"
+                                                        className="text-red-500 hover:text-red-700"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+
+                                            {div.rows.length > 0 && (
+                                                <div className="overflow-x-auto">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow className="bg-slate-100">
+                                                                <TableHead className="w-12">#</TableHead>
+                                                                <TableHead className="min-w-[180px]">Club</TableHead>
+                                                                <TableHead className="w-14 text-center">P</TableHead>
+                                                                <TableHead className="w-14 text-center">W</TableHead>
+                                                                <TableHead className="w-14 text-center">D</TableHead>
+                                                                <TableHead className="w-14 text-center">L</TableHead>
+                                                                <TableHead className="w-14 text-center">GF</TableHead>
+                                                                <TableHead className="w-14 text-center">GA</TableHead>
+                                                                <TableHead className="w-14 text-center">GD</TableHead>
+                                                                <TableHead className="w-14 text-center">Pts</TableHead>
+                                                                <TableHead className="w-32">Status</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {div.rows.map((row, rowIdx) => (
+                                                                <TableRow key={rowIdx} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
+                                                                    <TableCell className="font-bold">{row.position}</TableCell>
+                                                                    <TableCell>
+                                                                        <Input 
+                                                                            value={row.club_name} 
+                                                                            onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'club_name', e.target.value)} 
+                                                                            placeholder="Club name"
+                                                                            className="h-8"
+                                                                        />
+                                                                    </TableCell>
+                                                                    <TableCell><Input type="number" value={row.played} onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'played', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                                    <TableCell><Input type="number" value={row.won} onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'won', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                                    <TableCell><Input type="number" value={row.drawn} onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'drawn', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                                    <TableCell><Input type="number" value={row.lost} onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'lost', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                                    <TableCell><Input type="number" value={row.goals_for} onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'goals_for', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                                    <TableCell><Input type="number" value={row.goals_against} onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'goals_against', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
+                                                                    <TableCell className="text-center font-medium">{row.goal_difference}</TableCell>
+                                                                    <TableCell><Input type="number" value={row.points} onChange={(e) => updateDivisionRow(divIdx, rowIdx, 'points', e.target.value)} className="h-8 w-14 text-center p-1 font-bold" /></TableCell>
+                                                                    <TableCell>
+                                                                        <Select value={row.status} onValueChange={(v) => setDivisionRowStatus(divIdx, rowIdx, v)}>
+                                                                            <SelectTrigger className="h-8 w-28">
+                                                                                <SelectValue placeholder="Status" />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                <SelectItem value="none">None</SelectItem>
+                                                                                <SelectItem value="champion">🏆 Champion</SelectItem>
+                                                                                <SelectItem value="promoted">⬆️ Promoted</SelectItem>
+                                                                                <SelectItem value="playoff_winner">🎯 Playoff Winner</SelectItem>
+                                                                                <SelectItem value="playoff">🔄 Playoff</SelectItem>
+                                                                                <SelectItem value="relegated">⬇️ Relegated</SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </TabsContent>
+                                ))}
+                            </Tabs>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Notes */}
                 <Card className="border-0 shadow-sm">
