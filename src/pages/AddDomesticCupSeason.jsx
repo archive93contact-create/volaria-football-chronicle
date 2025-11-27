@@ -603,7 +603,11 @@ export default function AddDomesticCupSeason() {
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <div>
                                     <CardTitle>Tournament Bracket</CardTitle>
-                                    <p className="text-sm text-slate-500 mt-1">Enter scores or just select winners</p>
+                                    <p className="text-sm text-slate-500 mt-1">
+                                        Click a team to advance them. {nextPowerOf2(selectedClubs.length) - selectedClubs.length > 0 && 
+                                            <span className="text-blue-600">({nextPowerOf2(selectedClubs.length) - selectedClubs.length} bye{nextPowerOf2(selectedClubs.length) - selectedClubs.length > 1 ? 's' : ''} for top seeds)</span>
+                                        }
+                                    </p>
                                 </div>
                                 <Button 
                                     onClick={() => createSeasonMutation.mutate()}
@@ -623,51 +627,70 @@ export default function AddDomesticCupSeason() {
                                     <div className="space-y-8">
                                         {rounds.map(round => {
                                             const roundMatches = bracketMatches.filter(m => m.round === round.name);
+                                            if (roundMatches.length === 0) return null;
                                             return (
                                                 <div key={round.name}>
                                                     <h3 className={`text-lg font-semibold mb-4 px-4 py-2 rounded-lg inline-block ${
                                                         round.name === 'Final' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100'
                                                     }`}>
                                                         {round.name === 'Final' && <Trophy className="w-4 h-4 inline mr-2" />}
-                                                        {round.name}
+                                                        {round.name} ({roundMatches.length} match{roundMatches.length > 1 ? 'es' : ''})
                                                     </h3>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                                                         {roundMatches.map((match, idx) => (
-                                                            <div key={idx} className={`border rounded-lg overflow-hidden ${round.name === 'Final' ? 'ring-2 ring-amber-400' : ''}`}>
+                                                            <div key={idx} className={`border rounded-lg overflow-hidden bg-white shadow-sm ${round.name === 'Final' ? 'ring-2 ring-amber-400 col-span-full max-w-md mx-auto' : ''}`}>
                                                                 {/* Home */}
                                                                 <div 
-                                                                    className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${
-                                                                        match.winner === match.home_club_name ? 'bg-emerald-100' : 'hover:bg-slate-50'
+                                                                    className={`flex items-center gap-2 p-2 cursor-pointer transition-colors ${
+                                                                        match.winner === match.home_club_name ? 'bg-emerald-100' : 
+                                                                        match.home_club_name === 'TBD' ? 'bg-slate-50 cursor-not-allowed' : 'hover:bg-slate-50'
                                                                     }`}
-                                                                    onClick={() => setMatchWinner(round.name, match.match_number, match.home_club_name, match.home_club_id)}
+                                                                    onClick={() => match.home_club_name !== 'TBD' && setMatchWinner(round.name, match.match_number, match.home_club_name, match.home_club_id, match.home_tier)}
                                                                 >
-                                                                    <div className="flex-1 font-medium truncate">{match.home_club_name}</div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className={`font-medium text-sm truncate ${match.winner === match.home_club_name ? 'text-emerald-700' : ''}`}>
+                                                                            {match.home_club_name}
+                                                                        </div>
+                                                                        {match.home_tier && match.home_club_name !== 'TBD' && (
+                                                                            <div className="text-xs text-slate-400">Tier {match.home_tier}</div>
+                                                                        )}
+                                                                    </div>
                                                                     <Input 
                                                                         type="number" 
-                                                                        className="w-16 text-center"
+                                                                        className="w-12 h-8 text-center text-sm"
                                                                         value={match.home_score ?? ''}
                                                                         onClick={(e) => e.stopPropagation()}
                                                                         onChange={(e) => updateMatch(round.name, match.match_number, 'home_score', e.target.value ? parseInt(e.target.value) : null)}
+                                                                        disabled={match.home_club_name === 'TBD'}
                                                                     />
-                                                                    {match.winner === match.home_club_name && <Check className="w-5 h-5 text-emerald-600" />}
+                                                                    {match.winner === match.home_club_name && <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
                                                                 </div>
                                                                 <div className="border-t" />
                                                                 {/* Away */}
                                                                 <div 
-                                                                    className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${
-                                                                        match.winner === match.away_club_name ? 'bg-emerald-100' : 'hover:bg-slate-50'
+                                                                    className={`flex items-center gap-2 p-2 cursor-pointer transition-colors ${
+                                                                        match.winner === match.away_club_name ? 'bg-emerald-100' : 
+                                                                        match.away_club_name === 'TBD' ? 'bg-slate-50 cursor-not-allowed' : 'hover:bg-slate-50'
                                                                     }`}
-                                                                    onClick={() => setMatchWinner(round.name, match.match_number, match.away_club_name, match.away_club_id)}
+                                                                    onClick={() => match.away_club_name !== 'TBD' && setMatchWinner(round.name, match.match_number, match.away_club_name, match.away_club_id, match.away_tier)}
                                                                 >
-                                                                    <div className="flex-1 font-medium truncate">{match.away_club_name}</div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className={`font-medium text-sm truncate ${match.winner === match.away_club_name ? 'text-emerald-700' : ''}`}>
+                                                                            {match.away_club_name}
+                                                                        </div>
+                                                                        {match.away_tier && match.away_club_name !== 'TBD' && (
+                                                                            <div className="text-xs text-slate-400">Tier {match.away_tier}</div>
+                                                                        )}
+                                                                    </div>
                                                                     <Input 
                                                                         type="number" 
-                                                                        className="w-16 text-center"
+                                                                        className="w-12 h-8 text-center text-sm"
                                                                         value={match.away_score ?? ''}
                                                                         onClick={(e) => e.stopPropagation()}
                                                                         onChange={(e) => updateMatch(round.name, match.match_number, 'away_score', e.target.value ? parseInt(e.target.value) : null)}
+                                                                        disabled={match.away_club_name === 'TBD'}
                                                                     />
-                                                                    {match.winner === match.away_club_name && <Check className="w-5 h-5 text-emerald-600" />}
+                                                                    {match.winner === match.away_club_name && <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
                                                                 </div>
                                                             </div>
                                                         ))}
