@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star, Award, MapPin } from 'lucide-react';
+import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star, Award, MapPin, Layers } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import NationNarratives from '@/components/nations/NationNarratives';
 import GoldenEras from '@/components/nations/GoldenEras';
 import AdminOnly from '@/components/common/AdminOnly';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
+import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
 import { useNavigate } from 'react-router-dom';
 
@@ -257,16 +259,31 @@ export default function NationDetail() {
                 {/* Nation Stats */}
                 <NationStats nation={nation} clubs={clubs} leagues={leagues} coefficient={coefficient} />
 
-                {/* League Pyramid */}
-                <LeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
+                {/* Tabs for main content */}
+                <Tabs defaultValue="overview" className="mt-6">
+                    <TabsList className="mb-6">
+                        <TabsTrigger value="overview" className="flex items-center gap-2">
+                            <Shield className="w-4 h-4" />
+                            Overview
+                        </TabsTrigger>
+                        <TabsTrigger value="pyramid" className="flex items-center gap-2">
+                            <Layers className="w-4 h-4" />
+                            League Pyramid
+                        </TabsTrigger>
+                    </TabsList>
 
-                {/* Nation Narratives */}
-                <NationNarratives nation={nation} leagues={leagues} clubs={clubs} domesticCups={domesticCups} cupSeasons={cupSeasons} />
+                    <TabsContent value="pyramid">
+                        <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
+                    </TabsContent>
 
-                {/* Golden Eras */}
-                <div className="mt-6">
-                    <GoldenEras clubs={clubs} nation={nation} />
-                </div>
+                    <TabsContent value="overview">
+                        {/* Nation Narratives */}
+                        <NationNarratives nation={nation} leagues={leagues} clubs={clubs} domesticCups={domesticCups} cupSeasons={cupSeasons} />
+
+                        {/* Golden Eras */}
+                        <div className="mt-6">
+                            <GoldenEras clubs={clubs} nation={nation} />
+                        </div>
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 mt-8">
@@ -537,6 +554,8 @@ export default function NationDetail() {
                         </Card>
                     </div>
                 </div>
+                    </TabsContent>
+                </Tabs>
             </div>
 
             {/* Edit Dialog */}
