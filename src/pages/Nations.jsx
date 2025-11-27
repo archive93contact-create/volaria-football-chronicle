@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import AdminOnly from '@/components/common/AdminOnly';
 
-import { estimateNationPopulation } from '@/components/common/populationUtils';
+import { estimateNationPopulation, estimateSustainableProClubs } from '@/components/common/populationUtils';
 
 // Estimate league strength - matches NationStats component logic
 function estimateStrength(clubs, leagues, coefficient, membership) {
@@ -85,9 +85,23 @@ export default function Nations() {
             const nationClubs = clubs.filter(c => c.nation_id === nation.id);
             const coeff = coefficients.find(c => c.nation_id === nation.id);
             const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
-            const populationData = estimateNationPopulation(nationClubs.length, nationLeagues.length, nation.membership, maxTier);
+            
+            // Calculate division sizes
+            const topFlightLeagues = nationLeagues.filter(l => l.tier === 1);
+            const topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
+            const leaguesWithTeams = nationLeagues.filter(l => l.number_of_teams > 0);
+            const avgDivisionSize = leaguesWithTeams.length > 0 
+                ? leaguesWithTeams.reduce((sum, l) => sum + l.number_of_teams, 0) / leaguesWithTeams.length 
+                : 0;
+            
+            const populationData = estimateNationPopulation(nationClubs.length, nationLeagues.length, nation.membership, maxTier, {
+                topDivisionSize,
+                avgDivisionSize,
+                totalDivisions: nationLeagues.length
+            });
             const population = populationData.value;
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
+            const proClubs = estimateSustainableProClubs(population, topDivisionSize, maxTier, nation.membership, strength.score);
             
             return {
                 ...nation,
@@ -97,7 +111,9 @@ export default function Nations() {
                 rank: coeff?.rank || 999,
                 population,
                 strength,
-                maxTier
+                maxTier,
+                topDivisionSize,
+                proClubs
             };
         });
     }, [nations, leagues, clubs, coefficients]);
@@ -241,6 +257,7 @@ export default function Nations() {
                                     <TableHead className="text-center">Leagues</TableHead>
                                     <TableHead className="text-center">Tiers</TableHead>
                                     <TableHead className="text-right">Population</TableHead>
+                                    <TableHead className="text-center">Pro Clubs</TableHead>
                                     <TableHead className="text-center">Strength</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -279,17 +296,20 @@ export default function Nations() {
                                         <TableCell className="text-center">{nation.leagueCount}</TableCell>
                                         <TableCell className="text-center">{nation.maxTier > 0 ? nation.maxTier : '—'}</TableCell>
                                         <TableCell className="text-right">
-                                            {nation.population >= 1000000 
-                                                ? `${(nation.population / 1000000).toFixed(1)}M`
-                                                : `${Math.round(nation.population / 1000)}K`
-                                            }
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <span className={`text-xs font-medium ${nation.strength.color}`}>{nation.strength.tier}</span>
-                                                <span className="text-xs text-slate-400">{nation.strength.score}/100</span>
-                                            </div>
-                                        </TableCell>
+                                                    {nation.population >= 1000000 
+                                                        ? `${(nation.population / 1000000).toFixed(1)}M`
+                                                        : `${Math.round(nation.population / 1000)}K`
+                                                    }
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    <span className="font-medium text-emerald-600">{nation.proClubs.display}</span>
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <span className={`text-xs font-medium ${nation.strength.color}`}>{nation.strength.tier}</span>
+                                                        <span className="text-xs text-slate-400">{nation.strength.score}/100</span>
+                                                    </div>
+                                                </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
