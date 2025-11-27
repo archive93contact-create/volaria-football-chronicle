@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus, Shield, Star } from 'lucide-react';
+import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus, Shield, Star, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -264,17 +264,24 @@ export default function ClubCoefficients() {
                 breadcrumbs={[{ label: 'Club Coefficients' }]}
             >
                 <AdminOnly>
-                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="bg-emerald-600 hover:bg-emerald-700 mt-4">
-                                <Plus className="w-4 h-4 mr-2" /> Add Entry
+                    <div className="flex gap-2 mt-4">
+                        <Link to={createPageUrl('RecalculateCoefficients')}>
+                            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                                <RefreshCw className="w-4 h-4 mr-2" /> Recalculate
                             </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                            <DialogHeader><DialogTitle>Add Club Coefficient</DialogTitle></DialogHeader>
-                            {coeffForm}
-                        </DialogContent>
-                    </Dialog>
+                        </Link>
+                        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700">
+                                    <Plus className="w-4 h-4 mr-2" /> Add Entry
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                                <DialogHeader><DialogTitle>Add Club Coefficient</DialogTitle></DialogHeader>
+                                {coeffForm}
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </AdminOnly>
             </PageHeader>
 

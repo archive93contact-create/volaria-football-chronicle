@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus, Trophy, Star, Shield } from 'lucide-react';
+import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus, Trophy, Star, Shield, RefreshCw } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -188,17 +188,24 @@ export default function CountryCoefficients() {
                 breadcrumbs={[{ label: 'Country Coefficients' }]}
             >
                 <AdminOnly>
-                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="bg-emerald-600 hover:bg-emerald-700 mt-4">
-                                <Plus className="w-4 h-4 mr-2" /> Add Entry
+                    <div className="flex gap-2 mt-4">
+                        <Link to={createPageUrl('RecalculateCoefficients')}>
+                            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                                <RefreshCw className="w-4 h-4 mr-2" /> Recalculate
                             </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                            <DialogHeader><DialogTitle>Add Coefficient Entry</DialogTitle></DialogHeader>
-                            {coeffForm}
-                        </DialogContent>
-                    </Dialog>
+                        </Link>
+                        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700">
+                                    <Plus className="w-4 h-4 mr-2" /> Add Entry
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                                <DialogHeader><DialogTitle>Add Coefficient Entry</DialogTitle></DialogHeader>
+                                {coeffForm}
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </AdminOnly>
             </PageHeader>
 
