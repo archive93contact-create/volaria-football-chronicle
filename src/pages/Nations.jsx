@@ -328,16 +328,27 @@ export default function Nations() {
                                         {nation.region && (
                                             <p className="text-sm text-slate-500 mt-1">{nation.region}</p>
                                         )}
-                                        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-100">
+                                        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
                                             <div className="flex items-center gap-2 text-sm text-slate-600">
                                                 <Trophy className="w-4 h-4 text-amber-500" />
                                                 <span className="font-medium">{nation.leagueCount}</span>
-                                                <span className="text-slate-400">leagues</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-sm text-slate-600">
                                                 <Shield className="w-4 h-4 text-blue-500" />
                                                 <span className="font-medium">{nation.clubCount}</span>
-                                                <span className="text-slate-400">clubs</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 ml-auto">
+                                                <BarChart3 className="w-3 h-3 text-slate-400" />
+                                                <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full rounded-full ${
+                                                            nation.strength >= 60 ? 'bg-emerald-500' : 
+                                                            nation.strength >= 40 ? 'bg-blue-500' : 
+                                                            nation.strength >= 20 ? 'bg-purple-500' : 'bg-slate-400'
+                                                        }`}
+                                                        style={{ width: `${nation.strength}%` }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
