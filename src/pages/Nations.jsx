@@ -14,11 +14,20 @@ import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import AdminOnly from '@/components/common/AdminOnly';
 
-// Estimate population based on clubs and membership
-function estimatePopulation(clubCount, leagueCount, membership) {
-    let basePerClub = 50000;
-    let membershipMultiplier = membership === 'VCC' ? 1.3 : membership === 'CCC' ? 0.85 : 1.0;
-    const estimated = Math.round(clubCount * basePerClub * (1 + leagueCount * 0.05) * membershipMultiplier);
+// Estimate population based on clubs, leagues, and tiers
+function estimatePopulation(clubCount, leagueCount, membership, maxTier) {
+    if (clubCount === 0) return 0;
+    
+    // Base population per club varies by membership tier
+    let basePerClub = membership === 'VCC' ? 75000 : membership === 'CCC' ? 45000 : 50000;
+    
+    // More leagues = bigger football structure = bigger country
+    const leagueMultiplier = 1 + (leagueCount * 0.15);
+    
+    // More tiers = deeper pyramid = larger country
+    const tierMultiplier = 1 + ((maxTier || 1) * 0.1);
+    
+    const estimated = Math.round(clubCount * basePerClub * leagueMultiplier * tierMultiplier);
     return estimated;
 }
 
@@ -90,7 +99,7 @@ export default function Nations() {
             const nationLeagues = leagues.filter(l => l.nation_id === nation.id);
             const nationClubs = clubs.filter(c => c.nation_id === nation.id);
             const coeff = coefficients.find(c => c.nation_id === nation.id);
-            const population = estimatePopulation(nationClubs.length, nationLeagues.length, nation.membership);
+            const population = estimatePopulation(nationClubs.length, nationLeagues.length, nation.membership, maxTier);
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
             const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
             
