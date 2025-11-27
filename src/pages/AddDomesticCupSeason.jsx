@@ -208,13 +208,38 @@ export default function AddDomesticCupSeason() {
         }));
     };
 
-    const setMatchWinner = (roundName, matchNumber, winnerName) => {
-        setBracketMatches(prev => prev.map(m => {
-            if (m.round === roundName && m.match_number === matchNumber) {
-                return { ...m, winner: winnerName };
+    const setMatchWinner = (roundName, matchNumber, winnerName, winnerId) => {
+        setBracketMatches(prev => {
+            const updated = prev.map(m => {
+                if (m.round === roundName && m.match_number === matchNumber) {
+                    return { ...m, winner: winnerName, winner_id: winnerId };
+                }
+                return m;
+            });
+            
+            // Auto-advance winner to next round
+            const roundOrder = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
+            const currentRoundIdx = roundOrder.indexOf(roundName);
+            const nextRound = roundOrder[currentRoundIdx + 1];
+            
+            if (nextRound) {
+                const nextMatchNumber = Math.ceil(matchNumber / 2);
+                const isFirstOfPair = matchNumber % 2 === 1;
+                
+                return updated.map(m => {
+                    if (m.round === nextRound && m.match_number === nextMatchNumber) {
+                        if (isFirstOfPair) {
+                            return { ...m, home_club_name: winnerName, home_club_id: winnerId };
+                        } else {
+                            return { ...m, away_club_name: winnerName, away_club_id: winnerId };
+                        }
+                    }
+                    return m;
+                });
             }
-            return m;
-        }));
+            
+            return updated;
+        });
     };
 
     const toggleClub = (club) => {
@@ -360,8 +385,26 @@ export default function AddDomesticCupSeason() {
                                 </div>
                                 <div className="flex gap-2">
                                     <Button variant="outline" onClick={selectAllFiltered} disabled={!seasonData.year}>
-                                        Select All Filtered
+                                        Select All
                                     </Button>
+                                    {leagues.length > 0 && (
+                                        <>
+                                            {uniqueTiers.map(tier => (
+                                                <Button 
+                                                    key={tier}
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setTierFilter(tier.toString());
+                                                        setTimeout(() => selectAllFiltered(), 100);
+                                                    }}
+                                                    disabled={!seasonData.year}
+                                                >
+                                                    + Tier {tier}
+                                                </Button>
+                                            ))}
+                                        </>
+                                    )}
                                     <Button 
                                         onClick={generateBracket} 
                                         disabled={selectedClubs.length < 2}
@@ -497,7 +540,7 @@ export default function AddDomesticCupSeason() {
                                                                     className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${
                                                                         match.winner === match.home_club_name ? 'bg-emerald-100' : 'hover:bg-slate-50'
                                                                     }`}
-                                                                    onClick={() => setMatchWinner(round.name, match.match_number, match.home_club_name)}
+                                                                    onClick={() => setMatchWinner(round.name, match.match_number, match.home_club_name, match.home_club_id)}
                                                                 >
                                                                     <div className="flex-1 font-medium truncate">{match.home_club_name}</div>
                                                                     <Input 
@@ -515,7 +558,7 @@ export default function AddDomesticCupSeason() {
                                                                     className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${
                                                                         match.winner === match.away_club_name ? 'bg-emerald-100' : 'hover:bg-slate-50'
                                                                     }`}
-                                                                    onClick={() => setMatchWinner(round.name, match.match_number, match.away_club_name)}
+                                                                    onClick={() => setMatchWinner(round.name, match.match_number, match.away_club_name, match.away_club_id)}
                                                                 >
                                                                     <div className="flex-1 font-medium truncate">{match.away_club_name}</div>
                                                                     <Input 
