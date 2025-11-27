@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Trophy, Star, Globe, Flame, Award, TrendingUp, Shield, Zap, Target } from 'lucide-react';
+import { BookOpen, Trophy, Star, Globe, Flame, Award, TrendingUp, Shield, Zap, Target, Crown, MapPin } from 'lucide-react';
 
 export default function SeasonNarratives({ 
     selectedYear, 
@@ -8,7 +8,8 @@ export default function SeasonNarratives({
     continentalSeasons = [], 
     leagues = [], 
     nations = [],
-    allSeasons = []
+    allSeasons = [],
+    allContinentalSeasons = []
 }) {
     const narratives = useMemo(() => {
         if (!selectedYear || seasons.length === 0) return [];
@@ -118,20 +119,88 @@ export default function SeasonNarratives({
         }
 
         // Same nation winning both continental cups
-        if (continentalSeasons.length >= 2) {
-            const vcc = continentalSeasons.find(cs => cs.competition_id && leagues.some(l => l.name?.includes('Champions')));
-            const ccc = continentalSeasons.find(cs => cs !== vcc);
+        const vccSeason = continentalSeasons.find(cs => cs.champion_name);
+        const cccSeason = continentalSeasons.find(cs => cs !== vccSeason && cs.champion_name);
+        
+        if (vccSeason?.champion_nation && cccSeason?.champion_nation && vccSeason.champion_nation === cccSeason.champion_nation) {
+            results.push({
+                icon: Globe,
+                color: 'text-emerald-500',
+                bg: 'bg-emerald-50',
+                title: 'Continental Dominance',
+                text: `${vccSeason.champion_nation} clubs swept both continental competitions - ${vccSeason.champion_name} and ${cccSeason.champion_name}.`
+            });
+        }
+
+        // First-time continental winners
+        if (allContinentalSeasons.length > 0) {
+            const previousContinentalWinners = new Set(
+                allContinentalSeasons
+                    .filter(cs => cs.year < selectedYear && cs.champion_name)
+                    .map(cs => cs.champion_name)
+            );
             
-            if (vcc?.champion_nation && ccc?.champion_nation && vcc.champion_nation === ccc.champion_nation) {
+            continentalSeasons.forEach(cs => {
+                if (cs.champion_name && !previousContinentalWinners.has(cs.champion_name)) {
+                    results.push({
+                        icon: Crown,
+                        color: 'text-amber-600',
+                        bg: 'bg-amber-50',
+                        title: 'First Continental Crown',
+                        text: `${cs.champion_name} won their first ever continental trophy - a historic moment for the club and ${cs.champion_nation || 'their nation'}.`
+                    });
+                }
+            });
+        }
+
+        // Continental title retained
+        continentalSeasons.forEach(cs => {
+            if (cs.champion_name) {
+                const prevYearSeason = allContinentalSeasons.find(
+                    pcs => pcs.competition_id === cs.competition_id && 
+                           pcs.year === String(parseInt(selectedYear) - 1) &&
+                           pcs.champion_name === cs.champion_name
+                );
+                if (prevYearSeason) {
+                    results.push({
+                        icon: Trophy,
+                        color: 'text-yellow-600',
+                        bg: 'bg-yellow-50',
+                        title: 'Continental Reign Extended',
+                        text: `${cs.champion_name} defended their continental crown, winning back-to-back titles.`
+                    });
+                }
+            }
+        });
+
+        // Small nation success
+        continentalSeasons.forEach(cs => {
+            if (cs.champion_nation) {
+                const nation = nations.find(n => n.name === cs.champion_nation);
+                if (nation?.membership === 'CCC') {
+                    results.push({
+                        icon: MapPin,
+                        color: 'text-blue-500',
+                        bg: 'bg-blue-50',
+                        title: 'Giant Killing Nation',
+                        text: `${cs.champion_name} from ${cs.champion_nation} (an associate member nation) won continental glory.`
+                    });
+                }
+            }
+        });
+
+        // All-nation final
+        continentalSeasons.forEach(cs => {
+            if (cs.champion_nation && cs.runner_up_nation && cs.champion_nation === cs.runner_up_nation) {
                 results.push({
-                    icon: Globe,
-                    color: 'text-emerald-500',
-                    bg: 'bg-emerald-50',
-                    title: 'Continental Dominance',
-                    text: `${vcc.champion_nation} clubs swept both continental competitions - ${vcc.champion_name} (VCC) and ${ccc.champion_name} (CCC).`
+                    icon: Shield,
+                    color: 'text-indigo-500',
+                    bg: 'bg-indigo-50',
+                    title: 'Domestic Showdown',
+                    text: `An all-${cs.champion_nation} final saw ${cs.champion_name} defeat ${cs.runner_up} for continental glory.`
                 });
             }
-        }
+        });
 
         // Count nations with champions
         const nationsWithChampions = new Set(topFlightChampions.map(c => c.nation?.id).filter(Boolean));

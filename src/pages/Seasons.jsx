@@ -221,6 +221,7 @@ export default function Seasons() {
                             leagues={leagues}
                             nations={nations}
                             allSeasons={seasons}
+                            allContinentalSeasons={continentalSeasons}
                         />
 
                         {/* Season Stats */}
