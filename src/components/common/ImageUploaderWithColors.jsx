@@ -93,11 +93,6 @@ export default function ImageUploaderWithColors({
         try {
             const { file_url } = await base44.integrations.Core.UploadFile({ file });
             onUpload(file_url);
-            
-            // Auto-extract colors after upload if enabled
-            if (showColorExtraction && onColorsChange) {
-                setTimeout(() => extractColorsFromUrl(file_url), 500);
-            }
         } catch (error) {
             console.error('Upload failed:', error);
         } finally {
