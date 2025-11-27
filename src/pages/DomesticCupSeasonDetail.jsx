@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import AdminOnly from '@/components/common/AdminOnly';
+import AdminOnly, { useIsAdmin } from '@/components/common/AdminOnly';
 
 const ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -22,6 +22,7 @@ export default function DomesticCupSeasonDetail() {
     const seasonId = urlParams.get('id');
     const queryClient = useQueryClient();
 
+    const { isAdmin } = useIsAdmin();
     const [editingMatch, setEditingMatch] = useState(null);
     const [matchFormData, setMatchFormData] = useState({});
     const [isAddMatchOpen, setIsAddMatchOpen] = useState(false);
@@ -154,10 +155,12 @@ export default function DomesticCupSeasonDetail() {
 
         return (
             <div 
-                className={`bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer ${isFinal ? 'ring-2 ring-amber-400' : ''} ${isGiantKilling ? 'ring-2 ring-purple-300' : ''}`}
+                className={`bg-white border rounded-lg overflow-hidden ${isAdmin ? 'hover:shadow-md transition-shadow cursor-pointer' : ''} ${isFinal ? 'ring-2 ring-amber-400' : ''} ${isGiantKilling ? 'ring-2 ring-purple-300' : ''}`}
                 onClick={() => {
-                    setMatchFormData(match);
-                    setEditingMatch(match);
+                    if (isAdmin) {
+                        setMatchFormData(match);
+                        setEditingMatch(match);
+                    }
                 }}
             >
                 {isFinal && (
@@ -366,7 +369,7 @@ export default function DomesticCupSeasonDetail() {
                                 <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded" />
                                 Winner
                             </span>
-                            <span>Click match to edit</span>
+                            {isAdmin && <span>Click match to edit</span>}
                         </div>
                     </CardContent>
                 </Card>
