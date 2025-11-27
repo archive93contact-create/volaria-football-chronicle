@@ -307,6 +307,10 @@ export default function AddSeason() {
             } else if (pos <= seasonData.promotion_spots) {
                 status = 'promoted';
                 color = seasonData.promotion_color;
+            } else if (seasonData.playoff_spots_start && seasonData.playoff_spots_end && 
+                       pos >= seasonData.playoff_spots_start && pos <= seasonData.playoff_spots_end) {
+                status = 'playoff';
+                color = seasonData.playoff_color;
             } else if (pos > seasonData.number_of_teams - seasonData.relegation_spots) {
                 status = 'relegated';
                 color = seasonData.relegation_color;
