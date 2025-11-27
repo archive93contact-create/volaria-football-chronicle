@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Edit2, Trash2, ChevronRight, Calendar, Users } from 'lucide-react';
+import { Plus, Trophy, Edit2, Trash2, ChevronRight, Calendar, Users, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DomesticCupNarratives from '@/components/cups/DomesticCupNarratives';
+import SyncCupStatsButton from '@/components/common/SyncCupStats';
 
 export default function DomesticCupDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -186,7 +187,15 @@ export default function DomesticCupDetail() {
                 {/* Roll of Honour */}
                 <Card className="border-0 shadow-sm mb-8">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Roll of Honour</CardTitle>
+                        <div>
+                            <CardTitle>Roll of Honour</CardTitle>
+                            <div className="mt-2">
+                                <SyncCupStatsButton 
+                                    nationId={cup?.nation_id} 
+                                    onComplete={() => queryClient.invalidateQueries(['nationClubs'])}
+                                />
+                            </div>
+                        </div>
                         <Link to={createPageUrl(`AddDomesticCupSeason?cup_id=${cupId}`)}>
                             <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
                         </Link>
