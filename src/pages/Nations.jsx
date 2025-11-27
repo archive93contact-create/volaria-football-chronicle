@@ -86,13 +86,21 @@ export default function Nations() {
             const coeff = coefficients.find(c => c.nation_id === nation.id);
             const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
             
-            // Calculate division sizes
+            // Calculate division sizes - prefer league.number_of_teams, but infer from clubs if not set
             const topFlightLeagues = nationLeagues.filter(l => l.tier === 1);
-            const topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
+            let topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
+            
+            // If no number_of_teams set, infer from clubs in top tier leagues
+            if (topDivisionSize === 0 && topFlightLeagues.length > 0) {
+                const topFlightLeagueIds = topFlightLeagues.map(l => l.id);
+                const topFlightClubs = nationClubs.filter(c => topFlightLeagueIds.includes(c.league_id));
+                topDivisionSize = topFlightClubs.length || 8; // Default to 8 if no data
+            }
+            
             const leaguesWithTeams = nationLeagues.filter(l => l.number_of_teams > 0);
             const avgDivisionSize = leaguesWithTeams.length > 0 
                 ? leaguesWithTeams.reduce((sum, l) => sum + l.number_of_teams, 0) / leaguesWithTeams.length 
-                : 0;
+                : topDivisionSize; // Use top division as fallback
             
             // Count geographic locations
             const regions = new Set(nationClubs.map(c => c.region).filter(Boolean));
