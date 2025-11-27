@@ -38,7 +38,11 @@ export default function AddSeason() {
     const [seasonData, setSeasonData] = useState({
         year: '', number_of_teams: 18, top_scorer: '', notes: '',
         champion_color: '#fef3c7', promotion_color: '#d1fae5', relegation_color: '#fee2e2',
-        promotion_spots: 2, relegation_spots: 3
+        playoff_color: '#dbeafe',
+        promotion_spots: 2, relegation_spots: 3,
+        tier: null, division_name: '', division_group: '',
+        playoff_spots_start: null, playoff_spots_end: null, playoff_format: '',
+        playoff_winner: '', playoff_runner_up: '', playoff_notes: ''
     });
 
     const [tableRows, setTableRows] = useState([]);
@@ -103,6 +107,7 @@ export default function AddSeason() {
         if (status === 'champion') updated[index].highlight_color = seasonData.champion_color;
         else if (status === 'promoted') updated[index].highlight_color = seasonData.promotion_color;
         else if (status === 'relegated') updated[index].highlight_color = seasonData.relegation_color;
+        else if (status === 'playoff') updated[index].highlight_color = seasonData.playoff_color;
         else updated[index].highlight_color = '';
         setTableRows(updated);
     };
@@ -113,6 +118,9 @@ export default function AddSeason() {
             const season = await base44.entities.Season.create({
                 league_id: leagueId,
                 year: data.year,
+                tier: data.tier || null,
+                division_name: data.division_name || null,
+                division_group: data.division_group || null,
                 number_of_teams: data.number_of_teams,
                 champion_name: tableRows.find(r => r.status === 'champion')?.club_name || '',
                 runner_up: tableRows.find(r => r.position === 2)?.club_name || '',
@@ -122,12 +130,19 @@ export default function AddSeason() {
                 champion_color: data.champion_color,
                 promotion_color: data.promotion_color,
                 relegation_color: data.relegation_color,
+                playoff_color: data.playoff_color,
                 promotion_spots: data.promotion_spots,
                 relegation_spots: data.relegation_spots,
+                playoff_spots_start: data.playoff_spots_start || null,
+                playoff_spots_end: data.playoff_spots_end || null,
+                playoff_format: data.playoff_format || null,
+                playoff_winner: data.playoff_winner || null,
+                playoff_runner_up: data.playoff_runner_up || null,
+                playoff_notes: data.playoff_notes || null,
                 notes: data.notes
             });
 
-            const currentTier = league.tier || 1;
+            const currentTier = data.tier || league.tier || 1;
             const isTopTier = currentTier === 1;
             const isTFALeague = currentTier <= 4; // TFA = top 4 tiers
 
@@ -366,9 +381,58 @@ export default function AddSeason() {
                                 <Input type="number" min="0" value={seasonData.relegation_spots} onChange={(e) => setSeasonData({...seasonData, relegation_spots: parseInt(e.target.value) || 0})} className="mt-1" />
                             </div>
                         </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div>
+                                <Label>Tier Override (if moved)</Label>
+                                <Input type="number" min="1" value={seasonData.tier || ''} onChange={(e) => setSeasonData({...seasonData, tier: e.target.value ? parseInt(e.target.value) : null})} placeholder={`Default: ${league?.tier || 1}`} className="mt-1" />
+                            </div>
+                            <div>
+                                <Label>Division Name (if split)</Label>
+                                <Input value={seasonData.division_name} onChange={(e) => setSeasonData({...seasonData, division_name: e.target.value})} placeholder="e.g., North, South, A" className="mt-1" />
+                            </div>
+                            <div>
+                                <Label>Division Group</Label>
+                                <Input value={seasonData.division_group} onChange={(e) => setSeasonData({...seasonData, division_group: e.target.value})} placeholder="e.g., Regional" className="mt-1" />
+                            </div>
+                        </div>
                         <div>
                             <Label>Top Scorer</Label>
                             <Input value={seasonData.top_scorer} onChange={(e) => setSeasonData({...seasonData, top_scorer: e.target.value})} placeholder="e.g., John Smith (25 goals)" className="mt-1" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Promotion Playoffs */}
+                <Card className="border-0 shadow-sm">
+                    <CardHeader><CardTitle>Promotion Playoffs (Optional)</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <Label>Playoff Start Position</Label>
+                                <Input type="number" min="1" value={seasonData.playoff_spots_start || ''} onChange={(e) => setSeasonData({...seasonData, playoff_spots_start: e.target.value ? parseInt(e.target.value) : null})} placeholder="e.g., 4" className="mt-1" />
+                            </div>
+                            <div>
+                                <Label>Playoff End Position</Label>
+                                <Input type="number" min="1" value={seasonData.playoff_spots_end || ''} onChange={(e) => setSeasonData({...seasonData, playoff_spots_end: e.target.value ? parseInt(e.target.value) : null})} placeholder="e.g., 6" className="mt-1" />
+                            </div>
+                            <div>
+                                <Label>Playoff Winner</Label>
+                                <Input value={seasonData.playoff_winner} onChange={(e) => setSeasonData({...seasonData, playoff_winner: e.target.value})} placeholder="Club promoted via playoff" className="mt-1" />
+                            </div>
+                            <div>
+                                <Label>Playoff Runner-up</Label>
+                                <Input value={seasonData.playoff_runner_up} onChange={(e) => setSeasonData({...seasonData, playoff_runner_up: e.target.value})} placeholder="Lost in final" className="mt-1" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Playoff Format</Label>
+                                <Input value={seasonData.playoff_format} onChange={(e) => setSeasonData({...seasonData, playoff_format: e.target.value})} placeholder="e.g., Semi-finals then Final" className="mt-1" />
+                            </div>
+                            <div>
+                                <Label>Playoff Notes</Label>
+                                <Input value={seasonData.playoff_notes} onChange={(e) => setSeasonData({...seasonData, playoff_notes: e.target.value})} placeholder="e.g., Final: 2-1 at Wembley" className="mt-1" />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -377,7 +441,7 @@ export default function AddSeason() {
                 <Card className="border-0 shadow-sm">
                     <CardHeader><CardTitle>Position Highlight Colors</CardTitle></CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <div>
                                 <Label className="flex items-center gap-2"><Trophy className="w-4 h-4 text-amber-500" /> Champion Color</Label>
                                 <div className="flex gap-2 mt-1">
@@ -397,6 +461,13 @@ export default function AddSeason() {
                                 <div className="flex gap-2 mt-1">
                                     <input type="color" value={seasonData.relegation_color} onChange={(e) => setSeasonData({...seasonData, relegation_color: e.target.value})} className="w-12 h-10 rounded cursor-pointer border" />
                                     <Input value={seasonData.relegation_color} onChange={(e) => setSeasonData({...seasonData, relegation_color: e.target.value})} />
+                                </div>
+                            </div>
+                            <div>
+                                <Label className="flex items-center gap-2">🔄 Playoff Color</Label>
+                                <div className="flex gap-2 mt-1">
+                                    <input type="color" value={seasonData.playoff_color} onChange={(e) => setSeasonData({...seasonData, playoff_color: e.target.value})} className="w-12 h-10 rounded cursor-pointer border" />
+                                    <Input value={seasonData.playoff_color} onChange={(e) => setSeasonData({...seasonData, playoff_color: e.target.value})} />
                                 </div>
                             </div>
                         </div>
