@@ -161,7 +161,18 @@ export default function LeagueDetail() {
     }
 
     const uniqueYears = [...new Set(leagueTables.map(t => t.year))].sort().reverse();
-    const currentSeasonTable = leagueTables.filter(t => t.year === (selectedSeason || uniqueYears[0])).sort((a, b) => a.position - b.position);
+    const currentYear = selectedSeason || uniqueYears[0];
+    const currentSeasonTable = leagueTables.filter(t => t.year === currentYear).sort((a, b) => a.position - b.position);
+    
+    // Group tables by division if multiple divisions exist
+    const divisionNames = [...new Set(currentSeasonTable.map(t => t.division_name).filter(Boolean))];
+    const hasDivisions = divisionNames.length > 1;
+    const tablesByDivision = hasDivisions 
+        ? divisionNames.reduce((acc, div) => {
+            acc[div] = currentSeasonTable.filter(t => t.division_name === div).sort((a, b) => a.position - b.position);
+            return acc;
+        }, {})
+        : { '': currentSeasonTable };
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -268,7 +279,7 @@ export default function LeagueDetail() {
                     <TabsContent value="table">
                         <Card className="border-0 shadow-sm">
                             <CardHeader className="flex flex-row items-center justify-between">
-                                <CardTitle>League Table</CardTitle>
+                                <CardTitle>League Table {hasDivisions && `(${divisionNames.length} Divisions)`}</CardTitle>
                                 {uniqueYears.length > 0 && (
                                     <Select value={selectedSeason || uniqueYears[0]} onValueChange={setSelectedSeason}>
                                         <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -282,49 +293,60 @@ export default function LeagueDetail() {
                                 {currentSeasonTable.length === 0 ? (
                                     <p className="text-center py-8 text-slate-500">No table data for this season. <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)} className="text-emerald-600 hover:underline">Add a season with table data</Link></p>
                                 ) : (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-slate-100">
-                                                <TableHead className="w-12">#</TableHead>
-                                                <TableHead>Club</TableHead>
-                                                <TableHead className="text-center">P</TableHead>
-                                                <TableHead className="text-center">W</TableHead>
-                                                <TableHead className="text-center">D</TableHead>
-                                                <TableHead className="text-center">L</TableHead>
-                                                <TableHead className="text-center hidden md:table-cell">GF</TableHead>
-                                                <TableHead className="text-center hidden md:table-cell">GA</TableHead>
-                                                <TableHead className="text-center">GD</TableHead>
-                                                <TableHead className="text-center font-bold">Pts</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {currentSeasonTable.map((row) => (
-                                                <TableRow key={row.id} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
-                                                    <TableCell className="font-bold">
-                                                        <span className="flex items-center gap-1">
-                                                            {row.position}
-                                                            {row.status === 'champion' && <Trophy className="w-4 h-4 text-amber-500" />}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="font-medium">
-                                                        {row.club_id ? (
-                                                            <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
-                                                                {row.club_name}
-                                                            </Link>
-                                                        ) : row.club_name}
-                                                    </TableCell>
-                                                    <TableCell className="text-center">{row.played}</TableCell>
-                                                    <TableCell className="text-center">{row.won}</TableCell>
-                                                    <TableCell className="text-center">{row.drawn}</TableCell>
-                                                    <TableCell className="text-center">{row.lost}</TableCell>
-                                                    <TableCell className="text-center hidden md:table-cell">{row.goals_for}</TableCell>
-                                                    <TableCell className="text-center hidden md:table-cell">{row.goals_against}</TableCell>
-                                                    <TableCell className="text-center">{row.goal_difference > 0 ? `+${row.goal_difference}` : row.goal_difference}</TableCell>
-                                                    <TableCell className="text-center font-bold">{row.points}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                    <div className={hasDivisions ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : ""}>
+                                        {Object.entries(tablesByDivision).map(([divName, divTable]) => (
+                                            <div key={divName || 'main'} className={hasDivisions ? "border rounded-lg overflow-hidden" : ""}>
+                                                {hasDivisions && (
+                                                    <div className="bg-slate-800 text-white px-4 py-2 font-semibold">
+                                                        {divName}
+                                                    </div>
+                                                )}
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow className="bg-slate-100">
+                                                            <TableHead className="w-12">#</TableHead>
+                                                            <TableHead>Club</TableHead>
+                                                            <TableHead className="text-center">P</TableHead>
+                                                            <TableHead className="text-center">W</TableHead>
+                                                            <TableHead className="text-center">D</TableHead>
+                                                            <TableHead className="text-center">L</TableHead>
+                                                            <TableHead className="text-center hidden md:table-cell">GF</TableHead>
+                                                            <TableHead className="text-center hidden md:table-cell">GA</TableHead>
+                                                            <TableHead className="text-center">GD</TableHead>
+                                                            <TableHead className="text-center font-bold">Pts</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {divTable.map((row) => (
+                                                            <TableRow key={row.id} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
+                                                                <TableCell className="font-bold">
+                                                                    <span className="flex items-center gap-1">
+                                                                        {row.position}
+                                                                        {row.status === 'champion' && <Trophy className="w-4 h-4 text-amber-500" />}
+                                                                    </span>
+                                                                </TableCell>
+                                                                <TableCell className="font-medium">
+                                                                    {row.club_id ? (
+                                                                        <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
+                                                                            {row.club_name}
+                                                                        </Link>
+                                                                    ) : row.club_name}
+                                                                </TableCell>
+                                                                <TableCell className="text-center">{row.played}</TableCell>
+                                                                <TableCell className="text-center">{row.won}</TableCell>
+                                                                <TableCell className="text-center">{row.drawn}</TableCell>
+                                                                <TableCell className="text-center">{row.lost}</TableCell>
+                                                                <TableCell className="text-center hidden md:table-cell">{row.goals_for}</TableCell>
+                                                                <TableCell className="text-center hidden md:table-cell">{row.goals_against}</TableCell>
+                                                                <TableCell className="text-center">{row.goal_difference > 0 ? `+${row.goal_difference}` : row.goal_difference}</TableCell>
+                                                                <TableCell className="text-center font-bold">{row.points}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </CardContent>
                         </Card>
