@@ -10,84 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
 
-// Estimate population for a single settlement
-function estimateSettlementPopulation(locationName, clubs, isCapital = false) {
-    const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const pseudoRandom = (min, max) => {
-        const x = Math.sin(seed) * 10000;
-        const rand = x - Math.floor(x);
-        return Math.floor(rand * (max - min + 1)) + min;
-    };
-    
-    let base = 20000;
-    
-    // Calculate tier bonus - higher tier clubs = larger population
-    let tierBonus = 0;
-    clubs.forEach(club => {
-        if (club.league_id) tierBonus += 15000;
-        if (club.seasons_top_flight > 0) tierBonus += club.seasons_top_flight * 2000;
-        if (club.league_titles > 0) tierBonus += club.league_titles * 10000;
-    });
-    
-    if (isCapital) {
-        base = 300000;
-    }
-    
-    const variance = 0.7 + (pseudoRandom(0, 70) / 100);
-    let population = Math.floor((clubs.length * base + tierBonus + base * 0.3) * variance);
-    const remainder = pseudoRandom(100, 9999);
-    population = Math.floor(population / 10000) * 10000 + remainder;
-    
-    if (isCapital && population < 600000) {
-        population = 600000 + (clubs.length * 120000) + pseudoRandom(10000, 99999);
-    }
-    
-    return population;
-}
-
-// Estimate population by aggregating child locations
-function estimatePopulation(locationType, locationClubs, allClubs, nationId, nation, locationName) {
-    const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const pseudoRandom = (min, max) => {
-        const x = Math.sin(seed) * 10000;
-        const rand = x - Math.floor(x);
-        return Math.floor(rand * (max - min + 1)) + min;
-    };
-    
-    let totalPopulation = 0;
-    
-    if (locationType === 'settlement') {
-        const isCapital = nation?.capital?.toLowerCase() === locationName.toLowerCase();
-        totalPopulation = estimateSettlementPopulation(locationName, locationClubs, isCapital);
-    } else {
-        // For regions/districts, aggregate settlement populations
-        const settlements = new Map();
-        locationClubs.forEach(club => {
-            const settlementName = club.settlement || club.city;
-            if (settlementName) {
-                if (!settlements.has(settlementName)) {
-                    settlements.set(settlementName, []);
-                }
-                settlements.get(settlementName).push(club);
-            }
-        });
-        
-        settlements.forEach((clubs, name) => {
-            const isCapital = nation?.capital?.toLowerCase() === name.toLowerCase();
-            totalPopulation += estimateSettlementPopulation(name, clubs, isCapital);
-        });
-        
-        // Add rural population (people not in tracked settlements)
-        const ruralBase = locationType === 'region' ? 100000 : 30000;
-        const ruralVariance = 0.5 + (pseudoRandom(0, 100) / 100);
-        totalPopulation += Math.floor(ruralBase * ruralVariance) + pseudoRandom(1000, 9999);
-    }
-    
-    if (totalPopulation >= 1000000) {
-        return { value: totalPopulation, display: `${(totalPopulation / 1000000).toFixed(2)} million` };
-    }
-    return { value: totalPopulation, display: totalPopulation.toLocaleString() };
-}
+import { estimateNationPopulation, estimateLocationPopulation } from '@/components/common/populationUtils';
 
 export default function LocationDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -224,7 +147,14 @@ export default function LocationDetail() {
         }).length;
         
         return {
-            population: estimatePopulation(locationType, locationClubs, clubs, nationId, nation, displayName),
+            population: (() => {
+                // Calculate nation population for context
+                const nationClubs = clubs.filter(c => c.nation_id === nationId);
+                const nationLeagues = leagues.filter(l => l.nation_id === nationId);
+                const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
+                const nationPop = estimateNationPopulation(nationClubs.length, nationLeagues.length, nation?.membership, maxTier);
+                return estimateLocationPopulation(locationType, locationClubs, nation, displayName, nationPop.value);
+            })(),
             totalTrophies,
             continentalTrophies,
             topFlightClubs

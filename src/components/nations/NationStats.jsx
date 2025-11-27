@@ -108,45 +108,7 @@ function generateLanguage(nationName, clubs = [], leagues = []) {
     return { name: 'Volarian Common', family: 'Standard Volarian' };
 }
 
-// Estimate population based on football infrastructure and membership
-function estimatePopulation(clubs, leagues, membership) {
-    const clubCount = clubs.length;
-    const maxTier = Math.max(...leagues.map(l => l.tier || 1), 1);
-    const divisionsCount = leagues.length;
-    
-    // Base population per club (varies by tier structure)
-    let basePerClub = 50000; // 50k per club baseline
-    
-    if (maxTier >= 4) basePerClub = 80000; // Deep pyramid = larger nation
-    if (maxTier >= 6) basePerClub = 100000;
-    if (maxTier <= 2) basePerClub = 40000; // Shallow pyramid = smaller
-    
-    // VCC members tend to be larger nations
-    let membershipMultiplier = 1.0;
-    if (membership === 'VCC') {
-        membershipMultiplier = 1.3; // Full members are typically larger
-    } else if (membership === 'CCC') {
-        membershipMultiplier = 0.85; // Associate members typically smaller
-    }
-    
-    // Factor in divisions (more leagues = bigger nation)
-    const divisionMultiplier = 1 + (divisionsCount * 0.05);
-    
-    const estimated = Math.round(clubCount * basePerClub * divisionMultiplier * membershipMultiplier);
-    
-    // Return formatted with tier description
-    if (estimated >= 10000000) {
-        return { value: estimated, display: `${(estimated / 1000000).toFixed(1)}M`, tier: 'Major Power' };
-    } else if (estimated >= 5000000) {
-        return { value: estimated, display: `${(estimated / 1000000).toFixed(1)}M`, tier: 'Large Nation' };
-    } else if (estimated >= 2000000) {
-        return { value: estimated, display: `${(estimated / 1000000).toFixed(1)}M`, tier: 'Medium Nation' };
-    } else if (estimated >= 500000) {
-        return { value: estimated, display: `${Math.round(estimated / 1000)}K`, tier: 'Small Nation' };
-    } else {
-        return { value: estimated, display: `${Math.round(estimated / 1000)}K`, tier: 'Micro State' };
-    }
-}
+import { estimateNationPopulation } from '@/components/common/populationUtils';
 
 // Estimate league strength based on various factors including membership
 function estimateLeagueStrength(clubs, leagues, coefficient, membership) {
@@ -251,7 +213,8 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
     const stats = useMemo(() => {
         if (!nation) return null;
         
-        const population = estimatePopulation(clubs, leagues, nation.membership);
+        const maxTier = Math.max(...leagues.map(l => l.tier || 1), 1);
+        const population = estimateNationPopulation(clubs.length, leagues.length, nation.membership, maxTier);
         const strength = estimateLeagueStrength(clubs, leagues, coefficient, nation.membership);
         const language = nation.language ? { name: nation.language } : generateLanguage(nation.name, clubs, leagues);
         const capital = nation.capital || generateCapital(nation.name, clubs, leagues);
