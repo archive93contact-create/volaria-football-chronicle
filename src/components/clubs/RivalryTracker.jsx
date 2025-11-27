@@ -25,11 +25,20 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         queryFn: () => base44.entities.Nation.list(),
     });
 
+    // Fetch league tables if not provided
+    const { data: fetchedLeagueTables = [] } = useQuery({
+        queryKey: ['leagueTablesForRivalry', club?.nation_id],
+        queryFn: () => base44.entities.LeagueTable.list(),
+        enabled: !!club?.nation_id && allLeagueTables.length === 0,
+    });
+
+    const leagueTables = allLeagueTables.length > 0 ? allLeagueTables : fetchedLeagueTables;
+
     const rivalries = useMemo(() => {
         if (!club || allClubs.length === 0) return [];
 
         const rivalryScores = {};
-        const clubTables = allLeagueTables.filter(t => t.club_id === club.id);
+        const clubTables = leagueTables.filter(t => t.club_id === club.id);
 
         // Find nation name for this club
         const clubNation = nations.find(n => n.id === club.nation_id);
@@ -65,7 +74,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             }
 
             // 3. Shared league seasons
-            const otherClubTables = allLeagueTables.filter(t => t.club_id === otherClub.id);
+            const otherClubTables = leagueTables.filter(t => t.club_id === otherClub.id);
             const sharedSeasons = clubTables.filter(ct => 
                 otherClubTables.some(ot => ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year))
             );
@@ -164,7 +173,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             .filter(r => r.score >= 30) // Show rivalries with reasonable score
             .sort((a, b) => b.score - a.score)
             .slice(0, 8);
-    }, [club, allClubs, allLeagueTables, continentalMatches, nations]);
+    }, [club, allClubs, leagueTables, continentalMatches, nations]);
 
     if (rivalries.length === 0) return null;
 
