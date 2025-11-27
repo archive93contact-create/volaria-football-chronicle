@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
+import { syncCupStatsToClubs } from '@/components/common/SyncCupStats';
 
 // Calculate the next power of 2 for bracket sizing
 const nextPowerOf2 = (n) => {
@@ -395,10 +396,14 @@ export default function AddDomesticCupSeason() {
                 }
             }
 
+            // Sync cup stats to clubs
+            await syncCupStatsToClubs(cup.nation_id);
+
             return season;
         },
         onSuccess: (season) => {
             queryClient.invalidateQueries(['cupSeasons']);
+            queryClient.invalidateQueries(['clubs']);
             navigate(createPageUrl(`DomesticCupSeasonDetail?id=${season.id}`));
         },
     });
