@@ -27,23 +27,23 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         enabled: !!club?.id,
     });
 
-    // Fetch clubs from same nation if not provided (for domestic rivalries)
+    // Fetch clubs from same nation (for domestic rivalries)
     const { data: fetchedNationClubs = [] } = useQuery({
         queryKey: ['nationClubsForRivalry', club?.nation_id],
         queryFn: () => base44.entities.Club.filter({ nation_id: club.nation_id }),
-        enabled: !!club?.nation_id && allClubs.length === 0,
+        enabled: !!club?.nation_id,
     });
 
-    // Fetch league tables if not provided
+    // Fetch league tables for this nation's leagues
     const { data: fetchedLeagueTables = [] } = useQuery({
-        queryKey: ['leagueTablesForRivalry', club?.nation_id],
+        queryKey: ['leagueTablesForRivalry'],
         queryFn: () => base44.entities.LeagueTable.list(),
-        enabled: !!club?.nation_id && allLeagueTables.length === 0,
+        enabled: !!club?.nation_id,
     });
 
-    // Use provided clubs or fetched nation clubs for domestic rivalries
-    const domesticClubs = allClubs.length > 0 ? allClubs : fetchedNationClubs;
-    const leagueTables = allLeagueTables.length > 0 ? allLeagueTables : fetchedLeagueTables;
+    // Use provided data if available, otherwise use fetched data
+    const domesticClubs = (allClubs && allClubs.length > 0) ? allClubs : fetchedNationClubs;
+    const leagueTables = (allLeagueTables && allLeagueTables.length > 0) ? allLeagueTables : fetchedLeagueTables;
 
     const rivalries = useMemo(() => {
         if (!club) return [];
