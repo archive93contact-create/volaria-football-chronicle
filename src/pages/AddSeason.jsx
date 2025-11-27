@@ -105,7 +105,7 @@ export default function AddSeason() {
         const updated = [...tableRows];
         updated[index].status = status;
         if (status === 'champion') updated[index].highlight_color = seasonData.champion_color;
-        else if (status === 'promoted' || status === 'playoff_winner') updated[index].highlight_color = seasonData.promotion_color;
+        else if (status === 'promoted') updated[index].highlight_color = seasonData.promotion_color;
         else if (status === 'relegated') updated[index].highlight_color = seasonData.relegation_color;
         else if (status === 'playoff') updated[index].highlight_color = seasonData.playoff_color;
         else updated[index].highlight_color = '';
@@ -220,7 +220,7 @@ export default function AddSeason() {
                         total_losses: (existingClub.total_losses || 0) + (row.lost || 0),
                         total_goals_scored: (existingClub.total_goals_scored || 0) + (row.goals_for || 0),
                         total_goals_conceded: (existingClub.total_goals_conceded || 0) + (row.goals_against || 0),
-                        promotions: (existingClub.promotions || 0) + ((isPromoted || row.status === 'playoff_winner') ? 1 : 0),
+                        promotions: (existingClub.promotions || 0) + (isPromoted ? 1 : 0),
                         relegations: (existingClub.relegations || 0) + (isRelegated ? 1 : 0),
                         seasons_top_flight: (existingClub.seasons_top_flight || 0) + (isTopTier ? 1 : 0),
                         seasons_in_tfa: (existingClub.seasons_in_tfa || 0) + (isTFALeague ? 1 : 0),
@@ -237,7 +237,7 @@ export default function AddSeason() {
                 } else {
                     // Create new club
                     const isChampion = row.status === 'champion';
-                    const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
+                    const isPromoted = row.status === 'promoted';
                     const isRelegated = row.status === 'relegated';
 
                     const newClub = await base44.entities.Club.create({
@@ -272,7 +272,6 @@ export default function AddSeason() {
                 season_id: season.id,
                 league_id: leagueId,
                 year: data.year,
-                division_name: data.division_name || null,
                 club_id: clubIdMap[row.club_name.trim()] || '',
                 ...row
             }));
@@ -577,9 +576,8 @@ export default function AddSeason() {
                                                             <SelectItem value="none">None</SelectItem>
                                                             <SelectItem value="champion">🏆 Champion</SelectItem>
                                                             <SelectItem value="promoted">⬆️ Promoted</SelectItem>
-                                                            <SelectItem value="playoff_winner">🎯 Playoff Winner</SelectItem>
-                                                            <SelectItem value="playoff">🔄 Playoff</SelectItem>
                                                             <SelectItem value="relegated">⬇️ Relegated</SelectItem>
+                                                            <SelectItem value="playoff">🔄 Playoff</SelectItem>
                                                             <SelectItem value="european">⭐ European</SelectItem>
                                                         </SelectContent>
                                                     </Select>
