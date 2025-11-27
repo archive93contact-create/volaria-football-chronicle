@@ -103,9 +103,9 @@ export default function Nations() {
                 : topDivisionSize; // Use top division as fallback
             
             // Count geographic locations
-            const regions = new Set(nationClubs.map(c => c.region).filter(Boolean));
-            const districts = new Set(nationClubs.map(c => c.district).filter(Boolean));
-            const settlements = new Set(nationClubs.map(c => c.settlement || c.city).filter(Boolean));
+            const geoRegions = new Set(nationClubs.map(c => c.region).filter(Boolean));
+            const geoDistricts = new Set(nationClubs.map(c => c.district).filter(Boolean));
+            const geoSettlements = new Set(nationClubs.map(c => c.settlement || c.city).filter(Boolean));
             
             const populationData = estimateNationPopulation(nationClubs.length, nationLeagues.length, nation.membership, maxTier, {
                 topDivisionSize,
