@@ -186,6 +186,23 @@ export default function DomesticCups() {
             </PageHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Nation filter when viewing all */}
+                {!nationId && nations.length > 0 && (
+                    <div className="mb-6 flex flex-wrap gap-2">
+                        <Link to={createPageUrl('DomesticCups')}>
+                            <Button variant={!nationId ? 'default' : 'outline'} size="sm">All Nations</Button>
+                        </Link>
+                        {nations.filter(n => cups.some(c => c.nation_id === n.id)).map(n => (
+                            <Link key={n.id} to={createPageUrl(`DomesticCups?nation_id=${n.id}`)}>
+                                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                    {n.flag_url && <img src={n.flag_url} alt="" className="w-4 h-3 object-contain" />}
+                                    {n.name}
+                                </Button>
+                            </Link>
+                        ))}
+                    </div>
+                )}
+                
                 {cups.length === 0 ? (
                     <Card className="border-dashed border-2 border-slate-300">
                         <CardContent className="flex flex-col items-center justify-center py-16">
