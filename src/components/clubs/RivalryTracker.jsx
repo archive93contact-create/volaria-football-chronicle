@@ -75,8 +75,9 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         });
 
         return Object.values(rivalryScores)
+            .filter(r => r.score >= 50) // Only fierce (80+) and intense (50+)
             .sort((a, b) => b.score - a.score)
-            .slice(0, 8);
+            .slice(0, 6);
     }, [club, allClubs, allLeagueTables]);
 
     if (rivalries.length === 0) return null;
