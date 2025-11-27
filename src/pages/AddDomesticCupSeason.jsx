@@ -15,24 +15,35 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 
-// Calculate number of rounds needed for a knockout tournament
+// Calculate the next power of 2 for bracket sizing
+const nextPowerOf2 = (n) => {
+    let power = 1;
+    while (power < n) power *= 2;
+    return power;
+};
+
+// Get round name based on number of matches remaining
+const getRoundName = (teamsRemaining) => {
+    if (teamsRemaining === 2) return 'Final';
+    if (teamsRemaining === 4) return 'Semi-final';
+    if (teamsRemaining === 8) return 'Quarter-final';
+    if (teamsRemaining === 16) return 'Round of 16';
+    if (teamsRemaining === 32) return 'Round of 32';
+    if (teamsRemaining === 64) return 'Round of 64';
+    if (teamsRemaining === 128) return 'Round of 128';
+    return `Round of ${teamsRemaining}`;
+};
+
+// Calculate rounds for a proper bracket (always power of 2)
 const calculateRounds = (numTeams) => {
     if (numTeams <= 1) return [];
+    const bracketSize = nextPowerOf2(numTeams);
     const rounds = [];
-    let remaining = numTeams;
+    let remaining = bracketSize;
     
-    // Work backwards from final
     while (remaining > 1) {
-        if (remaining === 2) rounds.unshift({ name: 'Final', matches: 1 });
-        else if (remaining <= 4) rounds.unshift({ name: 'Semi-final', matches: remaining / 2 });
-        else if (remaining <= 8) rounds.unshift({ name: 'Quarter-final', matches: remaining / 2 });
-        else if (remaining <= 16) rounds.unshift({ name: 'Round of 16', matches: remaining / 2 });
-        else if (remaining <= 32) rounds.unshift({ name: 'Round of 32', matches: remaining / 2 });
-        else if (remaining <= 64) rounds.unshift({ name: 'Round of 64', matches: remaining / 2 });
-        else if (remaining <= 128) rounds.unshift({ name: 'Round of 128', matches: remaining / 2 });
-        else rounds.unshift({ name: `Round of ${remaining}`, matches: remaining / 2 });
-        
-        remaining = Math.ceil(remaining / 2);
+        rounds.push({ name: getRoundName(remaining), matches: remaining / 2 });
+        remaining = remaining / 2;
     }
     return rounds;
 };
