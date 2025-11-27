@@ -1,13 +1,40 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Trophy, TrendingUp, Users, MapPin, Star, Clock, Shield, Landmark, History } from 'lucide-react';
+import { BookOpen, Trophy, TrendingUp, Users, MapPin, Star, Clock, Shield, Landmark, History, Mountain, Trees, Waves, Building, Factory, Globe } from 'lucide-react';
 
-export default function LocationNarratives({ locationName, locationType, clubs = [], leagues = [], nation, isCapital = false }) {
+// Detect geographical features from location name
+function detectGeography(name) {
+    const lowerName = name.toLowerCase();
+    const features = [];
+    
+    // Terrain keywords
+    if (/hill|mount|peak|ridge|highland|height|fell|tor|crag/.test(lowerName)) features.push({ type: 'hills', desc: 'hilly terrain' });
+    if (/valley|vale|dale|glen|hollow|basin/.test(lowerName)) features.push({ type: 'valley', desc: 'sheltered valley' });
+    if (/plain|flat|field|meadow|green|lea/.test(lowerName)) features.push({ type: 'plains', desc: 'open plains' });
+    if (/forest|wood|grove|oak|elm|birch|pine|tree/.test(lowerName)) features.push({ type: 'forest', desc: 'forested area' });
+    if (/river|stream|brook|water|lake|pond|mere|bay|port|harbour|coast|sea|beach|shore/.test(lowerName)) features.push({ type: 'water', desc: 'waterside location' });
+    if (/marsh|fen|bog|moor|heath|swamp/.test(lowerName)) features.push({ type: 'wetland', desc: 'marshy lowlands' });
+    if (/stone|rock|cliff|crag|quarry/.test(lowerName)) features.push({ type: 'rocky', desc: 'rocky landscape' });
+    if (/bridge|ford|cross|gate|way/.test(lowerName)) features.push({ type: 'crossing', desc: 'historic crossing point' });
+    if (/castle|fort|tower|burgh|chester/.test(lowerName)) features.push({ type: 'historic', desc: 'historic fortification' });
+    if (/mill|mine|forge|works|pit/.test(lowerName)) features.push({ type: 'industrial', desc: 'industrial heritage' });
+    if (/north|south|east|west|upper|lower|mid|central/.test(lowerName)) features.push({ type: 'directional', desc: 'geographic position' });
+    if (/new|old|great|little|high|low/.test(lowerName)) features.push({ type: 'descriptive', desc: 'settlement character' });
+    
+    return features;
+}
+
+export default function LocationNarratives({ locationName, locationType, clubs = [], leagues = [], nation, isCapital = false, parentRegion, parentDistrict }) {
     const narratives = useMemo(() => {
         if (!locationName || clubs.length === 0) return [];
         
         const stories = [];
         const totalClubs = clubs.length;
+        
+        // Geographic features narrative
+        const geoFeatures = detectGeography(locationName);
+        const parentGeo = parentRegion ? detectGeography(parentRegion) : [];
+        const districtGeo = parentDistrict ? detectGeography(parentDistrict) : [];
         
         // Get club statistics
         const totalLeagueTitles = clubs.reduce((sum, c) => sum + (c.league_titles || 0), 0);
@@ -37,6 +64,61 @@ export default function LocationNarratives({ locationName, locationType, clubs =
                 color: 'text-purple-600',
                 bg: 'bg-purple-50'
             });
+        }
+        
+        // Geographic narrative
+        if (geoFeatures.length > 0) {
+            const feature = geoFeatures[0];
+            let geoIcon = MapPin;
+            let geoText = '';
+            
+            if (feature.type === 'hills' || feature.type === 'rocky') {
+                geoIcon = Mountain;
+                geoText = `Nestled in ${feature.desc}, ${locationName} has a rugged character that shapes its football culture. The challenging terrain has bred tough, resilient clubs known for their fighting spirit.`;
+            } else if (feature.type === 'water') {
+                geoIcon = Waves;
+                geoText = `${locationName}'s ${feature.desc} has historically connected it to trade and travel. This cosmopolitan influence is reflected in diverse playing styles and strong community support for local clubs.`;
+            } else if (feature.type === 'forest') {
+                geoIcon = Trees;
+                geoText = `Surrounded by ${feature.desc}, ${locationName} has a distinctive identity rooted in its natural setting. Local clubs often bear names and colours inspired by the woodland heritage.`;
+            } else if (feature.type === 'industrial') {
+                geoIcon = Factory;
+                geoText = `With its ${feature.desc}, ${locationName} developed a strong working-class football tradition. Clubs here emerged from factories and mines, carrying the pride of the local workforce.`;
+            } else if (feature.type === 'historic') {
+                geoIcon = Building;
+                geoText = `The ${feature.desc} of ${locationName} speaks to its ancient roots. Football here carries centuries of local pride and tradition, with clubs deeply embedded in the community fabric.`;
+            } else if (feature.type === 'valley') {
+                geoIcon = Mountain;
+                geoText = `Protected by the surrounding hills, the ${feature.desc} of ${locationName} has fostered close-knit communities with fierce loyalty to their local clubs.`;
+            } else if (feature.type === 'crossing') {
+                geoIcon = Building;
+                geoText = `As a ${feature.desc}, ${locationName} has long been a meeting place of people and ideas. This heritage of connection shows in the passionate, well-supported football scene.`;
+            }
+            
+            if (geoText) {
+                stories.push({
+                    icon: geoIcon,
+                    title: 'Landscape & Character',
+                    text: geoText,
+                    color: 'text-teal-600',
+                    bg: 'bg-teal-50'
+                });
+            }
+        }
+        
+        // Regional context narrative
+        if (parentRegion && locationType !== 'region') {
+            const regionGeo = detectGeography(parentRegion);
+            if (regionGeo.length > 0) {
+                const regionFeature = regionGeo[0];
+                stories.push({
+                    icon: Globe,
+                    title: `Part of ${parentRegion}`,
+                    text: `Located within the ${parentRegion} region${regionFeature ? `, known for its ${regionFeature.desc}` : ''}. ${locationName} shares the regional football traditions while maintaining its own distinct identity.`,
+                    color: 'text-slate-600',
+                    bg: 'bg-slate-50'
+                });
+            }
         }
         
         // Location size narrative

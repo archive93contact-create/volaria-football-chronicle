@@ -10,9 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
 
-// Estimate population based on clubs, tiers, and some randomness
-function estimatePopulation(clubCount, locationType, isCapital = false, locationName = '', clubs = []) {
-    // Use location name as seed for consistent "random" values
+// Estimate population for a single settlement
+function estimateSettlementPopulation(locationName, clubs, isCapital = false) {
     const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const pseudoRandom = (min, max) => {
         const x = Math.sin(seed) * 10000;
@@ -20,48 +19,74 @@ function estimatePopulation(clubCount, locationType, isCapital = false, location
         return Math.floor(rand * (max - min + 1)) + min;
     };
     
-    const baseMultipliers = {
-        region: 400000,
-        district: 80000,
-        settlement: 20000
-    };
-    let base = baseMultipliers[locationType] || 50000;
+    let base = 20000;
     
     // Calculate tier bonus - higher tier clubs = larger population
     let tierBonus = 0;
     clubs.forEach(club => {
-        if (club.league_id) {
-            // Approximate tier from league (would need actual tier data)
-            tierBonus += 15000; // Base per club
-        }
+        if (club.league_id) tierBonus += 15000;
         if (club.seasons_top_flight > 0) tierBonus += club.seasons_top_flight * 2000;
         if (club.league_titles > 0) tierBonus += club.league_titles * 10000;
     });
     
-    // Capitals get a significant boost
     if (isCapital) {
-        base = Math.max(base * 5, 300000);
+        base = 300000;
     }
     
-    // Random variance factor (0.7 to 1.4)
     const variance = 0.7 + (pseudoRandom(0, 70) / 100);
-    
-    let population = Math.floor((clubCount * base + tierBonus + base * 0.3) * variance);
-    
-    // Add some non-round "realistic" numbers
+    let population = Math.floor((clubs.length * base + tierBonus + base * 0.3) * variance);
     const remainder = pseudoRandom(100, 9999);
     population = Math.floor(population / 10000) * 10000 + remainder;
     
-    // Ensure capitals have a respectable minimum population
     if (isCapital && population < 600000) {
-        population = 600000 + (clubCount * 120000) + pseudoRandom(10000, 99999);
+        population = 600000 + (clubs.length * 120000) + pseudoRandom(10000, 99999);
     }
     
-    // Format display
-    if (population >= 1000000) {
-        return { value: population, display: `${(population / 1000000).toFixed(2)} million` };
+    return population;
+}
+
+// Estimate population by aggregating child locations
+function estimatePopulation(locationType, locationClubs, allClubs, nationId, nation, locationName) {
+    const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const pseudoRandom = (min, max) => {
+        const x = Math.sin(seed) * 10000;
+        const rand = x - Math.floor(x);
+        return Math.floor(rand * (max - min + 1)) + min;
+    };
+    
+    let totalPopulation = 0;
+    
+    if (locationType === 'settlement') {
+        const isCapital = nation?.capital?.toLowerCase() === locationName.toLowerCase();
+        totalPopulation = estimateSettlementPopulation(locationName, locationClubs, isCapital);
+    } else {
+        // For regions/districts, aggregate settlement populations
+        const settlements = new Map();
+        locationClubs.forEach(club => {
+            const settlementName = club.settlement || club.city;
+            if (settlementName) {
+                if (!settlements.has(settlementName)) {
+                    settlements.set(settlementName, []);
+                }
+                settlements.get(settlementName).push(club);
+            }
+        });
+        
+        settlements.forEach((clubs, name) => {
+            const isCapital = nation?.capital?.toLowerCase() === name.toLowerCase();
+            totalPopulation += estimateSettlementPopulation(name, clubs, isCapital);
+        });
+        
+        // Add rural population (people not in tracked settlements)
+        const ruralBase = locationType === 'region' ? 100000 : 30000;
+        const ruralVariance = 0.5 + (pseudoRandom(0, 100) / 100);
+        totalPopulation += Math.floor(ruralBase * ruralVariance) + pseudoRandom(1000, 9999);
     }
-    return { value: population, display: population.toLocaleString() };
+    
+    if (totalPopulation >= 1000000) {
+        return { value: totalPopulation, display: `${(totalPopulation / 1000000).toFixed(2)} million` };
+    }
+    return { value: totalPopulation, display: totalPopulation.toLocaleString() };
 }
 
 export default function LocationDetail() {
@@ -199,12 +224,12 @@ export default function LocationDetail() {
         }).length;
         
         return {
-            population: estimatePopulation(locationClubs.length, locationType, isCapital, displayName, locationClubs),
+            population: estimatePopulation(locationType, locationClubs, clubs, nationId, nation, displayName),
             totalTrophies,
             continentalTrophies,
             topFlightClubs
         };
-    }, [locationClubs, leagues, locationType, isCapital, displayName]);
+    }, [locationClubs, clubs, leagues, locationType, nationId, nation, displayName]);
 
     const typeIcon = locationType === 'region' ? Globe : locationType === 'district' ? Building2 : Home;
     const TypeIcon = typeIcon;
@@ -258,6 +283,8 @@ export default function LocationDetail() {
                     leagues={leagues}
                     nation={nation}
                     isCapital={isCapital}
+                    parentRegion={parentInfo.region}
+                    parentDistrict={parentInfo.district}
                 />
 
                 {/* Stats Grid */}
