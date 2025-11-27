@@ -68,11 +68,13 @@ export default function AddSeason() {
     });
 
     const [tableRows, setTableRows] = useState([]);
-    const [divisions, setDivisions] = useState([{ name: '', teams: 18, rows: [] }]);
+    const [divisions, setDivisions] = useState([{ name: '', teams: 18, rows: [], promotion_spots: 2, relegation_spots: 3 }]);
     const [activeDivision, setActiveDivision] = useState(0);
     const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
     const [pasteText, setPasteText] = useState('');
     const [useMultipleDivisions, setUseMultipleDivisions] = useState(false);
+    const [divisionPasteDialogOpen, setDivisionPasteDialogOpen] = useState(false);
+    const [divisionPasteText, setDivisionPasteText] = useState('');
 
     const initializeTable = (numTeams) => {
         const rows = [];
@@ -101,7 +103,7 @@ export default function AddSeason() {
     };
 
     const addDivision = () => {
-        setDivisions([...divisions, { name: '', teams: 18, rows: [] }]);
+        setDivisions([...divisions, { name: '', teams: 18, rows: [], promotion_spots: 2, relegation_spots: 3 }]);
     };
 
     const removeDivision = (index) => {
@@ -144,6 +146,51 @@ export default function AddSeason() {
         else if (status === 'relegated') updated[divIndex].rows[rowIndex].highlight_color = seasonData.relegation_color;
         else if (status === 'playoff') updated[divIndex].rows[rowIndex].highlight_color = seasonData.playoff_color;
         else updated[divIndex].rows[rowIndex].highlight_color = '';
+        setDivisions(updated);
+    };
+
+    const handleDivisionPasteClubs = () => {
+        const lines = divisionPasteText.split('\n').filter(line => line.trim());
+        if (lines.length === 0) return;
+
+        const updated = [...divisions];
+        updated[activeDivision].teams = lines.length;
+        updated[activeDivision].rows = lines.map((line, idx) => ({
+            position: idx + 1,
+            club_name: line.trim(),
+            played: 0, won: 0, drawn: 0, lost: 0,
+            goals_for: 0, goals_against: 0, goal_difference: 0, points: 0,
+            status: '', highlight_color: ''
+        }));
+        setDivisions(updated);
+        setDivisionPasteDialogOpen(false);
+        setDivisionPasteText('');
+    };
+
+    const applyDivisionAutoStatus = (divIndex) => {
+        const updated = [...divisions];
+        const div = updated[divIndex];
+        const promoSpots = div.promotion_spots || 0;
+        const relegSpots = div.relegation_spots || 0;
+        
+        div.rows = div.rows.map((row, idx) => {
+            const pos = idx + 1;
+            let status = '';
+            let color = '';
+            
+            if (pos === 1) {
+                status = 'champion';
+                color = seasonData.champion_color;
+            } else if (pos <= promoSpots) {
+                status = 'promoted';
+                color = seasonData.promotion_color;
+            } else if (pos > div.rows.length - relegSpots) {
+                status = 'relegated';
+                color = seasonData.relegation_color;
+            }
+            
+            return { ...row, status, highlight_color: color };
+        });
         setDivisions(updated);
     };
 
@@ -839,8 +886,8 @@ export default function AddSeason() {
                                 {divisions.map((div, divIdx) => (
                                     <TabsContent key={divIdx} value={String(divIdx)}>
                                         <div className="space-y-4">
-                                            <div className="flex gap-4 items-end">
-                                                <div className="flex-1">
+                                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 items-end">
+                                                <div className="md:col-span-2">
                                                     <Label>Division Name *</Label>
                                                     <Input 
                                                         value={div.name} 
@@ -849,7 +896,7 @@ export default function AddSeason() {
                                                         className="mt-1"
                                                     />
                                                 </div>
-                                                <div className="w-32">
+                                                <div>
                                                     <Label>Teams</Label>
                                                     <Input 
                                                         type="number" 
@@ -860,12 +907,26 @@ export default function AddSeason() {
                                                         className="mt-1"
                                                     />
                                                 </div>
-                                                <Button 
-                                                    onClick={() => initializeDivisionTable(divIdx, div.teams)}
-                                                    variant="outline"
-                                                >
-                                                    Generate Table
-                                                </Button>
+                                                <div>
+                                                    <Label>Promotion Spots</Label>
+                                                    <Input 
+                                                        type="number" 
+                                                        min="0"
+                                                        value={div.promotion_spots || 0} 
+                                                        onChange={(e) => updateDivision(divIdx, 'promotion_spots', parseInt(e.target.value) || 0)}
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label>Relegation Spots</Label>
+                                                    <Input 
+                                                        type="number" 
+                                                        min="0"
+                                                        value={div.relegation_spots || 0} 
+                                                        onChange={(e) => updateDivision(divIdx, 'relegation_spots', parseInt(e.target.value) || 0)}
+                                                        className="mt-1"
+                                                    />
+                                                </div>
                                                 {divisions.length > 1 && (
                                                     <Button 
                                                         onClick={() => removeDivision(divIdx)}
@@ -873,6 +934,58 @@ export default function AddSeason() {
                                                         className="text-red-500 hover:text-red-700"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Dialog open={divisionPasteDialogOpen && activeDivision === divIdx} onOpenChange={(open) => {
+                                                    setDivisionPasteDialogOpen(open);
+                                                    if (!open) setDivisionPasteText('');
+                                                }}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" onClick={() => setActiveDivision(divIdx)}>
+                                                            <ClipboardPaste className="w-4 h-4 mr-2" /> Paste Club List
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Paste Club Names - {div.name || `Division ${divIdx + 1}`}</DialogTitle>
+                                                        </DialogHeader>
+                                                        <div className="space-y-4 py-4">
+                                                            <p className="text-sm text-slate-500">
+                                                                Paste club names (one per line) in order of league position.
+                                                            </p>
+                                                            <Textarea
+                                                                value={divisionPasteText}
+                                                                onChange={(e) => setDivisionPasteText(e.target.value)}
+                                                                placeholder={"1st Place FC\n2nd Place United\n3rd Place City\n..."}
+                                                                rows={12}
+                                                                className="font-mono text-sm"
+                                                            />
+                                                            <p className="text-xs text-slate-400">
+                                                                {divisionPasteText.split('\n').filter(l => l.trim()).length} clubs detected
+                                                            </p>
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button variant="outline" onClick={() => setDivisionPasteDialogOpen(false)}>Cancel</Button>
+                                                                <Button onClick={handleDivisionPasteClubs} disabled={!divisionPasteText.trim()} className="bg-emerald-600 hover:bg-emerald-700">
+                                                                    Populate Table
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                                <Button 
+                                                    onClick={() => initializeDivisionTable(divIdx, div.teams)}
+                                                    variant="outline"
+                                                >
+                                                    Generate Empty Table
+                                                </Button>
+                                                {div.rows.length > 0 && (
+                                                    <Button 
+                                                        onClick={() => applyDivisionAutoStatus(divIdx)}
+                                                        variant="outline"
+                                                    >
+                                                        Apply Auto-Status
                                                     </Button>
                                                 )}
                                             </div>
