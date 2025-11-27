@@ -187,7 +187,7 @@ export default function CompetitionDetail() {
                     {competition.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-lg font-bold text-emerald-600 truncate">{competition.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
                 </div>
 
-                {/* Narratives */}
+                {/* Narratives - Competition Story */}
                 <ContinentalNarratives competition={competition} seasons={seasons} nations={nations} />
 
                 {/* History */}
