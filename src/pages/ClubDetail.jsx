@@ -349,6 +349,15 @@ export default function ClubDetail() {
                             </CardContent>
                         </Card>
                     )}
+                    {club.domestic_cup_titles > 0 && (
+                        <Card className="border-0 shadow-sm bg-orange-50">
+                            <CardContent className="p-4 text-center">
+                                <Award className="w-6 h-6 text-orange-500 mx-auto mb-2" />
+                                <div className="text-2xl font-bold text-orange-700">{club.domestic_cup_titles}</div>
+                                <div className="text-xs text-orange-600">Cup Titles</div>
+                            </CardContent>
+                        </Card>
+                    )}
                     {combinedStats?.best_finish && (
                                                   <Card className="border-0 shadow-sm">
                                                       <CardContent className="p-4 text-center">
