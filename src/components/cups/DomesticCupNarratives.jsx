@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Calendar, Star, TrendingUp, Award, Users, Zap } from 'lucide-react';
 
 export default function DomesticCupNarratives({ cup, seasons, clubs = [] }) {
-    if (!cup || seasons.length === 0) return null;
+    if (!cup) return null;
 
     const narratives = [];
 
@@ -18,7 +18,28 @@ export default function DomesticCupNarratives({ cup, seasons, clubs = [] }) {
                 color: 'text-amber-600',
                 bg: 'bg-amber-50'
             });
+        } else if (age >= 1) {
+            narratives.push({
+                icon: Calendar,
+                title: age <= 5 ? 'New Competition' : 'Growing Cup',
+                text: `Founded in ${cup.founded_year}, this cup is building its legacy with ${age} year${age > 1 ? 's' : ''} of history.`,
+                color: 'text-emerald-600',
+                bg: 'bg-emerald-50'
+            });
         }
+    }
+
+    // Show editions count even with few seasons
+    if (seasons.length >= 1 && seasons.length < 20) {
+        narratives.push({
+            icon: Trophy,
+            title: seasons.length === 1 ? 'Inaugural Edition' : 'Building Tradition',
+            text: seasons.length === 1 
+                ? `The first edition of the ${cup.short_name || cup.name} has been contested.`
+                : `${seasons.length} editions have been played, with more history yet to be written.`,
+            color: 'text-blue-600',
+            bg: 'bg-blue-50'
+        });
     }
 
     // 2. Most Successful Club
