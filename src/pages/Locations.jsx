@@ -12,14 +12,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 
 // Estimate population based on clubs in location
-function estimateLocationPopulation(clubCount, locationType) {
+function estimateLocationPopulation(clubCount, locationType, isCapital = false) {
     const baseMultipliers = {
         region: 500000,
         district: 100000,
         settlement: 25000
     };
-    const base = baseMultipliers[locationType] || 50000;
-    const population = clubCount * base + Math.floor(Math.random() * base * 0.5);
+    let base = baseMultipliers[locationType] || 50000;
+    
+    // Capitals get a significant boost
+    if (isCapital) {
+        base = Math.max(base * 4, 200000);
+    }
+    
+    let population = clubCount * base + Math.floor(base * 0.5);
+    
+    // Ensure capitals have respectable minimum
+    if (isCapital && population < 500000) {
+        population = 500000 + (clubCount * 100000);
+    }
     
     if (population >= 1000000) {
         return `${(population / 1000000).toFixed(1)}M`;
@@ -175,7 +186,7 @@ export default function Locations() {
                                     )}
                                     <span className="flex items-center gap-1">
                                         <Users className="w-3 h-3" />
-                                        ~{estimateLocationPopulation(location.clubs.length, location.type)}
+                                        ~{estimateLocationPopulation(location.clubs.length, location.type, isCapital)}
                                     </span>
                                 </div>
                                 {location.region && location.type !== 'region' && (

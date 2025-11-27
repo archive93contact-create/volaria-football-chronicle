@@ -11,14 +11,25 @@ import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
 
 // Estimate population based on clubs
-function estimatePopulation(clubCount, locationType) {
+function estimatePopulation(clubCount, locationType, isCapital = false) {
     const baseMultipliers = {
         region: 500000,
         district: 100000,
         settlement: 25000
     };
-    const base = baseMultipliers[locationType] || 50000;
-    const population = clubCount * base + Math.floor(base * 0.3);
+    let base = baseMultipliers[locationType] || 50000;
+    
+    // Capitals get a significant boost
+    if (isCapital) {
+        base = Math.max(base * 4, 200000); // Minimum 200k for a capital
+    }
+    
+    let population = clubCount * base + Math.floor(base * 0.5);
+    
+    // Ensure capitals have a respectable minimum population
+    if (isCapital && population < 500000) {
+        population = 500000 + (clubCount * 100000);
+    }
     
     if (population >= 1000000) {
         return { value: population, display: `${(population / 1000000).toFixed(1)} million` };
@@ -158,7 +169,7 @@ export default function LocationDetail() {
         }).length;
         
         return {
-            population: estimatePopulation(locationClubs.length, locationType),
+            population: estimatePopulation(locationClubs.length, locationType, isCapital),
             totalTrophies,
             continentalTrophies,
             topFlightClubs

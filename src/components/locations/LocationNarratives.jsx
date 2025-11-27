@@ -209,9 +209,11 @@ export default function LocationNarratives({ locationName, locationType, clubs =
             });
         }
         
-        // Rivalry detection
+        // Rivalry detection - both explicit and dynamic (location-based)
         const clubsWithRivals = clubs.filter(c => c.rival_club_ids?.length > 0);
         const localRivalries = [];
+        
+        // Explicit rivalries
         clubsWithRivals.forEach(club => {
             club.rival_club_ids?.forEach(rivalId => {
                 if (clubs.find(c => c.id === rivalId)) {
@@ -220,24 +222,66 @@ export default function LocationNarratives({ locationName, locationType, clubs =
                         (r.a === club.name && r.b === rival.name) || 
                         (r.a === rival.name && r.b === club.name)
                     )) {
-                        localRivalries.push({ a: club.name, b: rival.name });
+                        localRivalries.push({ a: club.name, b: rival.name, type: 'historic' });
                     }
                 }
             });
         });
         
-        if (localRivalries.length > 0) {
-            const rivalryText = localRivalries.length === 1 
-                ? `The rivalry between ${localRivalries[0].a} and ${localRivalries[0].b} defines local football, with derby matches the most anticipated fixtures of the season.`
-                : `Multiple local derbies including ${localRivalries.slice(0, 2).map(r => `${r.a} vs ${r.b}`).join(' and ')} create an intense football atmosphere.`;
+        // Dynamic rivalries - clubs in same settlement/town become natural rivals
+        if (locationType === 'settlement' && clubs.length >= 2) {
+            // Find top clubs to create natural derby
+            const sortedBySuccess = [...clubs].sort((a, b) => 
+                ((b.league_titles || 0) + (b.seasons_top_flight || 0)) - 
+                ((a.league_titles || 0) + (a.seasons_top_flight || 0))
+            );
             
-            stories.push({
-                icon: Users,
-                title: 'Derby Fever',
-                text: rivalryText,
-                color: 'text-red-600',
-                bg: 'bg-red-50'
-            });
+            for (let i = 0; i < Math.min(sortedBySuccess.length - 1, 3); i++) {
+                for (let j = i + 1; j < Math.min(sortedBySuccess.length, 4); j++) {
+                    const clubA = sortedBySuccess[i];
+                    const clubB = sortedBySuccess[j];
+                    // Check if this rivalry already exists
+                    if (!localRivalries.find(r => 
+                        (r.a === clubA.name && r.b === clubB.name) || 
+                        (r.a === clubB.name && r.b === clubA.name)
+                    )) {
+                        localRivalries.push({ a: clubA.name, b: clubB.name, type: 'local' });
+                    }
+                }
+            }
+        }
+        
+        if (localRivalries.length > 0) {
+            const historicRivalries = localRivalries.filter(r => r.type === 'historic');
+            const localDerbies = localRivalries.filter(r => r.type === 'local');
+            
+            if (historicRivalries.length > 0) {
+                const rivalryText = historicRivalries.length === 1 
+                    ? `The historic rivalry between ${historicRivalries[0].a} and ${historicRivalries[0].b} defines local football, with derby matches the most anticipated fixtures of the season.`
+                    : `Historic derbies including ${historicRivalries.slice(0, 2).map(r => `${r.a} vs ${r.b}`).join(' and ')} create an intense football atmosphere.`;
+                
+                stories.push({
+                    icon: Users,
+                    title: 'Historic Rivalries',
+                    text: rivalryText,
+                    color: 'text-red-600',
+                    bg: 'bg-red-50'
+                });
+            }
+            
+            if (localDerbies.length > 0 && historicRivalries.length === 0) {
+                const derbyText = localDerbies.length === 1 
+                    ? `${localDerbies[0].a} and ${localDerbies[0].b} contest the local derby, a fixture born from shared streets and neighbourhood pride.`
+                    : `Multiple local derbies fuel the passion here, with ${localDerbies.slice(0, 2).map(r => `${r.a} vs ${r.b}`).join(' and ')} being the most intense.`;
+                
+                stories.push({
+                    icon: Users,
+                    title: 'Local Derbies',
+                    text: derbyText,
+                    color: 'text-orange-600',
+                    bg: 'bg-orange-50'
+                });
+            }
         }
         
         return stories.slice(0, 6);
