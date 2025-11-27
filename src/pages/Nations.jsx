@@ -111,9 +111,9 @@ export default function Nations() {
                 topDivisionSize,
                 avgDivisionSize,
                 totalDivisions: nationLeagues.length,
-                regionCount: regions.size,
-                districtCount: districts.size,
-                settlementCount: settlements.size
+                regionCount: geoRegions.size,
+                districtCount: geoDistricts.size,
+                settlementCount: geoSettlements.size
             });
             const population = populationData.value;
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
