@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { MapPin, Users, Shield, ChevronRight, Search, Globe, Building2, Home } from 'lucide-react';
+import { MapPin, Users, Shield, ChevronRight, Search, Globe, Building2, Home, Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -127,21 +127,23 @@ export default function Locations() {
     const renderLocationCard = (location) => {
         const icon = location.type === 'region' ? Globe : location.type === 'district' ? Building2 : Home;
         const Icon = icon;
+        const isCapital = location.type === 'settlement' && location.nation?.capital?.toLowerCase() === location.name.toLowerCase();
         
         return (
             <Link 
                 key={`${location.type}-${location.nation?.id}-${location.name}`}
                 to={createPageUrl(`LocationDetail?name=${encodeURIComponent(location.name)}&type=${location.type}&nation_id=${location.nation?.id}`)}
             >
-                <Card className="border-0 shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5">
+                <Card className={`border-0 shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5 ${isCapital ? 'ring-2 ring-amber-300 bg-amber-50/50' : ''}`}>
                     <CardContent className="p-4">
                         <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
-                                <Icon className="w-6 h-6 text-emerald-600" />
+                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isCapital ? 'bg-gradient-to-br from-amber-200 to-yellow-200' : 'bg-gradient-to-br from-emerald-100 to-teal-100'}`}>
+                                <Icon className={`w-6 h-6 ${isCapital ? 'text-amber-600' : 'text-emerald-600'}`} />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                     <h3 className="font-bold text-slate-900 truncate">{location.name}</h3>
+                                    {isCapital && <Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
                                     <Badge variant="outline" className="text-xs">
                                         {location.type}
                                     </Badge>

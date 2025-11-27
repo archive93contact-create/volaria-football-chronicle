@@ -197,13 +197,16 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
             <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {/* Capital */}
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                        <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
+                    <Link 
+                        to={stats.capital ? createPageUrl(`LocationDetail?name=${encodeURIComponent(stats.capital)}&type=settlement&nation_id=${nation.id}`) : '#'}
+                        className="p-3 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg hover:shadow-md transition-shadow"
+                    >
+                        <div className="flex items-center gap-2 text-amber-600 text-xs mb-1">
                             <MapPin className="w-3 h-3" />
-                            Capital
+                            Capital ⭐
                         </div>
-                        <div className="font-semibold text-slate-800">{stats.capital}</div>
-                    </div>
+                        <div className="font-semibold text-amber-800">{stats.capital}</div>
+                    </Link>
 
                     {/* Population */}
                     <div className="p-3 bg-slate-50 rounded-lg">
