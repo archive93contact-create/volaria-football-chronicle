@@ -3,6 +3,19 @@ import { Button } from "@/components/ui/button";
 import { base44 } from '@/api/base44Client';
 import { RefreshCw, Loader2, CheckCircle } from 'lucide-react';
 
+// Helper to initialize club stats
+const initClubStats = (clubStats, clubId) => {
+    if (!clubStats[clubId]) {
+        clubStats[clubId] = { 
+            titles: 0, 
+            titleYears: [], 
+            runnerUp: 0,
+            bestFinish: null,
+            bestFinishYear: null
+        };
+    }
+};
+
 // Round order for comparing best finishes (lower index = better)
 const ROUND_ORDER = [
     'Winner', 'Final', 'Semi-final', 'Quarter-final', 
@@ -37,25 +50,12 @@ export async function syncCupStatsToClubs(nationId = null) {
     // Build stats per club
     const clubStats = {};
     
-    // Initialize helper function
-    const initClubStats = (clubId) => {
-        if (!clubStats[clubId]) {
-            clubStats[clubId] = { 
-                titles: 0, 
-                titleYears: [], 
-                runnerUp: 0,
-                bestFinish: null,
-                bestFinishYear: null
-            };
-        }
-    };
-    
     relevantSeasons.forEach(season => {
         // Winner stats
         if (season.champion_name) {
             const club = clubs.find(c => c.name === season.champion_name || c.id === season.champion_id);
             if (club) {
-                initClubStats(club.id);
+                initClubStats(clubStats, club.id);
                 clubStats[club.id].titles++;
                 clubStats[club.id].titleYears.push(season.year);
                 if (isRoundBetter('Winner', clubStats[club.id].bestFinish)) {
@@ -69,7 +69,7 @@ export async function syncCupStatsToClubs(nationId = null) {
         if (season.runner_up) {
             const club = clubs.find(c => c.name === season.runner_up || c.id === season.runner_up_id);
             if (club) {
-                initClubStats(club.id);
+                initClubStats(clubStats, club.id);
                 clubStats[club.id].runnerUp++;
                 if (isRoundBetter('Final', clubStats[club.id].bestFinish)) {
                     clubStats[club.id].bestFinish = 'Final';
@@ -96,7 +96,7 @@ export async function syncCupStatsToClubs(nationId = null) {
         const club = clubs.find(c => c.name === loser || c.id === loserId);
         
         if (club) {
-            initClubStats(club.id);
+            initClubStats(clubStats, club.id);
             // The loser's best finish for this season is the round they lost in
             if (isRoundBetter(match.round, clubStats[club.id].bestFinish)) {
                 clubStats[club.id].bestFinish = match.round;
