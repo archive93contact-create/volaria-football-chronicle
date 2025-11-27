@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
+import AdminOnly from '@/components/common/AdminOnly';
 
 // Estimate population based on clubs and membership
 function estimatePopulation(clubCount, leagueCount, membership) {
@@ -134,12 +135,14 @@ export default function Nations() {
                 subtitle="Explore all 37 nations and their complete football structures"
                 breadcrumbs={[{ label: 'Nations' }]}
             >
-                <Link to={createPageUrl('AddNation')}>
-                    <Button className="bg-emerald-600 hover:bg-emerald-700">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Nation
-                    </Button>
-                </Link>
+                <AdminOnly>
+                    <Link to={createPageUrl('AddNation')}>
+                        <Button className="bg-emerald-600 hover:bg-emerald-700">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Nation
+                        </Button>
+                    </Link>
+                </AdminOnly>
             </PageHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
