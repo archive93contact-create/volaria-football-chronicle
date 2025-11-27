@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Calendar, Award, Flame, Shield } from 'lucide-react';
+import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Calendar, Award, Flame, Shield, Users, Target, Zap } from 'lucide-react';
 
 export default function ClubHistory({ club, nation, league, seasons = [], leagues = [] }) {
     const events = useMemo(() => {
@@ -14,80 +14,129 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         
         const firstSeason = sortedSeasons[0];
         const foundingYear = club.founded_year || parseInt(firstSeason?.year?.split('-')[0]);
+        const ordinal = (n) => n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`;
 
-        // Founding event
+        // Founding event - more immersive
         if (foundingYear) {
             const locations = [club.settlement, club.district, club.region].filter(Boolean);
-            const locationText = locations.length > 0 ? locations[0] : nation?.name;
+            const locationText = locations.length > 0 ? locations[0] : club.city;
             
-            const foundingPhrases = [
-                `${club.name} was established in ${foundingYear}${locationText ? ` in ${locationText}` : ''}.`,
-                `The club was founded in ${foundingYear}${locationText ? `, representing ${locationText}` : ''}.`,
-                `${foundingYear} saw the formation of ${club.name}${locationText ? ` in ${locationText}` : ''}.`,
-            ];
+            let foundingText;
+            if (club.nickname) {
+                foundingText = `${club.name}, known as "${club.nickname}", was founded${locationText ? ` in ${locationText}` : ''}.`;
+            } else if (locationText) {
+                foundingText = `The club was established in ${locationText}, marking the beginning of a footballing journey.`;
+            } else {
+                foundingText = `${club.name} was formed, beginning their place in football history.`;
+            }
+            
             results.push({
                 year: foundingYear,
                 icon: Calendar,
                 color: 'text-slate-600',
-                text: foundingPhrases[Math.floor(club.name.length % foundingPhrases.length)]
+                text: foundingText
             });
         }
 
-        // First recorded season
+        // First recorded season with context
         if (firstSeason) {
             const leagueName = getLeagueName(firstSeason.league_id);
+            const tier = getLeagueTier(firstSeason.league_id);
+            const pos = ordinal(firstSeason.position);
+            
+            let seasonText;
+            if (firstSeason.position === 1) {
+                seasonText = `Entered the record books with a championship triumph in ${leagueName} in their first recorded campaign.`;
+            } else if (firstSeason.position <= 3) {
+                seasonText = `Made their mark immediately with a ${pos} place finish in ${leagueName}.`;
+            } else if (tier === 1) {
+                seasonText = `First recorded top-flight season in ${leagueName}, finishing in ${pos} position.`;
+            } else {
+                seasonText = `Earliest records show the club competing in ${leagueName}, finishing ${pos}.`;
+            }
+            
             results.push({
                 year: parseInt(firstSeason.year.split('-')[0]),
                 icon: BookOpen,
                 color: 'text-blue-500',
-                text: `First recorded season in ${leagueName}, finishing ${firstSeason.position}${firstSeason.position === 1 ? 'st' : firstSeason.position === 2 ? 'nd' : firstSeason.position === 3 ? 'rd' : 'th'}.`
+                text: seasonText
             });
         }
 
-        // First top flight season
+        // First top flight season (only if they didn't start there)
         const firstTopFlight = sortedSeasons.find(s => getLeagueTier(s.league_id) === 1);
         if (firstTopFlight && getLeagueTier(firstSeason.league_id) !== 1) {
+            const leagueName = getLeagueName(firstTopFlight.league_id);
             results.push({
                 year: parseInt(firstTopFlight.year.split('-')[0]),
                 icon: Star,
                 color: 'text-amber-500',
-                text: `Reached the top flight for the first time.`
+                text: `Historic promotion to the ${leagueName} - the club's first taste of top-flight football.`
             });
         }
 
-        // Championships
+        // Track championships by tier to avoid "defended title" across tiers
+        const championshipsByTier = {};
         const championships = sortedSeasons.filter(s => s.status === 'champion');
-        championships.forEach((s, idx) => {
+        
+        championships.forEach(s => {
             const tier = getLeagueTier(s.league_id);
-            const leagueName = getLeagueName(s.league_id);
-            const yearNum = parseInt(s.year.split('-')[0]);
+            if (!championshipsByTier[tier]) championshipsByTier[tier] = [];
+            championshipsByTier[tier].push(s);
+        });
+
+        // First ever championship (any tier)
+        if (championships.length > 0) {
+            const firstChamp = championships[0];
+            const tier = getLeagueTier(firstChamp.league_id);
+            const leagueName = getLeagueName(firstChamp.league_id);
+            const yearNum = parseInt(firstChamp.year.split('-')[0]);
             
-            if (idx === 0) {
+            results.push({
+                year: yearNum,
+                icon: Trophy,
+                color: 'text-amber-500',
+                text: tier === 1 
+                    ? `Glory days arrived! ${club.name} were crowned ${leagueName} champions for the first time.`
+                    : `Lifted their first piece of silverware, winning the ${leagueName}.`
+            });
+        }
+
+        // First TOP FLIGHT title (if different from first title)
+        const topFlightChamps = championshipsByTier[1] || [];
+        if (topFlightChamps.length > 0) {
+            const firstTopFlightTitle = topFlightChamps[0];
+            const leagueName = getLeagueName(firstTopFlightTitle.league_id);
+            const yearNum = parseInt(firstTopFlightTitle.year.split('-')[0]);
+            
+            // Only add if it's different from the first ever championship
+            if (championships[0] && getLeagueTier(championships[0].league_id) !== 1) {
                 results.push({
                     year: yearNum,
                     icon: Trophy,
-                    color: 'text-amber-500',
-                    text: tier === 1 
-                        ? `Won their first league title, claiming the ${leagueName} championship.`
-                        : `Secured their first ${leagueName} title.`
+                    color: 'text-yellow-500',
+                    text: `The ultimate prize! Claimed their maiden ${leagueName} championship.`
                 });
-            } else {
-                const prevChamp = championships[idx - 1];
-                const prevYear = parseInt(prevChamp.year.split('-')[0]);
-                if (yearNum === prevYear + 1) {
+            }
+        }
+
+        // Back-to-back titles (only within same tier)
+        Object.entries(championshipsByTier).forEach(([tier, tierChamps]) => {
+            for (let i = 1; i < tierChamps.length; i++) {
+                const prevYear = parseInt(tierChamps[i - 1].year.split('-')[0]);
+                const currYear = parseInt(tierChamps[i].year.split('-')[0]);
+                const leagueName = getLeagueName(tierChamps[i].league_id);
+                
+                if (currYear === prevYear + 1) {
                     results.push({
-                        year: yearNum,
+                        year: currYear,
                         icon: Trophy,
                         color: 'text-amber-600',
-                        text: `Defended the title successfully.`
+                        text: parseInt(tier) === 1 
+                            ? `Retained the ${leagueName} crown, cementing their status as the team to beat.`
+                            : `Back-to-back ${leagueName} titles as the club continued their dominance.`
                     });
-                } else if (tier === 1) {
-                    results.push({
-                        year: yearNum,
-                        icon: Trophy,
-                        color: 'text-amber-500',
-                        text: `Lifted the ${leagueName} trophy once again.`
-                    });
+                    break; // Only show first back-to-back per tier
                 }
             }
         });
@@ -101,19 +150,41 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
                     icon: Award,
                     color: 'text-orange-500',
                     text: idx === 0 
-                        ? `Captured their first domestic cup.`
-                        : `Added another cup to the trophy cabinet.`
+                        ? `Cup glory! Lifted the domestic cup for the first time after a triumphant final.`
+                        : `Another cup triumph added to the growing collection.`
                 });
             });
         }
 
-        // Cup final losses
-        if (club.domestic_cup_runner_up > 0 && club.domestic_cup_best_finish_year && club.domestic_cup_titles === 0) {
+        // Cup final losses (best finish = Final without winning)
+        if (club.domestic_cup_best_finish === 'Final' && (!club.domestic_cup_titles || club.domestic_cup_titles === 0)) {
+            if (club.domestic_cup_best_finish_year) {
+                results.push({
+                    year: parseInt(club.domestic_cup_best_finish_year),
+                    icon: Shield,
+                    color: 'text-slate-500',
+                    text: `Heartbreak in the cup final - so close to glory but fell at the final hurdle.`
+                });
+            }
+        }
+
+        // Cup semi-final best finish
+        if (club.domestic_cup_best_finish === 'Semi-final' && club.domestic_cup_best_finish_year) {
             results.push({
                 year: parseInt(club.domestic_cup_best_finish_year),
-                icon: Shield,
-                color: 'text-slate-500',
-                text: `Reached the cup final but fell at the last hurdle.`
+                icon: Target,
+                color: 'text-blue-500',
+                text: `Best cup run ended at the semi-finals, agonisingly close to the showpiece final.`
+            });
+        }
+
+        // Cup quarter-final best finish
+        if (club.domestic_cup_best_finish === 'Quarter-final' && club.domestic_cup_best_finish_year) {
+            results.push({
+                year: parseInt(club.domestic_cup_best_finish_year),
+                icon: Target,
+                color: 'text-blue-400',
+                text: `Memorable cup run reached the quarter-final stage before bowing out.`
             });
         }
 
@@ -126,54 +197,135 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
                     icon: Star,
                     color: 'text-yellow-500',
                     text: idx === 0 
-                        ? `Conquered the continent, winning the Volarian Champions Cup.`
-                        : `European glory once more with another VCC triumph.`
+                        ? `Continental glory! Conquered Volaria to win the Champions Cup.`
+                        : `Proved their European pedigree with another VCC triumph.`
                 });
             });
         }
 
-        // Promotions
+        // VCC final loss
+        if (club.vcc_best_finish === 'Final' && (!club.vcc_titles || club.vcc_titles === 0) && club.vcc_best_finish_year) {
+            results.push({
+                year: parseInt(club.vcc_best_finish_year),
+                icon: Shield,
+                color: 'text-blue-400',
+                text: `Reached the VCC Final but fell agonisingly short of continental glory.`
+            });
+        }
+
+        // CCC wins
+        if (club.ccc_titles > 0 && club.ccc_title_years) {
+            const cccYears = club.ccc_title_years.split(',').map(y => y.trim());
+            cccYears.forEach((year, idx) => {
+                results.push({
+                    year: parseInt(year),
+                    icon: Trophy,
+                    color: 'text-indigo-500',
+                    text: idx === 0 
+                        ? `European silverware! Won the Continental Cup for the first time.`
+                        : `Added another Continental Cup to the trophy cabinet.`
+                });
+            });
+        }
+
+        // Key promotions with context
         const promotions = sortedSeasons.filter(s => s.status === 'promoted' || s.status === 'playoff_winner');
-        promotions.slice(0, 3).forEach((s, idx) => {
+        promotions.forEach((s, idx) => {
             const yearNum = parseInt(s.year.split('-')[0]);
+            const nextSeason = sortedSeasons.find(ns => parseInt(ns.year.split('-')[0]) === yearNum + 1);
+            const destLeague = nextSeason ? getLeagueName(nextSeason.league_id) : null;
+            
             if (idx === 0) {
                 results.push({
                     year: yearNum,
                     icon: TrendingUp,
                     color: 'text-green-500',
                     text: s.status === 'playoff_winner' 
-                        ? `Earned promotion through the playoffs.`
-                        : `Secured promotion to the higher division.`
+                        ? `Playoff heroes! Earned promotion through the nerve-wracking playoffs${destLeague ? ` to the ${destLeague}` : ''}.`
+                        : `Secured promotion${destLeague ? ` to the ${destLeague}` : ''}, stepping up to a higher level.`
+                });
+            } else if (idx === 1 && parseInt(promotions[0].year.split('-')[0]) === yearNum - 1) {
+                results.push({
+                    year: yearNum,
+                    icon: Zap,
+                    color: 'text-green-600',
+                    text: `Back-to-back promotions! The unstoppable rise continued.`
                 });
             }
         });
 
-        // First relegation
+        // First relegation with empathy
         const firstRelegation = sortedSeasons.find(s => s.status === 'relegated');
         if (firstRelegation) {
+            const tier = getLeagueTier(firstRelegation.league_id);
+            const leagueName = getLeagueName(firstRelegation.league_id);
             results.push({
                 year: parseInt(firstRelegation.year.split('-')[0]),
                 icon: TrendingDown,
                 color: 'text-red-500',
-                text: `Suffered relegation for the first time.`
+                text: tier === 1 
+                    ? `Dark days as ${club.name} dropped out of the ${leagueName} for the first time.`
+                    : `Suffered relegation from the ${leagueName}, beginning a spell in the lower tiers.`
             });
         }
 
+        // Immediate bounce back after relegation
+        for (let i = 1; i < sortedSeasons.length; i++) {
+            if (sortedSeasons[i].status === 'promoted' && sortedSeasons[i - 1].status === 'relegated') {
+                results.push({
+                    year: parseInt(sortedSeasons[i].year.split('-')[0]),
+                    icon: Flame,
+                    color: 'text-orange-500',
+                    text: `Bounced straight back! One season was all it took to return.`
+                });
+                break;
+            }
+        }
+
         // Best ever finish (if not a title)
-        if (club.best_finish && club.best_finish > 1 && club.best_finish <= 3 && club.best_finish_year) {
-            const pos = club.best_finish === 2 ? '2nd' : '3rd';
+        if (club.best_finish && club.best_finish > 1 && club.best_finish <= 5 && club.best_finish_year) {
+            const pos = ordinal(club.best_finish);
+            const tierText = club.best_finish_tier === 1 ? 'top-flight' : `Tier ${club.best_finish_tier}`;
             results.push({
                 year: parseInt(club.best_finish_year),
                 icon: Flame,
                 color: 'text-orange-500',
-                text: `Achieved their highest ever finish of ${pos} place.`
+                text: `Record-breaking ${pos} place ${tierText} finish - the club's highest ever league position.`
             });
         }
 
-        // Sort by year and take top events
+        // Milestone seasons
+        const seasonCount = sortedSeasons.length;
+        if (seasonCount >= 25) {
+            const season25 = sortedSeasons[24];
+            results.push({
+                year: parseInt(season25.year.split('-')[0]),
+                icon: Users,
+                color: 'text-purple-500',
+                text: `Celebrated 25 seasons of football history.`
+            });
+        }
+        if (seasonCount >= 50) {
+            const season50 = sortedSeasons[49];
+            results.push({
+                year: parseInt(season50.year.split('-')[0]),
+                icon: Star,
+                color: 'text-purple-600',
+                text: `Half a century of football! 50 seasons in the record books.`
+            });
+        }
+
+        // Sort by year and remove duplicates
+        const seen = new Set();
         return results
             .sort((a, b) => a.year - b.year)
-            .slice(0, 6);
+            .filter(e => {
+                const key = `${e.year}-${e.text.substring(0, 30)}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
+            .slice(0, 10);
     }, [club, seasons, leagues, nation]);
 
     if (events.length === 0) return null;
