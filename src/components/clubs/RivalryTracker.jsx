@@ -84,7 +84,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         );
         
         // All clubs to check: domestic + continental opponents
-        const allRivalCandidates = [...domesticClubs.filter(c => c.id !== club.id), ...continentalOpponents];
+        const allRivalCandidates = [...workingDomesticClubs.filter(c => c.id !== club.id), ...continentalOpponents];
         
         // Dedupe by id
         const uniqueCandidates = Array.from(new Map(allRivalCandidates.map(c => [c.id, c])).values());
