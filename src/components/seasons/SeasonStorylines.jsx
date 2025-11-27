@@ -231,12 +231,16 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             });
         }
         
-        // 10. New Club in League
+        // 10. New Club in League - only impressive if they were PROMOTED (came from below), not relegated
         const prevClubNames = new Set(prevTable.map(t => t.club_name));
         const newClubs = sortedTable.filter(t => !prevClubNames.has(t.club_name));
         
-        if (newClubs.length > 0 && newClubs.some(c => c.position <= 6)) {
-            const impressiveNew = newClubs.filter(c => c.position <= 6)[0];
+        // Check if club was promoted from below (not relegated from above)
+        const promotedFromBelow = prevSeason?.promoted_teams?.split(',').map(t => t.trim()) || [];
+        const trulyPromotedNewcomers = newClubs.filter(c => promotedFromBelow.includes(c.club_name));
+        
+        if (trulyPromotedNewcomers.length > 0 && trulyPromotedNewcomers.some(c => c.position <= 6)) {
+            const impressiveNew = trulyPromotedNewcomers.filter(c => c.position <= 6)[0];
             if (impressiveNew) {
                 const club = getClub(impressiveNew.club_name);
                 results.push({
@@ -244,7 +248,54 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
                     color: 'text-blue-500',
                     bg: 'bg-gradient-to-r from-blue-50 to-cyan-50',
                     title: 'Impressive Newcomers',
-                    text: `${impressiveNew.club_name} made an immediate impact in their first season, finishing in ${impressiveNew.position}${impressiveNew.position === 1 ? 'st' : impressiveNew.position === 2 ? 'nd' : impressiveNew.position === 3 ? 'rd' : 'th'} place.`,
+                    text: `${impressiveNew.club_name} made an immediate impact after promotion, finishing in ${impressiveNew.position}${impressiveNew.position === 1 ? 'st' : impressiveNew.position === 2 ? 'nd' : impressiveNew.position === 3 ? 'rd' : 'th'} place.`,
+                    clubId: club?.id
+                });
+            }
+        }
+        
+        // 11. Relegated club struggles - came down but still got relegated again
+        if (prevSeason) {
+            // Find clubs that were relegated to this league from above
+            const relegatedFromAbove = newClubs.filter(c => !promotedFromBelow.includes(c.club_name));
+            const doubleRelegation = relegatedFromAbove.filter(c => 
+                season.relegated_teams?.split(',').map(t => t.trim()).includes(c.club_name)
+            );
+            
+            if (doubleRelegation.length > 0) {
+                const fallenClub = doubleRelegation[0];
+                const club = getClub(fallenClub.club_name);
+                results.push({
+                    icon: TrendingDown,
+                    color: 'text-red-600',
+                    bg: 'bg-gradient-to-r from-red-50 to-rose-50',
+                    title: 'Freefall Continues',
+                    text: `${fallenClub.club_name} suffered back-to-back relegations, unable to arrest their slide down the pyramid.`,
+                    clubId: club?.id
+                });
+            }
+        }
+        
+        // 12. Successive promotions - promoted again after being promoted last year
+        if (prevSeason?.promoted_teams && season.promoted_teams) {
+            const promotedThisYear = season.promoted_teams.split(',').map(t => t.trim());
+            const promotedLastYear = prevSeason.promoted_teams.split(',').map(t => t.trim());
+            
+            // Find clubs that appear in promoted this year AND were promoted last year (back-to-back promotions)
+            const backToBackPromotions = promotedThisYear.filter(clubName => {
+                // Check if this club was in this league because they were promoted last year from lower tier
+                return trulyPromotedNewcomers.some(c => c.club_name === clubName);
+            });
+            
+            if (backToBackPromotions.length > 0) {
+                const risingClub = backToBackPromotions[0];
+                const club = getClub(risingClub);
+                results.push({
+                    icon: TrendingUp,
+                    color: 'text-emerald-600',
+                    bg: 'bg-gradient-to-r from-emerald-50 to-green-50',
+                    title: 'Unstoppable Rise',
+                    text: `${risingClub} achieved back-to-back promotions, continuing their remarkable ascent through the pyramid.`,
                     clubId: club?.id
                 });
             }
