@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DomesticCupNarratives from '@/components/cups/DomesticCupNarratives';
 import SyncCupStatsButton from '@/components/common/SyncCupStats';
+import CupHistory from '@/components/cups/CupHistory';
 
 export default function DomesticCupDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -172,6 +173,9 @@ export default function DomesticCupDetail() {
                         </Card>
                     )}
                 </div>
+
+                {/* Cup History Timeline */}
+                <CupHistory cup={cup} seasons={seasons} clubs={clubs} />
 
                 {/* Cup Narratives */}
                 <DomesticCupNarratives cup={cup} seasons={seasons} clubs={clubs} />

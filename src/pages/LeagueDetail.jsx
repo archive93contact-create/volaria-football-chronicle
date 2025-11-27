@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImageUploader from '@/components/common/ImageUploader';
 import LeagueNarratives from '@/components/leagues/LeagueNarratives';
+import LeagueHistory from '@/components/leagues/LeagueHistory';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -204,6 +205,9 @@ export default function LeagueDetail() {
                     {league.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" /><div className="text-sm font-bold text-emerald-600 truncate">{league.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
                     {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                 </div>
+
+                {/* League History Timeline */}
+                <LeagueHistory league={league} seasons={seasons} nation={nation} />
 
                 {/* League Narratives */}
                 <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
