@@ -407,24 +407,7 @@ export default function AddDomesticCupSeason() {
                                     <Button variant="outline" onClick={selectAllFiltered} disabled={!seasonData.year}>
                                         Select All
                                     </Button>
-                                    {leagues.length > 0 && (
-                                        <>
-                                            {uniqueTiers.map(tier => (
-                                                <Button 
-                                                    key={tier}
-                                                    variant="outline" 
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setTierFilter(tier.toString());
-                                                        setTimeout(() => selectAllFiltered(), 100);
-                                                    }}
-                                                    disabled={!seasonData.year}
-                                                >
-                                                    + Tier {tier}
-                                                </Button>
-                                            ))}
-                                        </>
-                                    )}
+
                                     <Button 
                                         onClick={generateBracket} 
                                         disabled={selectedClubs.length < 2}
