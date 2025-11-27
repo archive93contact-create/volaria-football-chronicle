@@ -94,10 +94,18 @@ export default function Nations() {
                 ? leaguesWithTeams.reduce((sum, l) => sum + l.number_of_teams, 0) / leaguesWithTeams.length 
                 : 0;
             
+            // Count geographic locations
+            const regions = new Set(nationClubs.map(c => c.region).filter(Boolean));
+            const districts = new Set(nationClubs.map(c => c.district).filter(Boolean));
+            const settlements = new Set(nationClubs.map(c => c.settlement || c.city).filter(Boolean));
+            
             const populationData = estimateNationPopulation(nationClubs.length, nationLeagues.length, nation.membership, maxTier, {
                 topDivisionSize,
                 avgDivisionSize,
-                totalDivisions: nationLeagues.length
+                totalDivisions: nationLeagues.length,
+                regionCount: regions.size,
+                districtCount: districts.size,
+                settlementCount: settlements.size
             });
             const population = populationData.value;
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);

@@ -227,7 +227,10 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
         const population = estimateNationPopulation(clubs.length, leagues.length, nation.membership, maxTier, {
             topDivisionSize,
             avgDivisionSize,
-            totalDivisions: leagues.length
+            totalDivisions: leagues.length,
+            regionCount: regions.size,
+            districtCount: districts.size,
+            settlementCount: settlements.size
         });
         const strength = estimateLeagueStrength(clubs, leagues, coefficient, nation.membership);
         const proClubs = estimateSustainableProClubs(population.value, topDivisionSize, maxTier, nation.membership, strength.score);
