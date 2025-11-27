@@ -187,14 +187,17 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
         }
     }
     
+    // Years oldest first for proper display
+    const yearsOldestFirst = [...last4Years].reverse();
+    
     // Convert to arrays and calculate totals
     const clubCoefficients = Object.values(clubPoints).map(club => {
-        const yearKeys = last4Years;
-        const year1 = club.years[yearKeys[0]] || 0;
-        const year2 = club.years[yearKeys[1]] || 0;
-        const year3 = club.years[yearKeys[2]] || 0;
-        const year4 = club.years[yearKeys[3]] || 0;
-        const total = year1 + year2 + year3 + year4;
+        // Map years oldest to newest
+        const pts0 = club.years[yearsOldestFirst[0]] || 0;
+        const pts1 = club.years[yearsOldestFirst[1]] || 0;
+        const pts2 = club.years[yearsOldestFirst[2]] || 0;
+        const pts3 = club.years[yearsOldestFirst[3]] || 0;
+        const total = pts0 + pts1 + pts2 + pts3;
         
         // Try to find club ID from clubs list
         const clubRecord = clubs.find(c => c.name === club.clubName);
@@ -206,22 +209,24 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
             nation_name: club.nationName,
             nation_id: nationRecord?.id,
             membership: club.membership,
-            year_1_points: year1,
-            year_2_points: year2,
-            year_3_points: year3,
-            year_4_points: year4,
+            yearPoints: {
+                [yearsOldestFirst[0]]: pts0,
+                [yearsOldestFirst[1]]: pts1,
+                [yearsOldestFirst[2]]: pts2,
+                [yearsOldestFirst[3]]: pts3,
+            },
             total_points: total,
-            coefficient_year: yearKeys[0] || 'Current',
+            coefficient_year: last4Years[0] || 'Current',
         };
     });
     
     const nationCoefficients = Object.values(nationPoints).map(nation => {
-        const yearKeys = last4Years;
-        const year1 = nation.years[yearKeys[0]] || 0;
-        const year2 = nation.years[yearKeys[1]] || 0;
-        const year3 = nation.years[yearKeys[2]] || 0;
-        const year4 = nation.years[yearKeys[3]] || 0;
-        const total = year1 + year2 + year3 + year4;
+        // Map years oldest to newest
+        const pts0 = nation.years[yearsOldestFirst[0]] || 0;
+        const pts1 = nation.years[yearsOldestFirst[1]] || 0;
+        const pts2 = nation.years[yearsOldestFirst[2]] || 0;
+        const pts3 = nation.years[yearsOldestFirst[3]] || 0;
+        const total = pts0 + pts1 + pts2 + pts3;
         
         const nationRecord = nations.find(n => n.name === nation.nationName);
         
@@ -234,12 +239,14 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
             nation_name: nation.nationName,
             nation_id: nationRecord?.id,
             membership: nation.membership,
-            year_1_points: year1,
-            year_2_points: year2,
-            year_3_points: year3,
-            year_4_points: year4,
+            yearPoints: {
+                [yearsOldestFirst[0]]: pts0,
+                [yearsOldestFirst[1]]: pts1,
+                [yearsOldestFirst[2]]: pts2,
+                [yearsOldestFirst[3]]: pts3,
+            },
             total_points: total,
-            coefficient_year: yearKeys[0] || 'Current',
+            coefficient_year: last4Years[0] || 'Current',
             previous_rank: existingCoeff?.rank || null,
         };
     });
@@ -282,9 +289,6 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
         
         return [...vcc, ...ccc];
     };
-    
-    // Reverse years so oldest is first (for display)
-    const yearsOldestFirst = [...last4Years].reverse();
     
     return {
         clubCoefficients: sortAndRank(clubCoefficients, false),

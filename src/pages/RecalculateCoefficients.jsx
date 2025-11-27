@@ -343,10 +343,11 @@ export default function RecalculateCoefficients() {
                                                                         )}
                                                                     </div>
                                                                 </TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_4_points?.toFixed(3) || '-'}</TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_3_points?.toFixed(3) || '-'}</TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_2_points?.toFixed(3) || '-'}</TableCell>
-                                                                <TableCell className="text-center text-slate-600">{nation.year_1_points?.toFixed(3) || '-'}</TableCell>
+                                                                {calculatedData?.yearsOldestFirst?.map(year => (
+                                                                    <TableCell key={year} className="text-center text-slate-600">
+                                                                        {nation.yearPoints?.[year]?.toFixed(3) || '-'}
+                                                                    </TableCell>
+                                                                ))}
                                                                 <TableCell className="text-center font-bold text-lg">{nation.total_points.toFixed(3)}</TableCell>
                                                                 <TableCell className="text-center">
                                                                     <div className="flex items-center justify-center gap-1">
