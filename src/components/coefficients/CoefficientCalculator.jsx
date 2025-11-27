@@ -192,12 +192,12 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
     
     // Convert to arrays and calculate totals
     const clubCoefficients = Object.values(clubPoints).map(club => {
-        // Map years oldest to newest
-        const pts0 = club.years[yearsOldestFirst[0]] || 0;
-        const pts1 = club.years[yearsOldestFirst[1]] || 0;
+        // Map years oldest to newest (year_4 = oldest, year_1 = newest)
+        const pts4 = club.years[yearsOldestFirst[0]] || 0; // Oldest
+        const pts3 = club.years[yearsOldestFirst[1]] || 0;
         const pts2 = club.years[yearsOldestFirst[2]] || 0;
-        const pts3 = club.years[yearsOldestFirst[3]] || 0;
-        const total = pts0 + pts1 + pts2 + pts3;
+        const pts1 = club.years[yearsOldestFirst[3]] || 0; // Newest
+        const total = pts4 + pts3 + pts2 + pts1;
         
         // Try to find club ID from clubs list
         const clubRecord = clubs.find(c => c.name === club.clubName);
@@ -210,23 +210,27 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
             nation_id: nationRecord?.id,
             membership: club.membership,
             yearPoints: {
-                [yearsOldestFirst[0]]: pts0,
-                [yearsOldestFirst[1]]: pts1,
+                [yearsOldestFirst[0]]: pts4,
+                [yearsOldestFirst[1]]: pts3,
                 [yearsOldestFirst[2]]: pts2,
-                [yearsOldestFirst[3]]: pts3,
+                [yearsOldestFirst[3]]: pts1,
             },
+            year_1_points: pts1,
+            year_2_points: pts2,
+            year_3_points: pts3,
+            year_4_points: pts4,
             total_points: total,
             coefficient_year: last4Years[0] || 'Current',
         };
     });
     
     const nationCoefficients = Object.values(nationPoints).map(nation => {
-        // Map years oldest to newest
-        const pts0 = nation.years[yearsOldestFirst[0]] || 0;
-        const pts1 = nation.years[yearsOldestFirst[1]] || 0;
+        // Map years oldest to newest (year_4 = oldest, year_1 = newest)
+        const pts4 = nation.years[yearsOldestFirst[0]] || 0; // Oldest
+        const pts3 = nation.years[yearsOldestFirst[1]] || 0;
         const pts2 = nation.years[yearsOldestFirst[2]] || 0;
-        const pts3 = nation.years[yearsOldestFirst[3]] || 0;
-        const total = pts0 + pts1 + pts2 + pts3;
+        const pts1 = nation.years[yearsOldestFirst[3]] || 0; // Newest
+        const total = pts4 + pts3 + pts2 + pts1;
         
         const nationRecord = nations.find(n => n.name === nation.nationName);
         
@@ -240,11 +244,15 @@ export function calculateCoefficients(continentalSeasons, continentalMatches, co
             nation_id: nationRecord?.id,
             membership: nation.membership,
             yearPoints: {
-                [yearsOldestFirst[0]]: pts0,
-                [yearsOldestFirst[1]]: pts1,
+                [yearsOldestFirst[0]]: pts4,
+                [yearsOldestFirst[1]]: pts3,
                 [yearsOldestFirst[2]]: pts2,
-                [yearsOldestFirst[3]]: pts3,
+                [yearsOldestFirst[3]]: pts1,
             },
+            year_1_points: pts1,
+            year_2_points: pts2,
+            year_3_points: pts3,
+            year_4_points: pts4,
             total_points: total,
             coefficient_year: last4Years[0] || 'Current',
             previous_rank: existingCoeff?.rank || null,
