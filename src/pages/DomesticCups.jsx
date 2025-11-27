@@ -23,7 +23,8 @@ export default function DomesticCups() {
     const [editingCup, setEditingCup] = useState(null);
     const [formData, setFormData] = useState({
         name: '', short_name: '', description: '', history: '', founded_year: '',
-        format: '', eligible_tiers: '', primary_color: '#1e40af', secondary_color: '#fbbf24'
+        format: '', eligible_tiers: '', primary_color: '#1e40af', secondary_color: '#fbbf24',
+        is_main_cup: true
     });
 
     const { data: nations = [] } = useQuery({
@@ -71,7 +72,8 @@ export default function DomesticCups() {
     const resetForm = () => {
         setFormData({
             name: '', short_name: '', description: '', history: '', founded_year: '',
-            format: '', eligible_tiers: '', primary_color: '#1e40af', secondary_color: '#fbbf24'
+            format: '', eligible_tiers: '', primary_color: '#1e40af', secondary_color: '#fbbf24',
+            is_main_cup: true
         });
     };
 
@@ -125,9 +127,23 @@ export default function DomesticCups() {
                     <Input value={formData.eligible_tiers || ''} onChange={(e) => setFormData({...formData, eligible_tiers: e.target.value})} placeholder="e.g., 1-4" className="mt-1" />
                 </div>
             </div>
-            <div>
-                <Label>Format</Label>
-                <Input value={formData.format || ''} onChange={(e) => setFormData({...formData, format: e.target.value})} placeholder="e.g., Single elimination knockout" className="mt-1" />
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label>Format</Label>
+                    <Input value={formData.format || ''} onChange={(e) => setFormData({...formData, format: e.target.value})} placeholder="e.g., Single elimination knockout" className="mt-1" />
+                </div>
+                <div>
+                    <Label className="flex items-center gap-2">
+                        <input 
+                            type="checkbox" 
+                            checked={formData.is_main_cup !== false}
+                            onChange={(e) => setFormData({...formData, is_main_cup: e.target.checked})}
+                            className="rounded"
+                        />
+                        Main Cup (for stats)
+                    </Label>
+                    <p className="text-xs text-slate-500 mt-1">Check this if it's the primary cup competition (stats will count towards club records)</p>
+                </div>
             </div>
             <div>
                 <Label>Description</Label>
@@ -225,9 +241,14 @@ export default function DomesticCups() {
                                     <CardContent className="p-5">
                                         <div className="flex items-start justify-between mb-2">
                                             <div>
-                                                <Link to={createPageUrl(`DomesticCupDetail?id=${cup.id}`)} className="text-xl font-bold text-slate-900 hover:text-emerald-600">
-                                                    {cup.name}
-                                                </Link>
+                                                <div className="flex items-center gap-2">
+                                                    <Link to={createPageUrl(`DomesticCupDetail?id=${cup.id}`)} className="text-xl font-bold text-slate-900 hover:text-emerald-600">
+                                                        {cup.name}
+                                                    </Link>
+                                                    {cup.is_main_cup !== false && (
+                                                        <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded">Main</span>
+                                                    )}
+                                                </div>
                                                 {cupNation && !nationId && (
                                                     <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
                                                         {cupNation.flag_url && <img src={cupNation.flag_url} alt="" className="w-4 h-3 object-contain" />}
