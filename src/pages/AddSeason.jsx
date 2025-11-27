@@ -179,7 +179,123 @@ export default function AddSeason() {
 
     const createSeasonMutation = useMutation({
         mutationFn: async (data) => {
-            // Create season first
+            const currentTier = data.tier || league.tier || 1;
+            const isTopTier = currentTier === 1;
+            const isTFALeague = currentTier <= 4;
+
+            // Handle multiple divisions
+            if (useMultipleDivisions && divisions.length > 0) {
+                const allClubIdMaps = {};
+                const allSeasons = [];
+
+                for (const div of divisions) {
+                    if (!div.name || div.rows.length === 0) continue;
+
+                    // Create season for each division
+                    const divSeason = await base44.entities.Season.create({
+                        league_id: leagueId,
+                        year: data.year,
+                        tier: data.tier || null,
+                        division_name: div.name,
+                        division_group: data.division_group || null,
+                        number_of_teams: div.rows.filter(r => r.club_name.trim()).length,
+                        champion_name: div.rows.find(r => r.status === 'champion')?.club_name || '',
+                        runner_up: div.rows.find(r => r.position === 2)?.club_name || '',
+                        top_scorer: data.top_scorer,
+                        promoted_teams: div.rows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
+                        relegated_teams: div.rows.filter(r => r.status === 'relegated').map(r => r.club_name).join(', '),
+                        champion_color: data.champion_color,
+                        promotion_color: data.promotion_color,
+                        relegation_color: data.relegation_color,
+                        playoff_color: data.playoff_color,
+                        promotion_spots: data.promotion_spots,
+                        relegation_spots: data.relegation_spots,
+                        playoff_spots_start: data.playoff_spots_start || null,
+                        playoff_spots_end: data.playoff_spots_end || null,
+                        playoff_format: data.playoff_format || null,
+                        playoff_winner: data.playoff_winner || null,
+                        playoff_runner_up: data.playoff_runner_up || null,
+                        playoff_notes: data.playoff_notes || null,
+                        notes: data.notes
+                    });
+                    allSeasons.push({ season: divSeason, division: div });
+
+                    // Process clubs for this division
+                    for (const row of div.rows.filter(r => r.club_name.trim())) {
+                        const clubName = row.club_name.trim();
+                        const existingClub = allNationClubs.find(c => c.name.toLowerCase() === clubName.toLowerCase());
+                        const isChampion = row.status === 'champion';
+                        const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
+                        const isRelegated = row.status === 'relegated';
+
+                        if (existingClub) {
+                            const updateData = {
+                                league_titles: (existingClub.league_titles || 0) + ((isChampion && isTopTier) ? 1 : 0),
+                                title_years: (isChampion && isTopTier) ? (existingClub.title_years ? `${existingClub.title_years}, ${data.year}` : data.year) : existingClub.title_years,
+                                lower_tier_titles: (existingClub.lower_tier_titles || 0) + ((isChampion && !isTopTier) ? 1 : 0),
+                                lower_tier_title_years: (isChampion && !isTopTier) ? (existingClub.lower_tier_title_years ? `${existingClub.lower_tier_title_years}, ${data.year}` : data.year) : existingClub.lower_tier_title_years,
+                                seasons_played: (existingClub.seasons_played || 0) + 1,
+                                total_wins: (existingClub.total_wins || 0) + (row.won || 0),
+                                total_draws: (existingClub.total_draws || 0) + (row.drawn || 0),
+                                total_losses: (existingClub.total_losses || 0) + (row.lost || 0),
+                                total_goals_scored: (existingClub.total_goals_scored || 0) + (row.goals_for || 0),
+                                total_goals_conceded: (existingClub.total_goals_conceded || 0) + (row.goals_against || 0),
+                                promotions: (existingClub.promotions || 0) + (isPromoted ? 1 : 0),
+                                relegations: (existingClub.relegations || 0) + (isRelegated ? 1 : 0),
+                                seasons_top_flight: (existingClub.seasons_top_flight || 0) + (isTopTier ? 1 : 0),
+                                seasons_in_tfa: (existingClub.seasons_in_tfa || 0) + (isTFALeague ? 1 : 0),
+                            };
+                            if (data.year > (existingClub.last_season_year || '')) {
+                                updateData.league_id = leagueId;
+                                updateData.last_season_year = data.year;
+                            }
+                            await base44.entities.Club.update(existingClub.id, updateData);
+                            allClubIdMaps[clubName] = existingClub.id;
+                        } else {
+                            const newClub = await base44.entities.Club.create({
+                                name: clubName,
+                                nation_id: league.nation_id,
+                                league_id: leagueId,
+                                league_titles: (isChampion && isTopTier) ? 1 : 0,
+                                title_years: (isChampion && isTopTier) ? data.year : '',
+                                lower_tier_titles: (isChampion && !isTopTier) ? 1 : 0,
+                                lower_tier_title_years: (isChampion && !isTopTier) ? data.year : '',
+                                best_finish: row.position,
+                                best_finish_year: data.year,
+                                best_finish_tier: currentTier,
+                                last_season_year: data.year,
+                                seasons_played: 1,
+                                total_wins: row.won || 0,
+                                total_draws: row.drawn || 0,
+                                total_losses: row.lost || 0,
+                                total_goals_scored: row.goals_for || 0,
+                                total_goals_conceded: row.goals_against || 0,
+                                promotions: isPromoted ? 1 : 0,
+                                relegations: isRelegated ? 1 : 0,
+                                seasons_top_flight: isTopTier ? 1 : 0,
+                                seasons_in_tfa: isTFALeague ? 1 : 0,
+                            });
+                            allClubIdMaps[clubName] = newClub.id;
+                        }
+                    }
+
+                    // Create league table entries for this division
+                    const tableEntries = div.rows.filter(r => r.club_name.trim()).map(row => ({
+                        season_id: divSeason.id,
+                        league_id: leagueId,
+                        year: data.year,
+                        division_name: div.name,
+                        club_id: allClubIdMaps[row.club_name.trim()] || '',
+                        ...row
+                    }));
+                    if (tableEntries.length > 0) {
+                        await base44.entities.LeagueTable.bulkCreate(tableEntries);
+                    }
+                }
+                return allSeasons[0]?.season;
+            }
+
+            // Single division logic
             const season = await base44.entities.Season.create({
                 league_id: leagueId,
                 year: data.year,
@@ -190,7 +306,7 @@ export default function AddSeason() {
                 champion_name: tableRows.find(r => r.status === 'champion')?.club_name || '',
                 runner_up: tableRows.find(r => r.position === 2)?.club_name || '',
                 top_scorer: data.top_scorer,
-                promoted_teams: tableRows.filter(r => r.status === 'promoted').map(r => r.club_name).join(', '),
+                promoted_teams: tableRows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
                 relegated_teams: tableRows.filter(r => r.status === 'relegated').map(r => r.club_name).join(', '),
                 champion_color: data.champion_color,
                 promotion_color: data.promotion_color,
@@ -206,8 +322,6 @@ export default function AddSeason() {
                 playoff_notes: data.playoff_notes || null,
                 notes: data.notes
             });
-
-            const currentTier = data.tier || league.tier || 1;
             const isTopTier = currentTier === 1;
             const isTFALeague = currentTier <= 4; // TFA = top 4 tiers
 
