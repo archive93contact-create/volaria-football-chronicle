@@ -214,33 +214,40 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
         
         const maxTier = Math.max(...leagues.map(l => l.tier || 1), 1);
         
+        // Get unique regions/districts/settlements FIRST (before using them)
+        const geoRegions = [...new Set(clubs.map(c => c.region).filter(Boolean))];
+        const geoDistricts = [...new Set(clubs.map(c => c.district).filter(Boolean))];
+        const geoSettlements = [...new Set(clubs.map(c => c.settlement || c.city).filter(Boolean))];
+        
         // Calculate division sizes from leagues or seasons
         const topFlightLeagues = leagues.filter(l => l.tier === 1);
-        const topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
+        let topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
+        
+        // If no number_of_teams set, infer from clubs in top tier leagues
+        if (topDivisionSize === 0 && topFlightLeagues.length > 0) {
+            const topFlightLeagueIds = topFlightLeagues.map(l => l.id);
+            const topFlightClubs = clubs.filter(c => topFlightLeagueIds.includes(c.league_id));
+            topDivisionSize = topFlightClubs.length || 8;
+        }
         
         // Calculate average division size across all leagues
         const leaguesWithTeams = leagues.filter(l => l.number_of_teams > 0);
         const avgDivisionSize = leaguesWithTeams.length > 0 
             ? leaguesWithTeams.reduce((sum, l) => sum + l.number_of_teams, 0) / leaguesWithTeams.length 
-            : 0;
+            : topDivisionSize;
         
         const population = estimateNationPopulation(clubs.length, leagues.length, nation.membership, maxTier, {
             topDivisionSize,
             avgDivisionSize,
             totalDivisions: leagues.length,
-            regionCount: regions.size,
-            districtCount: districts.size,
-            settlementCount: settlements.size
+            regionCount: geoRegions.length,
+            districtCount: geoDistricts.length,
+            settlementCount: geoSettlements.length
         });
         const strength = estimateLeagueStrength(clubs, leagues, coefficient, nation.membership);
         const proClubs = estimateSustainableProClubs(population.value, topDivisionSize, maxTier, nation.membership, strength.score);
         const language = nation.language ? { name: nation.language } : generateLanguage(nation.name, clubs, leagues);
         const capital = nation.capital || generateCapital(nation.name, clubs, leagues);
-        
-        // Get unique regions/districts
-        const regions = [...new Set(clubs.map(c => c.region).filter(Boolean))];
-        const districts = [...new Set(clubs.map(c => c.district).filter(Boolean))];
-        const settlements = [...new Set(clubs.map(c => c.settlement || c.city).filter(Boolean))];
         
         return {
             population,
