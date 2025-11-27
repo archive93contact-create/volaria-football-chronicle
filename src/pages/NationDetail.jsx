@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star } from 'lucide-react';
+import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star, Award } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,11 @@ export default function NationDetail() {
             return allSeasons.filter(s => leagueIds.includes(s.league_id));
         },
         enabled: leagues.length > 0,
+    });
+
+    const { data: domesticCups = [] } = useQuery({
+        queryKey: ['domesticCups', nationId],
+        queryFn: () => base44.entities.DomesticCup.filter({ nation_id: nationId }),
     });
 
     const updateMutation = useMutation({
@@ -276,6 +281,45 @@ export default function NationDetail() {
                                 </Button>
                             </Link>
                         </div>
+
+                        {/* Domestic Cups Section */}
+                        {(domesticCups.length > 0 || leagues.length > 0) && (
+                            <div className="mt-8 mb-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                                        <Award className="w-5 h-5 text-amber-500" />
+                                        Domestic Cups
+                                    </h3>
+                                    <Link to={createPageUrl(`DomesticCups?nation_id=${nationId}`)}>
+                                        <Button size="sm" variant="outline">
+                                            <Plus className="w-4 h-4 mr-1" /> Add Cup
+                                        </Button>
+                                    </Link>
+                                </div>
+                                {domesticCups.length === 0 ? (
+                                    <p className="text-sm text-slate-500">No domestic cups added yet</p>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {domesticCups.map(cup => (
+                                            <Link key={cup.id} to={createPageUrl(`DomesticCupDetail?id=${cup.id}`)}>
+                                                <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                                                    <CardContent className="p-4 flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${cup.primary_color || '#1e40af'}, ${cup.secondary_color || '#fbbf24'})` }}>
+                                                            <Trophy className="w-5 h-5 text-white" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-medium truncate">{cup.name}</div>
+                                                            {cup.eligible_tiers && <div className="text-xs text-slate-500">Tiers {cup.eligible_tiers}</div>}
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                                                    </CardContent>
+                                                </Card>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {Object.keys(leaguesByTier).length === 0 ? (
                             <Card className="border-dashed border-2 border-slate-300">
