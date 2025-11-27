@@ -46,7 +46,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
     const leagueTables = allLeagueTables.length > 0 ? allLeagueTables : fetchedLeagueTables;
 
     const rivalries = useMemo(() => {
-        if (!club || clubs.length === 0) return [];
+        if (!club) return [];
 
         const rivalryScores = {};
         const clubTables = leagueTables.filter(t => t.club_id === club.id);
@@ -60,7 +60,30 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             m.home_club_name === club.name || m.away_club_name === club.name
         );
 
-        clubs.filter(c => c.id !== club.id).forEach(otherClub => {
+        // Build set of opponent names from continental matches
+        const continentalOpponentNames = new Set();
+        clubContinentalMatches.forEach(m => {
+            if (m.home_club_name === club.name) {
+                continentalOpponentNames.add(m.away_club_name);
+            } else {
+                continentalOpponentNames.add(m.home_club_name);
+            }
+        });
+
+        // Combine domestic clubs with continental opponents (from all clubs)
+        const continentalOpponents = allClubsData.filter(c => 
+            c.id !== club.id && 
+            c.nation_id !== club.nation_id && 
+            continentalOpponentNames.has(c.name)
+        );
+        
+        // All clubs to check: domestic + continental opponents
+        const allRivalCandidates = [...domesticClubs.filter(c => c.id !== club.id), ...continentalOpponents];
+        
+        // Dedupe by id
+        const uniqueCandidates = Array.from(new Map(allRivalCandidates.map(c => [c.id, c])).values());
+
+        uniqueCandidates.forEach(otherClub => {
             let score = 0;
             const reasons = [];
             let isContinentalRival = false;
