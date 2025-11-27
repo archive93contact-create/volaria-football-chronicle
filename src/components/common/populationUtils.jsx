@@ -6,41 +6,39 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
     
     const { topDivisionSize = 0, avgDivisionSize = 0, totalDivisions = 0 } = options;
     
-    // Base population per club - conservative starting point
-    // Typical ratio: 1 tracked club per 30-50k people for developed football nations
-    let basePerClub = membership === 'VCC' ? 35000 : membership === 'CCC' ? 25000 : 30000;
+    // Base population per club varies by membership tier
+    // VCC nations tend to be larger/wealthier with more clubs per capita
+    let basePerClub = membership === 'VCC' ? 70000 : membership === 'CCC' ? 50000 : 55000;
     
-    // Division size is the PRIMARY driver - small leagues = small country
-    // An 8-team top flight suggests a nation of ~1-3 million
-    // A 20-team top flight suggests 20-60 million
+    // Division size factor - this is KEY for distinguishing nation sizes
+    // Large top flights (18-20 teams) = major nations like Turuliand
+    // Small top flights (8 teams) = smaller nations like Faelandia
     let divisionSizeFactor = 1.0;
     if (topDivisionSize > 0) {
         if (topDivisionSize >= 20) {
-            divisionSizeFactor = 2.5; // Large top flight = major nation
+            divisionSizeFactor = 1.8; // Major footballing nation
         } else if (topDivisionSize >= 18) {
-            divisionSizeFactor = 2.0;
+            divisionSizeFactor = 1.5;
         } else if (topDivisionSize >= 16) {
-            divisionSizeFactor = 1.6;
-        } else if (topDivisionSize >= 14) {
             divisionSizeFactor = 1.3;
+        } else if (topDivisionSize >= 14) {
+            divisionSizeFactor = 1.1;
         } else if (topDivisionSize >= 12) {
-            divisionSizeFactor = 1.0;
+            divisionSizeFactor = 0.95;
         } else if (topDivisionSize >= 10) {
-            divisionSizeFactor = 0.7;
+            divisionSizeFactor = 0.8;
         } else if (topDivisionSize >= 8) {
-            divisionSizeFactor = 0.5; // 8-team league = small nation
+            divisionSizeFactor = 0.6; // 8-team league = smaller nation
         } else {
-            divisionSizeFactor = 0.3; // Very small
+            divisionSizeFactor = 0.4; // Very small
         }
     }
     
-    // Tier depth gives a modest boost - but capped
-    // More tiers doesn't mean massively more population
-    const tierMultiplier = 1 + (Math.min(maxTier || 1, 4) * 0.05); // Max 1.2x for 4 tiers
+    // Tier depth - more tiers means deeper pyramid = larger country
+    const tierMultiplier = 1 + ((maxTier || 1) * 0.08); // Up to 1.32x for 4 tiers
     
-    // League count bonus - but very modest, many small leagues != big population
-    const leagueBonus = Math.min(leagueCount, 6) * 0.03; // Max 18% boost
-    const leagueMultiplier = 1 + leagueBonus;
+    // League count - more leagues indicates more structure/size
+    const leagueMultiplier = 1 + (Math.min(leagueCount, 10) * 0.05); // Up to 1.5x for 10 leagues
     
     const estimated = Math.round(clubCount * basePerClub * divisionSizeFactor * tierMultiplier * leagueMultiplier);
     
