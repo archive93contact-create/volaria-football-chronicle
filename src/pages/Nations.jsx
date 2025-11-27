@@ -99,9 +99,9 @@ export default function Nations() {
             const nationLeagues = leagues.filter(l => l.nation_id === nation.id);
             const nationClubs = clubs.filter(c => c.nation_id === nation.id);
             const coeff = coefficients.find(c => c.nation_id === nation.id);
+            const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
             const population = estimatePopulation(nationClubs.length, nationLeagues.length, nation.membership, maxTier);
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
-            const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
             
             return {
                 ...nation,
