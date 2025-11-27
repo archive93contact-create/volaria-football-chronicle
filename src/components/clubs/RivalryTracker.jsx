@@ -213,7 +213,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             .filter(r => r.score > 0) // Show any rivalry with a score
             .sort((a, b) => b.score - a.score)
             .slice(0, 8);
-    }, [club, domesticClubs, allClubsData, leagueTables, continentalMatches, nations]);
+    }, [club, domesticClubs, fetchedNationClubs, allClubsData, leagueTables, fetchedLeagueTables, continentalMatches, nations]);
 
     if (rivalries.length === 0) return null;
 
