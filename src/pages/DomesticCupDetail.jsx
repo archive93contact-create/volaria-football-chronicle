@@ -172,11 +172,8 @@ export default function DomesticCupDetail() {
                     )}
                 </div>
 
-                {/* Narratives - reuse continental narratives component */}
-                <ContinentalNarratives 
-                    competition={cup} 
-                    seasons={seasons.map(s => ({...s, champion_nation: nation?.name}))} 
-                />
+                {/* Cup Narratives */}
+                <DomesticCupNarratives cup={cup} seasons={seasons} clubs={clubs} />
 
                 {/* History */}
                 {cup.history && (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock } from 'lucide-react';
+import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock, Zap } from 'lucide-react';
 
 export default function ClubNarratives({ club, seasons, leagues, allClubs = [], allLeagueTables = [] }) {
     const narratives = [];
@@ -267,26 +267,14 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
     }
 
     // Promoted via playoffs
-    const playoffPromotions = sortedSeasons.filter(s => s.status === 'playoff_winner');
+    const playoffPromotions = sortedSeasons.filter(s => s.status === 'playoff_winner' || (s.status === 'promoted' && s.position > 2));
     if (playoffPromotions.length > 0) {
         narratives.push({
             icon: Award,
             color: 'text-blue-500',
             bg: 'bg-blue-50',
             title: 'Playoff Specialists',
-            text: `Won ${playoffPromotions.length} promotion playoff${playoffPromotions.length > 1 ? 's' : ''} to earn a place in the higher division.`
-        });
-    }
-
-    // Lost in playoff final
-    const playoffRunnerUps = sortedSeasons.filter(s => s.status === 'playoff_runner_up');
-    if (playoffRunnerUps.length >= 2) {
-        narratives.push({
-            icon: Target,
-            color: 'text-orange-500',
-            bg: 'bg-orange-50',
-            title: 'Playoff Heartbreak',
-            text: `Lost ${playoffRunnerUps.length} promotion playoff finals - so close yet so far.`
+            text: `Earned promotion via the playoffs ${playoffPromotions.length} time${playoffPromotions.length > 1 ? 's' : ''} - thriving under pressure.`
         });
     }
 
