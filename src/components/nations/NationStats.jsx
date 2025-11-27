@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPageUrl } from '@/utils';
 import { MapPin, Users, Globe, Trophy, BarChart3, Languages } from 'lucide-react';
+import { estimateNationPopulation } from '@/components/common/populationUtils';
 
 // Analyze patterns from club/league names to determine cultural identity
 function analyzeNamingPatterns(clubs, leagues) {
@@ -108,8 +109,6 @@ function generateLanguage(nationName, clubs = [], leagues = []) {
     return { name: 'Volarian Common', family: 'Standard Volarian' };
 }
 
-import { estimateNationPopulation } from '@/components/common/populationUtils';
-
 // Estimate league strength based on various factors including membership
 function estimateLeagueStrength(clubs, leagues, coefficient, membership) {
     let score = 0;
@@ -209,12 +208,27 @@ function generateCapital(nationName, clubs, leagues) {
     return baseName + suffix;
 }
 
-export default function NationStats({ nation, clubs = [], leagues = [], coefficient }) {
+export default function NationStats({ nation, clubs = [], leagues = [], coefficient, seasons = [] }) {
     const stats = useMemo(() => {
         if (!nation) return null;
         
         const maxTier = Math.max(...leagues.map(l => l.tier || 1), 1);
-        const population = estimateNationPopulation(clubs.length, leagues.length, nation.membership, maxTier);
+        
+        // Calculate division sizes from leagues or seasons
+        const topFlightLeagues = leagues.filter(l => l.tier === 1);
+        const topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
+        
+        // Calculate average division size across all leagues
+        const leaguesWithTeams = leagues.filter(l => l.number_of_teams > 0);
+        const avgDivisionSize = leaguesWithTeams.length > 0 
+            ? leaguesWithTeams.reduce((sum, l) => sum + l.number_of_teams, 0) / leaguesWithTeams.length 
+            : 0;
+        
+        const population = estimateNationPopulation(clubs.length, leagues.length, nation.membership, maxTier, {
+            topDivisionSize,
+            avgDivisionSize,
+            totalDivisions: leagues.length
+        });
         const strength = estimateLeagueStrength(clubs, leagues, coefficient, nation.membership);
         const language = nation.language ? { name: nation.language } : generateLanguage(nation.name, clubs, leagues);
         const capital = nation.capital || generateCapital(nation.name, clubs, leagues);
