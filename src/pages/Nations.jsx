@@ -185,7 +185,7 @@ export default function Nations() {
                         />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {regions.length > 0 && (
+                        {filterRegions.length > 0 && (
                             <Select value={regionFilter} onValueChange={setRegionFilter}>
                                 <SelectTrigger className="w-[150px] h-12 bg-white">
                                     <Globe className="w-4 h-4 mr-2 text-slate-400" />
@@ -193,7 +193,7 @@ export default function Nations() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Regions</SelectItem>
-                                    {regions.map(region => (
+                                    {filterRegions.map(region => (
                                         <SelectItem key={region} value={region}>{region}</SelectItem>
                                     ))}
                                 </SelectContent>
