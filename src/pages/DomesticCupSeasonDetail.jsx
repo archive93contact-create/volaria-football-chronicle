@@ -170,20 +170,18 @@ export default function DomesticCupSeasonDetail() {
                     </div>
                 )}
                 <div className={`flex items-center gap-2 p-3 ${homeIsWinner ? 'bg-emerald-50' : ''}`}>
-                    {homeClub?.logo_url && <img src={homeClub.logo_url} alt="" className="w-5 h-5 object-contain" />}
+                    {homeTier && <Badge variant="outline" className="text-xs h-5 flex-shrink-0">T{homeTier}</Badge>}
                     <span className={`flex-1 text-sm truncate ${homeIsWinner ? 'font-bold text-emerald-700' : ''}`}>
                         {match.home_club_name}
                     </span>
-                    {homeTier && <Badge variant="outline" className="text-xs h-5">T{homeTier}</Badge>}
                     <span className={`font-mono ${homeIsWinner ? 'font-bold' : ''}`}>{match.home_score ?? '-'}</span>
                 </div>
                 <div className="border-t" />
                 <div className={`flex items-center gap-2 p-3 ${awayIsWinner ? 'bg-emerald-50' : ''}`}>
-                    {awayClub?.logo_url && <img src={awayClub.logo_url} alt="" className="w-5 h-5 object-contain" />}
+                    {awayTier && <Badge variant="outline" className="text-xs h-5 flex-shrink-0">T{awayTier}</Badge>}
                     <span className={`flex-1 text-sm truncate ${awayIsWinner ? 'font-bold text-emerald-700' : ''}`}>
                         {match.away_club_name}
                     </span>
-                    {awayTier && <Badge variant="outline" className="text-xs h-5">T{awayTier}</Badge>}
                     <span className={`font-mono ${awayIsWinner ? 'font-bold' : ''}`}>{match.away_score ?? '-'}</span>
                 </div>
                 {match.extra_time && <div className="bg-blue-50 text-xs text-blue-600 text-center py-1">AET</div>}

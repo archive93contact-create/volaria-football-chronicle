@@ -43,9 +43,6 @@ export default function BracketView({ matches, getNationFlag, clubs = [], onEdit
                 {flag && (
                     <img src={flag} alt="" className="w-5 h-3 object-contain flex-shrink-0" />
                 )}
-                {club?.logo_url && (
-                    <img src={club.logo_url} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
-                )}
                 {club ? (
                     <Link 
                         to={createPageUrl(`ClubDetail?id=${club.id}`)}
