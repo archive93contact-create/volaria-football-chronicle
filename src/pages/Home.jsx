@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Globe, Trophy, Shield, ChevronRight, Plus, MapPin, Star } from 'lucide-react';
+import AdminOnly from '@/components/common/AdminOnly';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -71,12 +72,14 @@ export default function Home() {
                                     <ChevronRight className="w-5 h-5 ml-2" />
                                 </Button>
                             </Link>
-                            <Link to={createPageUrl('AddNation')}>
-                                <Button size="lg" variant="outline" className="text-lg px-8 border-white/30 text-white hover:bg-white/10">
-                                    <Plus className="w-5 h-5 mr-2" />
-                                    Add Nation
-                                </Button>
-                            </Link>
+                            <AdminOnly>
+                                <Link to={createPageUrl('AddNation')}>
+                                    <Button size="lg" variant="outline" className="text-lg px-8 border-white/30 text-white hover:bg-white/10">
+                                        <Plus className="w-5 h-5 mr-2" />
+                                        Add Nation
+                                    </Button>
+                                </Link>
+                            </AdminOnly>
                         </div>
                     </div>
                 </div>
@@ -106,12 +109,14 @@ export default function Home() {
                         <h2 className="text-3xl font-bold text-slate-900">Nations of Volaria</h2>
                         <p className="text-slate-600 mt-2">Select a nation to explore its football structure</p>
                     </div>
-                    <Link to={createPageUrl('AddNation')}>
-                        <Button className="bg-slate-900 hover:bg-slate-800">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Nation
-                        </Button>
-                    </Link>
+                    <AdminOnly>
+                        <Link to={createPageUrl('AddNation')}>
+                            <Button className="bg-slate-900 hover:bg-slate-800">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Nation
+                            </Button>
+                        </Link>
+                    </AdminOnly>
                 </div>
 
                 {nationsLoading ? (
@@ -126,12 +131,14 @@ export default function Home() {
                             <Globe className="w-16 h-16 text-slate-300 mb-4" />
                             <h3 className="text-xl font-semibold text-slate-700 mb-2">No Nations Yet</h3>
                             <p className="text-slate-500 mb-6">Start building your football universe</p>
-                            <Link to={createPageUrl('AddNation')}>
-                                <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add Your First Nation
-                                </Button>
-                            </Link>
+                            <AdminOnly>
+                                <Link to={createPageUrl('AddNation')}>
+                                    <Button>
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add Your First Nation
+                                    </Button>
+                                </Link>
+                            </AdminOnly>
                         </CardContent>
                     </Card>
                 ) : (
