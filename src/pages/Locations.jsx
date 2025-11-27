@@ -146,7 +146,7 @@ export default function Locations() {
                                         {location.type}
                                     </Badge>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-slate-500">
+                                <div className="flex items-center gap-3 text-sm text-slate-500 flex-wrap">
                                     {location.nation && (
                                         <span className="flex items-center gap-1">
                                             {location.nation.flag_url && (
@@ -159,6 +159,18 @@ export default function Locations() {
                                         <Shield className="w-3 h-3" />
                                         {location.clubs.length} club{location.clubs.length !== 1 ? 's' : ''}
                                     </span>
+                                    {location.type === 'region' && location.districts?.size > 0 && (
+                                        <span className="flex items-center gap-1">
+                                            <Building2 className="w-3 h-3" />
+                                            {location.districts.size} district{location.districts.size !== 1 ? 's' : ''}
+                                        </span>
+                                    )}
+                                    {(location.type === 'region' || location.type === 'district') && location.settlements?.size > 0 && (
+                                        <span className="flex items-center gap-1">
+                                            <Home className="w-3 h-3" />
+                                            {location.settlements.size} settlement{location.settlements.size !== 1 ? 's' : ''}
+                                        </span>
+                                    )}
                                     <span className="flex items-center gap-1">
                                         <Users className="w-3 h-3" />
                                         ~{estimateLocationPopulation(location.clubs.length, location.type)}
