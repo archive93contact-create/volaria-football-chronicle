@@ -11,29 +11,39 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 
-// Estimate population based on clubs in location
-function estimateLocationPopulation(clubCount, locationType, isCapital = false) {
+// Estimate population based on clubs in location with pseudo-random variance
+function estimateLocationPopulation(clubCount, locationType, isCapital = false, locationName = '') {
+    // Use location name as seed for consistent "random" values
+    const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const pseudoRandom = (min, max) => {
+        const x = Math.sin(seed) * 10000;
+        const rand = x - Math.floor(x);
+        return Math.floor(rand * (max - min + 1)) + min;
+    };
+    
     const baseMultipliers = {
-        region: 500000,
-        district: 100000,
-        settlement: 25000
+        region: 400000,
+        district: 80000,
+        settlement: 20000
     };
     let base = baseMultipliers[locationType] || 50000;
     
     // Capitals get a significant boost
     if (isCapital) {
-        base = Math.max(base * 4, 200000);
+        base = Math.max(base * 5, 300000);
     }
     
-    let population = clubCount * base + Math.floor(base * 0.5);
+    // Random variance (0.7 to 1.4)
+    const variance = 0.7 + (pseudoRandom(0, 70) / 100);
+    let population = Math.floor((clubCount * base + base * 0.3) * variance);
     
     // Ensure capitals have respectable minimum
-    if (isCapital && population < 500000) {
-        population = 500000 + (clubCount * 100000);
+    if (isCapital && population < 600000) {
+        population = 600000 + (clubCount * 120000) + pseudoRandom(10000, 50000);
     }
     
     if (population >= 1000000) {
-        return `${(population / 1000000).toFixed(1)}M`;
+        return `${(population / 1000000).toFixed(2)}M`;
     }
     return `${Math.round(population / 1000)}K`;
 }
@@ -186,7 +196,7 @@ export default function Locations() {
                                     )}
                                     <span className="flex items-center gap-1">
                                         <Users className="w-3 h-3" />
-                                        ~{estimateLocationPopulation(location.clubs.length, location.type, isCapital)}
+                                        ~{estimateLocationPopulation(location.clubs.length, location.type, isCapital, location.name)}
                                     </span>
                                 </div>
                                 {location.region && location.type !== 'region' && (

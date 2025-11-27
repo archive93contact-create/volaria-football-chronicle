@@ -10,31 +10,58 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
 
-// Estimate population based on clubs
-function estimatePopulation(clubCount, locationType, isCapital = false) {
+// Estimate population based on clubs, tiers, and some randomness
+function estimatePopulation(clubCount, locationType, isCapital = false, locationName = '', clubs = []) {
+    // Use location name as seed for consistent "random" values
+    const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const pseudoRandom = (min, max) => {
+        const x = Math.sin(seed) * 10000;
+        const rand = x - Math.floor(x);
+        return Math.floor(rand * (max - min + 1)) + min;
+    };
+    
     const baseMultipliers = {
-        region: 500000,
-        district: 100000,
-        settlement: 25000
+        region: 400000,
+        district: 80000,
+        settlement: 20000
     };
     let base = baseMultipliers[locationType] || 50000;
     
+    // Calculate tier bonus - higher tier clubs = larger population
+    let tierBonus = 0;
+    clubs.forEach(club => {
+        if (club.league_id) {
+            // Approximate tier from league (would need actual tier data)
+            tierBonus += 15000; // Base per club
+        }
+        if (club.seasons_top_flight > 0) tierBonus += club.seasons_top_flight * 2000;
+        if (club.league_titles > 0) tierBonus += club.league_titles * 10000;
+    });
+    
     // Capitals get a significant boost
     if (isCapital) {
-        base = Math.max(base * 4, 200000); // Minimum 200k for a capital
+        base = Math.max(base * 5, 300000);
     }
     
-    let population = clubCount * base + Math.floor(base * 0.5);
+    // Random variance factor (0.7 to 1.4)
+    const variance = 0.7 + (pseudoRandom(0, 70) / 100);
+    
+    let population = Math.floor((clubCount * base + tierBonus + base * 0.3) * variance);
+    
+    // Add some non-round "realistic" numbers
+    const remainder = pseudoRandom(100, 9999);
+    population = Math.floor(population / 10000) * 10000 + remainder;
     
     // Ensure capitals have a respectable minimum population
-    if (isCapital && population < 500000) {
-        population = 500000 + (clubCount * 100000);
+    if (isCapital && population < 600000) {
+        population = 600000 + (clubCount * 120000) + pseudoRandom(10000, 99999);
     }
     
+    // Format display
     if (population >= 1000000) {
-        return { value: population, display: `${(population / 1000000).toFixed(1)} million` };
+        return { value: population, display: `${(population / 1000000).toFixed(2)} million` };
     }
-    return { value: population, display: `${Math.round(population / 1000)},000` };
+    return { value: population, display: population.toLocaleString() };
 }
 
 export default function LocationDetail() {
@@ -169,7 +196,7 @@ export default function LocationDetail() {
         }).length;
         
         return {
-            population: estimatePopulation(locationClubs.length, locationType, isCapital),
+            population: estimatePopulation(locationClubs.length, locationType, isCapital, displayName, locationClubs),
             totalTrophies,
             continentalTrophies,
             topFlightClubs
