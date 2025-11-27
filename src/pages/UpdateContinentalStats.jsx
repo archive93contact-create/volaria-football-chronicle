@@ -164,8 +164,13 @@ export default function UpdateContinentalStats() {
 
             // Calculate rank for comparison (lower is better)
             const getBestFinishRank = (finish) => {
+                if (!finish) return 99;
                 if (finish === 'Winner') return 0;
                 if (finish === 'Final') return 0.5;
+                if (finish === 'Semi-final' || finish === 'Semi-finals') return 1;
+                if (finish === 'Quarter-final' || finish === 'Quarter-finals') return 2;
+                if (finish === 'Round of 16' || finish === 'Round 1') return 3;
+                if (finish === 'Round of 32') return 4;
                 return ROUND_RANK[finish] || 99;
             };
 
@@ -174,10 +179,14 @@ export default function UpdateContinentalStats() {
             const newBestRank = getBestFinishRank(bestFinishDisplay);
 
             // Only update best finish if this is better than existing
-            if (newBestRank < existingBestRank || !existingBestFinish) {
+            if (newBestRank < existingBestRank) {
                 updateData[bestFinishField] = bestFinishDisplay;
                 updateData[bestFinishYearField] = season.year;
                 changes.push(`Best finish: ${bestFinishDisplay}`);
+            } else if (!existingBestFinish) {
+                updateData[bestFinishField] = bestFinishDisplay;
+                updateData[bestFinishYearField] = season.year;
+                changes.push(`First continental finish: ${bestFinishDisplay}`);
             } else {
                 changes.push(`Exit: ${bestFinishDisplay} (not best)`);
             }
