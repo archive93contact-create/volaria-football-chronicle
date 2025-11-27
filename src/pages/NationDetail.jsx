@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star, Award } from 'lucide-react';
+import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star, Award, MapPin } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import PageHeader from '@/components/common/PageHeader';
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import NationNarratives from '@/components/nations/NationNarratives';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
+import NationStats from '@/components/nations/NationStats';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {
@@ -74,6 +75,13 @@ export default function NationDetail() {
         },
         enabled: domesticCups.length > 0,
     });
+
+    const { data: coefficients = [] } = useQuery({
+        queryKey: ['coefficients'],
+        queryFn: () => base44.entities.CountryCoefficient.list(),
+    });
+
+    const coefficient = coefficients.find(c => c.nation_id === nationId);
 
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Nation.update(nationId, data),
@@ -240,6 +248,9 @@ export default function NationDetail() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Nation Stats */}
+                <NationStats nation={nation} clubs={clubs} leagues={leagues} coefficient={coefficient} />
+
                 {/* League Pyramid */}
                 <LeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
 
@@ -566,6 +577,26 @@ export default function NationDetail() {
                                     value={editData.founded_year || ''}
                                     onChange={(e) => setEditData({...editData, founded_year: e.target.value})}
                                     className="mt-1"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Capital City</Label>
+                                <Input
+                                    value={editData.capital || ''}
+                                    onChange={(e) => setEditData({...editData, capital: e.target.value})}
+                                    className="mt-1"
+                                    placeholder="Will be auto-generated if empty"
+                                />
+                            </div>
+                            <div>
+                                <Label>Language</Label>
+                                <Input
+                                    value={editData.language || ''}
+                                    onChange={(e) => setEditData({...editData, language: e.target.value})}
+                                    className="mt-1"
+                                    placeholder="Will be auto-generated if empty"
                                 />
                             </div>
                         </div>
