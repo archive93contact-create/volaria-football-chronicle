@@ -6,48 +6,43 @@ export function estimateNationPopulation(clubCount, leagueCount, membership, max
     
     const { topDivisionSize = 0, avgDivisionSize = 0, totalDivisions = 0 } = options;
     
-    // Base population per club varies by membership tier
-    let basePerClub = membership === 'VCC' ? 75000 : membership === 'CCC' ? 45000 : 50000;
+    // Base population per club - conservative starting point
+    // Typical ratio: 1 tracked club per 30-50k people for developed football nations
+    let basePerClub = membership === 'VCC' ? 35000 : membership === 'CCC' ? 25000 : 30000;
     
-    // More leagues = bigger football structure = bigger country
-    const leagueMultiplier = 1 + (leagueCount * 0.15);
-    
-    // More tiers = deeper pyramid = larger country
-    const tierMultiplier = 1 + ((maxTier || 1) * 0.1);
-    
-    // Division size factor - larger top divisions indicate bigger economies
-    // Top divisions of 20+ teams suggest a major footballing nation
-    // Small top divisions (8-12) suggest smaller nation with fewer sustainable pro clubs
+    // Division size is the PRIMARY driver - small leagues = small country
+    // An 8-team top flight suggests a nation of ~1-3 million
+    // A 20-team top flight suggests 20-60 million
     let divisionSizeFactor = 1.0;
     if (topDivisionSize > 0) {
         if (topDivisionSize >= 20) {
-            divisionSizeFactor = 1.4; // Large top flight = major nation
+            divisionSizeFactor = 2.5; // Large top flight = major nation
+        } else if (topDivisionSize >= 18) {
+            divisionSizeFactor = 2.0;
         } else if (topDivisionSize >= 16) {
-            divisionSizeFactor = 1.2; // Standard size
+            divisionSizeFactor = 1.6;
+        } else if (topDivisionSize >= 14) {
+            divisionSizeFactor = 1.3;
         } else if (topDivisionSize >= 12) {
-            divisionSizeFactor = 1.0; // Medium
+            divisionSizeFactor = 1.0;
+        } else if (topDivisionSize >= 10) {
+            divisionSizeFactor = 0.7;
         } else if (topDivisionSize >= 8) {
-            divisionSizeFactor = 0.75; // Smaller nation
+            divisionSizeFactor = 0.5; // 8-team league = small nation
         } else {
-            divisionSizeFactor = 0.5; // Very small/limited pro football
+            divisionSizeFactor = 0.3; // Very small
         }
     }
     
-    // Professional club density - if avg division size is small relative to club count,
-    // it may indicate many amateur/semi-pro clubs in a smaller nation
-    let densityFactor = 1.0;
-    if (avgDivisionSize > 0 && totalDivisions > 0) {
-        const professionalClubs = avgDivisionSize * Math.min(totalDivisions, 4); // Top 4 tiers = pro
-        const proRatio = professionalClubs / clubCount;
-        // If only a small fraction are "professional tier", reduce population estimate
-        if (proRatio < 0.3) {
-            densityFactor = 0.7; // Many lower-league/amateur clubs
-        } else if (proRatio < 0.5) {
-            densityFactor = 0.85;
-        }
-    }
+    // Tier depth gives a modest boost - but capped
+    // More tiers doesn't mean massively more population
+    const tierMultiplier = 1 + (Math.min(maxTier || 1, 4) * 0.05); // Max 1.2x for 4 tiers
     
-    const estimated = Math.round(clubCount * basePerClub * leagueMultiplier * tierMultiplier * divisionSizeFactor * densityFactor);
+    // League count bonus - but very modest, many small leagues != big population
+    const leagueBonus = Math.min(leagueCount, 6) * 0.03; // Max 18% boost
+    const leagueMultiplier = 1 + leagueBonus;
+    
+    const estimated = Math.round(clubCount * basePerClub * divisionSizeFactor * tierMultiplier * leagueMultiplier);
     
     // Return formatted with tier description
     let display, tier;
