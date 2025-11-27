@@ -21,6 +21,7 @@ import ClubNarratives from '@/components/clubs/ClubNarratives';
 import ClubHistory from '@/components/clubs/ClubHistory';
 import RivalryTracker from '@/components/clubs/RivalryTracker';
 import DynastyTracker from '@/components/clubs/DynastyTracker';
+import ContinentalRivalries from '@/components/clubs/ContinentalRivalries';
 import AdminOnly from '@/components/common/AdminOnly';
 
 export default function ClubDetail() {
@@ -799,6 +800,11 @@ export default function ClubDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                     <DynastyTracker club={club} combinedStats={combinedStats} />
                     <RivalryTracker club={club} allClubs={allClubs} allLeagueTables={allNationLeagueTables} />
+                </div>
+
+                {/* Continental Rivalries */}
+                <div className="mt-8">
+                    <ContinentalRivalries club={club} nationName={nation?.name} />
                 </div>
 
                 {/* League History Chart */}
