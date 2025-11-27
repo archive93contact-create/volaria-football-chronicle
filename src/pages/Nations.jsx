@@ -21,8 +21,8 @@ function estimatePopulation(clubCount, leagueCount, membership) {
     return estimated;
 }
 
-// Estimate league strength
-function estimateStrength(clubs, coefficient, membership) {
+// Estimate league strength - matches NationStats component logic
+function estimateStrength(clubs, leagues, coefficient, membership) {
     let score = membership === 'VCC' ? 15 : membership === 'CCC' ? 5 : 0;
     if (coefficient?.rank) {
         if (coefficient.rank <= 5) score += 35;
@@ -32,7 +32,26 @@ function estimateStrength(clubs, coefficient, membership) {
     }
     score += clubs.filter(c => c.vcc_titles > 0).length * 10;
     score += clubs.filter(c => c.ccc_titles > 0).length * 5;
-    return Math.min(score, 100);
+    
+    // Depth of pyramid
+    const maxTier = Math.max(...leagues.map(l => l.tier || 1), 1);
+    score += maxTier * 3;
+    
+    // Number of top-flight clubs
+    const topFlightLeagues = leagues.filter(l => l.tier === 1);
+    const topFlightTeams = topFlightLeagues.reduce((sum, l) => sum + (l.number_of_teams || 12), 0);
+    score += Math.min(topFlightTeams, 20);
+    
+    score = Math.min(score, 100);
+    
+    let tier, color, bg;
+    if (score >= 80) { tier = 'Elite'; color = 'text-amber-500'; bg = 'bg-amber-50'; }
+    else if (score >= 60) { tier = 'Strong'; color = 'text-emerald-500'; bg = 'bg-emerald-50'; }
+    else if (score >= 40) { tier = 'Developing'; color = 'text-blue-500'; bg = 'bg-blue-50'; }
+    else if (score >= 20) { tier = 'Emerging'; color = 'text-purple-500'; bg = 'bg-purple-50'; }
+    else { tier = 'Growing'; color = 'text-slate-500'; bg = 'bg-slate-50'; }
+    
+    return { score, tier, color, bg };
 }
 
 export default function Nations() {
@@ -71,7 +90,7 @@ export default function Nations() {
             const nationClubs = clubs.filter(c => c.nation_id === nation.id);
             const coeff = coefficients.find(c => c.nation_id === nation.id);
             const population = estimatePopulation(nationClubs.length, nationLeagues.length, nation.membership);
-            const strength = estimateStrength(nationClubs, coeff, nation.membership);
+            const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
             const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
             
             return {
@@ -100,7 +119,7 @@ export default function Nations() {
                 case 'population': return b.population - a.population;
                 case 'clubs': return b.clubCount - a.clubCount;
                 case 'leagues': return b.leagueCount - a.leagueCount;
-                case 'strength': return b.strength - a.strength;
+                case 'strength': return b.strength.score - a.strength.score;
                 case 'rank':
                 default:
                     if (a.rank !== b.rank) return a.rank - b.rank;
@@ -268,18 +287,9 @@ export default function Nations() {
                                             }
                                         </TableCell>
                                         <TableCell className="text-center">
-                                            <div className="flex items-center justify-center gap-1">
-                                                <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                                    <div 
-                                                        className={`h-full rounded-full ${
-                                                            nation.strength >= 60 ? 'bg-emerald-500' : 
-                                                            nation.strength >= 40 ? 'bg-blue-500' : 
-                                                            nation.strength >= 20 ? 'bg-purple-500' : 'bg-slate-400'
-                                                        }`}
-                                                        style={{ width: `${nation.strength}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-xs text-slate-500 w-6">{nation.strength}</span>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <span className={`text-xs font-medium ${nation.strength.color}`}>{nation.strength.tier}</span>
+                                                <span className="text-xs text-slate-400">{nation.strength.score}/100</span>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -338,17 +348,7 @@ export default function Nations() {
                                                 <span className="font-medium">{nation.clubCount}</span>
                                             </div>
                                             <div className="flex items-center gap-1 ml-auto">
-                                                <BarChart3 className="w-3 h-3 text-slate-400" />
-                                                <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                                    <div 
-                                                        className={`h-full rounded-full ${
-                                                            nation.strength >= 60 ? 'bg-emerald-500' : 
-                                                            nation.strength >= 40 ? 'bg-blue-500' : 
-                                                            nation.strength >= 20 ? 'bg-purple-500' : 'bg-slate-400'
-                                                        }`}
-                                                        style={{ width: `${nation.strength}%` }}
-                                                    />
-                                                </div>
+                                                <span className={`text-xs font-medium ${nation.strength.color}`}>{nation.strength.tier}</span>
                                             </div>
                                         </div>
                                     </CardContent>
