@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import PageHeader from '@/components/common/PageHeader';
 import ImageUploader from '@/components/common/ImageUploader';
 import NationNarratives from '@/components/nations/NationNarratives';
+import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {
@@ -45,6 +46,17 @@ export default function NationDetail() {
     const { data: clubs = [] } = useQuery({
         queryKey: ['clubs', nationId],
         queryFn: () => base44.entities.Club.filter({ nation_id: nationId }, 'name'),
+    });
+
+    const { data: seasons = [] } = useQuery({
+        queryKey: ['nationSeasons', nationId],
+        queryFn: async () => {
+            // Get all seasons for all leagues in this nation
+            const allSeasons = await base44.entities.Season.list();
+            const leagueIds = leagues.map(l => l.id);
+            return allSeasons.filter(s => leagueIds.includes(s.league_id));
+        },
+        enabled: leagues.length > 0,
     });
 
     const updateMutation = useMutation({
@@ -212,6 +224,9 @@ export default function NationDetail() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* League Pyramid */}
+                <LeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
+
                 {/* Nation Narratives */}
                 <NationNarratives nation={nation} leagues={leagues} clubs={clubs} />
 
