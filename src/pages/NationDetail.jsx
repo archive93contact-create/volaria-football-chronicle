@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import PageHeader from '@/components/common/PageHeader';
-import ImageUploader from '@/components/common/ImageUploader';
+import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import NationNarratives from '@/components/nations/NationNarratives';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import { useNavigate } from 'react-router-dom';
@@ -506,9 +506,12 @@ export default function NationDetail() {
                     </DialogHeader>
                     <div className="space-y-6 py-4">
                         <div className="flex justify-center">
-                            <ImageUploader
+                            <ImageUploaderWithColors
                                 currentImage={editData.flag_url}
                                 onUpload={(url) => setEditData({...editData, flag_url: url})}
+                                primaryColor={editData.primary_color}
+                                secondaryColor={editData.secondary_color}
+                                onColorsChange={(primary, secondary) => setEditData({...editData, primary_color: primary, secondary_color: secondary})}
                                 label="Upload Flag"
                             />
                         </div>

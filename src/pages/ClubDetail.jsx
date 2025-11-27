@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ImageUploader from '@/components/common/ImageUploader';
+import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import LeagueHistoryChart from '@/components/clubs/LeagueHistoryChart';
 import ClubNarratives from '@/components/clubs/ClubNarratives';
 
@@ -1046,8 +1046,15 @@ export default function ClubDetail() {
                     <DialogHeader><DialogTitle>Edit Club</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="flex justify-center">
-                            <ImageUploader currentImage={editData.logo_url} onUpload={(url) => setEditData({...editData, logo_url: url})} label="Upload Logo" />
-                        </div>
+                                <ImageUploaderWithColors 
+                                    currentImage={editData.logo_url} 
+                                    onUpload={(url) => setEditData({...editData, logo_url: url})} 
+                                    primaryColor={editData.primary_color}
+                                    secondaryColor={editData.secondary_color}
+                                    onColorsChange={(primary, secondary) => setEditData({...editData, primary_color: primary, secondary_color: secondary})}
+                                    label="Upload Logo" 
+                                />
+                            </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div><Label>Club Name</Label><Input value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
                             <div><Label>Nickname</Label><Input value={editData.nickname || ''} onChange={(e) => setEditData({...editData, nickname: e.target.value})} className="mt-1" /></div>
