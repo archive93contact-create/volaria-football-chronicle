@@ -20,7 +20,7 @@ export default function Layout({ children, currentPageName }) {
                         { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
                         { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
                         { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
-                        { name: 'Stability', icon: Shield, page: 'ClubStability' },
+                        { name: 'Stability', icon: BarChart3, page: 'StabilityManager' },
                         { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
                         { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
                         { name: 'Locations', icon: Globe, page: 'Locations' },

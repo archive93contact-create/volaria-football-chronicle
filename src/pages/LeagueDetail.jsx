@@ -22,7 +22,6 @@ import LeagueClubsMap from '@/components/leagues/LeagueClubsMap';
 import HeadToHeadMatrix from '@/components/leagues/HeadToHeadMatrix';
 import LeagueRivalries from '@/components/leagues/LeagueRivalries';
 import AdminOnly from '@/components/common/AdminOnly';
-import AISeasonGenerator from '@/components/seasons/AISeasonGenerator';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
 import SeasonStorylines from '@/components/seasons/SeasonStorylines';
 import LeaguePredictions from '@/components/leagues/LeaguePredictions';
@@ -663,25 +662,6 @@ export default function LeagueDetail() {
                                             leagueTables={leagueTables}
                                             allClubs={allNationClubs}
                                         />
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
-                                                    ✨ AI Generate
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                                                <DialogHeader>
-                                                    <DialogTitle>AI Season Generator</DialogTitle>
-                                                </DialogHeader>
-                                                <AISeasonGenerator 
-                                                    leagueId={leagueId} 
-                                                    onComplete={() => {
-                                                        queryClient.invalidateQueries(['leagueSeasons', leagueId]);
-                                                        queryClient.invalidateQueries(['leagueTables', leagueId]);
-                                                    }}
-                                                />
-                                            </DialogContent>
-                                        </Dialog>
                                         <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
                                             <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
                                         </Link>
