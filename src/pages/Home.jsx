@@ -77,7 +77,7 @@ export default function Home() {
 
     // Featured nations (top ranked with good data)
     const featuredNations = useMemo(() => {
-        return categorizedNations.withData
+        return categorizedNations.complete
             .filter(n => n.clubCount >= 10 && n.leagueCount >= 2)
             .slice(0, 5);
     }, [categorizedNations]);
