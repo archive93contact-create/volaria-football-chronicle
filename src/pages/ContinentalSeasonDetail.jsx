@@ -12,6 +12,7 @@ import AddMatchDialog from '@/components/continental/AddMatchDialog';
 import EnhancedBracketView from '@/components/continental/EnhancedBracketView';
 import SeasonStats from '@/components/continental/SeasonStats';
 import SeasonNarratives from '@/components/continental/SeasonNarratives';
+import ParticipantsList from '@/components/continental/ParticipantsList';
 import AdminOnly from '@/components/common/AdminOnly';
 
 const ROUND_ORDER = ['Group Stage', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
@@ -204,6 +205,7 @@ export default function ContinentalSeasonDetail() {
                     <div className="flex items-center justify-between">
                         <TabsList>
                             <TabsTrigger value="bracket">Tournament Bracket</TabsTrigger>
+                            <TabsTrigger value="participants">Participants</TabsTrigger>
                             <TabsTrigger value="stats">Stats & Records</TabsTrigger>
                             <TabsTrigger value="rounds">By Round</TabsTrigger>
                         </TabsList>
@@ -228,6 +230,18 @@ export default function ContinentalSeasonDetail() {
                             clubs={clubs}
                             nations={nations}
                             competition={competition}
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="participants">
+                        <ParticipantsList 
+                            matches={matches}
+                            season={season}
+                            clubs={clubs}
+                            nations={nations}
+                            competition={competition}
+                            allSeasons={allSeasons}
+                            allMatches={allMatches}
                         />
                     </TabsContent>
 

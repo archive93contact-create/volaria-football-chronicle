@@ -8,6 +8,13 @@ import { Badge } from "@/components/ui/badge";
 const ROUND_ORDER = ['Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
 export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition }) {
+    // Get custom round names from competition
+    const getRoundDisplayName = (roundName) => {
+        if (competition?.round_names && competition.round_names[roundName]) {
+            return competition.round_names[roundName];
+        }
+        return roundName;
+    };
     // Group matches by round
     const matchesByRound = useMemo(() => {
         return matches.reduce((acc, match) => {
@@ -121,7 +128,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                 )}
                 {showRound && !isFinal && (
                     <div className="bg-slate-100 text-slate-600 text-xs font-medium text-center py-1.5">
-                        {match.round}
+                        {getRoundDisplayName(match.round)}
                     </div>
                 )}
                 <ClubRow 
@@ -182,7 +189,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
             {semiMatches.length > 0 && (
                 <div>
                     <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        Semi-Finals
+                        {getRoundDisplayName('Semi-final')}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
                         {semiMatches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
@@ -196,7 +203,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
             {quarterMatches.length > 0 && (
                 <div>
                     <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        Quarter-Finals
+                        {getRoundDisplayName('Quarter-final')}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {quarterMatches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
@@ -210,7 +217,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
             {r16Matches.length > 0 && (
                 <div>
                     <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        Round of 16
+                        {getRoundDisplayName('Round of 16')}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         {r16Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
@@ -224,7 +231,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
             {r32Matches.length > 0 && (
                 <div>
                     <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        Round of 32
+                        {getRoundDisplayName('Round of 32')}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         {r32Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
