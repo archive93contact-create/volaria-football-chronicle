@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Wand2, Check, AlertCircle } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Loader2, Wand2, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-export default function AIFillMissingStats({ league, seasons = [], leagueTables = [] }) {
+export default function AIFillMissingStats({ league, seasons = [], leagueTables = [], allClubs = [] }) {
     const [open, setOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [progress, setProgress] = useState({ current: 0, total: 0, currentSeason: '' });
     const [results, setResults] = useState([]);
+    const [syncClubStats, setSyncClubStats] = useState(true);
     const queryClient = useQueryClient();
 
     // Find seasons with incomplete stats
@@ -108,19 +111,35 @@ Generate UNIQUE, INTERESTING stats - not just a linear points progression!`;
                     if (table.points === 0 || table.played === 0) {
                         const aiStats = result.teams.find(t => t.position === table.position) || result.teams[table.position - 1];
                         if (aiStats) {
+                            const statsToUpdate = {
+                                played: aiStats.played,
+                                won: aiStats.won,
+                                drawn: aiStats.drawn,
+                                lost: aiStats.lost,
+                                goals_for: aiStats.goals_for,
+                                goals_against: aiStats.goals_against,
+                                goal_difference: aiStats.goals_for - aiStats.goals_against,
+                                points: aiStats.points
+                            };
+                            
                             await updateTableMutation.mutateAsync({
                                 id: table.id,
-                                data: {
-                                    played: aiStats.played,
-                                    won: aiStats.won,
-                                    drawn: aiStats.drawn,
-                                    lost: aiStats.lost,
-                                    goals_for: aiStats.goals_for,
-                                    goals_against: aiStats.goals_against,
-                                    goal_difference: aiStats.goals_for - aiStats.goals_against,
-                                    points: aiStats.points
-                                }
+                                data: statsToUpdate
                             });
+                            
+                            // Also update the club's all-time stats if sync is enabled
+                            if (syncClubStats && table.club_id) {
+                                const club = allClubs.find(c => c.id === table.club_id);
+                                if (club) {
+                                    await base44.entities.Club.update(club.id, {
+                                        total_wins: (club.total_wins || 0) + aiStats.won,
+                                        total_draws: (club.total_draws || 0) + aiStats.drawn,
+                                        total_losses: (club.total_losses || 0) + aiStats.lost,
+                                        total_goals_scored: (club.total_goals_scored || 0) + aiStats.goals_for,
+                                        total_goals_conceded: (club.total_goals_conceded || 0) + aiStats.goals_against
+                                    });
+                                }
+                            }
                             updated++;
                         }
                     }
@@ -150,6 +169,10 @@ Generate UNIQUE, INTERESTING stats - not just a linear points progression!`;
 
         setProcessing(false);
         queryClient.invalidateQueries(['leagueTables']);
+        if (syncClubStats) {
+            queryClient.invalidateQueries(['clubs']);
+            queryClient.invalidateQueries(['nationClubs']);
+        }
     };
 
     if (incompleteSeasons.length === 0) {
@@ -192,6 +215,16 @@ Generate UNIQUE, INTERESTING stats - not just a linear points progression!`;
                                 <p className="text-sm text-slate-500">
                                     AI will generate realistic stats based on league position and team count.
                                 </p>
+                                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                                    <Checkbox 
+                                        id="syncClubs" 
+                                        checked={syncClubStats}
+                                        onCheckedChange={setSyncClubStats}
+                                    />
+                                    <Label htmlFor="syncClubs" className="text-sm text-blue-800 cursor-pointer">
+                                        Also update club all-time statistics (W/D/L/GF/GA)
+                                    </Label>
+                                </div>
                                 <Button onClick={handleGenerate} className="w-full bg-purple-600 hover:bg-purple-700">
                                     <Wand2 className="w-4 h-4 mr-2" />
                                     Generate Stats for All Seasons

@@ -26,6 +26,7 @@ import LeagueComparison from './pages/LeagueComparison';
 import RecalculateCoefficients from './pages/RecalculateCoefficients';
 import Coefficients from './pages/Coefficients';
 import AllClubs from './pages/AllClubs';
+import EditSeasonTable from './pages/EditSeasonTable';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "RecalculateCoefficients": RecalculateCoefficients,
     "Coefficients": Coefficients,
     "AllClubs": AllClubs,
+    "EditSeasonTable": EditSeasonTable,
 }
 
 export const pagesConfig = {

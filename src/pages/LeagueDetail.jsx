@@ -579,6 +579,7 @@ export default function LeagueDetail() {
                                             league={league}
                                             seasons={seasons}
                                             leagueTables={leagueTables}
+                                            allClubs={allNationClubs}
                                         />
                                         <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
                                             <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
@@ -617,8 +618,13 @@ export default function LeagueDetail() {
                                                             <Button variant="ghost" size="sm" onClick={() => handleViewTable(season.year)}>
                                                                 View
                                                             </Button>
-                                                            <Button variant="ghost" size="sm" onClick={() => handleEditSeason(season)}>
-                                                                <Edit2 className="w-4 h-4" />
+                                                            <Link to={createPageUrl(`EditSeasonTable?league_id=${leagueId}&season_id=${season.id}&year=${season.year}`)}>
+                                                                <Button variant="ghost" size="sm" title="Edit Table">
+                                                                    <Edit2 className="w-4 h-4" />
+                                                                </Button>
+                                                            </Link>
+                                                            <Button variant="ghost" size="sm" onClick={() => handleEditSeason(season)} title="Edit Season Info">
+                                                                ℹ️
                                                             </Button>
                                                             <AlertDialog>
                                                                 <AlertDialogTrigger asChild>
