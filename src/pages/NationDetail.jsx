@@ -259,6 +259,94 @@ export default function NationDetail() {
                 {/* Nation Stats */}
                 <NationStats nation={nation} clubs={clubs} leagues={leagues} coefficient={coefficient} />
 
+                {/* Quick Access Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
+                    {/* Top League */}
+                    {leagues.filter(l => l.tier === 1)[0] && (
+                        <Link to={createPageUrl(`LeagueDetail?id=${leagues.filter(l => l.tier === 1)[0].id}`)}>
+                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all h-full bg-gradient-to-br from-amber-50 to-orange-50 group cursor-pointer">
+                                <CardContent className="p-5">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center">
+                                            <Trophy className="w-5 h-5 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-amber-600 font-medium">Top Division</p>
+                                            <h3 className="font-bold text-slate-900 group-hover:text-amber-700">{leagues.filter(l => l.tier === 1)[0].name}</h3>
+                                        </div>
+                                    </div>
+                                    {leagues.filter(l => l.tier === 1)[0].current_champion && (
+                                        <p className="text-sm text-slate-600">
+                                            🏆 Champion: <span className="font-medium text-emerald-600">{leagues.filter(l => l.tier === 1)[0].current_champion}</span>
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                                        View league <ChevronRight className="w-3 h-3" />
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    )}
+
+                    {/* Best Club */}
+                    {(() => {
+                        const bestClub = clubs
+                            .map(c => ({ ...c, score: (c.league_titles || 0) * 3 + (c.vcc_titles || 0) * 5 + (c.ccc_titles || 0) * 3 + (c.domestic_cup_titles || 0) }))
+                            .filter(c => c.score > 0)
+                            .sort((a, b) => b.score - a.score)[0];
+                        if (!bestClub) return null;
+                        return (
+                            <Link to={createPageUrl(`ClubDetail?id=${bestClub.id}`)}>
+                                <Card className="border-0 shadow-sm hover:shadow-lg transition-all h-full bg-gradient-to-br from-blue-50 to-indigo-50 group cursor-pointer">
+                                    <CardContent className="p-5">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            {bestClub.logo_url ? (
+                                                <img src={bestClub.logo_url} alt={bestClub.name} className="w-10 h-10 object-contain" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                                                    <Shield className="w-5 h-5 text-white" />
+                                                </div>
+                                            )}
+                                            <div>
+                                                <p className="text-xs text-blue-600 font-medium">Most Successful Club</p>
+                                                <h3 className="font-bold text-slate-900 group-hover:text-blue-700">{bestClub.name}</h3>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm text-slate-600">
+                                            {bestClub.league_titles > 0 && <span>🏆 {bestClub.league_titles} titles</span>}
+                                            {bestClub.vcc_titles > 0 && <span className="text-amber-600">⭐ {bestClub.vcc_titles} VCC</span>}
+                                        </div>
+                                        <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                                            View club <ChevronRight className="w-3 h-3" />
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        );
+                    })()}
+
+                    {/* All Clubs Link */}
+                    <Link to={createPageUrl(`NationClubs?id=${nationId}`)}>
+                        <Card className="border-0 shadow-sm hover:shadow-lg transition-all h-full bg-gradient-to-br from-emerald-50 to-teal-50 group cursor-pointer">
+                            <CardContent className="p-5">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center">
+                                        <Shield className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-emerald-600 font-medium">Browse All</p>
+                                        <h3 className="font-bold text-slate-900 group-hover:text-emerald-700">{clubs.length} Clubs</h3>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-slate-600">Explore all clubs in {nation.name}</p>
+                                <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+                                    View all clubs <ChevronRight className="w-3 h-3" />
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                </div>
+
                 {/* Tabs for main content */}
                 <Tabs defaultValue="overview" className="mt-6">
                     <TabsList className="mb-6">
