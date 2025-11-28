@@ -27,32 +27,40 @@ export default function RecalculateSeasonStats({ seasons, leagueTables }) {
         
         let totalUpdated = 0;
 
-        for (const season of yearSeasons) {
-            // Get league table entries for this specific season
-            const seasonTables = leagueTables.filter(lt => 
-                lt.year === selectedYear && 
-                (lt.season_id === season.id || lt.division_name === season.division_name)
-            );
+        // Get all league table entries for this year
+        const yearTables = leagueTables.filter(lt => lt.year === selectedYear);
+        
+        if (yearTables.length === 0) {
+            setResult({ updated: 0 });
+            setLoading(false);
+            return;
+        }
 
-            if (seasonTables.length === 0) continue;
+        // Group by division
+        const divisions = {};
+        yearTables.forEach(entry => {
+            const divName = entry.division_name || 'main';
+            if (!divisions[divName]) divisions[divName] = [];
+            divisions[divName].push(entry);
+        });
 
-            // Calculate correct games per team based on teams in THIS division
-            const teamsInDivision = seasonTables.length;
+        // Process each division separately
+        for (const [divName, divisionEntries] of Object.entries(divisions)) {
+            const teamsInDivision = divisionEntries.length;
             const correctGamesPerTeam = (teamsInDivision - 1) * 2;
 
-            // Update each table entry
-            for (const entry of seasonTables) {
-                // Only recalculate if the played count seems wrong
+            // Update each table entry in this division
+            for (const entry of divisionEntries) {
                 const currentPlayed = entry.played || 0;
                 
-                // If played is way off (more than double what it should be), recalculate
+                // If played is way off (more than 1.5x what it should be), recalculate
                 if (currentPlayed > correctGamesPerTeam * 1.5 || currentPlayed === 0) {
                     // Calculate new stats proportionally based on correct games
                     const ratio = currentPlayed > 0 ? correctGamesPerTeam / currentPlayed : 1;
                     
                     const newWon = Math.round((entry.won || 0) * ratio);
                     const newDrawn = Math.round((entry.drawn || 0) * ratio);
-                    const newLost = correctGamesPerTeam - newWon - newDrawn;
+                    const newLost = Math.max(0, correctGamesPerTeam - newWon - newDrawn);
                     const newGoalsFor = Math.round((entry.goals_for || 0) * ratio);
                     const newGoalsAgainst = Math.round((entry.goals_against || 0) * ratio);
                     const newPoints = (newWon * 3) + newDrawn;
@@ -61,7 +69,7 @@ export default function RecalculateSeasonStats({ seasons, leagueTables }) {
                         played: correctGamesPerTeam,
                         won: Math.max(0, newWon),
                         drawn: Math.max(0, newDrawn),
-                        lost: Math.max(0, newLost),
+                        lost: newLost,
                         goals_for: Math.max(0, newGoalsFor),
                         goals_against: Math.max(0, newGoalsAgainst),
                         goal_difference: newGoalsFor - newGoalsAgainst,
@@ -71,9 +79,13 @@ export default function RecalculateSeasonStats({ seasons, leagueTables }) {
                 }
             }
 
-            // Update season's number_of_teams if wrong
-            if (season.number_of_teams !== teamsInDivision) {
-                await base44.entities.Season.update(season.id, {
+            // Update the corresponding season's number_of_teams if needed
+            const matchingSeason = yearSeasons.find(s => 
+                s.division_name === (divName === 'main' ? null : divName) || 
+                s.division_name === divName
+            );
+            if (matchingSeason && matchingSeason.number_of_teams !== teamsInDivision) {
+                await base44.entities.Season.update(matchingSeason.id, {
                     number_of_teams: teamsInDivision
                 });
             }
