@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, league }) {
+export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, league, divisionTeamCount }) {
     const [loading, setLoading] = useState(false);
 
     const hasIncompleteStats = tableRows.some(row => 
@@ -14,7 +14,9 @@ export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, 
         setLoading(true);
 
         const numTeams = tableRows.filter(r => r.club_name).length;
-        const gamesPerTeam = (numTeams - 1) * 2; // Home and away
+        // Use divisionTeamCount if provided (for split leagues), otherwise use numTeams
+        const teamsInDivision = divisionTeamCount || numTeams;
+        const gamesPerTeam = (teamsInDivision - 1) * 2; // Home and away against teams in same division
         
         // Build context about what we know
         const knownData = tableRows
