@@ -285,23 +285,57 @@ export default function Home() {
             {/* Nations Section */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
-                {/* All Nations */}
+                {/* Nations of Volaria */}
                 <div className="mb-16">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-                                <Globe className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-900">All Nations</h2>
-                                <p className="text-slate-500">{categorizedNations.complete.length} complete, {categorizedNations.inProgress.length + categorizedNations.planned.length} in development</p>
-                            </div>
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-bold text-slate-900">Nations of Volaria</h2>
+                        <p className="text-slate-500">Explore by development status</p>
+                    </div>
+
+                    {/* Complete Football Systems */}
+                    <div className="mb-8">
+                        <p className="text-sm text-slate-600 mb-4 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Complete Football Systems ({categorizedNations.complete.length})
+                        </p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {categorizedNations.complete.map((nation) => (
+                                <Link 
+                                    key={nation.id} 
+                                    to={createPageUrl(`NationDetail?id=${nation.id}`)}
+                                    className="group"
+                                >
+                                    <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white group-hover:-translate-y-1">
+                                        <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
+                                            {nation.flag_url ? (
+                                                <img 
+                                                    src={nation.flag_url} 
+                                                    alt={nation.name}
+                                                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                                                />
+                                            ) : (
+                                                <MapPin className="w-8 h-8 text-slate-400" />
+                                            )}
+                                            {nation.rank < 999 && (
+                                                <div className="absolute top-1 right-1 bg-white/90 px-1.5 py-0.5 rounded text-xs font-bold text-slate-600">
+                                                    #{nation.rank}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <CardContent className="p-3">
+                                            <h3 className="font-semibold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors truncate">
+                                                {nation.name}
+                                            </h3>
+                                            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                                                <span>{nation.leagueCount} leagues</span>
+                                                <span>•</span>
+                                                <span>{nation.clubCount} clubs</span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                            ))}
                         </div>
-                        <Link to={createPageUrl('Nations')}>
-                            <Button variant="outline">
-                                View All <ArrowRight className="w-4 h-4 ml-2" />
-                            </Button>
-                        </Link>
                     </div>
 
                     {nationsLoading ? (
