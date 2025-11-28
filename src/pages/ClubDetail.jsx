@@ -380,7 +380,7 @@ export default function ClubDetail() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Quick Navigation Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                    <a href="#club-overview" className="block">
+                    <a href="#honours" className="block">
                         <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-yellow-50 group">
                             <CardContent className="p-4 flex items-center gap-3">
                                 <Trophy className="w-8 h-8 text-amber-500" />
@@ -391,35 +391,35 @@ export default function ClubDetail() {
                             </CardContent>
                         </Card>
                     </a>
-                    <a href="#club-stats" className="block">
+                    <a href="#club-story" className="block">
                         <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 group">
                             <CardContent className="p-4 flex items-center gap-3">
-                                <Target className="w-8 h-8 text-blue-500" />
+                                <Calendar className="w-8 h-8 text-blue-500" />
                                 <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-blue-700">Statistics</div>
-                                    <div className="text-xs text-slate-500">All-Time Records</div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-blue-700">Club Story</div>
+                                    <div className="text-xs text-slate-500">History & Narratives</div>
                                 </div>
                             </CardContent>
                         </Card>
                     </a>
-                    <a href="#club-history" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Calendar className="w-8 h-8 text-purple-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-purple-700">History</div>
-                                    <div className="text-xs text-slate-500">Timeline & Story</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                    <a href="#club-seasons" className="block">
+                    <a href="#all-time-stats" className="block">
                         <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-emerald-50 to-teal-50 group">
                             <CardContent className="p-4 flex items-center gap-3">
-                                <Shield className="w-8 h-8 text-emerald-500" />
+                                <Target className="w-8 h-8 text-emerald-500" />
                                 <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-emerald-700">Seasons</div>
-                                    <div className="text-xs text-slate-500">{combinedSeasons.length} Recorded</div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-emerald-700">Statistics</div>
+                                    <div className="text-xs text-slate-500">All-Time Record</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                    <a href="#season-history" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Users className="w-8 h-8 text-purple-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-purple-700">Seasons</div>
+                                    <div className="text-xs text-slate-500">Year by Year</div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -427,7 +427,7 @@ export default function ClubDetail() {
                 </div>
 
                 {/* Stats */}
-                <div id="club-overview" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+                <div id="honours" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
                     {/* Total Trophies */}
                     {(() => {
                         const totalTrophies = (combinedStats?.league_titles || 0) + 
@@ -697,98 +697,98 @@ export default function ClubDetail() {
                 )}
 
                 {/* All-Time Stats */}
-                <div id="club-stats">
-                {combinedStats?.seasons_played > 0 && (
-                    <Card className="border-0 shadow-sm mb-4">
-                        <CardHeader><CardTitle>All-Time League Statistics</CardTitle></CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
-                                <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">{combinedStats.total_wins || 0}</div>
-                                    <div className="text-xs text-slate-500">Wins</div>
-                                </div>
-                                <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-slate-600">{combinedStats.total_draws || 0}</div>
-                                    <div className="text-xs text-slate-500">Draws</div>
-                                </div>
-                                <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-red-600">{combinedStats.total_losses || 0}</div>
-                                    <div className="text-xs text-slate-500">Losses</div>
-                                </div>
-                                <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold">{combinedStats.total_goals_scored || 0}</div>
-                                    <div className="text-xs text-slate-500">Goals Scored</div>
-                                </div>
-                                <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold">{combinedStats.total_goals_conceded || 0}</div>
-                                    <div className="text-xs text-slate-500">Goals Conceded</div>
-                                </div>
-                                <div className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="text-2xl font-bold">{(combinedStats.total_goals_scored || 0) - (combinedStats.total_goals_conceded || 0)}</div>
-                                    <div className="text-xs text-slate-500">Goal Difference</div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Top Flight Only Stats */}
-                {(() => {
-                    const topFlightSeasons = combinedSeasons.filter(s => {
-                        const seasonLeague = allLeagues.find(l => l.id === s.league_id);
-                        return seasonLeague?.tier === 1;
-                    });
-                    if (topFlightSeasons.length === 0) return null;
-                    
-                    const topFlightStats = topFlightSeasons.reduce((acc, s) => ({
-                        wins: acc.wins + (s.won || 0),
-                        draws: acc.draws + (s.drawn || 0),
-                        losses: acc.losses + (s.lost || 0),
-                        goalsFor: acc.goalsFor + (s.goals_for || 0),
-                        goalsAgainst: acc.goalsAgainst + (s.goals_against || 0),
-                        seasons: acc.seasons + 1
-                    }), { wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, seasons: 0 });
-
-                    return (
-                        <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="flex items-center gap-2 text-amber-800">
-                                    <Star className="w-5 h-5 text-amber-500" />
-                                    Top Flight Statistics Only
-                                    <Badge className="ml-2 bg-amber-500 text-white">{topFlightStats.seasons} Seasons</Badge>
-                                </CardTitle>
-                            </CardHeader>
+                <div id="all-time-stats">
+                    {combinedStats?.seasons_played > 0 && (
+                        <Card className="border-0 shadow-sm mb-4">
+                            <CardHeader><CardTitle>All-Time League Statistics</CardTitle></CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
-                                    <div className="p-3 bg-white/60 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">{topFlightStats.wins}</div>
+                                    <div className="p-3 bg-slate-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-green-600">{combinedStats.total_wins || 0}</div>
                                         <div className="text-xs text-slate-500">Wins</div>
                                     </div>
-                                    <div className="p-3 bg-white/60 rounded-lg">
-                                        <div className="text-2xl font-bold text-slate-600">{topFlightStats.draws}</div>
+                                    <div className="p-3 bg-slate-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-slate-600">{combinedStats.total_draws || 0}</div>
                                         <div className="text-xs text-slate-500">Draws</div>
                                     </div>
-                                    <div className="p-3 bg-white/60 rounded-lg">
-                                        <div className="text-2xl font-bold text-red-600">{topFlightStats.losses}</div>
+                                    <div className="p-3 bg-slate-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-red-600">{combinedStats.total_losses || 0}</div>
                                         <div className="text-xs text-slate-500">Losses</div>
                                     </div>
-                                    <div className="p-3 bg-white/60 rounded-lg">
-                                        <div className="text-2xl font-bold">{topFlightStats.goalsFor}</div>
+                                    <div className="p-3 bg-slate-50 rounded-lg">
+                                        <div className="text-2xl font-bold">{combinedStats.total_goals_scored || 0}</div>
                                         <div className="text-xs text-slate-500">Goals Scored</div>
                                     </div>
-                                    <div className="p-3 bg-white/60 rounded-lg">
-                                        <div className="text-2xl font-bold">{topFlightStats.goalsAgainst}</div>
+                                    <div className="p-3 bg-slate-50 rounded-lg">
+                                        <div className="text-2xl font-bold">{combinedStats.total_goals_conceded || 0}</div>
                                         <div className="text-xs text-slate-500">Goals Conceded</div>
                                     </div>
-                                    <div className="p-3 bg-white/60 rounded-lg">
-                                        <div className="text-2xl font-bold">{topFlightStats.goalsFor - topFlightStats.goalsAgainst}</div>
+                                    <div className="p-3 bg-slate-50 rounded-lg">
+                                        <div className="text-2xl font-bold">{(combinedStats.total_goals_scored || 0) - (combinedStats.total_goals_conceded || 0)}</div>
                                         <div className="text-xs text-slate-500">Goal Difference</div>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
-                    );
-                })()}
+                    )}
+
+                    {/* Top Flight Stats */}
+                    {(() => {
+                        const topFlightSeasons = combinedSeasons.filter(s => {
+                            const seasonLeague = allLeagues.find(l => l.id === s.league_id);
+                            return seasonLeague?.tier === 1;
+                        });
+                        if (topFlightSeasons.length === 0) return null;
+                        
+                        const topFlightStats = topFlightSeasons.reduce((acc, s) => ({
+                            seasons: acc.seasons + 1,
+                            wins: acc.wins + (s.won || 0),
+                            draws: acc.draws + (s.drawn || 0),
+                            losses: acc.losses + (s.lost || 0),
+                            goalsFor: acc.goalsFor + (s.goals_for || 0),
+                            goalsAgainst: acc.goalsAgainst + (s.goals_against || 0),
+                        }), { seasons: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 });
+
+                        return (
+                            <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-l-amber-500">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="flex items-center gap-2 text-amber-800">
+                                        <Star className="w-5 h-5 text-amber-500" />
+                                        Top Flight Statistics Only
+                                        <Badge className="bg-amber-500 text-white ml-2">{topFlightStats.seasons} seasons</Badge>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+                                        <div className="p-3 bg-white/60 rounded-lg">
+                                            <div className="text-2xl font-bold text-green-600">{topFlightStats.wins}</div>
+                                            <div className="text-xs text-slate-600">Wins</div>
+                                        </div>
+                                        <div className="p-3 bg-white/60 rounded-lg">
+                                            <div className="text-2xl font-bold text-slate-600">{topFlightStats.draws}</div>
+                                            <div className="text-xs text-slate-600">Draws</div>
+                                        </div>
+                                        <div className="p-3 bg-white/60 rounded-lg">
+                                            <div className="text-2xl font-bold text-red-600">{topFlightStats.losses}</div>
+                                            <div className="text-xs text-slate-600">Losses</div>
+                                        </div>
+                                        <div className="p-3 bg-white/60 rounded-lg">
+                                            <div className="text-2xl font-bold">{topFlightStats.goalsFor}</div>
+                                            <div className="text-xs text-slate-600">Goals Scored</div>
+                                        </div>
+                                        <div className="p-3 bg-white/60 rounded-lg">
+                                            <div className="text-2xl font-bold">{topFlightStats.goalsAgainst}</div>
+                                            <div className="text-xs text-slate-600">Goals Conceded</div>
+                                        </div>
+                                        <div className="p-3 bg-white/60 rounded-lg">
+                                            <div className="text-2xl font-bold">{topFlightStats.goalsFor - topFlightStats.goalsAgainst}</div>
+                                            <div className="text-xs text-slate-600">Goal Difference</div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })()}
                 </div>
 
                 {/* Defunct/Successor Notice */}
@@ -885,18 +885,19 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
-                {/* Club History Timeline */}
-                <div id="club-history">
-                <ClubHistory 
-                    club={{...club, ...combinedStats}}
-                    nation={nation}
-                    league={league}
-                    seasons={combinedSeasons}
-                    leagues={allLeagues}
-                />
+                {/* Club Story Section */}
+                <div id="club-story">
+                    {/* Club History Timeline */}
+                    <ClubHistory 
+                        club={{...club, ...combinedStats}}
+                        nation={nation}
+                        league={league}
+                        seasons={combinedSeasons}
+                        leagues={allLeagues}
+                    />
 
-                {/* Club Narratives */}
-                <ClubNarratives 
+                    {/* Club Narratives */}
+                    <ClubNarratives 
                     club={{...club, ...combinedStats}} 
                     seasons={combinedSeasons} 
                     leagues={allLeagues} 
@@ -916,9 +917,7 @@ export default function ClubDetail() {
                         <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} nationName={nation?.name} />
                     </div>
                 )}
-                </div>
 
-                <div id="club-seasons">
                 <Tabs defaultValue="seasons" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
@@ -1178,7 +1177,6 @@ export default function ClubDetail() {
                         </div>
                     </TabsContent>
                 </Tabs>
-                </div>
             </div>
 
             {/* Edit Dialog */}
