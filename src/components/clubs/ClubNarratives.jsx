@@ -9,50 +9,57 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
 
     // Calculate club stature/size for narrative
     const calculateClubStature = () => {
-        // Continental elite: VCC/CCC titles
-        const continentalTitles = (club.vcc_titles || 0) + (club.ccc_titles || 0);
-        const continentalAppearances = (club.vcc_appearances || 0) + (club.ccc_appearances || 0);
+        // Continental elite: VCC/CCC titles - VCC weighted more heavily
+        const vccTitles = club.vcc_titles || 0;
+        const cccTitles = club.ccc_titles || 0;
+        const vccAppearances = club.vcc_appearances || 0;
+        const cccAppearances = club.ccc_appearances || 0;
+        // Weighted appearances: VCC counts full, CCC counts as 0.4
+        const weightedAppearances = vccAppearances + (cccAppearances * 0.4);
         const domesticTitles = (club.league_titles || 0);
         const cupTitles = (club.domestic_cup_titles || 0);
         const topFlightSeasons = club.seasons_top_flight || 0;
         const totalSeasons = club.seasons_played || seasons.length;
         
-        // Score calculation
-        let score = 0;
-        score += continentalTitles * 30;
-        score += (club.vcc_titles || 0) * 20; // Extra for VCC specifically
-        score += continentalAppearances * 3;
-        score += domesticTitles * 15;
-        score += cupTitles * 8;
-        score += topFlightSeasons * 2;
-        score += Math.min(totalSeasons, 50) * 0.5; // Longevity bonus, capped
-        
-        // Determine stature
-        if (continentalTitles >= 2 || (club.vcc_titles || 0) >= 1) {
+        // Determine stature - VCC appearances/titles count much more
+        if (vccTitles >= 1 || (vccTitles + cccTitles >= 2)) {
+            const titleText = vccTitles > 0 
+                ? `${vccTitles} VCC title${vccTitles !== 1 ? 's' : ''}${cccTitles > 0 ? ` and ${cccTitles} CCC title${cccTitles !== 1 ? 's' : ''}` : ''}`
+                : `${cccTitles} CCC titles`;
             return {
                 tier: 'Continental Giant',
-                description: `A true continental powerhouse, ${club.name} is known across all of Volaria. With ${continentalTitles} continental title${continentalTitles !== 1 ? 's' : ''}, they are among the elite clubs that have conquered the continent.`,
+                description: `A true continental powerhouse, ${club.name} is known across all of Volaria. With ${titleText}, they are among the elite clubs that have conquered the continent.`,
                 color: 'text-amber-500',
                 bg: 'bg-gradient-to-r from-amber-50 to-yellow-50'
             };
-        } else if (continentalAppearances >= 5 || (domesticTitles >= 5 && topFlightSeasons >= 15)) {
+        } else if (vccAppearances >= 5 || (weightedAppearances >= 5 && domesticTitles >= 3)) {
+            const appText = vccAppearances > 0 
+                ? `${vccAppearances} VCC appearance${vccAppearances !== 1 ? 's' : ''}${cccAppearances > 0 ? ` plus ${cccAppearances} in the CCC` : ''}`
+                : `${cccAppearances} CCC appearances`;
             return {
                 tier: 'National Powerhouse',
-                description: `One of the biggest clubs in their nation, ${club.name} is a household name domestically and has made their mark on the continental stage with ${continentalAppearances} continental appearance${continentalAppearances !== 1 ? 's' : ''}.`,
+                description: `One of the biggest clubs in their nation, ${club.name} is a household name domestically and has made their mark on the continental stage with ${appText}.`,
                 color: 'text-emerald-500',
                 bg: 'bg-gradient-to-r from-emerald-50 to-green-50'
             };
-        } else if (domesticTitles >= 1 || (topFlightSeasons >= 10 && cupTitles >= 1)) {
+        } else if (cccTitles >= 1 || vccAppearances >= 2 || (domesticTitles >= 5 && topFlightSeasons >= 15)) {
+            return {
+                tier: 'Major Club',
+                description: `${club.name} is a major force in their nation with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''}. ${vccAppearances > 0 ? `Their ${vccAppearances} VCC appearance${vccAppearances !== 1 ? 's' : ''} show they can compete at the highest level.` : cccTitles > 0 ? 'They have lifted the CCC trophy.' : 'A respected name nationally.'}`,
+                color: 'text-indigo-500',
+                bg: 'bg-gradient-to-r from-indigo-50 to-purple-50'
+            };
+        } else if (domesticTitles >= 1 || (topFlightSeasons >= 10 && cupTitles >= 1) || vccAppearances >= 1) {
             return {
                 tier: 'Established Club',
-                description: `${club.name} is a well-established club with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''} and ${topFlightSeasons} seasons in the top flight. They are recognized throughout the nation.`,
+                description: `${club.name} is a well-established club with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''} and ${topFlightSeasons} seasons in the top flight.${vccAppearances > 0 ? ` They have appeared in the VCC.` : ''} Recognized throughout the nation.`,
                 color: 'text-blue-500',
                 bg: 'bg-gradient-to-r from-blue-50 to-indigo-50'
             };
-        } else if (topFlightSeasons >= 5 || (continentalAppearances >= 1)) {
+        } else if (topFlightSeasons >= 5 || cccAppearances >= 1) {
             return {
                 tier: 'Ambitious Club',
-                description: `A club with top-flight experience and ambitions to climb higher, ${club.name} is known regionally and aspires to national prominence.`,
+                description: `A club with top-flight experience and ambitions to climb higher, ${club.name} is known regionally and aspires to national prominence.${cccAppearances > 0 ? ` Their CCC appearance${cccAppearances !== 1 ? 's' : ''} hint at bigger things to come.` : ''}`,
                 color: 'text-purple-500',
                 bg: 'bg-purple-50'
             };
