@@ -213,17 +213,7 @@ export default function Coefficients() {
             .slice(0, 10);
     }, [matches]);
 
-    // Get the years from the data for column headers
-    const coeffYears = useMemo(() => {
-        const years = new Set();
-        countryCoefficients.forEach(c => {
-            if (c.year_1_points) years.add('Y1');
-            if (c.year_2_points) years.add('Y2');
-            if (c.year_3_points) years.add('Y3');
-            if (c.year_4_points) years.add('Y4');
-        });
-        return ['Y4', 'Y3', 'Y2', 'Y1']; // Oldest to newest (left to right)
-    }, [countryCoefficients]);
+
 
     const renderCountryTable = (data, type) => (
         <Table>
@@ -231,10 +221,10 @@ export default function Coefficients() {
                 <TableRow>
                     <TableHead className="w-16">Rank</TableHead>
                     <TableHead>Nation</TableHead>
-                    <TableHead className="text-center text-xs">{actualYears[0] || '-'}</TableHead>
-                    <TableHead className="text-center text-xs">{actualYears[1] || '-'}</TableHead>
-                    <TableHead className="text-center text-xs">{actualYears[2] || '-'}</TableHead>
-                    <TableHead className="text-center text-xs">{actualYears[3] || '-'}</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(4)}</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(3)}</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(2)}</TableHead>
+                    <TableHead className="text-center text-xs">{getYearLabel(1)}</TableHead>
                     <TableHead className="text-center font-bold">Total</TableHead>
                     <TableHead className="text-center">{type === 'VCC' ? 'VCC' : 'CCC'} Spots</TableHead>
                 </TableRow>
