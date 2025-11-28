@@ -14,12 +14,16 @@ import {
 import AdminOnly from '@/components/common/AdminOnly';
 import ProfessionalStatusBadge from '@/components/clubs/ProfessionalStatusBadge';
 
-// Generate facilities based on stability points and club history
-const calculateFacilities = (club, league) => {
+// Generate facilities based on stability points, club history, AND nation strength
+const calculateFacilities = (club, league, nation) => {
     const points = club.stability_points || 0;
     const tier = league?.tier || 4;
+    const nationStrength = nation?.nation_strength || 5;
     const titles = (club.league_titles || 0) + (club.vcc_titles || 0) + (club.ccc_titles || 0);
     const seasonsTopFlight = club.seasons_top_flight || 0;
+    
+    // Nation strength modifier (-1 to +1)
+    const nationMod = (nationStrength - 5) / 5;
     
     // Base ratings from stability
     let baseRating = 3; // Default
@@ -29,24 +33,28 @@ const calculateFacilities = (club, league) => {
     else if (points >= 0) baseRating = 2;
     else baseRating = 1;
     
+    // Apply nation modifier to base
+    baseRating = Math.max(1, Math.min(5, baseRating + nationMod));
+    
     // Adjust for tier
-    const tierBonus = Math.max(0, 3 - tier) * 0.5;
+    const tierBonus = Math.max(0, 3 - tier) * 0.4;
     
     // Adjust for history
-    const historyBonus = Math.min(1, titles * 0.2 + seasonsTopFlight * 0.02);
+    const historyBonus = Math.min(0.8, titles * 0.15 + seasonsTopFlight * 0.015);
     
-    // Youth academy - requires stability and history
-    const hasYouth = points >= 5 || titles > 0 || seasonsTopFlight >= 5;
-    const youthRating = hasYouth ? Math.min(5, Math.max(1, Math.round(baseRating + historyBonus))) : 0;
+    // Youth academy - requires stability and history, harder in weaker nations
+    const youthThreshold = nationStrength >= 7 ? 3 : nationStrength >= 4 ? 5 : 8;
+    const hasYouth = points >= youthThreshold || titles > 0 || seasonsTopFlight >= 5;
+    const youthRating = hasYouth ? Math.min(5, Math.max(1, Math.round(baseRating * 0.8 + historyBonus))) : 0;
     
     // Training ground
-    const trainingRating = Math.min(5, Math.max(1, Math.round(baseRating + tierBonus * 0.5)));
+    const trainingRating = Math.min(5, Math.max(1, Math.round(baseRating + tierBonus * 0.4)));
     
     // Stadium
-    const stadiumRating = Math.min(5, Math.max(1, Math.round(baseRating + tierBonus)));
+    const stadiumRating = Math.min(5, Math.max(1, Math.round(baseRating + tierBonus * 0.6)));
     
-    // Commercial
-    const commercialRating = Math.min(5, Math.max(1, Math.round(baseRating + historyBonus + tierBonus * 0.5)));
+    // Commercial - heavily weighted by nation strength
+    const commercialRating = Math.min(5, Math.max(1, Math.round((baseRating * 0.6) + (nationMod * 0.5) + historyBonus + tierBonus * 0.3)));
     
     return {
         hasYouth,
@@ -79,30 +87,37 @@ const generateStadiumName = (club, nation) => {
     return templates[hash % templates.length]();
 };
 
-// Generate capacity based on tier and stability
-const generateCapacity = (club, league) => {
+// Generate capacity based on tier, stability, AND nation strength
+const generateCapacity = (club, league, nation) => {
     const tier = league?.tier || 4;
     const points = club.stability_points || 10;
+    const nationStrength = nation?.nation_strength || 5;
+    
+    // Nation strength multiplier (0.3 to 1.5)
+    const nationMultiplier = 0.3 + (nationStrength / 10) * 1.2;
     
     const baseCapacity = {
-        1: 25000,
-        2: 15000,
-        3: 8000,
-        4: 5000,
-        5: 3000,
-        6: 2000,
-        7: 1500,
-        8: 1000
-    }[Math.min(8, tier)] || 800;
+        1: 20000,
+        2: 12000,
+        3: 6000,
+        4: 4000,
+        5: 2500,
+        6: 1500,
+        7: 1000,
+        8: 800
+    }[Math.min(8, tier)] || 500;
     
-    // Adjust for stability
-    const multiplier = 1 + (points / 50);
-    const capacity = Math.round(baseCapacity * multiplier);
+    // Adjust for stability (smaller impact)
+    const stabilityMultiplier = 1 + (points / 80);
     
-    // Round to nearest 500 or 1000
+    // Apply both multipliers
+    const capacity = Math.round(baseCapacity * nationMultiplier * stabilityMultiplier);
+    
+    // Round appropriately
     if (capacity > 10000) return Math.round(capacity / 1000) * 1000;
     if (capacity > 2000) return Math.round(capacity / 500) * 500;
-    return Math.round(capacity / 100) * 100;
+    if (capacity > 500) return Math.round(capacity / 100) * 100;
+    return Math.round(capacity / 50) * 50;
 };
 
 const StarRating = ({ rating, max = 5 }) => (
@@ -122,7 +137,7 @@ export default function ClubInfrastructure({ club, league, nation }) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [editData, setEditData] = useState({});
     
-    const calculatedFacilities = useMemo(() => calculateFacilities(club, league), [club, league]);
+    const calculatedFacilities = useMemo(() => calculateFacilities(club, league, nation), [club, league, nation]);
     
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Club.update(club.id, data),
@@ -148,9 +163,9 @@ export default function ClubInfrastructure({ club, league, nation }) {
     const handleGenerate = async () => {
         setIsGenerating(true);
         
-        const facilities = calculateFacilities(club, league);
+        const facilities = calculateFacilities(club, league, nation);
         const stadium = generateStadiumName(club, nation);
-        const capacity = generateCapacity(club, league);
+        const capacity = generateCapacity(club, league, nation);
         
         await base44.entities.Club.update(club.id, {
             stadium: stadium,

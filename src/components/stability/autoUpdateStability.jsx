@@ -88,7 +88,8 @@ export const calculateClubStability = (clubId, leagueTables, leagues, seasons, n
 export const determineProfessionalStatus = (club, allClubsInNation, nation, league) => {
     const tier = league?.tier || 99;
     const stabilityPoints = club.stability_points || 0;
-    const maxProClubs = nation?.max_professional_clubs || 20;
+    const nationStrength = nation?.nation_strength || 5;
+    const maxProClubs = nation?.max_professional_clubs || Math.max(10, Math.round(nationStrength * 3));
     
     // Sort all clubs by stability to determine who qualifies as professional
     const sortedClubs = [...allClubsInNation]
@@ -97,16 +98,37 @@ export const determineProfessionalStatus = (club, allClubsInNation, nation, leag
     
     const clubRank = sortedClubs.findIndex(c => c.id === club.id) + 1;
     
-    // Professional: top N clubs by stability AND in tier 1-2 usually, or very high stability
-    if (clubRank <= maxProClubs && (tier <= 2 || stabilityPoints >= 25)) {
+    // Adjust thresholds based on nation strength
+    // Smaller nations (low strength) = harder to be pro, easier to be semi-pro
+    const proThreshold = Math.max(1, Math.round(maxProClubs * (nationStrength / 10)));
+    const semiProThreshold = Math.round(maxProClubs * 1.5);
+    
+    // For very small nations (strength 1-3), top tier clubs are at least semi-pro
+    if (nationStrength <= 3) {
+        if (tier === 1) return stabilityPoints >= 10 ? 'professional' : 'semi-professional';
+        if (tier === 2 && stabilityPoints >= 5) return 'semi-professional';
+        return 'amateur';
+    }
+    
+    // Professional: top clubs by stability AND tier considerations
+    // Must be in top N by stability AND have reasonable tier position
+    if (clubRank <= proThreshold && tier <= 2 && stabilityPoints >= 15) {
+        return 'professional';
+    }
+    // Very high stability can override tier (established clubs)
+    if (clubRank <= proThreshold && stabilityPoints >= 25) {
         return 'professional';
     }
     
     // Semi-professional: next tier down or tier 3-4 clubs with decent stability
-    if (tier <= 4 && stabilityPoints >= 10) {
+    if (tier <= 3 && stabilityPoints >= 10) {
         return 'semi-professional';
     }
-    if (clubRank <= maxProClubs * 2 && stabilityPoints >= 5) {
+    if (clubRank <= semiProThreshold && stabilityPoints >= 5) {
+        return 'semi-professional';
+    }
+    // Tier 4 with good stability
+    if (tier === 4 && stabilityPoints >= 15) {
         return 'semi-professional';
     }
     

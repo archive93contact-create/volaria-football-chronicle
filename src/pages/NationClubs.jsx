@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target, Briefcase } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +22,7 @@ export default function NationClubs() {
     const [districtFilter, setDistrictFilter] = useState('all');
     const [settlementFilter, setSettlementFilter] = useState('all');
     const [tierFilter, setTierFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [sortField, setSortField] = useState('name');
     const [sortDir, setSortDir] = useState('asc');
 
@@ -127,8 +128,9 @@ export default function NationClubs() {
                 const league = getLeagueInfo(club.league_id);
                 matchesTier = league?.tier === parseInt(tierFilter);
             }
+            const matchesStatus = statusFilter === 'all' || club.professional_status === statusFilter;
             
-            return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier;
+            return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier && matchesStatus;
         });
 
         // Sort
@@ -172,7 +174,7 @@ export default function NationClubs() {
         });
 
         return result;
-    }, [clubs, search, regionFilter, districtFilter, settlementFilter, tierFilter, sortField, sortDir, leagues]);
+    }, [clubs, search, regionFilter, districtFilter, settlementFilter, tierFilter, statusFilter, sortField, sortDir, leagues]);
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -267,6 +269,19 @@ export default function NationClubs() {
                                     </SelectContent>
                                 </Select>
                             )}
+
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="w-full lg:w-40">
+                                    <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
+                                    <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Status</SelectItem>
+                                    <SelectItem value="professional">Professional</SelectItem>
+                                    <SelectItem value="semi-professional">Semi-Pro</SelectItem>
+                                    <SelectItem value="amateur">Amateur</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardContent>
                 </Card>
@@ -362,6 +377,16 @@ export default function NationClubs() {
                                                         <div>
                                                             <div className={`font-medium flex items-center gap-2 ${inactive ? 'text-slate-500' : ''}`}>
                                                                 {club.name}
+                                                                {club.professional_status && !inactive && (
+                                                                    <span className={`text-xs px-1 py-0.5 rounded ${
+                                                                        club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
+                                                                        club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
+                                                                        'bg-slate-100 text-slate-500'
+                                                                    }`}>
+                                                                        {club.professional_status === 'professional' ? 'PRO' : 
+                                                                         club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
+                                                                    </span>
+                                                                )}
                                                                 {isTuruliand && league?.tier && league.tier <= 4 && !inactive && (
                                                                     <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">TFA</Badge>
                                                                 )}

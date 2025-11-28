@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Search, Shield, Trophy, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target, Globe, Flag } from 'lucide-react';
+import { Search, Shield, Trophy, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target, Globe, Flag, Briefcase } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +21,7 @@ export default function AllClubs() {
     const [membershipFilter, setMembershipFilter] = useState('all');
     const [sortField, setSortField] = useState('name');
     const [sortDir, setSortDir] = useState('asc');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     const { data: clubs = [], isLoading: clubsLoading } = useQuery({
         queryKey: ['allClubs'],
@@ -85,6 +86,7 @@ export default function AllClubs() {
             const matchesNation = nationFilter === 'all' || club.nation_id === nationFilter;
             const matchesRegion = regionFilter === 'all' || club.region === regionFilter;
             const matchesMembership = membershipFilter === 'all' || nation?.membership === membershipFilter;
+            const matchesStatus = statusFilter === 'all' || club.professional_status === statusFilter;
             
             let matchesTier = true;
             if (tierFilter !== 'all') {
@@ -92,7 +94,7 @@ export default function AllClubs() {
                 matchesTier = league?.tier === parseInt(tierFilter);
             }
             
-            return matchesSearch && matchesNation && matchesRegion && matchesTier && matchesMembership;
+            return matchesSearch && matchesNation && matchesRegion && matchesTier && matchesMembership && matchesStatus;
         });
 
         // Sort
@@ -152,7 +154,7 @@ export default function AllClubs() {
         });
 
         return result;
-    }, [clubs, nations, search, nationFilter, regionFilter, tierFilter, membershipFilter, sortField, sortDir, nationMap, leagueMap]);
+    }, [clubs, nations, search, nationFilter, regionFilter, tierFilter, membershipFilter, statusFilter, sortField, sortDir, nationMap, leagueMap]);
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -223,6 +225,19 @@ export default function AllClubs() {
                                     <SelectItem value="all">All Members</SelectItem>
                                     <SelectItem value="VCC">VCC (Full)</SelectItem>
                                     <SelectItem value="CCC">CCC (Associate)</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="w-full lg:w-40">
+                                    <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
+                                    <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Status</SelectItem>
+                                    <SelectItem value="professional">Professional</SelectItem>
+                                    <SelectItem value="semi-professional">Semi-Pro</SelectItem>
+                                    <SelectItem value="amateur">Amateur</SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -351,7 +366,19 @@ export default function AllClubs() {
                                                             </div>
                                                         )}
                                                         <div>
-                                                            <div className="font-medium">{club.name}</div>
+                                                            <div className="font-medium flex items-center gap-1.5">
+                                                                {club.name}
+                                                                {club.professional_status && (
+                                                                    <span className={`text-xs px-1 py-0.5 rounded ${
+                                                                        club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
+                                                                        club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
+                                                                        'bg-slate-100 text-slate-500'
+                                                                    }`}>
+                                                                        {club.professional_status === 'professional' ? 'PRO' : 
+                                                                         club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                             {club.nickname && <div className="text-xs text-slate-500">{club.nickname}</div>}
                                                         </div>
                                                     </Link>
