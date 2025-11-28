@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
 import { useIsAdmin } from '@/components/common/AdminOnly';
+import { recalculateStabilityAfterSeason } from '@/components/stability/autoUpdateStability';
 
 export default function EditSeasonTable() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -126,9 +127,19 @@ export default function EditSeasonTable() {
             });
         }
 
+        // Auto-update stability for affected clubs
+        const affectedClubIds = tableRows
+            .map(row => row.club_id)
+            .filter(Boolean);
+        if (affectedClubIds.length > 0) {
+            await recalculateStabilityAfterSeason(affectedClubIds);
+        }
+
         queryClient.invalidateQueries(['seasonTables']);
         queryClient.invalidateQueries(['leagueTables']);
         queryClient.invalidateQueries(['leagueSeasons']);
+        queryClient.invalidateQueries(['clubs']);
+        queryClient.invalidateQueries(['allClubs']);
         setSaving(false);
         navigate(createPageUrl(`LeagueDetail?id=${leagueId}`));
     };

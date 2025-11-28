@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PageHeader from '@/components/common/PageHeader';
 import { useIsAdmin } from '@/components/common/AdminOnly';
 import AIStatsGenerator from '@/components/seasons/AIStatsGenerator';
+import { recalculateStabilityAfterSeason } from '@/components/stability/autoUpdateStability';
 
 export default function AddSeason() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -527,6 +528,12 @@ export default function AddSeason() {
                 await base44.entities.LeagueTable.bulkCreate(tableEntries);
             }
 
+            // Auto-update stability for all clubs in this season
+            const affectedClubIds = Object.values(clubIdMap);
+            if (affectedClubIds.length > 0) {
+                await recalculateStabilityAfterSeason(affectedClubIds);
+            }
+
             return season;
         },
         onSuccess: () => {
@@ -534,6 +541,7 @@ export default function AddSeason() {
             queryClient.invalidateQueries(['leagueTables']);
             queryClient.invalidateQueries(['clubs']);
             queryClient.invalidateQueries(['nationClubs']);
+            queryClient.invalidateQueries(['allClubs']);
             navigate(createPageUrl(`LeagueDetail?id=${leagueId}`));
         },
     });
