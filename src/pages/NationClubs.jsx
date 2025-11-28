@@ -128,7 +128,9 @@ export default function NationClubs() {
                 const league = getLeagueInfo(club.league_id);
                 matchesTier = league?.tier === parseInt(tierFilter);
             }
-            const matchesStatus = statusFilter === 'all' || club.professional_status === statusFilter;
+            const matchesStatus = statusFilter === 'all' || 
+                club.professional_status === statusFilter || 
+                (statusFilter === 'amateur' && !club.professional_status);
             
             return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier && matchesStatus;
         });
@@ -377,7 +379,7 @@ export default function NationClubs() {
                                                         <div>
                                                             <div className={`font-medium flex items-center gap-2 ${inactive ? 'text-slate-500' : ''}`}>
                                                                 {club.name}
-                                                                {club.professional_status && !inactive && (
+                                                                {!inactive && (
                                                                     <span className={`text-xs px-1 py-0.5 rounded ${
                                                                         club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
                                                                         club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :

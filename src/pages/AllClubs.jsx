@@ -86,7 +86,9 @@ export default function AllClubs() {
             const matchesNation = nationFilter === 'all' || club.nation_id === nationFilter;
             const matchesRegion = regionFilter === 'all' || club.region === regionFilter;
             const matchesMembership = membershipFilter === 'all' || nation?.membership === membershipFilter;
-            const matchesStatus = statusFilter === 'all' || club.professional_status === statusFilter;
+            const matchesStatus = statusFilter === 'all' || 
+                club.professional_status === statusFilter || 
+                (statusFilter === 'amateur' && !club.professional_status);
             
             let matchesTier = true;
             if (tierFilter !== 'all') {
@@ -368,16 +370,14 @@ export default function AllClubs() {
                                                         <div>
                                                             <div className="font-medium flex items-center gap-1.5">
                                                                 {club.name}
-                                                                {club.professional_status && (
-                                                                    <span className={`text-xs px-1 py-0.5 rounded ${
-                                                                        club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
-                                                                        club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
-                                                                        'bg-slate-100 text-slate-500'
-                                                                    }`}>
-                                                                        {club.professional_status === 'professional' ? 'PRO' : 
-                                                                         club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
-                                                                    </span>
-                                                                )}
+                                                                <span className={`text-xs px-1 py-0.5 rounded ${
+                                                                    club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
+                                                                    club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
+                                                                    'bg-slate-100 text-slate-500'
+                                                                }`}>
+                                                                    {club.professional_status === 'professional' ? 'PRO' : 
+                                                                     club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
+                                                                </span>
                                                             </div>
                                                             {club.nickname && <div className="text-xs text-slate-500">{club.nickname}</div>}
                                                         </div>
