@@ -124,6 +124,22 @@ export default function AllClubs() {
                     aVal = a.seasons_top_flight || 0;
                     bVal = b.seasons_top_flight || 0;
                     break;
+                case 'cups':
+                    aVal = a.domestic_cup_titles || 0;
+                    bVal = b.domestic_cup_titles || 0;
+                    break;
+                case 'vcc':
+                    aVal = a.vcc_titles || 0;
+                    bVal = b.vcc_titles || 0;
+                    break;
+                case 'ccc':
+                    aVal = a.ccc_titles || 0;
+                    bVal = b.ccc_titles || 0;
+                    break;
+                case 'totalTrophies':
+                    aVal = (a.league_titles || 0) + (a.domestic_cup_titles || 0) + (a.vcc_titles || 0) + (a.ccc_titles || 0);
+                    bVal = (b.league_titles || 0) + (b.domestic_cup_titles || 0) + (b.vcc_titles || 0) + (b.ccc_titles || 0);
+                    break;
                 default:
                     aVal = a.name || '';
                     bVal = b.name || '';
@@ -294,35 +310,30 @@ export default function AllClubs() {
                                                 Top Flight <SortIcon field="topFlight" />
                                             </button>
                                         </TableHead>
-                                        <TableHead className="text-center hidden xl:table-cell">
-                                            <div className="flex items-center gap-1">
-                                                <TrendingUp className="w-3 h-3 text-green-500" />/<TrendingDown className="w-3 h-3 text-red-500" />
-                                            </div>
-                                        </TableHead>
                                         <TableHead className="text-center hidden lg:table-cell">
-                                            <div className="flex items-center gap-1" title="VCC Titles">
-                                                <Star className="w-3 h-3 text-amber-500" /> VCC
-                                            </div>
-                                        </TableHead>
-                                        <TableHead className="text-center hidden lg:table-cell">
-                                            <div className="flex items-center gap-1" title="CCC Titles">
-                                                <Star className="w-3 h-3 text-blue-500" /> CCC
-                                            </div>
+                                            <button onClick={() => handleSort('cups')} className="flex items-center gap-1 hover:text-slate-900">
+                                                Cups <SortIcon field="cups" />
+                                            </button>
                                         </TableHead>
                                         <TableHead className="text-center hidden xl:table-cell">
-                                            <div title="Domestic Cup Titles">Cups</div>
-                                        </TableHead>
-                                        <TableHead className="text-center hidden md:table-cell">
-                                            <div title="Total Trophies">Total</div>
-                                        </TableHead>
-                                        <TableHead className="text-center hidden xl:table-cell">
-                                            <div title="VCC Appearances">VCC Apps</div>
+                                            <button onClick={() => handleSort('vcc')} className="flex items-center gap-1 hover:text-slate-900">
+                                                VCC <SortIcon field="vcc" />
+                                            </button>
                                         </TableHead>
                                         <TableHead className="text-center hidden xl:table-cell">
-                                            <div title="CCC Appearances">CCC Apps</div>
+                                            <button onClick={() => handleSort('ccc')} className="flex items-center gap-1 hover:text-slate-900">
+                                                CCC <SortIcon field="ccc" />
+                                            </button>
                                         </TableHead>
-                                            </TableRow>
-                                        </TableHeader>
+                                        <TableHead className="text-center hidden xl:table-cell">
+                                            <button onClick={() => handleSort('totalTrophies')} className="flex items-center gap-1 hover:text-slate-900">
+                                                Total <SortIcon field="totalTrophies" />
+                                            </button>
+                                        </TableHead>
+                                        <TableHead className="text-center hidden 2xl:table-cell">VCC Apps</TableHead>
+                                        <TableHead className="text-center hidden 2xl:table-cell">CCC Apps</TableHead>
+                                    </TableRow>
+                                </TableHeader>
                                 <TableBody>
                                     {filteredClubs.map((club, idx) => {
                                         const nation = nationMap[club.nation_id];
@@ -419,51 +430,6 @@ export default function AllClubs() {
                                                             <span className="text-slate-300">-</span>
                                                         )}
                                                     </div>
-                                                </TableCell>
-                                                <TableCell className="text-center hidden lg:table-cell">
-                                                    {club.vcc_titles > 0 ? (
-                                                        <span className="font-bold text-amber-600">{club.vcc_titles}</span>
-                                                    ) : (
-                                                        <span className="text-slate-300">-</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-center hidden lg:table-cell">
-                                                    {club.ccc_titles > 0 ? (
-                                                        <span className="font-bold text-blue-600">{club.ccc_titles}</span>
-                                                    ) : (
-                                                        <span className="text-slate-300">-</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-center hidden xl:table-cell">
-                                                    {club.domestic_cup_titles > 0 ? (
-                                                        <span className="font-medium text-orange-600">{club.domestic_cup_titles}</span>
-                                                    ) : (
-                                                        <span className="text-slate-300">-</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-center hidden md:table-cell">
-                                                    {(() => {
-                                                        const total = (club.league_titles || 0) + (club.vcc_titles || 0) + (club.ccc_titles || 0) + (club.domestic_cup_titles || 0);
-                                                        return total > 0 ? (
-                                                            <span className="font-bold text-emerald-600">{total}</span>
-                                                        ) : (
-                                                            <span className="text-slate-300">-</span>
-                                                        );
-                                                    })()}
-                                                </TableCell>
-                                                <TableCell className="text-center hidden xl:table-cell">
-                                                    {club.vcc_appearances > 0 ? (
-                                                        <span className="text-amber-600">{club.vcc_appearances}</span>
-                                                    ) : (
-                                                        <span className="text-slate-300">-</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-center hidden xl:table-cell">
-                                                    {club.ccc_appearances > 0 ? (
-                                                        <span className="text-blue-600">{club.ccc_appearances}</span>
-                                                    ) : (
-                                                        <span className="text-slate-300">-</span>
-                                                    )}
                                                 </TableCell>
                                             </TableRow>
                                         );
