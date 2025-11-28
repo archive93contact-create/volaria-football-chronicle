@@ -14,77 +14,199 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         const cccTitles = club.ccc_titles || 0;
         const vccAppearances = club.vcc_appearances || 0;
         const cccAppearances = club.ccc_appearances || 0;
-        // Weighted appearances: VCC counts full, CCC counts as 0.4
-        const weightedAppearances = vccAppearances + (cccAppearances * 0.4);
+        const vccRunnerUp = club.vcc_runner_up || 0;
+        const cccRunnerUp = club.ccc_runner_up || 0;
+        
+        // Best continental finish scoring
+        const vccBest = club.vcc_best_finish;
+        const cccBest = club.ccc_best_finish;
+        const vccBestScore = vccBest === 'Winner' ? 10 : vccBest === 'Final' ? 8 : vccBest === 'Semi-final' ? 5 : vccBest === 'Quarter-final' ? 3 : vccAppearances > 0 ? 1 : 0;
+        const cccBestScore = cccBest === 'Winner' ? 4 : cccBest === 'Final' ? 3 : cccBest === 'Semi-final' ? 2 : cccBest === 'Quarter-final' ? 1 : 0;
+        
+        // Weighted appearances: VCC counts full, CCC counts as 0.3
+        const weightedAppearances = vccAppearances + (cccAppearances * 0.3);
         const domesticTitles = (club.league_titles || 0);
         const cupTitles = (club.domestic_cup_titles || 0);
         const topFlightSeasons = club.seasons_top_flight || 0;
         const totalSeasons = club.seasons_played || seasons.length;
         
-        // Determine stature - VCC appearances/titles count much more
+        // Calculate "historic peak" - what was their best era?
+        const historicPeak = vccTitles * 50 + cccTitles * 20 + vccRunnerUp * 25 + cccRunnerUp * 10 + 
+                           vccBestScore * 5 + cccBestScore * 2 + domesticTitles * 10 + vccAppearances * 8 + cccAppearances * 2;
+        
+        // Check if fallen giant - had success but now outside top flight
+        const currentLeague = leagues.find(l => l.id === club.league_id);
+        const currentTier = currentLeague?.tier || 1;
+        const isOutsideTopFlight = currentTier > 1;
+        
+        // How long since top flight?
+        const topFlightSeasonsList = seasons.filter(s => {
+            const league = leagues.find(l => l.id === s.league_id);
+            return league?.tier === 1;
+        }).map(s => s.year).sort();
+        const lastTopFlightYear = topFlightSeasonsList.length > 0 ? topFlightSeasonsList[topFlightSeasonsList.length - 1] : null;
+        const yearsAwayFromTopFlight = lastTopFlightYear ? (parseInt(seasons[seasons.length - 1]?.year?.split('-')[0] || '2024') - parseInt(lastTopFlightYear.split('-')[0])) : 999;
+        
+        // Fallen giant detection
+        const wasPowerhouse = historicPeak >= 100 || vccTitles > 0 || (domesticTitles >= 3 && vccAppearances >= 3);
+        const wasEstablished = historicPeak >= 40 || domesticTitles >= 1 || vccAppearances >= 2 || (topFlightSeasons >= 10 && cupTitles >= 1);
+        const isFallenGiant = isOutsideTopFlight && wasPowerhouse && yearsAwayFromTopFlight >= 1;
+        const isFadingForce = isOutsideTopFlight && wasEstablished && !wasPowerhouse && yearsAwayFromTopFlight >= 2;
+        
+        // Memory fading factor - how much do people still remember?
+        const memoryFactor = yearsAwayFromTopFlight <= 2 ? 1.0 : 
+                            yearsAwayFromTopFlight <= 5 ? 0.8 : 
+                            yearsAwayFromTopFlight <= 10 ? 0.5 : 
+                            yearsAwayFromTopFlight <= 20 ? 0.3 : 0.15;
+        
+        // Build continental achievements text
+        const buildContinentalText = () => {
+            const parts = [];
+            if (vccTitles > 0) parts.push(`${vccTitles} VCC title${vccTitles !== 1 ? 's' : ''}`);
+            if (cccTitles > 0) parts.push(`${cccTitles} CCC title${cccTitles !== 1 ? 's' : ''}`);
+            if (vccRunnerUp > 0 && vccTitles === 0) parts.push(`${vccRunnerUp} VCC final${vccRunnerUp !== 1 ? 's' : ''}`);
+            if (parts.length === 0 && vccBest === 'Semi-final') parts.push('a VCC semi-final');
+            if (parts.length === 0 && vccAppearances > 0) parts.push(`${vccAppearances} VCC appearance${vccAppearances !== 1 ? 's' : ''}`);
+            return parts.join(' and ');
+        };
+        
+        // FALLEN GIANT - was great, now struggling
+        if (isFallenGiant) {
+            const continentalText = buildContinentalText();
+            const fadeText = yearsAwayFromTopFlight <= 3 
+                ? "The memories are fresh, and fans dream of a swift return."
+                : yearsAwayFromTopFlight <= 8 
+                ? "Older supporters still remember the glory days, hoping to see them return."
+                : yearsAwayFromTopFlight <= 15
+                ? "A generation has grown up without seeing them at the top, though the legend endures."
+                : "For younger fans, the glory years are history lessons, but the name still carries weight.";
+            
+            return {
+                tier: 'Fallen Giant',
+                description: `Once among the elite with ${continentalText || `${domesticTitles} league titles`}, ${club.name} now finds themselves in Tier ${currentTier}. ${fadeText}`,
+                color: 'text-amber-700',
+                bg: 'bg-gradient-to-r from-amber-50 to-orange-50'
+            };
+        }
+        
+        // FADING FORCE - was established, now lower leagues
+        if (isFadingForce) {
+            const fadeText = yearsAwayFromTopFlight <= 5 
+                ? "Still well-remembered, they battle to reclaim their place."
+                : yearsAwayFromTopFlight <= 12
+                ? "The top flight feels increasingly distant, but hope remains."
+                : "Once a familiar name in the top division, now a fading memory for many.";
+            
+            return {
+                tier: 'Fading Force',
+                description: `${club.name} spent ${topFlightSeasons} seasons in the top flight${domesticTitles > 0 ? ` and won ${domesticTitles} title${domesticTitles !== 1 ? 's' : ''}` : ''}, but now compete in Tier ${currentTier}. ${fadeText}`,
+                color: 'text-slate-600',
+                bg: 'bg-gradient-to-r from-slate-100 to-slate-50'
+            };
+        }
+        
+        // CONTINENTAL GIANT - VCC winners or multiple continental titles
         if (vccTitles >= 1 || (vccTitles + cccTitles >= 2)) {
-            const titleText = vccTitles > 0 
-                ? `${vccTitles} VCC title${vccTitles !== 1 ? 's' : ''}${cccTitles > 0 ? ` and ${cccTitles} CCC title${cccTitles !== 1 ? 's' : ''}` : ''}`
-                : `${cccTitles} CCC titles`;
+            const titleText = buildContinentalText();
             return {
                 tier: 'Continental Giant',
                 description: `A true continental powerhouse, ${club.name} is known across all of Volaria. With ${titleText}, they are among the elite clubs that have conquered the continent.`,
                 color: 'text-amber-500',
                 bg: 'bg-gradient-to-r from-amber-50 to-yellow-50'
             };
-        } else if (vccAppearances >= 5 || (weightedAppearances >= 5 && domesticTitles >= 3)) {
+        }
+        
+        // CONTINENTAL CONTENDER - VCC finalist or regular VCC participant
+        if (vccRunnerUp >= 1 || vccBest === 'Semi-final' || vccAppearances >= 5) {
+            const achievementText = vccRunnerUp > 0 
+                ? `reached ${vccRunnerUp} VCC final${vccRunnerUp !== 1 ? 's' : ''}`
+                : vccBest === 'Semi-final' 
+                ? 'reached the VCC semi-finals'
+                : `made ${vccAppearances} VCC appearances`;
+            return {
+                tier: 'Continental Contender',
+                description: `${club.name} has ${achievementText}, proving they belong among Europe's elite. They are a household name and regular continental competitors.`,
+                color: 'text-yellow-600',
+                bg: 'bg-gradient-to-r from-yellow-50 to-amber-50'
+            };
+        }
+        
+        // NATIONAL POWERHOUSE - multiple VCC appearances or strong domestic + some continental
+        if (vccAppearances >= 3 || (weightedAppearances >= 4 && domesticTitles >= 3)) {
             const appText = vccAppearances > 0 
-                ? `${vccAppearances} VCC appearance${vccAppearances !== 1 ? 's' : ''}${cccAppearances > 0 ? ` plus ${cccAppearances} in the CCC` : ''}`
+                ? `${vccAppearances} VCC appearance${vccAppearances !== 1 ? 's' : ''}${cccAppearances > 0 ? ` and ${cccAppearances} CCC` : ''}`
                 : `${cccAppearances} CCC appearances`;
             return {
                 tier: 'National Powerhouse',
-                description: `One of the biggest clubs in their nation, ${club.name} is a household name domestically and has made their mark on the continental stage with ${appText}.`,
+                description: `One of the biggest clubs in their nation, ${club.name} is a household name domestically with ${appText} on the continental stage.`,
                 color: 'text-emerald-500',
                 bg: 'bg-gradient-to-r from-emerald-50 to-green-50'
             };
-        } else if (cccTitles >= 1 || vccAppearances >= 2 || (domesticTitles >= 5 && topFlightSeasons >= 15)) {
+        }
+        
+        // MAJOR CLUB - CCC title, some VCC experience, or dominant domestically
+        if (cccTitles >= 1 || vccAppearances >= 2 || cccRunnerUp >= 1 || (domesticTitles >= 5 && topFlightSeasons >= 15)) {
+            const continentalNote = cccTitles > 0 ? 'They have lifted the CCC trophy.' 
+                : vccAppearances > 0 ? `Their ${vccAppearances} VCC appearance${vccAppearances !== 1 ? 's' : ''} show they can compete at the highest level.`
+                : cccRunnerUp > 0 ? 'They reached a CCC final.'
+                : 'A respected name nationally.';
             return {
                 tier: 'Major Club',
-                description: `${club.name} is a major force in their nation with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''}. ${vccAppearances > 0 ? `Their ${vccAppearances} VCC appearance${vccAppearances !== 1 ? 's' : ''} show they can compete at the highest level.` : cccTitles > 0 ? 'They have lifted the CCC trophy.' : 'A respected name nationally.'}`,
+                description: `${club.name} is a major force with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''}. ${continentalNote}`,
                 color: 'text-indigo-500',
                 bg: 'bg-gradient-to-r from-indigo-50 to-purple-50'
             };
-        } else if (domesticTitles >= 1 || (topFlightSeasons >= 10 && cupTitles >= 1) || vccAppearances >= 1) {
+        }
+        
+        // ESTABLISHED CLUB - league winner or long top-flight presence with VCC/cup
+        if (domesticTitles >= 1 || (topFlightSeasons >= 10 && cupTitles >= 1) || vccAppearances >= 1) {
+            const vccNote = vccAppearances > 0 ? ` They have appeared in the VCC${vccBest ? `, reaching the ${vccBest.toLowerCase()}` : ''}.` : '';
             return {
                 tier: 'Established Club',
-                description: `${club.name} is a well-established club with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''} and ${topFlightSeasons} seasons in the top flight.${vccAppearances > 0 ? ` They have appeared in the VCC.` : ''} Recognized throughout the nation.`,
+                description: `${club.name} is well-established with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''} and ${topFlightSeasons} top-flight seasons.${vccNote} Recognized throughout the nation.`,
                 color: 'text-blue-500',
                 bg: 'bg-gradient-to-r from-blue-50 to-indigo-50'
             };
-        } else if (topFlightSeasons >= 5 || cccAppearances >= 1) {
+        }
+        
+        // AMBITIOUS CLUB - some top flight or CCC experience
+        if (topFlightSeasons >= 5 || cccAppearances >= 1) {
+            const cccNote = cccAppearances > 0 ? ` Their ${cccAppearances} CCC appearance${cccAppearances !== 1 ? 's' : ''}${cccBest ? ` (best: ${cccBest.toLowerCase()})` : ''} hint at bigger things to come.` : '';
             return {
                 tier: 'Ambitious Club',
-                description: `A club with top-flight experience and ambitions to climb higher, ${club.name} is known regionally and aspires to national prominence.${cccAppearances > 0 ? ` Their CCC appearance${cccAppearances !== 1 ? 's' : ''} hint at bigger things to come.` : ''}`,
+                description: `A club with ${topFlightSeasons} top-flight season${topFlightSeasons !== 1 ? 's' : ''} and ambitions to climb higher, ${club.name} is known regionally.${cccNote}`,
                 color: 'text-purple-500',
                 bg: 'bg-purple-50'
             };
-        } else if (topFlightSeasons >= 1 || totalSeasons >= 10) {
+        }
+        
+        // RISING CLUB - tasted top flight or long history
+        if (topFlightSeasons >= 1 || totalSeasons >= 10) {
             return {
                 tier: 'Rising Club',
-                description: `${club.name} has tasted top-flight football and is building towards becoming an established force. They are well-known in their local area and growing their reputation.`,
+                description: `${club.name} has tasted top-flight football and is building towards becoming an established force. Well-known locally and growing their reputation.`,
                 color: 'text-cyan-500',
                 bg: 'bg-cyan-50'
             };
-        } else if (totalSeasons >= 5) {
+        }
+        
+        // LOCAL CLUB
+        if (totalSeasons >= 5) {
             return {
                 tier: 'Local Club',
-                description: `A community club with a loyal following, ${club.name} represents the grassroots of football. Their supporters know them as the pride of ${club.settlement || club.district || club.region || 'their town'}.`,
+                description: `A community club with loyal support, ${club.name} represents grassroots football. The pride of ${club.settlement || club.district || club.region || 'their town'}.`,
                 color: 'text-slate-500',
                 bg: 'bg-slate-50'
             };
-        } else {
-            return {
-                tier: 'Newcomer',
-                description: `${club.name} is a newer addition to organized football, still building their history and fanbase. Every legendary club started somewhere.`,
-                color: 'text-green-500',
-                bg: 'bg-green-50'
-            };
         }
+        
+        // NEWCOMER
+        return {
+            tier: 'Newcomer',
+            description: `${club.name} is a newer addition to organized football, still building their history. Every legendary club started somewhere.`,
+            color: 'text-green-500',
+            bg: 'bg-green-50'
+        };
     };
 
     const clubStature = calculateClubStature();
