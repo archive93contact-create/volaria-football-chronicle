@@ -27,6 +27,7 @@ import SeasonStorylines from '@/components/seasons/SeasonStorylines';
 import LeaguePredictions from '@/components/leagues/LeaguePredictions';
 import VisualLeagueHistory from '@/components/leagues/VisualLeagueHistory';
 import AIFillMissingStats from '@/components/leagues/AIFillMissingStats';
+import SyncClubStats from '@/components/common/SyncClubStats';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -575,6 +576,11 @@ export default function LeagueDetail() {
                                 <CardTitle>Season History</CardTitle>
                                 <div className="flex gap-2">
                                     <AdminOnly>
+                                        <SyncClubStats 
+                                            clubs={allNationClubs}
+                                            leagueTables={leagueTables}
+                                            leagues={allNationLeagues}
+                                        />
                                         <AIFillMissingStats 
                                             league={league}
                                             seasons={seasons}
