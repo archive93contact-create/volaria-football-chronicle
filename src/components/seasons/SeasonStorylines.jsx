@@ -533,16 +533,26 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
                 const club = getClub(relegatedClubName);
                 if (!club) continue;
                 
-                // Get all historical seasons for this club
+                // Get all historical seasons for this club - need to look up league tiers properly
                 const clubHistory = allLeagueTables.filter(t => t.club_id === club.id || t.club_name === club.name);
-                const clubSeasonTiers = clubHistory.map(h => {
+                const clubSeasonTiers = [];
+                
+                for (const h of clubHistory) {
+                    // First try to get tier from the season record
                     const seasonData = allSeasons.find(s => s.id === h.season_id || (s.league_id === h.league_id && s.year === h.year));
-                    if (seasonData) return seasonData.tier || 1;
-                    return null;
-                }).filter(Boolean);
+                    if (seasonData?.tier) {
+                        clubSeasonTiers.push(seasonData.tier);
+                    } else if (h.league_id) {
+                        // Fall back to looking up the league's tier from allSeasons for that league
+                        const leagueSeasons = allSeasons.filter(s => s.league_id === h.league_id);
+                        if (leagueSeasons.length > 0 && leagueSeasons[0].tier) {
+                            clubSeasonTiers.push(leagueSeasons[0].tier);
+                        }
+                    }
+                }
                 
                 // Check if they've ever been in a tier as low as where they're being relegated to
-                const lowestTierEver = Math.max(...clubSeasonTiers, 0);
+                const lowestTierEver = clubSeasonTiers.length > 0 ? Math.max(...clubSeasonTiers) : 0;
                 const clubEntry = sortedTable.find(t => t.club_name === relegatedClubName);
                 
                 if (relegatedToTier > lowestTierEver && lowestTierEver > 0) {
