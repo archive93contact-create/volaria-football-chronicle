@@ -208,6 +208,10 @@ export default function LeagueDetail() {
                 if (t.trim()) promotedToThisLeague.push(t.trim().toLowerCase());
             });
         }
+        // Champions are also promoted
+        if (lowerPrevSeason?.champion_name) {
+            promotedToThisLeague.push(lowerPrevSeason.champion_name.trim().toLowerCase());
+        }
     });
     
     // Get relegated teams from higher tier leagues (teams that got relegated TO this league)
