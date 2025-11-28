@@ -101,6 +101,42 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             });
         }
         
+        // 3b. Defending Champion's Performance (if not retained)
+        if (prevSeason?.champion_name && season.champion_name !== prevSeason.champion_name) {
+            const prevChampEntry = sortedTable.find(t => t.club_name === prevSeason.champion_name);
+            if (prevChampEntry) {
+                const prevChampClub = getClub(prevSeason.champion_name);
+                if (prevChampEntry.position === 2) {
+                    results.push({
+                        icon: Trophy,
+                        color: 'text-slate-500',
+                        bg: 'bg-slate-50',
+                        title: 'Defending Champions Fall Short',
+                        text: `${prevSeason.champion_name} came close to retaining their crown but had to settle for runners-up spot, finishing ${(champion?.points || 0) - (prevChampEntry.points || 0)} points behind ${champion?.club_name}.`,
+                        clubId: prevChampClub?.id
+                    });
+                } else if (prevChampEntry.position <= 4) {
+                    results.push({
+                        icon: Trophy,
+                        color: 'text-slate-500',
+                        bg: 'bg-slate-50',
+                        title: 'Title Hangover',
+                        text: `Defending champions ${prevSeason.champion_name} could not mount a successful defence, slipping to ${prevChampEntry.position}${prevChampEntry.position === 2 ? 'nd' : prevChampEntry.position === 3 ? 'rd' : 'th'} place.`,
+                        clubId: prevChampClub?.id
+                    });
+                } else if (prevChampEntry.position >= sortedTable.length - 3 && prevChampEntry.position > 4) {
+                    results.push({
+                        icon: TrendingDown,
+                        color: 'text-red-500',
+                        bg: 'bg-gradient-to-r from-red-50 to-rose-50',
+                        title: 'Defending Champions Collapse',
+                        text: `In a stunning fall from grace, ${prevSeason.champion_name} plummeted to ${prevChampEntry.position}${prevChampEntry.position === 2 ? 'nd' : prevChampEntry.position === 3 ? 'rd' : 'th'} place, fighting relegation rather than defending their title.`,
+                        clubId: prevChampClub?.id
+                    });
+                }
+            }
+        }
+        
         // 4. Promoted Club Success
         if (prevSeason?.promoted_teams && champion) {
             const promotedLast = prevSeason.promoted_teams.split(',').map(t => t.trim());
