@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, ChevronRight, Plus, MapPin, Star, Sparkles, Crown, Heart, Coffee, BookOpen, ArrowRight, Flame } from 'lucide-react';
+import { Globe, Trophy, Shield, ChevronRight, Plus, MapPin, Star, Sparkles, Crown, Heart, Coffee, BookOpen, ArrowRight, Flame, Award } from 'lucide-react';
 import AdminOnly from '@/components/common/AdminOnly';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
