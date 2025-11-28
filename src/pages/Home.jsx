@@ -413,14 +413,14 @@ export default function Home() {
                             </div>
 
                             {/* In Progress Nations */}
-                            {categorizedNations.inProgress.length > 0 && (
+                            {(categorizedNations.inProgress.length > 0 || categorizedNations.planned.length > 0) && (
                                 <div>
                                     <p className="text-sm text-slate-500 mb-3 flex items-center gap-2">
                                         <span className="w-2 h-2 rounded-full bg-amber-400"></span>
                                         Coming Soon — Nations in development
                                     </p>
                                     <div className="flex flex-wrap gap-2">
-                                        {categorizedNations.inProgress.map((nation) => (
+                                        {[...categorizedNations.inProgress, ...categorizedNations.planned].map((nation) => (
                                             <Link 
                                                 key={nation.id} 
                                                 to={createPageUrl(`NationDetail?id=${nation.id}`)}
