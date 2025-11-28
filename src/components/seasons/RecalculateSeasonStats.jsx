@@ -11,6 +11,7 @@ export default function RecalculateSeasonStats({ seasons, leagueTables }) {
     const [selectedYear, setSelectedYear] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
+    const [forceRecalc, setForceRecalc] = useState(false);
     const queryClient = useQueryClient();
 
     // Get unique years from seasons
@@ -53,8 +54,8 @@ export default function RecalculateSeasonStats({ seasons, leagueTables }) {
             for (const entry of divisionEntries) {
                 const currentPlayed = entry.played || 0;
                 
-                // If played is way off (more than 1.5x what it should be), recalculate
-                if (currentPlayed > correctGamesPerTeam * 1.5 || currentPlayed === 0) {
+                // If played is way off (more than 1.5x what it should be), or force is enabled, recalculate
+                if (forceRecalc || currentPlayed > correctGamesPerTeam * 1.5 || currentPlayed === 0) {
                     // Calculate new stats proportionally based on correct games
                     const ratio = currentPlayed > 0 ? correctGamesPerTeam / currentPlayed : 1;
                     
@@ -114,6 +115,16 @@ export default function RecalculateSeasonStats({ seasons, leagueTables }) {
                         This will fix W/D/L and games played for seasons with incorrect stats 
                         (e.g., multi-division leagues that calculated games based on total league size instead of division size).
                     </p>
+                    
+                    <label className="flex items-center gap-2 text-sm">
+                        <input 
+                            type="checkbox" 
+                            checked={forceRecalc}
+                            onChange={(e) => setForceRecalc(e.target.checked)}
+                            className="rounded"
+                        />
+                        Force recalculate (even if stats look correct)
+                    </label>
                     
                     <div>
                         <label className="text-sm font-medium">Select Season Year</label>
