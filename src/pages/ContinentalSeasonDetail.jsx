@@ -3,11 +3,14 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, ChevronRight, Star, Edit2, Trash2, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Trophy, ChevronRight, Star, Edit2, Trash2, Loader2, RefreshCw, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import AddMatchDialog from '@/components/continental/AddMatchDialog';
 import EnhancedBracketView from '@/components/continental/EnhancedBracketView';
 import SeasonStats from '@/components/continental/SeasonStats';
@@ -24,6 +27,8 @@ export default function ContinentalSeasonDetail() {
     
     const [isAddMatchOpen, setIsAddMatchOpen] = useState(false);
     const [editingMatch, setEditingMatch] = useState(null);
+    const [isEditRoundsOpen, setIsEditRoundsOpen] = useState(false);
+    const [roundNames, setRoundNames] = useState({});
 
     const { data: season } = useQuery({
         queryKey: ['continentalSeason', seasonId],
@@ -73,6 +78,27 @@ export default function ContinentalSeasonDetail() {
         mutationFn: (id) => base44.entities.ContinentalMatch.delete(id),
         onSuccess: () => queryClient.invalidateQueries(['continentalMatches', seasonId]),
     });
+
+    const updateCompetitionMutation = useMutation({
+        mutationFn: (data) => base44.entities.ContinentalCompetition.update(competition.id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['competition', season?.competition_id]);
+            setIsEditRoundsOpen(false);
+        },
+    });
+
+    const openEditRounds = () => {
+        setRoundNames(competition?.round_names || {});
+        setIsEditRoundsOpen(true);
+    };
+
+    const saveRoundNames = () => {
+        // Filter out empty values
+        const cleanedRoundNames = Object.fromEntries(
+            Object.entries(roundNames).filter(([_, v]) => v && v.trim())
+        );
+        updateCompetitionMutation.mutate({ round_names: cleanedRoundNames });
+    };
 
     if (!season || !competition) {
         return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
@@ -211,6 +237,9 @@ export default function ContinentalSeasonDetail() {
                         </TabsList>
                         <AdminOnly>
                             <div className="flex gap-2">
+                                <Button variant="outline" onClick={openEditRounds}>
+                                    <Settings className="w-4 h-4 mr-2" /> Round Names
+                                </Button>
                                 <Link to={createPageUrl(`UpdateContinentalStats?season=${seasonId}`)}>
                                     <Button variant="outline">
                                         <RefreshCw className="w-4 h-4 mr-2" /> Sync Club Stats
@@ -357,6 +386,68 @@ export default function ContinentalSeasonDetail() {
                 nations={nations}
                 clubs={clubs}
             />
+
+            {/* Edit Round Names Dialog */}
+            <Dialog open={isEditRoundsOpen} onOpenChange={setIsEditRoundsOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Customize Round Names</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm text-slate-500">
+                            Rename rounds for {competition?.name}. Leave blank to use default names.
+                        </p>
+                        <div className="space-y-3">
+                            <div>
+                                <Label className="text-xs text-slate-500">Round of 32 →</Label>
+                                <Input 
+                                    value={roundNames['Round of 32'] || ''} 
+                                    onChange={(e) => setRoundNames({...roundNames, 'Round of 32': e.target.value})}
+                                    placeholder="e.g., Qualifying Round"
+                                    className="mt-1"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs text-slate-500">Round of 16 →</Label>
+                                <Input 
+                                    value={roundNames['Round of 16'] || ''} 
+                                    onChange={(e) => setRoundNames({...roundNames, 'Round of 16': e.target.value})}
+                                    placeholder="e.g., Round One"
+                                    className="mt-1"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs text-slate-500">Quarter-final →</Label>
+                                <Input 
+                                    value={roundNames['Quarter-final'] || ''} 
+                                    onChange={(e) => setRoundNames({...roundNames, 'Quarter-final': e.target.value})}
+                                    placeholder="e.g., Quarter-final"
+                                    className="mt-1"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs text-slate-500">Semi-final →</Label>
+                                <Input 
+                                    value={roundNames['Semi-final'] || ''} 
+                                    onChange={(e) => setRoundNames({...roundNames, 'Semi-final': e.target.value})}
+                                    placeholder="e.g., Semi-final"
+                                    className="mt-1"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-4">
+                            <Button variant="outline" onClick={() => setIsEditRoundsOpen(false)}>Cancel</Button>
+                            <Button 
+                                onClick={saveRoundNames} 
+                                disabled={updateCompetitionMutation.isPending}
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                            >
+                                {updateCompetitionMutation.isPending ? 'Saving...' : 'Save'}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
