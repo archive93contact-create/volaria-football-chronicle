@@ -208,20 +208,67 @@ export default function StabilityManager() {
         queryFn: () => base44.entities.Season.list(),
     });
 
+    const calculateNation = async (nationId) => {
+        const nation = nations.find(n => n.id === nationId);
+        const nationClubs = clubs.filter(c => c.nation_id === nationId);
+        const nationLeagues = leagues.filter(l => l.nation_id === nationId);
+        const maxTierInNation = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
+        
+        if (nationClubs.length === 0) return;
+        
+        setIsCalculating(true);
+        setProgress({ current: 0, total: nationClubs.length, nation: nation?.name || 'Unknown' });
+        
+        // Calculate stability for all clubs
+        const stabilityUpdates = {};
+        for (const club of nationClubs) {
+            const { points, status } = calculateClubStability(club.id, leagueTables, leagues, seasons, maxTierInNation);
+            stabilityUpdates[club.id] = { points, status };
+        }
+        
+        // Create updated club list with stability
+        const updatedNationClubs = nationClubs.map(c => ({
+            ...c,
+            stability_points: stabilityUpdates[c.id]?.points ?? 0
+        }));
+        
+        // Assign professional status based on stability ranking
+        const proStatusAssignments = assignProfessionalStatusForNation(updatedNationClubs, nation, leagues);
+        
+        // Update each club
+        let processed = 0;
+        for (const club of nationClubs) {
+            const stability = stabilityUpdates[club.id] || { points: 0, status: 'stable' };
+            const proStatus = proStatusAssignments[club.id] || 'amateur';
+            
+            await base44.entities.Club.update(club.id, {
+                stability_points: stability.points,
+                stability_status: stability.status,
+                professional_status: proStatus
+            });
+            
+            processed++;
+            setProgress(p => ({ ...p, current: processed }));
+        }
+        
+        queryClient.invalidateQueries(['clubs']);
+        setIsCalculating(false);
+        setProgress({ current: 0, total: 0, nation: '' });
+    };
+
     const calculateAllClubs = async () => {
         setIsCalculating(true);
-        setProgress({ current: 0, total: clubs.length, nation: 'Starting...' });
-        
         const nationIds = [...new Set(clubs.map(c => c.nation_id).filter(Boolean))];
-        let processed = 0;
+        let totalProcessed = 0;
+        const totalClubs = clubs.length;
         
         for (const nationId of nationIds) {
             const nation = nations.find(n => n.id === nationId);
-            setProgress(p => ({ ...p, nation: nation?.name || 'Unknown' }));
-            
             const nationClubs = clubs.filter(c => c.nation_id === nationId);
             const nationLeagues = leagues.filter(l => l.nation_id === nationId);
             const maxTierInNation = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
+            
+            setProgress({ current: totalProcessed, total: totalClubs, nation: nation?.name || 'Unknown' });
             
             // Calculate stability for all clubs
             const stabilityUpdates = {};
@@ -250,8 +297,8 @@ export default function StabilityManager() {
                     professional_status: proStatus
                 });
                 
-                processed++;
-                setProgress(p => ({ ...p, current: processed }));
+                totalProcessed++;
+                setProgress(p => ({ ...p, current: totalProcessed }));
             }
         }
         
@@ -379,10 +426,33 @@ export default function StabilityManager() {
                                     <p className="text-xs text-slate-500">{progress.current} / {progress.total} clubs</p>
                                 </div>
                             ) : (
-                                <Button onClick={calculateAllClubs} className="bg-emerald-600 hover:bg-emerald-700">
-                                    <RefreshCw className="w-4 h-4 mr-2" />
-                                    Calculate All Clubs Now
-                                </Button>
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-xs text-slate-500 mb-2">Calculate single nation (faster):</p>
+                                        <div className="flex gap-2 flex-wrap">
+                                            {nations.map(n => {
+                                                const nationClubCount = clubs.filter(c => c.nation_id === n.id).length;
+                                                if (nationClubCount === 0) return null;
+                                                return (
+                                                    <Button 
+                                                        key={n.id} 
+                                                        variant="outline" 
+                                                        size="sm"
+                                                        onClick={() => calculateNation(n.id)}
+                                                    >
+                                                        {n.name} ({nationClubCount})
+                                                    </Button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className="border-t pt-4">
+                                        <Button onClick={calculateAllClubs} className="bg-emerald-600 hover:bg-emerald-700">
+                                            <RefreshCw className="w-4 h-4 mr-2" />
+                                            Calculate ALL Nations
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
                         </CardContent>
                     </Card>
