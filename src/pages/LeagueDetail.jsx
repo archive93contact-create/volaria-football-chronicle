@@ -174,6 +174,28 @@ export default function LeagueDetail() {
         }, {})
         : { '': currentSeasonTable };
 
+    // Get previous season info for (P), (R), (C) indicators
+    const sortedYears = [...uniqueYears].sort();
+    const currentYearIndex = sortedYears.indexOf(currentYear);
+    const previousYear = currentYearIndex > 0 ? sortedYears[currentYearIndex - 1] : null;
+    const previousSeason = previousYear ? seasons.find(s => s.year === previousYear) : null;
+    
+    // Get promoted/relegated teams from previous season
+    const promotedTeams = previousSeason?.promoted_teams?.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) || [];
+    const relegatedTeams = previousSeason?.relegated_teams?.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) || [];
+    const previousChampion = previousSeason?.champion_name?.trim().toLowerCase() || '';
+    
+    // Helper to check club status
+    const getClubIndicators = (clubName) => {
+        if (!clubName) return { isPromoted: false, isRelegated: false, isChampion: false };
+        const name = clubName.trim().toLowerCase();
+        return {
+            isPromoted: promotedTeams.some(t => t === name || name.includes(t) || t.includes(name)),
+            isRelegated: relegatedTeams.some(t => t === name || name.includes(t) || t.includes(name)),
+            isChampion: league.tier === 1 && previousChampion && (previousChampion === name || name.includes(previousChampion) || previousChampion.includes(name))
+        };
+    };
+
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
