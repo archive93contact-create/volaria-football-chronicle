@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
     Building2, Users, GraduationCap, Trophy, Star, Sparkles, 
-    Loader2, Edit2, Save, X, AlertTriangle, Building, Banknote
+    Loader2, Edit2, Save, X, AlertTriangle, Building, Banknote, Briefcase
 } from 'lucide-react';
 import AdminOnly from '@/components/common/AdminOnly';
+import ProfessionalStatusBadge from '@/components/clubs/ProfessionalStatusBadge';
 
 // Generate facilities based on stability points and club history
 const calculateFacilities = (club, league) => {
@@ -313,6 +314,15 @@ export default function ClubInfrastructure({ club, league, nation }) {
                 </AdminOnly>
             </CardHeader>
             <CardContent className="space-y-6">
+                {/* Professional Status */}
+                <div className="p-4 bg-slate-50 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Briefcase className="w-5 h-5 text-slate-600" />
+                        <span className="font-semibold">Club Status</span>
+                    </div>
+                    <ProfessionalStatusBadge status={club.professional_status} />
+                </div>
+
                 {/* Stability Impact Warning */}
                 {isAtRisk && (
                     <div className="p-3 bg-red-50 rounded-lg border border-red-200 flex items-center gap-3">

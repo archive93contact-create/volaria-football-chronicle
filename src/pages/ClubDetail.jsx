@@ -24,6 +24,7 @@ import DynastyTracker from '@/components/clubs/DynastyTracker';
 import AdminOnly from '@/components/common/AdminOnly';
 import StabilityBadge from '@/components/stability/StabilityBadge';
 import ClubInfrastructure from '@/components/clubs/ClubInfrastructure';
+import ProfessionalStatusBadge from '@/components/clubs/ProfessionalStatusBadge';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -330,14 +331,18 @@ export default function ClubDetail() {
                                 )}
                             </div>
                             {club.nickname && <p className="text-white/80 text-lg mt-1">"{club.nickname}"</p>}
-                                {club.stability_points !== undefined && (
-                                    <div className="mt-2">
+                                <div className="flex items-center gap-2 mt-2">
+                                    {club.professional_status && (
+                                        <ProfessionalStatusBadge status={club.professional_status} size="small" />
+                                    )}
+                                    {club.stability_points !== undefined && (
                                         <StabilityBadge 
                                             points={club.stability_points} 
                                             status={club.stability_status}
+                                            iconOnly={true}
                                         />
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             {(club.settlement || club.district || club.region || club.city) && (
                                     <div className="flex items-center gap-2 mt-2 text-white/80 flex-wrap">
                                         <MapPin className="w-4 h-4" />
