@@ -271,6 +271,30 @@ export default function LeagueDetail() {
                         <div className="flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold text-white">{league.name}</h1>
                             {league.description && <p className="mt-2 text-white/80">{league.description}</p>}
+                            <div className="flex items-center gap-6 mt-4 text-white/90">
+                                <div className="flex items-center gap-2">
+                                    <Users className="w-5 h-5" />
+                                    <span className="font-bold">{clubs.length}</span>
+                                    <span className="text-white/70">Clubs</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Calendar className="w-5 h-5" />
+                                    <span className="font-bold">{seasons.length}</span>
+                                    <span className="text-white/70">Seasons</span>
+                                </div>
+                                {league.current_champion && (
+                                    <div className="flex items-center gap-2">
+                                        <Trophy className="w-5 h-5 text-amber-300" />
+                                        <span className="font-bold">{league.current_champion}</span>
+                                    </div>
+                                )}
+                                {league.founded_year && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-white/70">Est.</span>
+                                        <span className="font-bold">{league.founded_year}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <AdminOnly>
                             <div className="flex gap-2">
@@ -296,14 +320,6 @@ export default function LeagueDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Users className="w-6 h-6 text-blue-500 mx-auto mb-2" /><div className="text-2xl font-bold">{clubs.length}</div><div className="text-xs text-slate-500">Clubs</div></CardContent></Card>
-                    <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Calendar className="w-6 h-6 text-emerald-500 mx-auto mb-2" /><div className="text-2xl font-bold">{seasons.length}</div><div className="text-xs text-slate-500">Seasons</div></CardContent></Card>
-                    {league.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" /><div className="text-sm font-bold text-emerald-600 truncate">{league.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
-                    {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
-                </div>
-
                 {/* Quick Navigation Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                     <a href="#league-table" className="block">
@@ -447,14 +463,22 @@ export default function LeagueDetail() {
                     </div>
                 )}
 
-                {/* League History Section */}
+                {/* League Story Section */}
                 <div id="league-story">
+                    {/* League Narratives - Most Prominent */}
+                    <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
+
+                    {/* Competitiveness & Flow */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <LeagueCompetitiveness seasons={seasons} leagueTables={leagueTables} />
+                        <PromotionRelegationFlow seasons={seasons} clubs={clubs} leagues={[league]} />
+                    </div>
+
                     {/* Visual League History */}
                     <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
 
-                {/* League History Timeline */}
-                <LeagueHistory league={league} seasons={seasons} nation={nation} />
-
+                    {/* League History Timeline */}
+                    <LeagueHistory league={league} seasons={seasons} nation={nation} />
                 </div>
 
                 {/* Season Storylines */}
@@ -469,15 +493,6 @@ export default function LeagueDetail() {
                             clubs={allNationClubs}
                         />
                     )}
-                </div>
-
-                {/* League Narratives */}
-                <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
-
-                {/* Competitiveness & Flow */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <LeagueCompetitiveness seasons={seasons} leagueTables={leagueTables} />
-                    <PromotionRelegationFlow seasons={seasons} clubs={clubs} leagues={[league]} />
                 </div>
 
                 {/* Geographic & Head-to-Head */}
