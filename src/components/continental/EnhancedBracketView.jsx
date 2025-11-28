@@ -2,12 +2,14 @@ import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Star, ChevronRight, Flag } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Trophy, Star, ChevronRight, Flag, Edit2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import AdminOnly from '@/components/common/AdminOnly';
 
 const ROUND_ORDER = ['Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
-export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition }) {
+export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition, onEditMatch }) {
     // Get custom round names from competition
     const getRoundDisplayName = (roundName) => {
         if (competition?.round_names && competition.round_names[roundName]) {
@@ -164,6 +166,20 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                     <div className="bg-slate-50 px-3 py-1.5 text-xs text-slate-500 text-center border-t">
                         📍 {match.venue}
                     </div>
+                )}
+                {onEditMatch && (
+                    <AdminOnly>
+                        <div className="border-t border-slate-100">
+                            <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="w-full text-xs text-slate-500 hover:text-slate-700 h-8"
+                                onClick={() => onEditMatch(match)}
+                            >
+                                <Edit2 className="w-3 h-3 mr-1" /> Edit Match
+                            </Button>
+                        </div>
+                    </AdminOnly>
                 )}
             </div>
         );
