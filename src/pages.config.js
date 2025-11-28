@@ -28,7 +28,7 @@ import Coefficients from './pages/Coefficients';
 import AllClubs from './pages/AllClubs';
 import EditSeasonTable from './pages/EditSeasonTable';
 import Support from './pages/Support';
-import ClubStability from './pages/ClubStability';
+import StabilityManager from './pages/StabilityManager';
 import __Layout from './Layout.jsx';
 
 
@@ -63,7 +63,7 @@ export const PAGES = {
     "AllClubs": AllClubs,
     "EditSeasonTable": EditSeasonTable,
     "Support": Support,
-    "ClubStability": ClubStability,
+    "StabilityManager": StabilityManager,
 }
 
 export const pagesConfig = {
