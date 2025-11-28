@@ -240,14 +240,62 @@ export default function LeagueCompetitiveness({ seasons = [], leagueTables = [] 
                         <div className="text-sm text-slate-500">Different Champions</div>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-lg">
-                        <div className="text-2xl font-bold">{stats.closeFinishes}</div>
-                        <div className="text-sm text-slate-500">Close Title Races</div>
+                        <div className="text-2xl font-bold">{stats.turnoverRate}%</div>
+                        <div className="text-sm text-slate-500">Champion Turnover</div>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-lg">
                         <div className="text-2xl font-bold">{stats.dynasties.length}</div>
                         <div className="text-sm text-slate-500">Dynasties (3+ in a row)</div>
                     </div>
                 </div>
+
+                {/* Additional Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 text-sm">
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                        <div className="font-bold text-lg">{stats.closeFinishes}</div>
+                        <div className="text-slate-500">Close Title Races (≤3pts)</div>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                        <div className="font-bold text-lg">{stats.avgTitleGap} pts</div>
+                        <div className="text-slate-500">Avg Title-Winning Margin</div>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                        <div className="font-bold text-lg">{stats.top5Variety}</div>
+                        <div className="text-slate-500">Clubs in Top 5 (all time)</div>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                        <div className="font-bold text-lg">{stats.titleConcentration}%</div>
+                        <div className="text-slate-500">Titles by Top Club</div>
+                    </div>
+                </div>
+
+                {/* Promoted Club Success */}
+                {stats.promotedStats.tracked > 0 && (
+                    <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
+                        <h4 className="font-semibold text-sm text-green-800 mb-2 flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4" />
+                            Promoted Club Performance
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div>
+                                <div className="font-bold text-green-700">{stats.promotedStats.successRate}%</div>
+                                <div className="text-green-600">Finish Top Half</div>
+                            </div>
+                            <div>
+                                <div className="font-bold text-green-700">{stats.promotedStats.topQuarter}</div>
+                                <div className="text-green-600">Top Quarter Finishes</div>
+                            </div>
+                            <div>
+                                <div className="font-bold text-green-700">{stats.promotedStats.champions}</div>
+                                <div className="text-green-600">Won Title After Promotion</div>
+                            </div>
+                            <div>
+                                <div className="font-bold text-green-700">{stats.promotedStats.tracked}</div>
+                                <div className="text-green-600">Promoted Clubs Tracked</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Top Champions */}
                 {stats.topChampions.length > 0 && (
