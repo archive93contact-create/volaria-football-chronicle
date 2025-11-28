@@ -25,6 +25,7 @@ import LocationDetail from './pages/LocationDetail';
 import LeagueComparison from './pages/LeagueComparison';
 import RecalculateCoefficients from './pages/RecalculateCoefficients';
 import Coefficients from './pages/Coefficients';
+import AllClubs from './pages/AllClubs';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "LeagueComparison": LeagueComparison,
     "RecalculateCoefficients": RecalculateCoefficients,
     "Coefficients": Coefficients,
+    "AllClubs": AllClubs,
 }
 
 export const pagesConfig = {
