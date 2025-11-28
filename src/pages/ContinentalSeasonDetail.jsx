@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import AddMatchDialog from '@/components/continental/AddMatchDialog';
-import BracketView from '@/components/continental/BracketView';
+import EnhancedBracketView from '@/components/continental/EnhancedBracketView';
+import SeasonStats from '@/components/continental/SeasonStats';
 import SeasonNarratives from '@/components/continental/SeasonNarratives';
 import AdminOnly from '@/components/common/AdminOnly';
 
@@ -136,37 +137,7 @@ export default function ContinentalSeasonDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Season Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <Card className="border-0 shadow-sm">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold text-slate-800">{matches.length}</div>
-                            <div className="text-xs text-slate-500">Total Matches</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-0 shadow-sm">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold text-slate-800">{Object.keys(matchesByRound).length}</div>
-                            <div className="text-xs text-slate-500">Rounds</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-0 shadow-sm">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold text-slate-800">
-                                {new Set([...matches.map(m => m.home_club_name), ...matches.map(m => m.away_club_name)]).size}
-                            </div>
-                            <div className="text-xs text-slate-500">Clubs Participated</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-0 shadow-sm">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold text-slate-800">
-                                {new Set([...matches.map(m => m.home_club_nation), ...matches.map(m => m.away_club_nation)].filter(Boolean)).size}
-                            </div>
-                            <div className="text-xs text-slate-500">Nations Represented</div>
-                        </CardContent>
-                    </Card>
-                </div>
+
 
                 {/* Season Narratives */}
                 <SeasonNarratives 
@@ -232,7 +203,8 @@ export default function ContinentalSeasonDetail() {
                 <Tabs defaultValue="bracket" className="space-y-6">
                     <div className="flex items-center justify-between">
                         <TabsList>
-                            <TabsTrigger value="bracket">Bracket View</TabsTrigger>
+                            <TabsTrigger value="bracket">Tournament Bracket</TabsTrigger>
+                            <TabsTrigger value="stats">Stats & Records</TabsTrigger>
                             <TabsTrigger value="rounds">By Round</TabsTrigger>
                         </TabsList>
                         <AdminOnly>
@@ -250,11 +222,21 @@ export default function ContinentalSeasonDetail() {
                     </div>
 
                     <TabsContent value="bracket">
-                        <BracketView 
+                        <EnhancedBracketView 
                             matches={matches} 
                             getNationFlag={getNationFlag}
                             clubs={clubs}
-                            onEdit={setEditingMatch}
+                            nations={nations}
+                            competition={competition}
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="stats">
+                        <SeasonStats 
+                            matches={matches}
+                            season={season}
+                            clubs={clubs}
+                            nations={nations}
                         />
                     </TabsContent>
 
