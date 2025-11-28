@@ -22,24 +22,40 @@ export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, 
             .map((r, idx) => `${idx + 1}. ${r.club_name}${r.points > 0 ? ` (${r.points} pts)` : ''}${r.goals_for > 0 ? ` GF:${r.goals_for}` : ''}`)
             .join('\n');
 
-        const prompt = `Generate realistic football league table statistics for a ${numTeams}-team league season.
+        // Randomly determine season characteristics for variety
+        const seasonTypes = ['close', 'dominant', 'chaotic', 'normal'];
+        const seasonType = seasonTypes[Math.floor(Math.random() * seasonTypes.length)];
+
+        const prompt = `Generate realistic and VARIED football league table statistics for a ${numTeams}-team league season.
 
 LEAGUE: ${league?.name || 'Football League'} (Tier ${league?.tier || 1})
 SEASON: ${seasonData?.year || 'Current'}
 GAMES PER TEAM: ${gamesPerTeam}
 
+SEASON TYPE: ${seasonType.toUpperCase()}
+${seasonType === 'close' ? '- This was a TIGHT title race! Top 2-3 teams within 3-5 points. Relegation battle also close.' : ''}
+${seasonType === 'dominant' ? '- Champion was DOMINANT! Won by 10-15+ points. Mid-table competitive.' : ''}
+${seasonType === 'chaotic' ? '- UNPREDICTABLE season! Surprise results, unusual stats, maybe high-scoring team mid-table.' : ''}
+${seasonType === 'normal' ? '- Standard season with realistic gaps (2-4 points between positions).' : ''}
+
 TEAMS IN ORDER (1st to last):
 ${knownData}
 
-For EACH team, generate realistic stats that:
-1. Match their league position (1st should have most points, last should have fewest)
-2. Are mathematically consistent (W+D+L = games played, GD = GF-GA)
-3. Points = W*3 + D
-4. Have realistic goal totals (top teams 60-90 GF, bottom teams 30-50 GF typically)
-5. Champions should have 70-95 points in a 38 game season, scale appropriately
-6. Relegated teams should have significant gaps from safety
+CRITICAL REQUIREMENTS:
+1. W + D + L MUST equal exactly ${gamesPerTeam} for every team
+2. Points = (W × 3) + D - calculate correctly!
+3. GD = GF - GA
+4. Add REALISTIC VARIETY:
+   - Some defensive teams (low GF, low GA)
+   - Some attacking but leaky (high GF, high GA)
+   - Some draw specialists
+   - Bottom teams still score 30-50 goals
+5. Create interesting storylines:
+   - Maybe 2nd has better GD but fewer points
+   - A high-scoring team finishes 4th-6th
+   - Relegated team might outscore team above them
 
-Generate stats for all ${numTeams} teams.`;
+Generate UNIQUE stats - not linear progression!`;
 
         try {
             const result = await base44.integrations.Core.InvokeLLM({

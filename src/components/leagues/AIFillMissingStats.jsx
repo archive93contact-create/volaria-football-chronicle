@@ -37,24 +37,43 @@ export default function AIFillMissingStats({ league, seasons = [], leagueTables 
             .map((r, idx) => `${idx + 1}. ${r.club_name}${r.points > 0 ? ` (${r.points} pts)` : ''}`)
             .join('\n');
 
-        const prompt = `Generate realistic football league table statistics for a ${numTeams}-team league season.
+        // Randomly determine season characteristics for variety
+        const seasonTypes = ['close', 'dominant', 'chaotic', 'normal'];
+        const seasonType = seasonTypes[Math.floor(Math.random() * seasonTypes.length)];
+        
+        const prompt = `Generate realistic and VARIED football league table statistics for a ${numTeams}-team league season.
 
 LEAGUE: ${league?.name || 'Football League'} (Tier ${league?.tier || 1})
 SEASON: ${season.year}
 GAMES PER TEAM: ${gamesPerTeam}
 CHAMPION: ${season.champion_name || 'Position 1'}
 
+SEASON TYPE: ${seasonType.toUpperCase()}
+${seasonType === 'close' ? '- This was a TIGHT title race! Top 2-3 teams within 3-5 points of each other. Also make relegation battle close.' : ''}
+${seasonType === 'dominant' ? '- Champion was DOMINANT! Won by 10-15+ points. But make mid-table and relegation zones competitive.' : ''}
+${seasonType === 'chaotic' ? '- UNPREDICTABLE season! Some surprise results, unusual goal differences, maybe a high-scoring team finishing mid-table.' : ''}
+${seasonType === 'normal' ? '- Standard season with realistic gaps between positions (2-4 points between most places).' : ''}
+
 TEAMS IN ORDER (1st to last):
 ${knownData}
 
-For EACH team, generate realistic stats that:
-1. Match their league position (1st should have most points, last should have fewest)
-2. Are mathematically consistent (W+D+L = ${gamesPerTeam}, GD = GF-GA)
-3. Points = W*3 + D
-4. Have realistic goal totals for this league level
-5. Scale points appropriately for ${gamesPerTeam} games
+CRITICAL REQUIREMENTS:
+1. W + D + L MUST equal exactly ${gamesPerTeam} for every team
+2. Points = (W × 3) + D - calculate this correctly!
+3. Goal difference = GF - GA
+4. Add REALISTIC VARIETY:
+   - Some teams are defensive (low GF, low GA)
+   - Some are attacking but leaky (high GF, high GA) 
+   - Some are boring (lots of draws, 1-0 wins)
+   - Bottom teams can still score 30-50 goals
+   - Top teams typically 50-80+ goals depending on league level
+5. Create interesting storylines:
+   - Maybe 2nd place has better goal difference but fewer points
+   - A team with most goals might finish 4th-6th
+   - Relegated team might have scored more than team just above them
+6. Tier ${league?.tier || 1} league - ${league?.tier === 1 ? 'top flight, higher quality' : league?.tier <= 3 ? 'professional level' : 'semi-pro/amateur, more variable results'}
 
-Generate stats for all ${numTeams} teams.`;
+Generate UNIQUE, INTERESTING stats - not just a linear points progression!`;
 
         try {
             const result = await base44.integrations.Core.InvokeLLM({
