@@ -213,6 +213,7 @@ export default function StabilityManager() {
                                                 <TableHead>League</TableHead>
                                                 <TableHead className="text-center">Points</TableHead>
                                                 <TableHead>Status</TableHead>
+                                                <TableHead>Pro Status</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -267,6 +268,16 @@ export default function StabilityManager() {
                                                             ) : (
                                                                 <Badge variant="outline" className="text-xs">Not Set</Badge>
                                                             )}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                                                club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
+                                                                club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
+                                                                'bg-slate-100 text-slate-500'
+                                                            }`}>
+                                                                {club.professional_status === 'professional' ? 'PRO' : 
+                                                                 club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
+                                                            </span>
                                                         </TableCell>
                                                     </TableRow>
                                                 );

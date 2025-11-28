@@ -46,12 +46,12 @@ export default function StabilityBadge({ points, status, iconOnly = false }) {
     }
 
     return (
-        <span className={`inline-flex items-center gap-1 text-sm ${config.iconClass}`}>
-            <Icon className="w-4 h-4" />
+        <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+            status === 'critical' ? 'bg-red-100' :
+            status === 'at_risk' ? 'bg-amber-100' : 'bg-green-100'
+        }`}>
+            <Icon className="w-3 h-3" />
             <span>{config.label}</span>
-            {points !== undefined && (
-                <span className="font-mono text-xs">({points >= 0 ? '+' : ''}{points})</span>
-            )}
         </span>
     );
 }
