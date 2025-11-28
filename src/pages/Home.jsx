@@ -338,82 +338,61 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {nationsLoading ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            {[...Array(12)].map((_, i) => (
-                                <Skeleton key={i} className="h-40 rounded-2xl" />
-                            ))}
-                        </div>
-                    ) : (
-                        <>
-                            {/* Nations with Data */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-                                {categorizedNations.complete.slice(0, 12).map((nation) => (
+                    {/* In Progress Nations */}
+                    {categorizedNations.inProgress.length > 0 && (
+                        <div className="mb-8">
+                            <p className="text-sm text-slate-600 mb-4 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                                In Progress ({categorizedNations.inProgress.length})
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {categorizedNations.inProgress.map((nation) => (
                                     <Link 
                                         key={nation.id} 
                                         to={createPageUrl(`NationDetail?id=${nation.id}`)}
                                         className="group"
                                     >
-                                        <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white group-hover:-translate-y-1">
-                                            <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
-                                                {nation.flag_url ? (
-                                                    <img 
-                                                        src={nation.flag_url} 
-                                                        alt={nation.name}
-                                                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                                                    />
-                                                ) : (
-                                                    <MapPin className="w-8 h-8 text-slate-400" />
-                                                )}
-                                                {nation.rank < 999 && (
-                                                    <div className="absolute top-1 right-1 bg-white/90 px-1.5 py-0.5 rounded text-xs font-bold text-slate-600">
-                                                        #{nation.rank}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <CardContent className="p-3">
-                                                <h3 className="font-semibold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors truncate">
-                                                    {nation.name}
-                                                </h3>
-                                                <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                                                    <span>{nation.leagueCount} leagues</span>
-                                                    <span>•</span>
-                                                    <span>{nation.clubCount} clubs</span>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors border border-amber-200">
+                                            {nation.flag_url ? (
+                                                <img src={nation.flag_url} alt="" className="w-5 h-4 object-cover rounded-sm" />
+                                            ) : (
+                                                <div className="w-5 h-4 bg-slate-300 rounded-sm" />
+                                            )}
+                                            <span className="text-sm text-slate-700 group-hover:text-amber-700">{nation.name}</span>
+                                            <span className="text-xs text-slate-400">{nation.clubCount} clubs</span>
+                                        </div>
                                     </Link>
                                 ))}
                             </div>
+                        </div>
+                    )}
 
-                            {/* In Progress Nations */}
-                            {(categorizedNations.inProgress.length > 0 || categorizedNations.planned.length > 0) && (
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-3 flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                                        Coming Soon — Nations in development
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {[...categorizedNations.inProgress, ...categorizedNations.planned].map((nation) => (
-                                            <Link 
-                                                key={nation.id} 
-                                                to={createPageUrl(`NationDetail?id=${nation.id}`)}
-                                                className="group"
-                                            >
-                                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors">
-                                                    {nation.flag_url ? (
-                                                        <img src={nation.flag_url} alt="" className="w-5 h-4 object-cover rounded-sm" />
-                                                    ) : (
-                                                        <div className="w-5 h-4 bg-slate-300 rounded-sm" />
-                                                    )}
-                                                    <span className="text-sm text-slate-600 group-hover:text-slate-900">{nation.name}</span>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </>
+                    {/* Planned Nations */}
+                    {categorizedNations.planned.length > 0 && (
+                        <div>
+                            <p className="text-sm text-slate-600 mb-4 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                                Coming Soon ({categorizedNations.planned.length})
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {categorizedNations.planned.map((nation) => (
+                                    <Link 
+                                        key={nation.id} 
+                                        to={createPageUrl(`NationDetail?id=${nation.id}`)}
+                                        className="group"
+                                    >
+                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors">
+                                            {nation.flag_url ? (
+                                                <img src={nation.flag_url} alt="" className="w-5 h-4 object-cover rounded-sm" />
+                                            ) : (
+                                                <div className="w-5 h-4 bg-slate-300 rounded-sm" />
+                                            )}
+                                            <span className="text-sm text-slate-600 group-hover:text-slate-900">{nation.name}</span>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     )}
                 </div>
 
