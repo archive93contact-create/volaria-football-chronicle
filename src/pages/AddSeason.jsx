@@ -996,12 +996,25 @@ export default function AddSeason() {
                                                     Generate Empty Table
                                                 </Button>
                                                 {div.rows.length > 0 && (
-                                                    <Button 
-                                                        onClick={() => applyDivisionAutoStatus(divIdx)}
-                                                        variant="outline"
-                                                    >
-                                                        Apply Auto-Status
-                                                    </Button>
+                                                    <>
+                                                        <AIStatsGenerator 
+                                                            tableRows={div.rows}
+                                                            setTableRows={(newRows) => {
+                                                                const updated = [...divisions];
+                                                                updated[divIdx].rows = newRows;
+                                                                setDivisions(updated);
+                                                            }}
+                                                            seasonData={seasonData}
+                                                            league={league}
+                                                            divisionTeamCount={div.rows.filter(r => r.club_name).length}
+                                                        />
+                                                        <Button 
+                                                            onClick={() => applyDivisionAutoStatus(divIdx)}
+                                                            variant="outline"
+                                                        >
+                                                            Apply Auto-Status
+                                                        </Button>
+                                                    </>
                                                 )}
                                             </div>
 
