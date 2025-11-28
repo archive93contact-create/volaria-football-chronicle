@@ -39,7 +39,7 @@ export default function LeagueDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
     const [selectedSeason, setSelectedSeason] = useState('');
-    const [selectedTab, setSelectedTab] = useState('table');
+    const [selectedTab, setSelectedTab] = useState('clubs');
     const [editingSeason, setEditingSeason] = useState(null);
     const [seasonEditData, setSeasonEditData] = useState({});
 
@@ -304,6 +304,99 @@ export default function LeagueDetail() {
                     {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                 </div>
 
+                {/* LEAGUE TABLE FIRST - Most Important */}
+                {currentSeasonTable.length > 0 && (
+                    <Card className="border-0 shadow-lg mb-8">
+                        <CardHeader className="flex flex-row items-center justify-between bg-slate-50 border-b">
+                            <CardTitle className="flex items-center gap-2">
+                                <Trophy className="w-5 h-5 text-amber-500" />
+                                League Table {currentYear}
+                                {hasDivisions && ` (${divisionNames.length} Divisions)`}
+                            </CardTitle>
+                            {uniqueYears.length > 0 && (
+                                <Select value={selectedSeason || uniqueYears[0]} onValueChange={setSelectedSeason}>
+                                    <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        {uniqueYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className={hasDivisions ? "grid grid-cols-1 lg:grid-cols-2 gap-0" : ""}>
+                                {Object.entries(tablesByDivision).map(([divName, divTable]) => (
+                                    <div key={divName || 'main'} className={hasDivisions ? "border-r last:border-r-0" : ""}>
+                                        {hasDivisions && (
+                                            <div className="bg-slate-800 text-white px-4 py-2 font-semibold">
+                                                {divName}
+                                            </div>
+                                        )}
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-slate-100">
+                                                    <TableHead className="w-12">#</TableHead>
+                                                    <TableHead>Club</TableHead>
+                                                    <TableHead className="text-center">P</TableHead>
+                                                    <TableHead className="text-center">W</TableHead>
+                                                    <TableHead className="text-center">D</TableHead>
+                                                    <TableHead className="text-center">L</TableHead>
+                                                    <TableHead className="text-center hidden md:table-cell">GF</TableHead>
+                                                    <TableHead className="text-center hidden md:table-cell">GA</TableHead>
+                                                    <TableHead className="text-center">GD</TableHead>
+                                                    <TableHead className="text-center font-bold">Pts</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {divTable.map((row) => (
+                                                    <TableRow key={row.id} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
+                                                        <TableCell className="font-bold">
+                                                            <span className="flex items-center gap-1">
+                                                                {row.position}
+                                                                {row.status === 'champion' && <Trophy className="w-4 h-4 text-amber-500" />}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="font-medium">
+                                                            {(() => {
+                                                                const indicators = getClubIndicators(row.club_name);
+                                                                return (
+                                                                    <span className="flex items-center gap-1">
+                                                                        {row.club_id ? (
+                                                                            <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
+                                                                                {row.club_name}
+                                                                            </Link>
+                                                                        ) : row.club_name}
+                                                                        {indicators.isChampion && (
+                                                                            <span className="text-xs font-bold text-amber-600 ml-1" title="Defending Champions">(C)</span>
+                                                                        )}
+                                                                        {indicators.isPromoted && (
+                                                                            <span className="text-xs font-bold text-green-600 ml-1" title="Promoted from lower tier">(P)</span>
+                                                                        )}
+                                                                        {indicators.isRelegated && (
+                                                                            <span className="text-xs font-bold text-red-600 ml-1" title="Relegated from higher tier">(R)</span>
+                                                                        )}
+                                                                    </span>
+                                                                );
+                                                            })()}
+                                                        </TableCell>
+                                                        <TableCell className="text-center">{row.played}</TableCell>
+                                                        <TableCell className="text-center">{row.won}</TableCell>
+                                                        <TableCell className="text-center">{row.drawn}</TableCell>
+                                                        <TableCell className="text-center">{row.lost}</TableCell>
+                                                        <TableCell className="text-center hidden md:table-cell">{row.goals_for}</TableCell>
+                                                        <TableCell className="text-center hidden md:table-cell">{row.goals_against}</TableCell>
+                                                        <TableCell className="text-center">{row.goal_difference > 0 ? `+${row.goal_difference}` : row.goal_difference}</TableCell>
+                                                        <TableCell className="text-center font-bold">{row.points}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Visual League History */}
                 <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
 
@@ -354,7 +447,6 @@ export default function LeagueDetail() {
 
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
-                        <TabsTrigger value="table">League Table</TabsTrigger>
                         <TabsTrigger value="clubs">Clubs ({clubs.length})</TabsTrigger>
                         <TabsTrigger value="titles">Most Titles</TabsTrigger>
                         <TabsTrigger value="history">Season History</TabsTrigger>
