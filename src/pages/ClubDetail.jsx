@@ -378,8 +378,56 @@ export default function ClubDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Quick Navigation Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                    <a href="#club-overview" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-yellow-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Trophy className="w-8 h-8 text-amber-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-amber-700">Honours</div>
+                                    <div className="text-xs text-slate-500">Trophies & Titles</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                    <a href="#club-stats" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Target className="w-8 h-8 text-blue-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-blue-700">Statistics</div>
+                                    <div className="text-xs text-slate-500">All-Time Records</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                    <a href="#club-history" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Calendar className="w-8 h-8 text-purple-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-purple-700">History</div>
+                                    <div className="text-xs text-slate-500">Timeline & Story</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                    <a href="#club-seasons" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-emerald-50 to-teal-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Shield className="w-8 h-8 text-emerald-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-emerald-700">Seasons</div>
+                                    <div className="text-xs text-slate-500">{combinedSeasons.length} Recorded</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                </div>
+
                 {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+                <div id="club-overview" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
                     {/* Total Trophies */}
                     {(() => {
                         const totalTrophies = (combinedStats?.league_titles || 0) + 
