@@ -137,19 +137,95 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             }
         }
         
-        // 4. Promoted Club Success
-        if (prevSeason?.promoted_teams && champion) {
-            const promotedLast = prevSeason.promoted_teams.split(',').map(t => t.trim());
-            if (promotedLast.includes(champion.club_name)) {
-                const championClub = getClub(champion.club_name);
+        // 4. Promoted Club Performance Analysis
+        // Get clubs that were promoted from lower tiers last season
+        const lowerTierPrevSeasons = allSeasons.filter(s => 
+            s.year === previousYear && s.league_id !== league.id
+        );
+        const allPromotedToThisLeague = [];
+        lowerTierPrevSeasons.forEach(s => {
+            if (s.promoted_teams) {
+                s.promoted_teams.split(',').forEach(t => {
+                    if (t.trim()) allPromotedToThisLeague.push(t.trim());
+                });
+            }
+            // Champions from lower leagues also get promoted
+            if (s.champion_name) {
+                allPromotedToThisLeague.push(s.champion_name.trim());
+            }
+        });
+        
+        // Also check promoted_teams from previous season of THIS league (for clubs promoted into tier above)
+        const promotedFromBelow = prevSeason?.promoted_teams?.split(',').map(t => t.trim()).filter(Boolean) || [];
+        
+        // Combine both sources
+        const allNewlyPromoted = [...new Set([...allPromotedToThisLeague, ...promotedFromBelow])];
+        
+        // Find promoted clubs in this season's table
+        const promotedClubsInTable = sortedTable.filter(t => 
+            allNewlyPromoted.some(p => p === t.club_name || t.club_name.includes(p) || p.includes(t.club_name))
+        );
+        
+        if (promotedClubsInTable.length > 0) {
+            // Check if any promoted club won the title
+            const promotedChampion = promotedClubsInTable.find(c => c.position === 1);
+            if (promotedChampion) {
+                const club = getClub(promotedChampion.club_name);
                 results.push({
                     icon: TrendingUp,
                     color: 'text-emerald-500',
                     bg: 'bg-gradient-to-r from-emerald-50 to-green-50',
                     title: 'From Promotion to Glory',
-                    text: `Remarkably, ${champion.club_name} went from promoted side to champions in a single season - a truly extraordinary achievement.`,
-                    clubId: championClub?.id
+                    text: `Remarkably, ${promotedChampion.club_name} went from promoted side to champions in a single season - a truly extraordinary achievement.`,
+                    clubId: club?.id
                 });
+            } else {
+                // Analyze how promoted sides did overall
+                const topHalf = Math.ceil(sortedTable.length / 2);
+                const promotedInTopHalf = promotedClubsInTable.filter(c => c.position <= topHalf);
+                const promotedRelegated = promotedClubsInTable.filter(c => 
+                    season.relegated_teams?.split(',').map(t => t.trim()).includes(c.club_name)
+                );
+                
+                // Best performing promoted side
+                const bestPromoted = promotedClubsInTable.sort((a, b) => a.position - b.position)[0];
+                if (bestPromoted && bestPromoted.position <= 3) {
+                    const club = getClub(bestPromoted.club_name);
+                    results.push({
+                        icon: TrendingUp,
+                        color: 'text-emerald-500',
+                        bg: 'bg-gradient-to-r from-emerald-50 to-green-50',
+                        title: 'Promoted Side Shines',
+                        text: `${bestPromoted.club_name} made an immediate impact after promotion, finishing in an impressive ${bestPromoted.position}${bestPromoted.position === 1 ? 'st' : bestPromoted.position === 2 ? 'nd' : 'rd'} place.`,
+                        clubId: club?.id
+                    });
+                } else if (promotedRelegated.length > 0 && promotedRelegated.length === promotedClubsInTable.length) {
+                    // All promoted sides went straight back down
+                    results.push({
+                        icon: TrendingDown,
+                        color: 'text-orange-500',
+                        bg: 'bg-gradient-to-r from-orange-50 to-amber-50',
+                        title: 'Promoted Sides Struggle',
+                        text: `All ${promotedRelegated.length} promoted club${promotedRelegated.length > 1 ? 's' : ''} (${promotedRelegated.map(c => c.club_name).join(', ')}) failed to survive, going straight back down.`,
+                    });
+                } else if (promotedRelegated.length > 0) {
+                    const strugglers = promotedRelegated.map(c => c.club_name).join(', ');
+                    results.push({
+                        icon: TrendingDown,
+                        color: 'text-orange-500',
+                        bg: 'bg-gradient-to-r from-orange-50 to-amber-50',
+                        title: 'Yo-Yo Club',
+                        text: `${strugglers} couldn't handle the step up, going straight back down after just one season.`,
+                    });
+                } else if (promotedInTopHalf.length === promotedClubsInTable.length && promotedClubsInTable.length > 1) {
+                    results.push({
+                        icon: TrendingUp,
+                        color: 'text-green-500',
+                        bg: 'bg-gradient-to-r from-green-50 to-teal-50',
+                        title: 'Promoted Sides Flourish',
+                        text: `All ${promotedClubsInTable.length} promoted clubs adapted well to life in this division, with all finishing in the top half of the table.`,
+                    });
+                }
             }
         }
         
