@@ -188,7 +188,14 @@ export default function ContinentalSeasonDetail() {
                                         {getNationFlag(season.champion_nation) && (
                                             <img src={getNationFlag(season.champion_nation)} alt="" className="w-6 h-4 object-contain" />
                                         )}
-                                        <span className="text-xl font-bold text-emerald-700">{season.champion_name}</span>
+                                        {(() => {
+                                            const champClub = clubs.find(c => c.name === season.champion_name);
+                                            return champClub ? (
+                                                <Link to={createPageUrl(`ClubDetail?id=${champClub.id}`)} className="text-xl font-bold text-emerald-700 hover:underline">{season.champion_name}</Link>
+                                            ) : (
+                                                <span className="text-xl font-bold text-emerald-700">{season.champion_name}</span>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                                 {season.final_score && (
@@ -201,7 +208,14 @@ export default function ContinentalSeasonDetail() {
                                             {getNationFlag(season.runner_up_nation) && (
                                                 <img src={getNationFlag(season.runner_up_nation)} alt="" className="w-6 h-4 object-contain" />
                                             )}
-                                            <span className="text-xl font-bold text-slate-600">{season.runner_up}</span>
+                                            {(() => {
+                                                const runnerClub = clubs.find(c => c.name === season.runner_up);
+                                                return runnerClub ? (
+                                                    <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="text-xl font-bold text-slate-600 hover:underline">{season.runner_up}</Link>
+                                                ) : (
+                                                    <span className="text-xl font-bold text-slate-600">{season.runner_up}</span>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 )}

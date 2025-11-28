@@ -295,7 +295,14 @@ export default function CompetitionDetail() {
                                                 <img src={getNationFlag(latestSeason.champion_nation)} alt="" className="w-8 h-5 object-cover rounded" />
                                             )}
                                         </div>
-                                        <div className="text-2xl font-bold text-emerald-600">{latestSeason.champion_name}</div>
+                                        {(() => {
+                                            const champClub = clubs.find(c => c.name === latestSeason.champion_name);
+                                            return champClub ? (
+                                                <Link to={createPageUrl(`ClubDetail?id=${champClub.id}`)} className="text-2xl font-bold text-emerald-600 hover:underline">{latestSeason.champion_name}</Link>
+                                            ) : (
+                                                <div className="text-2xl font-bold text-emerald-600">{latestSeason.champion_name}</div>
+                                            );
+                                        })()}
                                         <div className="text-sm text-slate-500">{latestSeason.champion_nation}</div>
                                         <div className="mt-2 inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-semibold">
                                             Champion
@@ -313,7 +320,14 @@ export default function CompetitionDetail() {
                                                 <img src={getNationFlag(latestSeason.runner_up_nation)} alt="" className="w-8 h-5 object-cover rounded" />
                                             )}
                                         </div>
-                                        <div className="text-2xl font-bold text-slate-700">{latestSeason.runner_up}</div>
+                                        {(() => {
+                                            const runnerClub = clubs.find(c => c.name === latestSeason.runner_up);
+                                            return runnerClub ? (
+                                                <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="text-2xl font-bold text-slate-700 hover:underline">{latestSeason.runner_up}</Link>
+                                            ) : (
+                                                <div className="text-2xl font-bold text-slate-700">{latestSeason.runner_up}</div>
+                                            );
+                                        })()}
                                         <div className="text-sm text-slate-500">{latestSeason.runner_up_nation}</div>
                                         <div className="mt-2 inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-sm">
                                             Runner-up
@@ -368,14 +382,18 @@ export default function CompetitionDetail() {
                                         const club = clubs.find(c => c.name === clubName);
                                         const nation = nations.find(n => n.name === data.nation);
                                         return (
-                                            <div key={clubName} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50">
+                                            <Link 
+                                                key={clubName} 
+                                                to={club ? createPageUrl(`ClubDetail?id=${club.id}`) : '#'}
+                                                className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                                            >
                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                                     <span className="text-slate-400 font-bold w-6">{idx + 1}</span>
                                                     {club?.logo_url && (
                                                         <img src={club.logo_url} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
                                                     )}
                                                     <div className="flex flex-col min-w-0">
-                                                        <span className="font-medium text-slate-700 truncate">{clubName}</span>
+                                                        <span className="font-medium text-slate-700 hover:text-emerald-600 truncate">{clubName}</span>
                                                         <div className="flex items-center gap-1">
                                                             {nation?.flag_url && (
                                                                 <img src={nation.flag_url} alt="" className="w-4 h-3 object-cover rounded-sm" />
@@ -385,7 +403,7 @@ export default function CompetitionDetail() {
                                                     </div>
                                                 </div>
                                                 <span className="font-bold text-amber-600 ml-2">{data.count}</span>
-                                            </div>
+                                            </Link>
                                         );
                                     })}
                                 </div>
@@ -453,7 +471,14 @@ export default function CompetitionDetail() {
                                                     {getNationFlag(season.champion_nation) && (
                                                         <img src={getNationFlag(season.champion_nation)} alt="" className="w-5 h-3 object-contain" />
                                                     )}
-                                                    <span className="font-semibold text-emerald-600">{season.champion_name}</span>
+                                                    {(() => {
+                                                        const champClub = clubs.find(c => c.name === season.champion_name);
+                                                        return champClub ? (
+                                                            <Link to={createPageUrl(`ClubDetail?id=${champClub.id}`)} className="font-semibold text-emerald-600 hover:underline">{season.champion_name}</Link>
+                                                        ) : (
+                                                            <span className="font-semibold text-emerald-600">{season.champion_name}</span>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="hidden md:table-cell text-slate-500">{season.champion_nation}</TableCell>
@@ -462,7 +487,14 @@ export default function CompetitionDetail() {
                                                     {getNationFlag(season.runner_up_nation) && (
                                                         <img src={getNationFlag(season.runner_up_nation)} alt="" className="w-5 h-3 object-contain" />
                                                     )}
-                                                    <span>{season.runner_up}</span>
+                                                    {(() => {
+                                                        const runnerClub = clubs.find(c => c.name === season.runner_up);
+                                                        return runnerClub ? (
+                                                            <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="hover:text-emerald-600 hover:underline">{season.runner_up}</Link>
+                                                        ) : (
+                                                            <span>{season.runner_up}</span>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="hidden md:table-cell">{season.final_score}</TableCell>

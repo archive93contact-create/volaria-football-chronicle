@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ImageUploader from '@/components/common/ImageUploader';
+import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import LeagueNarratives from '@/components/leagues/LeagueNarratives';
 import LeagueCompetitiveness from '@/components/leagues/LeagueCompetitiveness';
 import PromotionRelegationFlow from '@/components/leagues/PromotionRelegationFlow';
@@ -754,7 +754,14 @@ export default function LeagueDetail() {
                     <DialogHeader><DialogTitle>Edit League</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="flex justify-center">
-                            <ImageUploader currentImage={editData.logo_url} onUpload={(url) => setEditData({...editData, logo_url: url})} label="Upload Logo" />
+                            <ImageUploaderWithColors 
+                                currentImage={editData.logo_url} 
+                                onUpload={(url) => setEditData({...editData, logo_url: url})} 
+                                primaryColor={editData.primary_color}
+                                secondaryColor={editData.secondary_color}
+                                onColorsChange={(primary, secondary) => setEditData({...editData, primary_color: primary, secondary_color: secondary})}
+                                label="Upload Logo" 
+                            />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div><Label>League Name</Label><Input value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
@@ -767,22 +774,6 @@ export default function LeagueDetail() {
                         </div>
                         <div><Label>Description</Label><Textarea value={editData.description || ''} onChange={(e) => setEditData({...editData, description: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={4} className="mt-1" /></div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Primary Color</Label>
-                                <div className="flex gap-2 mt-1">
-                                    <Input type="color" value={editData.primary_color || '#1e40af'} onChange={(e) => setEditData({...editData, primary_color: e.target.value})} className="w-12 h-10 p-1" />
-                                    <Input value={editData.primary_color || ''} onChange={(e) => setEditData({...editData, primary_color: e.target.value})} placeholder="#1e40af" />
-                                </div>
-                            </div>
-                            <div>
-                                <Label>Secondary Color</Label>
-                                <div className="flex gap-2 mt-1">
-                                    <Input type="color" value={editData.secondary_color || '#3b82f6'} onChange={(e) => setEditData({...editData, secondary_color: e.target.value})} className="w-12 h-10 p-1" />
-                                    <Input value={editData.secondary_color || ''} onChange={(e) => setEditData({...editData, secondary_color: e.target.value})} placeholder="#3b82f6" />
-                                </div>
-                            </div>
-                        </div>
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}><X className="w-4 h-4 mr-2" /> Cancel</Button>
                             <Button onClick={handleSave} disabled={updateMutation.isPending} className="bg-emerald-600"><Save className="w-4 h-4 mr-2" /> Save</Button>
