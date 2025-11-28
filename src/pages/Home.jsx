@@ -154,194 +154,136 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* What is Volaria - Quick Intro */}
+            {/* New Here Section */}
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <div className="max-w-3xl mx-auto text-center">
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">What is Volaria?</h2>
-                        <p className="text-lg text-slate-600 mb-6">
-                            Volaria is a passion project 18+ years in the making — a fictional football continent with complete league pyramids, 
-                            club histories, continental competitions, and stories that have evolved over thousands of imagined seasons. 
-                            Think of it as a parallel football universe, lovingly crafted one match at a time.
-                        </p>
-                        <Link to={createPageUrl('About')} className="inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium">
-                            Read the full story <ArrowRight className="w-4 h-4 ml-1" />
-                        </Link>
+                    <div className="text-center mb-8">
+                        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">New Here? Start Exploring</h2>
+                        <p className="text-slate-500">Volaria can feel vast — here are some great starting points to discover the world</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Start With These Nations */}
+                        <Card className="border-0 shadow-sm bg-emerald-50">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+                                        <Globe className="w-4 h-4 text-white" />
+                                    </div>
+                                    <h3 className="font-bold text-slate-900">Start With These Nations</h3>
+                                </div>
+                                <p className="text-sm text-slate-600 mb-4">The most developed football nations with complete league pyramids and rich history</p>
+                                <div className="space-y-2">
+                                    {featuredNations.map((nation) => (
+                                        <Link 
+                                            key={nation.id} 
+                                            to={createPageUrl(`NationDetail?id=${nation.id}`)}
+                                            className="flex items-center justify-between p-2 rounded-lg hover:bg-emerald-100 transition-colors group"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {nation.flag_url ? (
+                                                    <img src={nation.flag_url} alt="" className="w-5 h-4 object-cover rounded-sm" />
+                                                ) : (
+                                                    <div className="w-5 h-4 bg-slate-300 rounded-sm" />
+                                                )}
+                                                <span className="font-medium text-slate-800 group-hover:text-emerald-700">{nation.name}</span>
+                                            </div>
+                                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600" />
+                                        </Link>
+                                    ))}
+                                </div>
+                                <Link to={createPageUrl('Nations')} className="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700 font-medium mt-4">
+                                    View all nations <ArrowRight className="w-3 h-3 ml-1" />
+                                </Link>
+                            </CardContent>
+                        </Card>
+
+                        {/* Iconic Clubs */}
+                        <Card className="border-0 shadow-sm bg-amber-50">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+                                        <Crown className="w-4 h-4 text-white" />
+                                    </div>
+                                    <h3 className="font-bold text-slate-900">Iconic Clubs</h3>
+                                </div>
+                                <p className="text-sm text-slate-600 mb-4">Legendary clubs with storied histories, continental glory, and passionate fanbases</p>
+                                <div className="space-y-2">
+                                    {iconicClubs.slice(0, 4).map((club) => {
+                                        const nation = nations.find(n => n.id === club.nation_id);
+                                        return (
+                                            <Link 
+                                                key={club.id} 
+                                                to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                className="flex items-center justify-between p-2 rounded-lg hover:bg-amber-100 transition-colors group"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    {club.logo_url ? (
+                                                        <img src={club.logo_url} alt="" className="w-5 h-5 object-contain" />
+                                                    ) : (
+                                                        <Shield className="w-5 h-5 text-slate-400" />
+                                                    )}
+                                                    <div>
+                                                        <span className="font-medium text-slate-800 group-hover:text-amber-700">{club.name}</span>
+                                                        <span className="text-xs text-slate-500 ml-1">{nation?.name}</span>
+                                                    </div>
+                                                </div>
+                                                {club.vcc_titles > 0 && (
+                                                    <Star className="w-4 h-4 text-amber-500" />
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                                <Link to={createPageUrl('AllClubs')} className="inline-flex items-center text-sm text-amber-600 hover:text-amber-700 font-medium mt-4">
+                                    Browse all clubs <ArrowRight className="w-3 h-3 ml-1" />
+                                </Link>
+                            </CardContent>
+                        </Card>
+
+                        {/* Continental Glory */}
+                        <Card className="border-0 shadow-sm bg-purple-50">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                                        <Trophy className="w-4 h-4 text-white" />
+                                    </div>
+                                    <h3 className="font-bold text-slate-900">Continental Glory</h3>
+                                </div>
+                                <p className="text-sm text-slate-600 mb-4">The biggest prizes in Volarian football — where legends are made</p>
+                                <div className="space-y-3">
+                                    <Link 
+                                        to={createPageUrl('ContinentalCompetitions')}
+                                        className="block p-3 rounded-lg bg-white/60 hover:bg-white transition-colors group"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Badge className="bg-amber-500 text-white text-xs">VCC</Badge>
+                                            <span className="font-medium text-slate-800 group-hover:text-purple-700">Volarian Champions Cup</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">The pinnacle of continental club football</p>
+                                    </Link>
+                                    <Link 
+                                        to={createPageUrl('ContinentalCompetitions')}
+                                        className="block p-3 rounded-lg bg-white/60 hover:bg-white transition-colors group"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Badge className="bg-blue-500 text-white text-xs">CCC</Badge>
+                                            <span className="font-medium text-slate-800 group-hover:text-purple-700">Continental Challenge Cup</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">For associates and second-tier qualifiers</p>
+                                    </Link>
+                                </div>
+                                <Link to={createPageUrl('Coefficients')} className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 font-medium mt-4">
+                                    View rankings <ArrowRight className="w-3 h-3 ml-1" />
+                                </Link>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
 
-            {/* Featured Entry Points */}
+            {/* Nations Section */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                {/* Start Here Section */}
-                {featuredNations.length > 0 && (
-                    <div className="mb-16">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-900">Start Here</h2>
-                                <p className="text-slate-500">These nations have the richest histories — perfect for newcomers</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                            {featuredNations.map((nation, idx) => (
-                                <Link 
-                                    key={nation.id} 
-                                    to={createPageUrl(`NationDetail?id=${nation.id}`)}
-                                    className="group"
-                                >
-                                    <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-white group-hover:-translate-y-1 relative">
-                                        {idx === 0 && (
-                                            <div className="absolute top-2 left-2 z-10">
-                                                <Badge className="bg-amber-500 text-white">
-                                                    <Crown className="w-3 h-3 mr-1" /> #1 Ranked
-                                                </Badge>
-                                            </div>
-                                        )}
-                                        <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
-                                            {nation.flag_url ? (
-                                                <img 
-                                                    src={nation.flag_url} 
-                                                    alt={nation.name}
-                                                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                                                />
-                                            ) : (
-                                                <div className="w-20 h-14 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center">
-                                                    <MapPin className="w-8 h-8 text-slate-400" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <CardContent className="p-4">
-                                            <h3 className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
-                                                {nation.name}
-                                            </h3>
-                                            <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                                                <span className="flex items-center gap-1">
-                                                    <Trophy className="w-3 h-3" />
-                                                    {nation.leagueCount}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Shield className="w-3 h-3" />
-                                                    {nation.clubCount}
-                                                </span>
-                                                {nation.rank < 999 && (
-                                                    <span className="ml-auto text-emerald-600 font-medium">#{nation.rank}</span>
-                                                )}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Iconic Clubs */}
-                {iconicClubs.length > 0 && (
-                    <div className="mb-16">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                                <Crown className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-900">Iconic Clubs</h2>
-                                <p className="text-slate-500">Legendary clubs that have shaped Volarian football</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            {iconicClubs.map((club) => {
-                                const nation = nations.find(n => n.id === club.nation_id);
-                                return (
-                                    <Link 
-                                        key={club.id} 
-                                        to={createPageUrl(`ClubDetail?id=${club.id}`)}
-                                        className="group"
-                                    >
-                                        <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white group-hover:-translate-y-1">
-                                            <div 
-                                                className="aspect-square flex items-center justify-center p-4 relative"
-                                                style={{ 
-                                                    background: `linear-gradient(135deg, ${club.primary_color || '#1e40af'}20, ${club.secondary_color || club.primary_color || '#3b82f6'}10)` 
-                                                }}
-                                            >
-                                                {club.logo_url ? (
-                                                    <img 
-                                                        src={club.logo_url} 
-                                                        alt={club.name}
-                                                        className="w-16 h-16 object-contain group-hover:scale-110 transition-transform duration-300"
-                                                    />
-                                                ) : (
-                                                    <Shield 
-                                                        className="w-12 h-12" 
-                                                        style={{ color: club.primary_color || '#64748b' }}
-                                                    />
-                                                )}
-                                            </div>
-                                            <CardContent className="p-3 text-center">
-                                                <h3 className="font-bold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors truncate">
-                                                    {club.name}
-                                                </h3>
-                                                <p className="text-xs text-slate-500 truncate">{nation?.name}</p>
-                                                <div className="flex items-center justify-center gap-2 mt-2">
-                                                    {club.vcc_titles > 0 && (
-                                                        <Badge className="bg-amber-100 text-amber-700 text-xs">
-                                                            VCC ×{club.vcc_titles}
-                                                        </Badge>
-                                                    )}
-                                                    {club.league_titles > 0 && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                            {club.league_titles} titles
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                        <div className="text-center mt-6">
-                            <Link to={createPageUrl('AllClubs')}>
-                                <Button variant="outline">
-                                    View All Clubs <ArrowRight className="w-4 h-4 ml-2" />
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                )}
-
-                {/* Quick Links */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-                    <Link to={createPageUrl('ContinentalCompetitions')} className="group">
-                        <Card className="border-0 shadow-sm hover:shadow-lg transition-all h-full bg-gradient-to-br from-amber-50 to-orange-50 group-hover:-translate-y-1">
-                            <CardContent className="p-6">
-                                <Trophy className="w-10 h-10 text-amber-500 mb-4" />
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">Continental Cups</h3>
-                                <p className="text-slate-600">VCC, CCC, and the drama of European-style competition across Volaria</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link to={createPageUrl('Coefficients')} className="group">
-                        <Card className="border-0 shadow-sm hover:shadow-lg transition-all h-full bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:-translate-y-1">
-                            <CardContent className="p-6">
-                                <Flame className="w-10 h-10 text-blue-500 mb-4" />
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">Rankings</h3>
-                                <p className="text-slate-600">National and club coefficients — see who's on top</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link to={createPageUrl('ClubComparison')} className="group">
-                        <Card className="border-0 shadow-sm hover:shadow-lg transition-all h-full bg-gradient-to-br from-purple-50 to-pink-50 group-hover:-translate-y-1">
-                            <CardContent className="p-6">
-                                <Shield className="w-10 h-10 text-purple-500 mb-4" />
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">Compare Clubs</h3>
-                                <p className="text-slate-600">Head-to-head stats and historical comparisons</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                </div>
 
                 {/* All Nations */}
                 <div className="mb-16">
