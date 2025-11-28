@@ -28,6 +28,7 @@ import LeaguePredictions from '@/components/leagues/LeaguePredictions';
 import VisualLeagueHistory from '@/components/leagues/VisualLeagueHistory';
 import AIFillMissingStats from '@/components/leagues/AIFillMissingStats';
 import SyncClubStats from '@/components/common/SyncClubStats';
+import LeagueRecords from '@/components/leagues/LeagueRecords';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
