@@ -418,18 +418,56 @@ export default function AllClubs() {
                                                         <span className="text-slate-300">-</span>
                                                     )}
                                                 </TableCell>
+                                                <TableCell className="text-center hidden lg:table-cell">
+                                                    {club.domestic_cup_titles > 0 ? (
+                                                        <span className="font-medium text-orange-600">{club.domestic_cup_titles}</span>
+                                                    ) : (
+                                                        <span className="text-slate-300">-</span>
+                                                    )}
+                                                </TableCell>
                                                 <TableCell className="text-center hidden xl:table-cell">
-                                                    <div className="flex items-center justify-center gap-1 text-xs">
-                                                        {(club.promotions || 0) > 0 && (
-                                                            <span className="text-green-600 font-medium">{club.promotions}↑</span>
-                                                        )}
-                                                        {(club.relegations || 0) > 0 && (
-                                                            <span className="text-red-600 font-medium">{club.relegations}↓</span>
-                                                        )}
-                                                        {!(club.promotions || club.relegations) && (
+                                                    {club.vcc_titles > 0 ? (
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <Star className="w-3 h-3 text-amber-500" />
+                                                            <span className="font-bold text-amber-600">{club.vcc_titles}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-300">-</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-center hidden xl:table-cell">
+                                                    {club.ccc_titles > 0 ? (
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <Shield className="w-3 h-3 text-blue-500" />
+                                                            <span className="font-bold text-blue-600">{club.ccc_titles}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-300">-</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-center hidden xl:table-cell">
+                                                    {(() => {
+                                                        const total = (club.league_titles || 0) + (club.domestic_cup_titles || 0) + (club.vcc_titles || 0) + (club.ccc_titles || 0);
+                                                        return total > 0 ? (
+                                                            <span className="font-bold text-emerald-600">{total}</span>
+                                                        ) : (
                                                             <span className="text-slate-300">-</span>
-                                                        )}
-                                                    </div>
+                                                        );
+                                                    })()}
+                                                </TableCell>
+                                                <TableCell className="text-center hidden 2xl:table-cell">
+                                                    {club.vcc_appearances > 0 ? (
+                                                        <span className="text-amber-600">{club.vcc_appearances}</span>
+                                                    ) : (
+                                                        <span className="text-slate-300">-</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-center hidden 2xl:table-cell">
+                                                    {club.ccc_appearances > 0 ? (
+                                                        <span className="text-blue-600">{club.ccc_appearances}</span>
+                                                    ) : (
+                                                        <span className="text-slate-300">-</span>
+                                                    )}
                                                 </TableCell>
                                             </TableRow>
                                         );
