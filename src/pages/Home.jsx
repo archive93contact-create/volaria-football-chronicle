@@ -374,7 +374,7 @@ export default function Home() {
                         <>
                             {/* Nations with Data */}
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-                                {categorizedNations.withData.slice(0, 12).map((nation) => (
+                                {categorizedNations.complete.slice(0, 12).map((nation) => (
                                     <Link 
                                         key={nation.id} 
                                         to={createPageUrl(`NationDetail?id=${nation.id}`)}
