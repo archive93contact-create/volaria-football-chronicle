@@ -478,7 +478,88 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             }
         }
         
-        // 11. Season notes if provided
+        // 13. First-time tier promotions and historic moments
+        if (season.promoted_teams) {
+            const promotedThisYear = season.promoted_teams.split(',').map(t => t.trim()).filter(Boolean);
+            const currentTier = season.tier || league.tier || 1;
+            const promotedToTier = currentTier - 1; // They're going UP to a higher tier (lower number)
+            
+            for (const promotedClubName of promotedThisYear) {
+                const club = getClub(promotedClubName);
+                if (!club) continue;
+                
+                // Get all historical seasons for this club
+                const clubHistory = allLeagueTables.filter(t => t.club_id === club.id || t.club_name === club.name);
+                const clubSeasonTiers = clubHistory.map(h => {
+                    const seasonData = allSeasons.find(s => s.id === h.season_id || (s.league_id === h.league_id && s.year === h.year));
+                    if (seasonData) return seasonData.tier || 1;
+                    return null;
+                }).filter(Boolean);
+                
+                // Check if they've ever been in the tier they're being promoted to
+                const everBeenInHigherTier = clubSeasonTiers.some(t => t <= promotedToTier);
+                
+                if (!everBeenInHigherTier && promotedToTier === 1) {
+                    // First ever top-flight promotion!
+                    results.push({
+                        icon: Star,
+                        color: 'text-amber-500',
+                        bg: 'bg-gradient-to-r from-amber-50 to-yellow-50',
+                        title: 'Top-Flight Debut',
+                        text: `${promotedClubName} earned promotion to the top flight for the first time in their history, finishing ${sortedTable.find(t => t.club_name === promotedClubName)?.position || ''}${['', 'st', 'nd', 'rd'][sortedTable.find(t => t.club_name === promotedClubName)?.position] || 'th'} in the table.`,
+                        clubId: club.id
+                    });
+                } else if (!everBeenInHigherTier && promotedToTier > 1) {
+                    // First time reaching this tier
+                    results.push({
+                        icon: TrendingUp,
+                        color: 'text-blue-500',
+                        bg: 'bg-gradient-to-r from-blue-50 to-indigo-50',
+                        title: 'New Heights',
+                        text: `${promotedClubName} reached Tier ${promotedToTier} for the first time in their history after a successful campaign.`,
+                        clubId: club.id
+                    });
+                }
+            }
+        }
+        
+        // 14. Lowest-ever tier relegation
+        if (season.relegated_teams) {
+            const relegatedThisYear = season.relegated_teams.split(',').map(t => t.trim()).filter(Boolean);
+            const currentTier = season.tier || league.tier || 1;
+            const relegatedToTier = currentTier + 1; // They're going DOWN to a lower tier (higher number)
+            
+            for (const relegatedClubName of relegatedThisYear) {
+                const club = getClub(relegatedClubName);
+                if (!club) continue;
+                
+                // Get all historical seasons for this club
+                const clubHistory = allLeagueTables.filter(t => t.club_id === club.id || t.club_name === club.name);
+                const clubSeasonTiers = clubHistory.map(h => {
+                    const seasonData = allSeasons.find(s => s.id === h.season_id || (s.league_id === h.league_id && s.year === h.year));
+                    if (seasonData) return seasonData.tier || 1;
+                    return null;
+                }).filter(Boolean);
+                
+                // Check if they've ever been in a tier as low as where they're being relegated to
+                const lowestTierEver = Math.max(...clubSeasonTiers, 0);
+                const clubEntry = sortedTable.find(t => t.club_name === relegatedClubName);
+                
+                if (relegatedToTier > lowestTierEver && lowestTierEver > 0) {
+                    // Dropping to their lowest ever tier
+                    results.push({
+                        icon: TrendingDown,
+                        color: 'text-red-600',
+                        bg: 'bg-gradient-to-r from-red-50 to-rose-50',
+                        title: 'Historic Low',
+                        text: `${relegatedClubName} will drop to Tier ${relegatedToTier} - the lowest level in their history - after finishing ${clubEntry?.position || 'bottom'} of the table.`,
+                        clubId: club.id
+                    });
+                }
+            }
+        }
+        
+        // 15. Season notes if provided
         if (season.notes) {
             results.push({
                 icon: BookOpen,
