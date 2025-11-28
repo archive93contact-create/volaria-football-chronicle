@@ -26,6 +26,7 @@ import LeagueHistory from '@/components/leagues/LeagueHistory';
 import SeasonStorylines from '@/components/seasons/SeasonStorylines';
 import LeaguePredictions from '@/components/leagues/LeaguePredictions';
 import VisualLeagueHistory from '@/components/leagues/VisualLeagueHistory';
+import AIFillMissingStats from '@/components/leagues/AIFillMissingStats';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -572,11 +573,18 @@ export default function LeagueDetail() {
                         <Card className="border-0 shadow-sm">
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>Season History</CardTitle>
-                                <AdminOnly>
-                                    <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
-                                        <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
-                                    </Link>
-                                </AdminOnly>
+                                <div className="flex gap-2">
+                                    <AdminOnly>
+                                        <AIFillMissingStats 
+                                            league={league}
+                                            seasons={seasons}
+                                            leagueTables={leagueTables}
+                                        />
+                                        <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
+                                            <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                                        </Link>
+                                    </AdminOnly>
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 {seasons.length === 0 ? (

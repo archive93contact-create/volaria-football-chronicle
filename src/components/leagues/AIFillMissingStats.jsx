@@ -1,0 +1,236 @@
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Wand2, Check, AlertCircle } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+export default function AIFillMissingStats({ league, seasons = [], leagueTables = [] }) {
+    const [open, setOpen] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [progress, setProgress] = useState({ current: 0, total: 0, currentSeason: '' });
+    const [results, setResults] = useState([]);
+    const queryClient = useQueryClient();
+
+    // Find seasons with incomplete stats
+    const incompleteSeasons = seasons.filter(season => {
+        const tables = leagueTables.filter(t => t.year === season.year);
+        return tables.length > 0 && tables.some(t => t.club_name && (t.points === 0 || t.played === 0));
+    });
+
+    const updateTableMutation = useMutation({
+        mutationFn: ({ id, data }) => base44.entities.LeagueTable.update(id, data),
+    });
+
+    const generateStatsForSeason = async (season) => {
+        const tables = leagueTables
+            .filter(t => t.year === season.year)
+            .sort((a, b) => a.position - b.position);
+
+        if (tables.length === 0) return { season: season.year, success: false, error: 'No table data' };
+
+        const numTeams = tables.length;
+        const gamesPerTeam = (numTeams - 1) * 2;
+
+        const knownData = tables
+            .map((r, idx) => `${idx + 1}. ${r.club_name}${r.points > 0 ? ` (${r.points} pts)` : ''}`)
+            .join('\n');
+
+        const prompt = `Generate realistic football league table statistics for a ${numTeams}-team league season.
+
+LEAGUE: ${league?.name || 'Football League'} (Tier ${league?.tier || 1})
+SEASON: ${season.year}
+GAMES PER TEAM: ${gamesPerTeam}
+CHAMPION: ${season.champion_name || 'Position 1'}
+
+TEAMS IN ORDER (1st to last):
+${knownData}
+
+For EACH team, generate realistic stats that:
+1. Match their league position (1st should have most points, last should have fewest)
+2. Are mathematically consistent (W+D+L = ${gamesPerTeam}, GD = GF-GA)
+3. Points = W*3 + D
+4. Have realistic goal totals for this league level
+5. Scale points appropriately for ${gamesPerTeam} games
+
+Generate stats for all ${numTeams} teams.`;
+
+        try {
+            const result = await base44.integrations.Core.InvokeLLM({
+                prompt,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        teams: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    position: { type: "number" },
+                                    played: { type: "number" },
+                                    won: { type: "number" },
+                                    drawn: { type: "number" },
+                                    lost: { type: "number" },
+                                    goals_for: { type: "number" },
+                                    goals_against: { type: "number" },
+                                    points: { type: "number" }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (result.teams && result.teams.length > 0) {
+                let updated = 0;
+                for (const table of tables) {
+                    // Only update if stats are missing
+                    if (table.points === 0 || table.played === 0) {
+                        const aiStats = result.teams.find(t => t.position === table.position) || result.teams[table.position - 1];
+                        if (aiStats) {
+                            await updateTableMutation.mutateAsync({
+                                id: table.id,
+                                data: {
+                                    played: aiStats.played,
+                                    won: aiStats.won,
+                                    drawn: aiStats.drawn,
+                                    lost: aiStats.lost,
+                                    goals_for: aiStats.goals_for,
+                                    goals_against: aiStats.goals_against,
+                                    goal_difference: aiStats.goals_for - aiStats.goals_against,
+                                    points: aiStats.points
+                                }
+                            });
+                            updated++;
+                        }
+                    }
+                }
+                return { season: season.year, success: true, updated };
+            }
+            return { season: season.year, success: false, error: 'No AI response' };
+        } catch (err) {
+            return { season: season.year, success: false, error: err.message };
+        }
+    };
+
+    const handleGenerate = async () => {
+        setProcessing(true);
+        setResults([]);
+        setProgress({ current: 0, total: incompleteSeasons.length, currentSeason: '' });
+
+        const newResults = [];
+        for (let i = 0; i < incompleteSeasons.length; i++) {
+            const season = incompleteSeasons[i];
+            setProgress({ current: i + 1, total: incompleteSeasons.length, currentSeason: season.year });
+            
+            const result = await generateStatsForSeason(season);
+            newResults.push(result);
+            setResults([...newResults]);
+        }
+
+        setProcessing(false);
+        queryClient.invalidateQueries(['leagueTables']);
+    };
+
+    if (incompleteSeasons.length === 0) {
+        return null;
+    }
+
+    return (
+        <>
+            <Button 
+                onClick={() => setOpen(true)}
+                variant="outline"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+            >
+                <Wand2 className="w-4 h-4 mr-2" />
+                AI Fill Missing Stats ({incompleteSeasons.length} seasons)
+            </Button>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Wand2 className="w-5 h-5 text-purple-500" />
+                            AI Generate Missing Statistics
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="py-4 space-y-4">
+                        {!processing && results.length === 0 && (
+                            <>
+                                <p className="text-slate-600">
+                                    Found <strong>{incompleteSeasons.length}</strong> seasons with missing statistics (W/D/L/GF/GA/Pts).
+                                </p>
+                                <div className="max-h-40 overflow-y-auto bg-slate-50 rounded-lg p-3">
+                                    <div className="text-sm text-slate-600 space-y-1">
+                                        {incompleteSeasons.map(s => (
+                                            <div key={s.id}>{s.year} - {s.champion_name || 'Unknown champion'}</div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-sm text-slate-500">
+                                    AI will generate realistic stats based on league position and team count.
+                                </p>
+                                <Button onClick={handleGenerate} className="w-full bg-purple-600 hover:bg-purple-700">
+                                    <Wand2 className="w-4 h-4 mr-2" />
+                                    Generate Stats for All Seasons
+                                </Button>
+                            </>
+                        )}
+
+                        {processing && (
+                            <div className="text-center py-6">
+                                <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto mb-4" />
+                                <p className="font-medium">Processing {progress.currentSeason}...</p>
+                                <p className="text-sm text-slate-500">
+                                    {progress.current} of {progress.total} seasons
+                                </p>
+                                <div className="w-full bg-slate-200 rounded-full h-2 mt-4">
+                                    <div 
+                                        className="bg-purple-600 h-2 rounded-full transition-all"
+                                        style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {!processing && results.length > 0 && (
+                            <>
+                                <div className="max-h-60 overflow-y-auto space-y-2">
+                                    {results.map((r, idx) => (
+                                        <div 
+                                            key={idx}
+                                            className={`flex items-center justify-between p-2 rounded ${
+                                                r.success ? 'bg-green-50' : 'bg-red-50'
+                                            }`}
+                                        >
+                                            <span className="font-medium">{r.season}</span>
+                                            <span className="flex items-center gap-1 text-sm">
+                                                {r.success ? (
+                                                    <>
+                                                        <Check className="w-4 h-4 text-green-600" />
+                                                        <span className="text-green-700">{r.updated} updated</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <AlertCircle className="w-4 h-4 text-red-600" />
+                                                        <span className="text-red-700">{r.error}</span>
+                                                    </>
+                                                )}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button onClick={() => setOpen(false)} className="w-full">
+                                    Done
+                                </Button>
+                            </>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+}
