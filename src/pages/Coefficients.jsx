@@ -99,25 +99,16 @@ export default function Coefficients() {
 
     // Get actual years for column headers based on coefficient data
     // Only show years that have actual data (competitions that happened)
-    const getActualYears = useMemo(() => {
-        if (seasons.length === 0) return { y1: null, y2: null, y3: null, y4: null };
+    const actualYears = useMemo(() => {
+        if (seasons.length === 0) return [];
         
-        // Get all unique years from seasons, sorted descending
+        // Get all unique years from seasons, sorted ascending (oldest first)
         const years = [...new Set(seasons.map(s => s.year).filter(Boolean))]
-            .sort((a, b) => b.localeCompare(a));
+            .sort((a, b) => a.localeCompare(b));
         
-        return {
-            y1: years[0] || null,  // Most recent
-            y2: years[1] || null,
-            y3: years[2] || null,
-            y4: years[3] || null   // Oldest in 4-year window
-        };
+        // Return the last 4 years (oldest to newest for display left to right)
+        return years.slice(-4);
     }, [seasons]);
-
-    const getYearLabel = (yearsAgo) => {
-        const yearMap = { 1: getActualYears.y1, 2: getActualYears.y2, 3: getActualYears.y3, 4: getActualYears.y4 };
-        return yearMap[yearsAgo] || '-';
-    };
 
     // Separate by membership
     const vccCountries = countryCoefficients.filter(c => {
