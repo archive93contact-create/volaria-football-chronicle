@@ -348,8 +348,7 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
         const newClubs = sortedTable.filter(t => !prevClubNames.has(t.club_name));
         
         // Check if club was promoted from below (not relegated from above)
-        const promotedFromBelow = prevSeason?.promoted_teams?.split(',').map(t => t.trim()) || [];
-        const trulyPromotedNewcomers = newClubs.filter(c => promotedFromBelow.includes(c.club_name));
+        const trulyPromotedNewcomers = newClubs.filter(c => allNewlyPromoted.includes(c.club_name));
         
         if (trulyPromotedNewcomers.length > 0 && trulyPromotedNewcomers.some(c => c.position <= 6)) {
             const impressiveNew = trulyPromotedNewcomers.filter(c => c.position <= 6)[0];
