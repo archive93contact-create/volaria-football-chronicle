@@ -159,6 +159,11 @@ export default function ContinentalSeasonDetail() {
                                 </p>
                             )}
                         </div>
+                        <AdminOnly>
+                            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={openEditRounds}>
+                                <Settings className="w-4 h-4 mr-2" /> Edit Round Names
+                            </Button>
+                        </AdminOnly>
                     </div>
                 </div>
             </div>
