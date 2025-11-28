@@ -304,8 +304,57 @@ export default function LeagueDetail() {
                     {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                 </div>
 
-                {/* LEAGUE TABLE FIRST - Most Important */}
+                {/* Quick Navigation Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                    <a href="#league-table" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-yellow-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Trophy className="w-8 h-8 text-amber-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-amber-700">League Table</div>
+                                    <div className="text-xs text-slate-500">{currentYear} Season</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                    <a href="#league-story" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Calendar className="w-8 h-8 text-blue-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-blue-700">League History</div>
+                                    <div className="text-xs text-slate-500">Champions & Storylines</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                    <a href="#season-story" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Shield className="w-8 h-8 text-purple-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-purple-700">Season Story</div>
+                                    <div className="text-xs text-slate-500">Drama & Insights</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                    <a href="#stats-records" className="block">
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-emerald-50 to-teal-50 group">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <Users className="w-8 h-8 text-emerald-500" />
+                                <div>
+                                    <div className="font-semibold text-slate-800 group-hover:text-emerald-700">Stats & Records</div>
+                                    <div className="text-xs text-slate-500">All-Time Data</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </a>
+                </div>
+
+                {/* LEAGUE TABLE */}
                 {currentSeasonTable.length > 0 && (
+                    <div id="league-table">
                     <Card className="border-0 shadow-lg mb-8">
                         <CardHeader className="flex flex-row items-center justify-between bg-slate-50 border-b">
                             <CardTitle className="flex items-center gap-2">
