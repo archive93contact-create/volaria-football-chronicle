@@ -166,13 +166,14 @@ export default function ContinentalCompetitions() {
                     <Input value={formData.most_titles_club} onChange={(e) => setFormData({...formData, most_titles_club: e.target.value})} className="mt-1" />
                 </div>
             </div>
-            <div>
-                <Label>Logo URL</Label>
-                <Input 
-                    value={formData.logo_url || ''} 
-                    onChange={(e) => setFormData({...formData, logo_url: e.target.value})}
-                    placeholder="https://..."
-                    className="mt-1"
+            <div className="flex justify-center">
+                <ImageUploaderWithColors 
+                    currentImage={formData.logo_url} 
+                    onUpload={(url) => setFormData({...formData, logo_url: url})} 
+                    primaryColor={formData.primary_color}
+                    secondaryColor={formData.secondary_color}
+                    onColorsChange={(primary, secondary) => setFormData({...formData, primary_color: primary, secondary_color: secondary})}
+                    label="Upload Logo" 
                 />
             </div>
             <div>
@@ -184,22 +185,6 @@ export default function ContinentalCompetitions() {
                     rows={2}
                     className="mt-1 text-xs"
                 />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <Label>Primary Color</Label>
-                    <div className="flex gap-2 mt-1">
-                        <Input type="color" value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="w-12 h-10 p-1" />
-                        <Input value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="flex-1" />
-                    </div>
-                </div>
-                <div>
-                    <Label>Secondary Color</Label>
-                    <div className="flex gap-2 mt-1">
-                        <Input type="color" value={formData.secondary_color} onChange={(e) => setFormData({...formData, secondary_color: e.target.value})} className="w-12 h-10 p-1" />
-                        <Input value={formData.secondary_color} onChange={(e) => setFormData({...formData, secondary_color: e.target.value})} className="flex-1" />
-                    </div>
-                </div>
             </div>
             <div>
                 <Label>Description</Label>
@@ -290,26 +275,32 @@ export default function ContinentalCompetitions() {
                                     </p>
                                 </div>
                                 <div className="space-y-4">
-                                    {stats.topClub && (
-                                        <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-xl">
-                                            <Trophy className="w-10 h-10 text-amber-500" />
-                                            <div>
-                                                <div className="text-sm text-amber-600 font-medium">Most Successful Club</div>
-                                                <div className="font-bold text-slate-900">{stats.topClub[0]}</div>
-                                                <div className="text-sm text-slate-500">{stats.topClub[1]} continental titles</div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {stats.topNation && (
-                                        <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
-                                            <Globe className="w-10 h-10 text-blue-500" />
-                                            <div>
-                                                <div className="text-sm text-blue-600 font-medium">Most Successful Nation</div>
-                                                <div className="font-bold text-slate-900">{stats.topNation[0]}</div>
-                                                <div className="text-sm text-slate-500">{stats.topNation[1]} continental titles</div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    {stats.topClub && (() => {
+                                        const clubObj = clubs.find(c => c.name === stats.topClub[0]);
+                                        return (
+                                            <Link to={clubObj ? createPageUrl(`ClubDetail?id=${clubObj.id}`) : '#'} className="flex items-center gap-4 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors">
+                                                <Trophy className="w-10 h-10 text-amber-500" />
+                                                <div>
+                                                    <div className="text-sm text-amber-600 font-medium">Most Successful Club</div>
+                                                    <div className="font-bold text-slate-900 hover:text-amber-700">{stats.topClub[0]}</div>
+                                                    <div className="text-sm text-slate-500">{stats.topClub[1]} continental titles</div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })()}
+                                    {stats.topNation && (() => {
+                                        const nationObj = nations.find(n => n.name === stats.topNation[0]);
+                                        return (
+                                            <Link to={nationObj ? createPageUrl(`NationDetail?id=${nationObj.id}`) : '#'} className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
+                                                <Globe className="w-10 h-10 text-blue-500" />
+                                                <div>
+                                                    <div className="text-sm text-blue-600 font-medium">Most Successful Nation</div>
+                                                    <div className="font-bold text-slate-900 hover:text-blue-700">{stats.topNation[0]}</div>
+                                                    <div className="text-sm text-slate-500">{stats.topNation[1]} continental titles</div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </CardContent>
@@ -427,13 +418,14 @@ export default function ContinentalCompetitions() {
                                                     <div className="flex flex-wrap justify-center gap-2">
                                                         {compNations.slice(0, 20).map(nation => (
                                                             nation.flag_url ? (
-                                                                <img 
-                                                                    key={nation.id}
-                                                                    src={nation.flag_url} 
-                                                                    alt={nation.name}
-                                                                    title={nation.name}
-                                                                    className="w-10 h-7 object-cover rounded shadow border border-white/30"
-                                                                />
+                                                                <Link key={nation.id} to={createPageUrl(`NationDetail?id=${nation.id}`)}>
+                                                                    <img 
+                                                                        src={nation.flag_url} 
+                                                                        alt={nation.name}
+                                                                        title={nation.name}
+                                                                        className="w-10 h-7 object-cover rounded shadow border border-white/30 hover:border-white hover:scale-110 transition-all"
+                                                                    />
+                                                                </Link>
                                                             ) : null
                                                         ))}
                                                         {compNations.length > 20 && (
@@ -460,7 +452,14 @@ export default function ContinentalCompetitions() {
                                                     <div className="p-4 bg-slate-50 rounded-xl">
                                                         <div className="flex items-center justify-between">
                                                             <div className="text-center flex-1">
-                                                                <div className="text-lg font-bold text-emerald-600">{latestSeason.champion_name}</div>
+                                                                {(() => {
+                                                                    const champClub = clubs.find(c => c.name === latestSeason.champion_name);
+                                                                    return champClub ? (
+                                                                        <Link to={createPageUrl(`ClubDetail?id=${champClub.id}`)} className="text-lg font-bold text-emerald-600 hover:underline">{latestSeason.champion_name}</Link>
+                                                                    ) : (
+                                                                        <div className="text-lg font-bold text-emerald-600">{latestSeason.champion_name}</div>
+                                                                    );
+                                                                })()}
                                                                 <div className="text-sm text-slate-500">{latestSeason.champion_nation}</div>
                                                                 <Badge className="mt-1 bg-amber-100 text-amber-700">Champion</Badge>
                                                             </div>
@@ -468,7 +467,14 @@ export default function ContinentalCompetitions() {
                                                                 {latestSeason.final_score || 'vs'}
                                                             </div>
                                                             <div className="text-center flex-1">
-                                                                <div className="text-lg font-bold text-slate-700">{latestSeason.runner_up}</div>
+                                                                {(() => {
+                                                                    const runnerClub = clubs.find(c => c.name === latestSeason.runner_up);
+                                                                    return runnerClub ? (
+                                                                        <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="text-lg font-bold text-slate-700 hover:underline">{latestSeason.runner_up}</Link>
+                                                                    ) : (
+                                                                        <div className="text-lg font-bold text-slate-700">{latestSeason.runner_up}</div>
+                                                                    );
+                                                                })()}
                                                                 <div className="text-sm text-slate-500">{latestSeason.runner_up_nation}</div>
                                                             </div>
                                                         </div>
@@ -484,17 +490,24 @@ export default function ContinentalCompetitions() {
                                                         Most Titles
                                                     </h4>
                                                     <div className="space-y-2">
-                                                        {topClubs.map(([club, count], idx) => (
-                                                            <div key={club} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">
-                                                                        {idx + 1}
-                                                                    </span>
-                                                                    <span className="text-sm font-medium text-slate-700 truncate">{club}</span>
-                                                                </div>
-                                                                <span className="font-bold" style={{ color: comp.primary_color }}>{count}</span>
-                                                            </div>
-                                                        ))}
+                                                        {topClubs.map(([clubName, count], idx) => {
+                                                            const clubObj = clubs.find(c => c.name === clubName);
+                                                            return (
+                                                                <Link 
+                                                                    key={clubName} 
+                                                                    to={clubObj ? createPageUrl(`ClubDetail?id=${clubObj.id}`) : '#'}
+                                                                    className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">
+                                                                            {idx + 1}
+                                                                        </span>
+                                                                        <span className="text-sm font-medium text-slate-700 hover:text-emerald-600 truncate">{clubName}</span>
+                                                                    </div>
+                                                                    <span className="font-bold" style={{ color: comp.primary_color }}>{count}</span>
+                                                                </Link>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
                                             )}
