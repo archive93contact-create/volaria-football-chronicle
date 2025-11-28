@@ -231,10 +231,10 @@ export default function Coefficients() {
                 <TableRow>
                     <TableHead className="w-16">Rank</TableHead>
                     <TableHead>Nation</TableHead>
-                    <TableHead className="text-center text-xs">{getYearLabel(4)}</TableHead>
-                    <TableHead className="text-center text-xs">{getYearLabel(3)}</TableHead>
-                    <TableHead className="text-center text-xs">{getYearLabel(2)}</TableHead>
-                    <TableHead className="text-center text-xs">{getYearLabel(1)}</TableHead>
+                    <TableHead className="text-center text-xs">{actualYears[0] || '-'}</TableHead>
+                    <TableHead className="text-center text-xs">{actualYears[1] || '-'}</TableHead>
+                    <TableHead className="text-center text-xs">{actualYears[2] || '-'}</TableHead>
+                    <TableHead className="text-center text-xs">{actualYears[3] || '-'}</TableHead>
                     <TableHead className="text-center font-bold">Total</TableHead>
                     <TableHead className="text-center">{type === 'VCC' ? 'VCC' : 'CCC'} Spots</TableHead>
                 </TableRow>
