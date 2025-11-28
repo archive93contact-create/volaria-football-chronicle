@@ -457,7 +457,27 @@ export default function LeagueDetail() {
 
                 {/* League Narratives */}
                 <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
+                </div>
 
+                {/* Season Storylines Section */}
+                <div id="season-story">
+                {/* Season Storylines for selected season */}
+                {(selectedSeason || uniqueYears[0]) && (
+                    <div className="mb-8">
+                        <SeasonStorylines 
+                            season={seasons.find(s => s.year === (selectedSeason || uniqueYears[0]))}
+                            league={league}
+                            leagueTable={currentSeasonTable}
+                            allSeasons={seasons}
+                            allLeagueTables={leagueTables}
+                            clubs={allNationClubs}
+                        />
+                    </div>
+                )}
+                </div>
+
+                {/* Stats & Records Section */}
+                <div id="stats-records">
                 {/* Competitiveness & Flow */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <LeagueCompetitiveness seasons={seasons} leagueTables={leagueTables} />
