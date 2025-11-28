@@ -1,14 +1,23 @@
 import { base44 } from '@/api/base44Client';
 import { estimateNationPopulation, estimateSustainableProClubs } from '@/components/common/populationUtils';
 
-// Get base stability points by tier
-const getBaseStabilityByTier = (tier) => {
-    if (tier >= 1 && tier <= 4) return 20;
-    if (tier === 5) return 16;
-    if (tier >= 6 && tier <= 9) return 14;
-    if (tier >= 10 && tier <= 11) return 12;
-    if (tier >= 12 && tier <= 14) return 10;
-    return 8;
+// Get base stability points by tier - adjusted for nation size
+// Smaller nations (fewer tiers) = lower base points
+const getBaseStabilityByTier = (tier, maxTierInNation = 4) => {
+    // Nation size adjustment: fewer tiers = smaller nation = lower base
+    // 1-tier nation: -6, 2-tier: -4, 3-tier: -2, 4+ tier: 0
+    const nationSizeAdjust = Math.min(0, (maxTierInNation - 4) * 2);
+    
+    let base;
+    if (tier === 1) base = 18;
+    else if (tier === 2) base = 16;
+    else if (tier === 3) base = 14;
+    else if (tier === 4) base = 12;
+    else if (tier <= 6) base = 10;
+    else if (tier <= 9) base = 8;
+    else base = 6;
+    
+    return Math.max(5, base + nationSizeAdjust);
 };
 
 // Champion bonus by tier
@@ -27,7 +36,7 @@ const getPromotionBonus = (tier) => {
 };
 
 // Calculate stability for a single club
-export const calculateClubStability = (clubId, leagueTables, leagues, seasons) => {
+export const calculateClubStability = (clubId, leagueTables, leagues, seasons, maxTierInNation = 4) => {
     const clubSeasons = leagueTables
         .filter(lt => lt.club_id === clubId)
         .sort((a, b) => a.year.localeCompare(b.year));
@@ -42,10 +51,10 @@ export const calculateClubStability = (clubId, leagueTables, leagues, seasons) =
         const league = leagues.find(l => l.id === season.league_id);
         const tier = league?.tier || 1;
         const seasonData = seasons.find(s => s.league_id === season.league_id && s.year === season.year);
-        const teamsInLeague = seasonData?.number_of_teams || 20;
+        const teamsInLeague = seasonData?.number_of_teams || 12;
 
         if (index === 0) {
-            currentPoints = getBaseStabilityByTier(tier);
+            currentPoints = getBaseStabilityByTier(tier, maxTierInNation);
         }
 
         if (season.status === 'champion' || season.position === 1) {
@@ -121,61 +130,70 @@ const calculateProClubEstimate = (nationClubs, nationLeagues, nation) => {
 
 /**
  * Determine professional status using the Nations page pro clubs estimate.
- * Rules:
- * 1. Calculate sustainable pro clubs using population/strength formulas
- * 2. Top N clubs by stability (within pro estimate) in tier 1-2 = Professional
- * 3. Next tier down = Semi-Professional
- * 4. Everyone else = Amateur
+ * Simple rule: Pro clubs = what the estimate says. 
+ * Top N by stability in tier 1-2 get PRO, rest get semi-pro or amateur.
  */
 export const assignProfessionalStatusForNation = (nationClubs, nation, leagues) => {
     const nationLeagues = leagues.filter(l => l.nation_id === nation?.id);
     const { proClubsMax, topDivisionSize, maxTier } = calculateProClubEstimate(nationClubs, nationLeagues, nation);
     
-    // Semi-pro slots = roughly 1.5x pro slots, capped reasonably
-    const semiProSlots = Math.round(proClubsMax * 1.5);
+    // For small nations (1-2 tiers), all tier 1 clubs should be pro
+    const isSmallNation = maxTier <= 2;
     
-    // Sort all active clubs by stability points (highest first)
+    // Sort all active clubs by: tier first (lower=better), then stability
     const sortedClubs = [...nationClubs]
         .filter(c => !c.is_defunct && !c.is_former_name)
         .map(c => {
             const league = leagues.find(l => l.id === c.league_id);
             return { ...c, tier: league?.tier || 99 };
         })
-        .sort((a, b) => (b.stability_points || 0) - (a.stability_points || 0));
+        .sort((a, b) => {
+            // First by tier (lower is better)
+            if (a.tier !== b.tier) return a.tier - b.tier;
+            // Then by stability (higher is better)
+            return (b.stability_points || 0) - (a.stability_points || 0);
+        });
     
     const assignments = {};
     let proCount = 0;
-    let semiProCount = 0;
     
-    sortedClubs.forEach((club) => {
-        const stability = club.stability_points || 0;
-        const tier = club.tier;
-        
-        // Professional: 
-        // - Within sustainable pro club limit
-        // - In tier 1 or 2 (or tier 3 with exceptional stability for small nations)
-        // - Has positive stability
-        const canBePro = tier <= 2 || (maxTier <= 2 && tier <= maxTier);
-        
-        if (proCount < proClubsMax && canBePro && stability >= 0) {
+    // For small nations: ALL tier 1 clubs are professional
+    // For larger nations: use the pro clubs estimate
+    const tier1Clubs = sortedClubs.filter(c => c.tier === 1);
+    const tier2Clubs = sortedClubs.filter(c => c.tier === 2);
+    
+    // Small nations: all tier 1 = pro
+    if (isSmallNation) {
+        tier1Clubs.forEach(club => {
             assignments[club.id] = 'professional';
             proCount++;
-        }
-        // Semi-Professional:
-        // - Beyond pro limit but within semi-pro range
-        // - In reasonable tiers (1-4)
-        // - Or: tier 1-2 club that didn't make pro cut
-        else if (semiProCount < semiProSlots && tier <= 4 && stability >= -5) {
+        });
+        // Tier 2 in small nations = semi-pro
+        tier2Clubs.forEach(club => {
             assignments[club.id] = 'semi-professional';
-            semiProCount++;
-        }
-        else if (tier <= 2 && stability >= -10) {
-            // Any top 2 tier club gets at least semi-pro
-            assignments[club.id] = 'semi-professional';
-            semiProCount++;
-        }
-        // Amateur: everyone else
-        else {
+        });
+    } else {
+        // Larger nations: use estimate, but ensure at least top division is pro
+        const targetPro = Math.max(proClubsMax, topDivisionSize);
+        
+        sortedClubs.forEach((club) => {
+            if (proCount < targetPro && club.tier <= 2) {
+                assignments[club.id] = 'professional';
+                proCount++;
+            } else if (club.tier <= 2) {
+                // Tier 1-2 that didn't make pro cut = semi-pro
+                assignments[club.id] = 'semi-professional';
+            } else if (club.tier <= 4) {
+                assignments[club.id] = 'semi-professional';
+            } else {
+                assignments[club.id] = 'amateur';
+            }
+        });
+    }
+    
+    // Fill in any remaining as amateur
+    sortedClubs.forEach(club => {
+        if (!assignments[club.id]) {
             assignments[club.id] = 'amateur';
         }
     });
@@ -202,11 +220,13 @@ export const updateStabilityForClubs = async (clubIds, leagueTables, leagues, se
     for (const nationId of Object.keys(clubsByNation)) {
         const nation = nations.find(n => n.id === nationId);
         const nationClubs = allClubs.filter(c => c.nation_id === nationId);
+        const nationLeagues = leagues.filter(l => l.nation_id === nationId);
+        const maxTierInNation = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
         
         // First, calculate stability for all requested clubs in this nation
         const stabilityUpdates = {};
         for (const club of clubsByNation[nationId]) {
-            const { points, status } = calculateClubStability(club.id, leagueTables, leagues, seasons);
+            const { points, status } = calculateClubStability(club.id, leagueTables, leagues, seasons, maxTierInNation);
             stabilityUpdates[club.id] = { points, status };
         }
         
