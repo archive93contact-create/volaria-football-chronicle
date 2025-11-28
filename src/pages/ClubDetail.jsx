@@ -916,7 +916,9 @@ export default function ClubDetail() {
                         <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} nationName={nation?.name} />
                     </div>
                 )}
+                </div>
 
+                <div id="club-seasons">
                 <Tabs defaultValue="seasons" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
