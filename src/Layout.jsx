@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, Calendar } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, Calendar, Heart } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const navItems = [
-                  { name: 'Home', icon: Home, page: 'Home' },
-                  { name: 'Nations', icon: Globe, page: 'Nations' },
-                  { name: 'Seasons', icon: Trophy, page: 'Seasons' },
-                  { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
-                  { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
-                  { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
-                  { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
-                  { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
-                  { name: 'Locations', icon: Globe, page: 'Locations' },
-                  { name: 'About', icon: Info, page: 'About' },
-                  { name: 'Contact', icon: Mail, page: 'Contact' },
-                  { name: 'Support', icon: Star, page: 'Support', highlight: true },
-              ];
+        { name: 'Home', icon: Home, page: 'Home' },
+        { name: 'Nations', icon: Globe, page: 'Nations' },
+        { name: 'Seasons', icon: Trophy, page: 'Seasons' },
+        { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
+        { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
+        { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
+        { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
+        { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
+        { name: 'Locations', icon: Globe, page: 'Locations' },
+        { name: 'About', icon: Info, page: 'About' },
+        { name: 'Contact', icon: Mail, page: 'Contact' },
+        { name: 'Support', icon: Heart, page: 'Support' },
+        ];
 
     return (
         <div className="min-h-screen bg-slate-50">
