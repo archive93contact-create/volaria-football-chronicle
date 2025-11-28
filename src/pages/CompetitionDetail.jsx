@@ -215,11 +215,42 @@ export default function CompetitionDetail() {
                         </div>
                     </div>
 
-                    {/* Participating Nations Flags */}
-                    {participatingNations.length > 0 && (
-                        <div className="mt-6 pt-6 border-t border-white/20">
-                            <p className="text-white/60 text-sm mb-3">Participating Nations ({participatingNations.length})</p>
-                            <div className="flex flex-wrap gap-2">
+                    {/* Stats in Banner */}
+                    <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-white/20">
+                        {competition.founded_year && (
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-white">{competition.founded_year}</div>
+                                <div className="text-white/60 text-sm">Founded</div>
+                            </div>
+                        )}
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-white">{seasons.length}</div>
+                            <div className="text-white/60 text-sm">Editions</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-white">{participatingNations.length}</div>
+                            <div className="text-white/60 text-sm">Nations</div>
+                        </div>
+                        {competition.number_of_teams && (
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-white">{competition.number_of_teams}</div>
+                                <div className="text-white/60 text-sm">Teams</div>
+                            </div>
+                        )}
+                        {titlesByClub.length > 0 && (
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-white">{titlesByClub.length}</div>
+                                <div className="text-white/60 text-sm">Different Winners</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Participating Nations Flags - Full Width */}
+                {participatingNations.length > 0 && (
+                    <div className="bg-black/30 py-4">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-wrap justify-center gap-3">
                                 {participatingNations.map(nation => (
                                     <Link 
                                         key={nation.id}
@@ -231,10 +262,10 @@ export default function CompetitionDetail() {
                                             <img 
                                                 src={nation.flag_url} 
                                                 alt={nation.name}
-                                                className="w-12 h-8 object-cover rounded shadow-lg border-2 border-white/30 hover:border-white/80 transition-all hover:scale-110"
+                                                className="w-14 h-10 object-cover rounded shadow-lg border-2 border-white/30 hover:border-white transition-all hover:scale-110"
                                             />
                                         ) : (
-                                            <div className="w-12 h-8 bg-white/20 rounded border-2 border-white/30 flex items-center justify-center">
+                                            <div className="w-14 h-10 bg-white/20 rounded border-2 border-white/30 flex items-center justify-center">
                                                 <span className="text-xs text-white/60">{nation.name.substring(0, 3)}</span>
                                             </div>
                                         )}
@@ -242,19 +273,62 @@ export default function CompetitionDetail() {
                                 ))}
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-                    {competition.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Calendar className="w-6 h-6 text-emerald-500 mx-auto mb-2" /><div className="text-2xl font-bold">{competition.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
-                    <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" /><div className="text-2xl font-bold">{seasons.length}</div><div className="text-xs text-slate-500">Editions</div></CardContent></Card>
-                    {competition.number_of_teams && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{competition.number_of_teams}</div><div className="text-xs text-slate-500">Teams</div></CardContent></Card>}
-                    <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{participatingNations.length}</div><div className="text-xs text-slate-500">Nations</div></CardContent></Card>
-                    {competition.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-sm font-bold text-emerald-600 truncate">{competition.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
-                </div>
+                {/* Most Recent Final */}
+                {seasons.length > 0 && (() => {
+                    const latestSeason = seasons[0];
+                    return (
+                        <Card className="border-0 shadow-lg mb-8 overflow-hidden" style={{ background: `linear-gradient(135deg, ${competition.primary_color || '#1e40af'}15, ${competition.secondary_color || '#fbbf24'}15)` }}>
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Trophy className="w-5 h-5" style={{ color: competition.primary_color || '#1e40af' }} />
+                                    <h3 className="font-bold text-lg">Most Recent Final - {latestSeason.year}</h3>
+                                </div>
+                                <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+                                    <div className="text-center flex-1">
+                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                            {getNationFlag(latestSeason.champion_nation) && (
+                                                <img src={getNationFlag(latestSeason.champion_nation)} alt="" className="w-8 h-5 object-cover rounded" />
+                                            )}
+                                        </div>
+                                        <div className="text-2xl font-bold text-emerald-600">{latestSeason.champion_name}</div>
+                                        <div className="text-sm text-slate-500">{latestSeason.champion_nation}</div>
+                                        <div className="mt-2 inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-semibold">
+                                            Champion
+                                        </div>
+                                    </div>
+                                    <div className="text-center px-6">
+                                        <div className="text-3xl font-bold text-slate-800">{latestSeason.final_score || 'vs'}</div>
+                                        {latestSeason.final_venue && (
+                                            <div className="text-sm text-slate-500 mt-1">{latestSeason.final_venue}</div>
+                                        )}
+                                    </div>
+                                    <div className="text-center flex-1">
+                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                            {getNationFlag(latestSeason.runner_up_nation) && (
+                                                <img src={getNationFlag(latestSeason.runner_up_nation)} alt="" className="w-8 h-5 object-cover rounded" />
+                                            )}
+                                        </div>
+                                        <div className="text-2xl font-bold text-slate-700">{latestSeason.runner_up}</div>
+                                        <div className="text-sm text-slate-500">{latestSeason.runner_up_nation}</div>
+                                        <div className="mt-2 inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-sm">
+                                            Runner-up
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <Link to={createPageUrl(`ContinentalSeasonDetail?id=${latestSeason.id}`)}>
+                                        <Button variant="outline" size="sm">View Full Tournament</Button>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })()}
 
                 {/* Title Statistics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
