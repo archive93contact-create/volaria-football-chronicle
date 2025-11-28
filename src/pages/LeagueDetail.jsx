@@ -499,7 +499,9 @@ export default function LeagueDetail() {
                     />
                 </div>
 
-                <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+                {/* Stats & Records Section */}
+                <div id="stats-records">
+                    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="clubs">Clubs ({clubs.length})</TabsTrigger>
                         <TabsTrigger value="titles">Most Titles</TabsTrigger>
