@@ -366,37 +366,89 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             }
         }
         
-        // 11. Relegated club struggles - came down from tier above and got relegated again
-        // Need to check if they were relegated FROM the tier above in the previous year
-        if (season.relegated_teams) {
-            const relegatedThisYear = season.relegated_teams.split(',').map(t => t.trim());
-            
-            // Find seasons from tier above (lower tier number = higher tier) in previous year
-            const tierAbove = (season.tier || league.tier || 1) - 1;
-            const higherTierPrevSeasons = allSeasons.filter(s => 
-                s.year === previousYear && 
-                (s.tier === tierAbove || (!s.tier && allSeasons.some(ls => ls.league_id === s.league_id)))
+        // 11. Relegated Club Performance Analysis
+        // Get clubs that were relegated from higher tier last season
+        const higherTierPrevSeasons = allSeasons.filter(s => s.year === previousYear && s.league_id !== league.id);
+        const allRelegatedToThisLeague = [];
+        higherTierPrevSeasons.forEach(s => {
+            if (s.relegated_teams) {
+                s.relegated_teams.split(',').forEach(t => {
+                    if (t.trim()) allRelegatedToThisLeague.push(t.trim());
+                });
+            }
+        });
+        
+        // Find relegated clubs in this season's table
+        const relegatedClubsInTable = sortedTable.filter(t => 
+            allRelegatedToThisLeague.some(r => r === t.club_name || t.club_name.includes(r) || r.includes(t.club_name))
+        );
+        
+        if (relegatedClubsInTable.length > 0) {
+            // Check if any relegated club bounced straight back
+            const bouncedBack = relegatedClubsInTable.filter(c => 
+                season.promoted_teams?.split(',').map(t => t.trim()).includes(c.club_name) || c.position === 1
             );
             
-            // Get clubs that were relegated from tier above last year
-            const relegatedFromAboveLastYear = higherTierPrevSeasons
-                .filter(s => s.relegated_teams)
-                .flatMap(s => s.relegated_teams.split(',').map(t => t.trim()));
+            if (bouncedBack.length > 0) {
+                const bouncer = bouncedBack[0];
+                const club = getClub(bouncer.club_name);
+                if (bouncer.position === 1) {
+                    results.push({
+                        icon: Trophy,
+                        color: 'text-amber-500',
+                        bg: 'bg-gradient-to-r from-amber-50 to-yellow-50',
+                        title: 'Bounce Back Champions',
+                        text: `${bouncer.club_name} responded to relegation in style, winning the title and securing immediate promotion back.`,
+                        clubId: club?.id
+                    });
+                } else {
+                    results.push({
+                        icon: TrendingUp,
+                        color: 'text-green-500',
+                        bg: 'bg-gradient-to-r from-green-50 to-emerald-50',
+                        title: 'Immediate Return',
+                        text: `${bouncer.club_name} bounced straight back after last season's relegation, securing promotion at the first attempt.`,
+                        clubId: club?.id
+                    });
+                }
+            }
             
-            // Find clubs that were relegated from above AND are now relegated again
-            const doubleRelegation = relegatedThisYear.filter(clubName => 
-                relegatedFromAboveLastYear.includes(clubName)
+            // Check if relegated club got relegated again (double relegation)
+            if (season.relegated_teams) {
+                const relegatedThisYear = season.relegated_teams.split(',').map(t => t.trim());
+                const doubleRelegation = relegatedClubsInTable.filter(c => relegatedThisYear.includes(c.club_name));
+                
+                if (doubleRelegation.length > 0) {
+                    const fallenClub = doubleRelegation[0];
+                    const club = getClub(fallenClub.club_name);
+                    results.push({
+                        icon: TrendingDown,
+                        color: 'text-red-600',
+                        bg: 'bg-gradient-to-r from-red-50 to-rose-50',
+                        title: 'Freefall Continues',
+                        text: `${fallenClub.club_name} suffered back-to-back relegations, unable to arrest their slide down the pyramid.`,
+                        clubId: club?.id
+                    });
+                }
+            }
+            
+            // Check for mid-table mediocrity
+            const topHalf = Math.ceil(sortedTable.length / 2);
+            const relegatedMidTable = relegatedClubsInTable.filter(c => 
+                c.position > topHalf && 
+                !season.relegated_teams?.split(',').map(t => t.trim()).includes(c.club_name) &&
+                !season.promoted_teams?.split(',').map(t => t.trim()).includes(c.club_name)
             );
             
-            if (doubleRelegation.length > 0) {
-                const fallenClub = doubleRelegation[0];
-                const club = getClub(fallenClub);
+            if (relegatedMidTable.length > 0 && bouncedBack.length === 0) {
+                const struggler = relegatedMidTable[0];
+                const club = getClub(struggler.club_name);
                 results.push({
-                    icon: TrendingDown,
-                    color: 'text-red-600',
-                    bg: 'bg-gradient-to-r from-red-50 to-rose-50',
-                    title: 'Freefall Continues',
-                    text: `${fallenClub} suffered back-to-back relegations, unable to arrest their slide down the pyramid.`,
+                    icon: Shield,
+                    color: 'text-slate-500',
+                    bg: 'bg-slate-50',
+                    title: 'Relegated Side Struggles',
+                    text: `${struggler.club_name} failed to make an immediate impact after dropping down, finishing in ${struggler.position}${struggler.position === 2 ? 'nd' : struggler.position === 3 ? 'rd' : 'th'} place.`,
                     clubId: club?.id
                 });
             }
