@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles, Trophy, TrendingUp, TrendingDown, Shield, Check, X } from 'lucide-react';
-import { getStabilityStatus } from '@/components/clubs/StabilityCalculator';
+import { getStabilityStatus, calculateClubStability } from '@/components/clubs/StabilityCalculator';
 
 export default function AISeasonGenerator({ leagueId, onComplete }) {
     const queryClient = useQueryClient();
@@ -257,8 +257,23 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
 
         await base44.entities.LeagueTable.bulkCreate(tableEntries);
 
+        // Auto-update stability points for all clubs in this season
+        const allLeagueTablesUpdated = [...allLeagueTables, ...tableEntries];
+        for (const row of generatedTable) {
+            const club = availableClubs.find(c => c.id === row.club_id);
+            if (club) {
+                const { points } = calculateClubStability(club, allLeagueTablesUpdated, leagues, []);
+                const statusInfo = getStabilityStatus(points);
+                await base44.entities.Club.update(club.id, {
+                    stability_points: points,
+                    stability_status: statusInfo.status
+                });
+            }
+        }
+
         queryClient.invalidateQueries(['seasons']);
         queryClient.invalidateQueries(['leagueTables']);
+        queryClient.invalidateQueries(['allClubs']);
         
         setIsGenerating(false);
         setGeneratedTable(null);
