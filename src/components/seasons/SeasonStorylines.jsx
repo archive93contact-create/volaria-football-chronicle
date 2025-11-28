@@ -490,7 +490,7 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             });
         }
         
-        return results.slice(0, 6);
+        return results.slice(0, 8);
     }, [season, league, leagueTable, allSeasons, allLeagueTables, clubs]);
 
     if (storylines.length === 0) return null;
