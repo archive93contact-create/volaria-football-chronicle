@@ -9,7 +9,12 @@ export default function LeagueRecords({ leagueTables = [], clubs = [], seasons =
     const records = useMemo(() => {
         if (leagueTables.length === 0) return [];
 
-        const currentYear = new Date().getFullYear();
+        // Find the most recent season year from the data
+        const allYears = leagueTables.map(t => t.year).filter(Boolean);
+        const mostRecentYear = allYears.length > 0 
+            ? Math.max(...allYears.map(y => parseInt(y.split('-')[0])))
+            : new Date().getFullYear();
+        
         const result = [];
 
         // Helper to find club ID
@@ -18,11 +23,11 @@ export default function LeagueRecords({ leagueTables = [], clubs = [], seasons =
             return club?.id;
         };
 
-        // Helper to calculate years held
+        // Helper to calculate years held (based on most recent season in data)
         const yearsHeld = (year) => {
             if (!year) return 0;
             const recordYear = parseInt(year.split('-')[0]);
-            return currentYear - recordYear;
+            return mostRecentYear - recordYear;
         };
 
         // Sort tables by year for finding "first" records
