@@ -294,11 +294,28 @@ export default function AllClubs() {
                                                 Top Flight <SortIcon field="topFlight" />
                                             </button>
                                         </TableHead>
-                                        <TableHead className="text-center hidden xl:table-cell">
-                                            <div className="flex items-center gap-1">
-                                                <TrendingUp className="w-3 h-3 text-green-500" />/<TrendingDown className="w-3 h-3 text-red-500" />
-                                            </div>
+                                        <TableHead className="text-center hidden lg:table-cell">
+                                            <button onClick={() => handleSort('cups')} className="flex items-center gap-1 hover:text-slate-900">
+                                                Cups <SortIcon field="cups" />
+                                            </button>
                                         </TableHead>
+                                        <TableHead className="text-center hidden xl:table-cell">
+                                            <button onClick={() => handleSort('vcc')} className="flex items-center gap-1 hover:text-slate-900">
+                                                VCC <SortIcon field="vcc" />
+                                            </button>
+                                        </TableHead>
+                                        <TableHead className="text-center hidden xl:table-cell">
+                                            <button onClick={() => handleSort('ccc')} className="flex items-center gap-1 hover:text-slate-900">
+                                                CCC <SortIcon field="ccc" />
+                                            </button>
+                                        </TableHead>
+                                        <TableHead className="text-center hidden xl:table-cell">
+                                            <button onClick={() => handleSort('totalTrophies')} className="flex items-center gap-1 hover:text-slate-900">
+                                                Total <SortIcon field="totalTrophies" />
+                                            </button>
+                                        </TableHead>
+                                        <TableHead className="text-center hidden 2xl:table-cell">VCC Apps</TableHead>
+                                        <TableHead className="text-center hidden 2xl:table-cell">CCC Apps</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
