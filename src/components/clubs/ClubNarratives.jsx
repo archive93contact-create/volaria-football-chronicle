@@ -7,6 +7,81 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
     
     if (!club || seasons.length === 0) return null;
 
+    // Calculate club stature/size for narrative
+    const calculateClubStature = () => {
+        // Continental elite: VCC/CCC titles
+        const continentalTitles = (club.vcc_titles || 0) + (club.ccc_titles || 0);
+        const continentalAppearances = (club.vcc_appearances || 0) + (club.ccc_appearances || 0);
+        const domesticTitles = (club.league_titles || 0);
+        const cupTitles = (club.domestic_cup_titles || 0);
+        const topFlightSeasons = club.seasons_top_flight || 0;
+        const totalSeasons = club.seasons_played || seasons.length;
+        
+        // Score calculation
+        let score = 0;
+        score += continentalTitles * 30;
+        score += (club.vcc_titles || 0) * 20; // Extra for VCC specifically
+        score += continentalAppearances * 3;
+        score += domesticTitles * 15;
+        score += cupTitles * 8;
+        score += topFlightSeasons * 2;
+        score += Math.min(totalSeasons, 50) * 0.5; // Longevity bonus, capped
+        
+        // Determine stature
+        if (continentalTitles >= 2 || (club.vcc_titles || 0) >= 1) {
+            return {
+                tier: 'Continental Giant',
+                description: `A true continental powerhouse, ${club.name} is known across all of Volaria. With ${continentalTitles} continental title${continentalTitles !== 1 ? 's' : ''}, they are among the elite clubs that have conquered the continent.`,
+                color: 'text-amber-500',
+                bg: 'bg-gradient-to-r from-amber-50 to-yellow-50'
+            };
+        } else if (continentalAppearances >= 5 || (domesticTitles >= 5 && topFlightSeasons >= 15)) {
+            return {
+                tier: 'National Powerhouse',
+                description: `One of the biggest clubs in their nation, ${club.name} is a household name domestically and has made their mark on the continental stage with ${continentalAppearances} continental appearance${continentalAppearances !== 1 ? 's' : ''}.`,
+                color: 'text-emerald-500',
+                bg: 'bg-gradient-to-r from-emerald-50 to-green-50'
+            };
+        } else if (domesticTitles >= 1 || (topFlightSeasons >= 10 && cupTitles >= 1)) {
+            return {
+                tier: 'Established Club',
+                description: `${club.name} is a well-established club with ${domesticTitles} league title${domesticTitles !== 1 ? 's' : ''} and ${topFlightSeasons} seasons in the top flight. They are recognized throughout the nation.`,
+                color: 'text-blue-500',
+                bg: 'bg-gradient-to-r from-blue-50 to-indigo-50'
+            };
+        } else if (topFlightSeasons >= 5 || (continentalAppearances >= 1)) {
+            return {
+                tier: 'Ambitious Club',
+                description: `A club with top-flight experience and ambitions to climb higher, ${club.name} is known regionally and aspires to national prominence.`,
+                color: 'text-purple-500',
+                bg: 'bg-purple-50'
+            };
+        } else if (topFlightSeasons >= 1 || totalSeasons >= 10) {
+            return {
+                tier: 'Rising Club',
+                description: `${club.name} has tasted top-flight football and is building towards becoming an established force. They are well-known in their local area and growing their reputation.`,
+                color: 'text-cyan-500',
+                bg: 'bg-cyan-50'
+            };
+        } else if (totalSeasons >= 5) {
+            return {
+                tier: 'Local Club',
+                description: `A community club with a loyal following, ${club.name} represents the grassroots of football. Their supporters know them as the pride of ${club.settlement || club.district || club.region || 'their town'}.`,
+                color: 'text-slate-500',
+                bg: 'bg-slate-50'
+            };
+        } else {
+            return {
+                tier: 'Newcomer',
+                description: `${club.name} is a newer addition to organized football, still building their history and fanbase. Every legendary club started somewhere.`,
+                color: 'text-green-500',
+                bg: 'bg-green-50'
+            };
+        }
+    };
+
+    const clubStature = calculateClubStature();
+
     // Sort seasons chronologically
     const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
     const latestSeason = sortedSeasons[sortedSeasons.length - 1];
