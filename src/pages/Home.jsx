@@ -354,7 +354,7 @@ export default function Home() {
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-slate-900">All Nations</h2>
-                                <p className="text-slate-500">{categorizedNations.withData.length} nations with data, {categorizedNations.inProgress.length} in development</p>
+                                <p className="text-slate-500">{categorizedNations.complete.length} complete, {categorizedNations.inProgress.length + categorizedNations.planned.length} in development</p>
                             </div>
                         </div>
                         <Link to={createPageUrl('Nations')}>
