@@ -24,6 +24,8 @@ import LeagueRivalries from '@/components/leagues/LeagueRivalries';
 import AdminOnly from '@/components/common/AdminOnly';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
 import SeasonStorylines from '@/components/seasons/SeasonStorylines';
+import LeaguePredictions from '@/components/leagues/LeaguePredictions';
+import VisualLeagueHistory from '@/components/leagues/VisualLeagueHistory';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -299,6 +301,9 @@ export default function LeagueDetail() {
                     {league.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{league.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                 </div>
 
+                {/* Visual League History */}
+                <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
+
                 {/* League History Timeline */}
                 <LeagueHistory league={league} seasons={seasons} nation={nation} />
 
@@ -333,6 +338,16 @@ export default function LeagueDetail() {
                         />
                     </div>
                 )}
+
+                {/* AI Predictions */}
+                <div className="mb-8">
+                    <LeaguePredictions 
+                        league={league}
+                        seasons={seasons}
+                        leagueTables={leagueTables}
+                        clubs={allNationClubs}
+                    />
+                </div>
 
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>

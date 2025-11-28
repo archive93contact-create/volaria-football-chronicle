@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
 import { useIsAdmin } from '@/components/common/AdminOnly';
+import AIStatsGenerator from '@/components/seasons/AIStatsGenerator';
 
 export default function AddSeason() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -787,6 +788,12 @@ export default function AddSeason() {
                                         </div>
                                     </DialogContent>
                                 </Dialog>
+                                <AIStatsGenerator 
+                                    tableRows={tableRows}
+                                    setTableRows={setTableRows}
+                                    seasonData={seasonData}
+                                    league={league}
+                                />
                                 {tableRows.length === 0 && (
                                     <Button onClick={() => initializeTable(seasonData.number_of_teams)}>
                                         <Plus className="w-4 h-4 mr-2" /> Generate Empty Table
