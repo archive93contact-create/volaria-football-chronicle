@@ -348,11 +348,27 @@ export default function LeagueDetail() {
                                                                     </span>
                                                                 </TableCell>
                                                                 <TableCell className="font-medium">
-                                                                    {row.club_id ? (
-                                                                        <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
-                                                                            {row.club_name}
-                                                                        </Link>
-                                                                    ) : row.club_name}
+                                                                    {(() => {
+                                                                        const indicators = getClubIndicators(row.club_name);
+                                                                        return (
+                                                                            <span className="flex items-center gap-1">
+                                                                                {row.club_id ? (
+                                                                                    <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
+                                                                                        {row.club_name}
+                                                                                    </Link>
+                                                                                ) : row.club_name}
+                                                                                {indicators.isChampion && (
+                                                                                    <span className="text-xs font-bold text-amber-600 ml-1" title="Defending Champions">(C)</span>
+                                                                                )}
+                                                                                {indicators.isPromoted && (
+                                                                                    <span className="text-xs font-bold text-green-600 ml-1" title="Promoted from lower tier">(P)</span>
+                                                                                )}
+                                                                                {indicators.isRelegated && (
+                                                                                    <span className="text-xs font-bold text-red-600 ml-1" title="Relegated from higher tier">(R)</span>
+                                                                                )}
+                                                                            </span>
+                                                                        );
+                                                                    })()}
                                                                 </TableCell>
                                                                 <TableCell className="text-center">{row.played}</TableCell>
                                                                 <TableCell className="text-center">{row.won}</TableCell>
