@@ -6,8 +6,10 @@ export default function LeagueCompetitiveness({ seasons = [], leagueTables = [] 
     const stats = useMemo(() => {
         if (seasons.length === 0) return null;
 
+        const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
+
         // Count unique champions
-        const champions = seasons.map(s => s.champion_name).filter(Boolean);
+        const champions = sortedSeasons.map(s => s.champion_name).filter(Boolean);
         const uniqueChampions = [...new Set(champions)];
         
         // Count champion frequencies
@@ -19,7 +21,7 @@ export default function LeagueCompetitiveness({ seasons = [], leagueTables = [] 
         // Find dynasties (3+ consecutive titles)
         const dynasties = [];
         let currentDynasty = null;
-        seasons.sort((a, b) => a.year.localeCompare(b.year)).forEach(s => {
+        sortedSeasons.forEach(s => {
             if (!s.champion_name) return;
             if (currentDynasty && currentDynasty.club === s.champion_name) {
                 currentDynasty.years.push(s.year);
@@ -34,26 +36,152 @@ export default function LeagueCompetitiveness({ seasons = [], leagueTables = [] 
             dynasties.push(currentDynasty);
         }
 
-        // Calculate competitiveness score (more unique champions = more competitive)
-        const competitivenessScore = seasons.length > 0 
-            ? Math.round((uniqueChampions.length / seasons.length) * 100)
-            : 0;
-
         // Top champions
         const topChampions = Object.entries(championCounts)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
+        // Group tables by season
+        const tablesBySeason = {};
+        leagueTables.forEach(t => {
+            if (!tablesBySeason[t.season_id]) tablesBySeason[t.season_id] = [];
+            tablesBySeason[t.season_id].push(t);
+        });
+
         // Close finishes (1-3 point gaps at top)
-        const closeFinishes = leagueTables.filter(t => {
-            const sameSeasonTables = leagueTables.filter(lt => lt.season_id === t.season_id);
-            const first = sameSeasonTables.find(st => st.position === 1);
-            const second = sameSeasonTables.find(st => st.position === 2);
-            if (first && second && t.position === 1) {
-                return (first.points - second.points) <= 3;
+        let closeFinishes = 0;
+        let totalPointGap = 0;
+        let gapCount = 0;
+        Object.values(tablesBySeason).forEach(tables => {
+            const sorted = tables.sort((a, b) => a.position - b.position);
+            const first = sorted.find(t => t.position === 1);
+            const second = sorted.find(t => t.position === 2);
+            if (first && second && first.points && second.points) {
+                const gap = first.points - second.points;
+                totalPointGap += gap;
+                gapCount++;
+                if (gap <= 3) closeFinishes++;
             }
-            return false;
-        }).length;
+        });
+        const avgTitleGap = gapCount > 0 ? totalPointGap / gapCount : 0;
+
+        // ===== NEW METRICS =====
+
+        // 1. Promoted club success - how often do promoted clubs finish top half?
+        let promotedClubsTracked = 0;
+        let promotedTopHalf = 0;
+        let promotedTopQuarter = 0;
+        let promotedChampions = 0;
+        
+        sortedSeasons.forEach((season, idx) => {
+            if (idx === 0) return; // Skip first season
+            const prevSeason = sortedSeasons[idx - 1];
+            const promotedTeams = prevSeason.promoted_teams?.split(',').map(t => t.trim()).filter(Boolean) || [];
+            
+            const currentTables = tablesBySeason[season.id] || [];
+            const leagueSize = currentTables.length;
+            
+            promotedTeams.forEach(team => {
+                const teamTable = currentTables.find(t => t.club_name?.toLowerCase() === team.toLowerCase());
+                if (teamTable && leagueSize > 0) {
+                    promotedClubsTracked++;
+                    if (teamTable.position <= Math.ceil(leagueSize / 2)) promotedTopHalf++;
+                    if (teamTable.position <= Math.ceil(leagueSize / 4)) promotedTopQuarter++;
+                    if (teamTable.position === 1) promotedChampions++;
+                }
+            });
+        });
+        const promotedSuccessRate = promotedClubsTracked > 0 ? (promotedTopHalf / promotedClubsTracked) * 100 : 0;
+
+        // 2. Top 5/6 variety - how many different clubs appear in top positions?
+        const top5Clubs = new Set();
+        const top6Clubs = new Set();
+        const top3Clubs = new Set();
+        let seasonsWithTables = 0;
+        
+        Object.values(tablesBySeason).forEach(tables => {
+            if (tables.length === 0) return;
+            seasonsWithTables++;
+            tables.forEach(t => {
+                if (t.position <= 3 && t.club_name) top3Clubs.add(t.club_name);
+                if (t.position <= 5 && t.club_name) top5Clubs.add(t.club_name);
+                if (t.position <= 6 && t.club_name) top6Clubs.add(t.club_name);
+            });
+        });
+        
+        // Calculate how often the same clubs dominate top positions
+        const top5Appearances = {};
+        const top3Appearances = {};
+        Object.values(tablesBySeason).forEach(tables => {
+            tables.forEach(t => {
+                if (t.position <= 5 && t.club_name) {
+                    top5Appearances[t.club_name] = (top5Appearances[t.club_name] || 0) + 1;
+                }
+                if (t.position <= 3 && t.club_name) {
+                    top3Appearances[t.club_name] = (top3Appearances[t.club_name] || 0) + 1;
+                }
+            });
+        });
+        
+        // Concentration score - if same 5 clubs always in top 5, score is high (less competitive)
+        const top5AppearanceValues = Object.values(top5Appearances);
+        const maxPossibleTop5 = seasonsWithTables * 5;
+        const topClubsDominance = top5AppearanceValues.length > 0 
+            ? top5AppearanceValues.slice(0, 5).reduce((a, b) => a + b, 0) / maxPossibleTop5
+            : 0;
+
+        // 3. Back-to-back champions frequency
+        let backToBackCount = 0;
+        for (let i = 1; i < sortedSeasons.length; i++) {
+            if (sortedSeasons[i].champion_name && sortedSeasons[i].champion_name === sortedSeasons[i-1].champion_name) {
+                backToBackCount++;
+            }
+        }
+        const backToBackRate = sortedSeasons.length > 1 ? backToBackCount / (sortedSeasons.length - 1) : 0;
+
+        // 4. Title concentration - what % of titles does the top club have?
+        const mostTitles = topChampions.length > 0 ? topChampions[0][1] : 0;
+        const titleConcentration = champions.length > 0 ? mostTitles / champions.length : 0;
+
+        // 5. How often does champion change?
+        let championChanges = 0;
+        for (let i = 1; i < sortedSeasons.length; i++) {
+            if (sortedSeasons[i].champion_name && sortedSeasons[i-1].champion_name && 
+                sortedSeasons[i].champion_name !== sortedSeasons[i-1].champion_name) {
+                championChanges++;
+            }
+        }
+        const turnoverRate = sortedSeasons.length > 1 ? championChanges / (sortedSeasons.length - 1) : 0;
+
+        // ===== COMPETITIVENESS SCORE CALCULATION =====
+        // Weight different factors
+        let score = 0;
+        
+        // Unique champions factor (0-25 points) - more unique = better
+        const uniqueRatio = seasons.length > 0 ? uniqueChampions.length / seasons.length : 0;
+        score += Math.min(25, uniqueRatio * 40);
+        
+        // Title turnover (0-20 points) - higher turnover = more competitive
+        score += turnoverRate * 20;
+        
+        // Low title concentration (0-15 points) - less concentration = better
+        score += (1 - titleConcentration) * 15;
+        
+        // Close finishes (0-15 points)
+        const closeFinishRate = seasons.length > 0 ? closeFinishes / seasons.length : 0;
+        score += closeFinishRate * 15;
+        
+        // Low back-to-back rate (0-10 points)
+        score += (1 - backToBackRate) * 10;
+        
+        // Top 5 variety (0-10 points) - more variety = better
+        const top5Variety = seasonsWithTables > 0 ? top5Clubs.size / (seasonsWithTables * 2) : 0; // Expect ~10 different clubs per 5 seasons
+        score += Math.min(10, top5Variety * 10);
+        
+        // Promoted club success (0-5 points) - promoted doing well = competitive
+        score += Math.min(5, (promotedSuccessRate / 100) * 10);
+
+        const competitivenessScore = Math.round(Math.min(100, Math.max(0, score)));
 
         return {
             totalSeasons: seasons.length,
@@ -62,7 +190,23 @@ export default function LeagueCompetitiveness({ seasons = [], leagueTables = [] 
             dynasties,
             topChampions,
             closeFinishes,
-            mostDominant: topChampions[0]
+            avgTitleGap: Math.round(avgTitleGap * 10) / 10,
+            mostDominant: topChampions[0],
+            // New stats
+            promotedStats: {
+                tracked: promotedClubsTracked,
+                topHalf: promotedTopHalf,
+                topQuarter: promotedTopQuarter,
+                champions: promotedChampions,
+                successRate: Math.round(promotedSuccessRate)
+            },
+            top5Variety: top5Clubs.size,
+            top6Variety: top6Clubs.size,
+            top3Variety: top3Clubs.size,
+            backToBackRate: Math.round(backToBackRate * 100),
+            turnoverRate: Math.round(turnoverRate * 100),
+            titleConcentration: Math.round(titleConcentration * 100),
+            topClubsDominance: Math.round(topClubsDominance * 100)
         };
     }, [seasons, leagueTables]);
 
