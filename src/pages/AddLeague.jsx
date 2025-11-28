@@ -159,14 +159,14 @@ export default function AddLeague() {
                                 <div>
                                     <Label>Primary Color</Label>
                                     <div className="flex gap-2 mt-1">
-                                        <input type="color" value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="w-12 h-10 rounded cursor-pointer" />
+                                        <Input type="color" value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="w-12 h-10 p-1" />
                                         <Input value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} />
                                     </div>
                                 </div>
                                 <div>
                                     <Label>Secondary Color</Label>
                                     <div className="flex gap-2 mt-1">
-                                        <input type="color" value={formData.secondary_color} onChange={(e) => setFormData({...formData, secondary_color: e.target.value})} className="w-12 h-10 rounded cursor-pointer" />
+                                        <Input type="color" value={formData.secondary_color} onChange={(e) => setFormData({...formData, secondary_color: e.target.value})} className="w-12 h-10 p-1" />
                                         <Input value={formData.secondary_color} onChange={(e) => setFormData({...formData, secondary_color: e.target.value})} />
                                     </div>
                                 </div>
