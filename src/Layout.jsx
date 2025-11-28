@@ -14,19 +14,20 @@ export default function Layout({ children, currentPageName }) {
     }, [location.pathname, location.search]);
 
     const navItems = [
-                  { name: 'Home', icon: Home, page: 'Home' },
-                  { name: 'Nations', icon: Globe, page: 'Nations' },
-                  { name: 'Seasons', icon: Trophy, page: 'Seasons' },
-                  { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
-                  { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
-                  { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
-                  { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
-                  { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
-                  { name: 'Locations', icon: Globe, page: 'Locations' },
-                  { name: 'About', icon: Info, page: 'About' },
-                  { name: 'Contact', icon: Mail, page: 'Contact' },
-                  { name: 'Support', icon: Star, page: 'Support', highlight: true },
-              ];
+                        { name: 'Home', icon: Home, page: 'Home' },
+                        { name: 'Nations', icon: Globe, page: 'Nations' },
+                        { name: 'Seasons', icon: Trophy, page: 'Seasons' },
+                        { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
+                        { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
+                        { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
+                        { name: 'Stability', icon: Shield, page: 'ClubStability' },
+                        { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
+                        { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
+                        { name: 'Locations', icon: Globe, page: 'Locations' },
+                        { name: 'About', icon: Info, page: 'About' },
+                        { name: 'Contact', icon: Mail, page: 'Contact' },
+                        { name: 'Support', icon: Star, page: 'Support', highlight: true },
+                    ];
 
     return (
         <div className="min-h-screen bg-slate-50">

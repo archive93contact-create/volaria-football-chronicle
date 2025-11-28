@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles, Trophy, TrendingUp, TrendingDown, Shield, Check, X } from 'lucide-react';
-import { getStabilityStatus } from './StabilityCalculator';
+import { getStabilityStatus } from '../clubs/StabilityCalculator';
 
 export default function AISeasonGenerator({ leagueId, onComplete }) {
     const queryClient = useQueryClient();
