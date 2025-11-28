@@ -555,23 +555,25 @@ export default function LeagueDetail() {
                                                         <img src={nation.flag_url} alt={nation.name} className="w-5 h-3 object-contain" />
                                                     )}
                                                 </Link>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 absolute right-2 text-red-500 hover:text-red-700">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Delete {club.name}?</AlertDialogTitle>
-                                                            <AlertDialogDescription>This will permanently delete this club.</AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => deleteClubMutation.mutate(club.id)} className="bg-red-600">Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
+                                                <AdminOnly>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 absolute right-2 text-red-500 hover:text-red-700">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Delete {club.name}?</AlertDialogTitle>
+                                                                <AlertDialogDescription>This will permanently delete this club.</AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => deleteClubMutation.mutate(club.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </AdminOnly>
                                             </div>
                                         ))}
                                     </div>
@@ -697,31 +699,33 @@ export default function LeagueDetail() {
                                                             <Button variant="ghost" size="sm" onClick={() => handleViewTable(season.year)}>
                                                                 View
                                                             </Button>
-                                                            <Link to={createPageUrl(`EditSeasonTable?league_id=${leagueId}&season_id=${season.id}&year=${season.year}`)}>
-                                                                <Button variant="ghost" size="sm" title="Edit Table">
-                                                                    <Edit2 className="w-4 h-4" />
-                                                                </Button>
-                                                            </Link>
-                                                            <Button variant="ghost" size="sm" onClick={() => handleEditSeason(season)} title="Edit Season Info">
-                                                                ℹ️
-                                                            </Button>
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
-                                                                        <Trash2 className="w-4 h-4" />
+                                                            <AdminOnly>
+                                                                <Link to={createPageUrl(`EditSeasonTable?league_id=${leagueId}&season_id=${season.id}&year=${season.year}`)}>
+                                                                    <Button variant="ghost" size="sm" title="Edit Table">
+                                                                        <Edit2 className="w-4 h-4" />
                                                                     </Button>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader>
-                                                                        <AlertDialogTitle>Delete {season.year} season?</AlertDialogTitle>
-                                                                        <AlertDialogDescription>This will delete the season and all associated table data.</AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
+                                                                </Link>
+                                                                <Button variant="ghost" size="sm" onClick={() => handleEditSeason(season)} title="Edit Season Info">
+                                                                    ℹ️
+                                                                </Button>
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>Delete {season.year} season?</AlertDialogTitle>
+                                                                            <AlertDialogDescription>This will delete the season and all associated table data.</AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                            <AlertDialogAction onClick={() => deleteSeasonMutation.mutate(season.id)} className="bg-red-600">Delete</AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
+                                                            </AdminOnly>
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
@@ -763,6 +767,22 @@ export default function LeagueDetail() {
                         </div>
                         <div><Label>Description</Label><Textarea value={editData.description || ''} onChange={(e) => setEditData({...editData, description: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={4} className="mt-1" /></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Primary Color</Label>
+                                <div className="flex gap-2 mt-1">
+                                    <Input type="color" value={editData.primary_color || '#1e40af'} onChange={(e) => setEditData({...editData, primary_color: e.target.value})} className="w-12 h-10 p-1" />
+                                    <Input value={editData.primary_color || ''} onChange={(e) => setEditData({...editData, primary_color: e.target.value})} placeholder="#1e40af" />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Secondary Color</Label>
+                                <div className="flex gap-2 mt-1">
+                                    <Input type="color" value={editData.secondary_color || '#3b82f6'} onChange={(e) => setEditData({...editData, secondary_color: e.target.value})} className="w-12 h-10 p-1" />
+                                    <Input value={editData.secondary_color || ''} onChange={(e) => setEditData({...editData, secondary_color: e.target.value})} placeholder="#3b82f6" />
+                                </div>
+                            </div>
+                        </div>
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}><X className="w-4 h-4 mr-2" /> Cancel</Button>
                             <Button onClick={handleSave} disabled={updateMutation.isPending} className="bg-emerald-600"><Save className="w-4 h-4 mr-2" /> Save</Button>

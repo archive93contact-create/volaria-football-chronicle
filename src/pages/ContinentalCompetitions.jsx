@@ -166,6 +166,15 @@ export default function ContinentalCompetitions() {
                 </div>
             </div>
             <div>
+                <Label>Logo URL</Label>
+                <Input 
+                    value={formData.logo_url || ''} 
+                    onChange={(e) => setFormData({...formData, logo_url: e.target.value})}
+                    placeholder="https://..."
+                    className="mt-1"
+                />
+            </div>
+            <div>
                 <Label>Participating Nations (for VCC select all VCC nations, for CCC select CCC nations)</Label>
                 <Textarea 
                     value={formData.participating_nation_ids?.join(',') || ''} 

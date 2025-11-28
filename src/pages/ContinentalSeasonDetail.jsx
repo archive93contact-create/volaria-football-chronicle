@@ -136,6 +136,38 @@ export default function ContinentalSeasonDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Season Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <Card className="border-0 shadow-sm">
+                        <CardContent className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-800">{matches.length}</div>
+                            <div className="text-xs text-slate-500">Total Matches</div>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-sm">
+                        <CardContent className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-800">{Object.keys(matchesByRound).length}</div>
+                            <div className="text-xs text-slate-500">Rounds</div>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-sm">
+                        <CardContent className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-800">
+                                {new Set([...matches.map(m => m.home_club_name), ...matches.map(m => m.away_club_name)]).size}
+                            </div>
+                            <div className="text-xs text-slate-500">Clubs Participated</div>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-sm">
+                        <CardContent className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-800">
+                                {new Set([...matches.map(m => m.home_club_nation), ...matches.map(m => m.away_club_nation)].filter(Boolean)).size}
+                            </div>
+                            <div className="text-xs text-slate-500">Nations Represented</div>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 {/* Season Narratives */}
                 <SeasonNarratives 
                     matches={matches}
