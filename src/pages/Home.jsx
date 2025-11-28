@@ -75,11 +75,9 @@ export default function Home() {
         return { complete, inProgress, planned };
     }, [nations, leagues, clubs, coefficients, seasons]);
 
-    // Featured nations (top ranked with good data)
+    // Featured nations (top ranked with seasons)
     const featuredNations = useMemo(() => {
-        return categorizedNations.complete
-            .filter(n => n.clubCount >= 10 && n.leagueCount >= 2)
-            .slice(0, 5);
+        return categorizedNations.complete.slice(0, 4);
     }, [categorizedNations]);
 
     // Iconic clubs (those with VCC/CCC titles)
