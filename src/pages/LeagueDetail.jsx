@@ -358,6 +358,7 @@ export default function LeagueDetail() {
                         <TabsTrigger value="clubs">Clubs ({clubs.length})</TabsTrigger>
                         <TabsTrigger value="titles">Most Titles</TabsTrigger>
                         <TabsTrigger value="history">Season History</TabsTrigger>
+                        <TabsTrigger value="records">All-Time Records</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="table">
