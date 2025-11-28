@@ -198,9 +198,31 @@ export default function LeagueDetail() {
     const previousYear = currentYearIndex > 0 ? sortedYears[currentYearIndex - 1] : null;
     const previousSeason = previousYear ? seasons.find(s => s.year === previousYear) : null;
     
-    // Get promoted/relegated teams from previous season
-    const promotedTeams = previousSeason?.promoted_teams?.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) || [];
-    const relegatedTeams = previousSeason?.relegated_teams?.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) || [];
+    // Get promoted teams from lower tier leagues (teams that got promoted TO this league)
+    const lowerTierLeagues = allNationLeagues.filter(l => l.tier === (league?.tier || 1) + 1);
+    const promotedToThisLeague = [];
+    lowerTierLeagues.forEach(lowerLeague => {
+        const lowerPrevSeason = allNationSeasons.find(s => s.league_id === lowerLeague.id && s.year === previousYear);
+        if (lowerPrevSeason?.promoted_teams) {
+            lowerPrevSeason.promoted_teams.split(',').forEach(t => {
+                if (t.trim()) promotedToThisLeague.push(t.trim().toLowerCase());
+            });
+        }
+    });
+    
+    // Get relegated teams from higher tier leagues (teams that got relegated TO this league)
+    const higherTierLeagues = allNationLeagues.filter(l => l.tier === (league?.tier || 1) - 1);
+    const relegatedToThisLeague = [];
+    higherTierLeagues.forEach(higherLeague => {
+        const higherPrevSeason = allNationSeasons.find(s => s.league_id === higherLeague.id && s.year === previousYear);
+        if (higherPrevSeason?.relegated_teams) {
+            higherPrevSeason.relegated_teams.split(',').forEach(t => {
+                if (t.trim()) relegatedToThisLeague.push(t.trim().toLowerCase());
+            });
+        }
+    });
+    
+    // Get previous champion of THIS league (for top tier)
     const previousChampion = previousSeason?.champion_name?.trim().toLowerCase() || '';
     
     // Helper to check club status
@@ -208,8 +230,8 @@ export default function LeagueDetail() {
         if (!clubName) return { isPromoted: false, isRelegated: false, isChampion: false };
         const name = clubName.trim().toLowerCase();
         return {
-            isPromoted: promotedTeams.some(t => t === name || name.includes(t) || t.includes(name)),
-            isRelegated: relegatedTeams.some(t => t === name || name.includes(t) || t.includes(name)),
+            isPromoted: promotedToThisLeague.some(t => t === name || name.includes(t) || t.includes(name)),
+            isRelegated: relegatedToThisLeague.some(t => t === name || name.includes(t) || t.includes(name)),
             isChampion: league.tier === 1 && previousChampion && (previousChampion === name || name.includes(previousChampion) || previousChampion.includes(name))
         };
     };
