@@ -159,7 +159,7 @@ export default function Home() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="text-center mb-8">
                         <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">New Here? Start Exploring</h2>
-                        <p className="text-slate-500">Volaria can feel vast — here are some great starting points to discover the world</p>
+                        <p className="text-slate-500">Volaria can feel vast - here are some great starting points to discover the world</p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -250,7 +250,7 @@ export default function Home() {
                                     </div>
                                     <h3 className="font-bold text-slate-900">Continental Glory</h3>
                                 </div>
-                                <p className="text-sm text-slate-600 mb-4">The biggest prizes in Volarian football — where legends are made</p>
+                                <p className="text-sm text-slate-600 mb-4">The biggest prizes in Volarian football - where legends are made</p>
                                 <div className="space-y-3">
                                     <Link 
                                         to={createPageUrl('ContinentalCompetitions')}
@@ -406,7 +406,7 @@ export default function Home() {
                                 </div>
                                 <h2 className="text-2xl md:text-3xl font-bold mb-4">Help Keep Volaria Growing</h2>
                                 <p className="text-slate-300 mb-6">
-                                    Volaria is a labour of love — 18+ years of imagining, building, and refining this fictional football world. 
+                                    Volaria is a labour of love - 18+ years of imagining, building, and refining this fictional football world. 
                                     If you enjoy exploring it, consider supporting its continued development. Every contribution helps keep the dream alive.
                                 </p>
                                 <div className="flex flex-wrap gap-3">

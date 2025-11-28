@@ -127,6 +127,16 @@ export default function ContinentalCompetitions() {
                     <Input value={formData.most_titles_club} onChange={(e) => setFormData({...formData, most_titles_club: e.target.value})} className="mt-1" />
                 </div>
             </div>
+            <div>
+                <Label>Participating Nations (for VCC select all VCC nations, for CCC select CCC nations)</Label>
+                <Textarea 
+                    value={formData.participating_nation_ids?.join(',') || ''} 
+                    onChange={(e) => setFormData({...formData, participating_nation_ids: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                    placeholder="Paste nation IDs, comma separated"
+                    rows={2}
+                    className="mt-1 text-xs"
+                />
+            </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Primary Color</Label>

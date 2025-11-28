@@ -46,10 +46,48 @@ export default function CompetitionDetail() {
         queryFn: () => base44.entities.Nation.list('name'),
     });
 
+    const { data: clubs = [] } = useQuery({
+        queryKey: ['clubs'],
+        queryFn: () => base44.entities.Club.list(),
+    });
+
     const getNationFlag = (nationName) => {
         const nation = nations.find(n => n.name?.toLowerCase() === nationName?.toLowerCase());
         return nation?.flag_url;
     };
+
+    // Get participating nations
+    const participatingNations = React.useMemo(() => {
+        if (!competition?.participating_nation_ids || competition.participating_nation_ids.length === 0) {
+            return nations.filter(n => n.membership === (competition?.tier === 1 ? 'VCC' : 'CCC'));
+        }
+        return nations.filter(n => competition.participating_nation_ids.includes(n.id));
+    }, [competition, nations]);
+
+    // Count titles per nation and club
+    const titlesByNation = React.useMemo(() => {
+        const counts = {};
+        seasons.forEach(s => {
+            if (s.champion_nation) {
+                counts[s.champion_nation] = (counts[s.champion_nation] || 0) + 1;
+            }
+        });
+        return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    }, [seasons]);
+
+    const titlesByClub = React.useMemo(() => {
+        const counts = {};
+        seasons.forEach(s => {
+            if (s.champion_name) {
+                counts[s.champion_name] = {
+                    count: (counts[s.champion_name]?.count || 0) + 1,
+                    nation: s.champion_nation,
+                    years: [...(counts[s.champion_name]?.years || []), s.year]
+                };
+            }
+        });
+        return Object.entries(counts).sort((a, b) => b[1].count - a[1].count);
+    }, [seasons]);
 
     const createSeasonMutation = useMutation({
         mutationFn: (data) => base44.entities.ContinentalSeason.create({ ...data, competition_id: compId }),
@@ -167,25 +205,119 @@ export default function CompetitionDetail() {
                         <ChevronRight className="w-4 h-4" />
                         <span className="text-white">{competition.short_name || competition.name}</span>
                     </nav>
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-6 mb-6">
                         <div className="w-20 h-20 md:w-28 md:h-28 bg-white/20 rounded-2xl flex items-center justify-center">
-                            {competition.tier === 1 ? <Star className="w-12 h-12 text-white" /> : <Trophy className="w-12 h-12 text-white" />}
+                            {competition.tier === 1 ? <Star className="w-12 h-12 md:w-16 md:h-16 text-white" /> : <Trophy className="w-12 h-12 md:w-16 md:h-16 text-white" />}
                         </div>
-                        <div>
+                        <div className="flex-1">
                             <h1 className="text-3xl md:text-5xl font-bold text-white">{competition.name}</h1>
                             {competition.description && <p className="mt-2 text-white/80 max-w-2xl">{competition.description}</p>}
                         </div>
                     </div>
+
+                    {/* Participating Nations Flags */}
+                    {participatingNations.length > 0 && (
+                        <div className="mt-6 pt-6 border-t border-white/20">
+                            <p className="text-white/60 text-sm mb-3">Participating Nations ({participatingNations.length})</p>
+                            <div className="flex flex-wrap gap-2">
+                                {participatingNations.map(nation => (
+                                    <Link 
+                                        key={nation.id}
+                                        to={createPageUrl(`NationDetail?id=${nation.id}`)}
+                                        className="group relative"
+                                        title={nation.name}
+                                    >
+                                        {nation.flag_url ? (
+                                            <img 
+                                                src={nation.flag_url} 
+                                                alt={nation.name}
+                                                className="w-12 h-8 object-cover rounded shadow-lg border-2 border-white/30 hover:border-white/80 transition-all hover:scale-110"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-8 bg-white/20 rounded border-2 border-white/30 flex items-center justify-center">
+                                                <span className="text-xs text-white/60">{nation.name.substring(0, 3)}</span>
+                                            </div>
+                                        )}
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                     {competition.founded_year && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Calendar className="w-6 h-6 text-emerald-500 mx-auto mb-2" /><div className="text-2xl font-bold">{competition.founded_year}</div><div className="text-xs text-slate-500">Founded</div></CardContent></Card>}
                     <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" /><div className="text-2xl font-bold">{seasons.length}</div><div className="text-xs text-slate-500">Editions</div></CardContent></Card>
                     {competition.number_of_teams && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{competition.number_of_teams}</div><div className="text-xs text-slate-500">Teams</div></CardContent></Card>}
-                    {competition.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-lg font-bold text-emerald-600 truncate">{competition.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
+                    <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{participatingNations.length}</div><div className="text-xs text-slate-500">Nations</div></CardContent></Card>
+                    {competition.current_champion && <Card className="border-0 shadow-sm"><CardContent className="p-4 text-center"><div className="text-sm font-bold text-emerald-600 truncate">{competition.current_champion}</div><div className="text-xs text-slate-500">Champion</div></CardContent></Card>}
+                </div>
+
+                {/* Title Statistics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {/* Titles by Nation */}
+                    {titlesByNation.length > 0 && (
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader><CardTitle className="text-lg">Titles by Nation</CardTitle></CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {titlesByNation.slice(0, 10).map(([nationName, count], idx) => {
+                                        const nation = nations.find(n => n.name === nationName);
+                                        return (
+                                            <div key={nationName} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-slate-400 font-bold w-6">{idx + 1}</span>
+                                                    {nation?.flag_url && (
+                                                        <img src={nation.flag_url} alt="" className="w-6 h-4 object-cover rounded-sm" />
+                                                    )}
+                                                    <span className="font-medium text-slate-700">{nationName}</span>
+                                                </div>
+                                                <span className="font-bold text-emerald-600">{count}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Most Successful Clubs */}
+                    {titlesByClub.length > 0 && (
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader><CardTitle className="text-lg">Most Successful Clubs</CardTitle></CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {titlesByClub.slice(0, 10).map(([clubName, data], idx) => {
+                                        const club = clubs.find(c => c.name === clubName);
+                                        const nation = nations.find(n => n.name === data.nation);
+                                        return (
+                                            <div key={clubName} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50">
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <span className="text-slate-400 font-bold w-6">{idx + 1}</span>
+                                                    {club?.logo_url && (
+                                                        <img src={club.logo_url} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+                                                    )}
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="font-medium text-slate-700 truncate">{clubName}</span>
+                                                        <div className="flex items-center gap-1">
+                                                            {nation?.flag_url && (
+                                                                <img src={nation.flag_url} alt="" className="w-4 h-3 object-cover rounded-sm" />
+                                                            )}
+                                                            <span className="text-xs text-slate-500">{data.nation}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span className="font-bold text-amber-600 ml-2">{data.count}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Narratives - Competition Story */}

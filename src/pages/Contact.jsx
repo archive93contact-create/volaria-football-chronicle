@@ -52,7 +52,7 @@ ${formData.message}
                         Get in Touch
                     </h1>
                     <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-                        Have questions, ideas, or want to get involved? I'd love to hear from you!
+                        Have questions, ideas, or want to get involved? I would love to hear from you!
                     </p>
                 </div>
             </div>
@@ -102,7 +102,7 @@ ${formData.message}
                                 <div className="text-center py-12">
                                     <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">Message Sent!</h3>
-                                    <p className="text-slate-600 mb-6">Thanks for reaching out. I'll get back to you soon.</p>
+                                    <p className="text-slate-600 mb-6">Thanks for reaching out. I will get back to you soon.</p>
                                     <Button variant="outline" onClick={() => setSent(false)}>
                                         Send Another Message
                                     </Button>

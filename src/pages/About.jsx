@@ -1,256 +1,279 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Heart, Calendar, Sparkles, BookOpen, Users, Trophy, MapPin, Star, Coffee, Download, FileText, Map, ChevronRight } from 'lucide-react';
+import { Globe, Trophy, Shield, Calendar, Heart, ChevronRight, Coffee, Sparkles, BookOpen, Users, Star, MapPin, Clock, Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import PageHeader from '@/components/common/PageHeader';
+import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
 export default function About() {
+    const { data: nations = [] } = useQuery({
+        queryKey: ['nations'],
+        queryFn: () => base44.entities.Nation.list(),
+    });
+
+    const { data: clubs = [] } = useQuery({
+        queryKey: ['clubs'],
+        queryFn: () => base44.entities.Club.list(),
+    });
+
+    const { data: seasons = [] } = useQuery({
+        queryKey: ['allSeasons'],
+        queryFn: () => base44.entities.Season.list(),
+    });
+
+    const { data: leagues = [] } = useQuery({
+        queryKey: ['leagues'],
+        queryFn: () => base44.entities.League.list(),
+    });
+
     return (
         <div className="min-h-screen bg-slate-50">
-            <PageHeader 
-                title="About Volaria"
-                subtitle="The story behind 18+ years of fictional football"
-                breadcrumbs={[{ label: 'About' }]}
-            />
-
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Origin Story */}
-                <Card className="border-0 shadow-lg mb-8 overflow-hidden">
-                    <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-8 text-white">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                                <Sparkles className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold">The Origin Story</h2>
-                                <p className="text-emerald-100">How Volaria Came to Be</p>
-                            </div>
-                        </div>
+            {/* Hero */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900">
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1920')] opacity-10 bg-cover bg-center" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent" />
+                
+                <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 text-center">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-6">
+                        <Heart className="w-4 h-4" />
+                        A Passion Project
                     </div>
-                    <CardContent className="p-8">
-                        <div className="prose prose-slate max-w-none">
-                            <p className="text-lg text-slate-700 leading-relaxed mb-6">
-                                Volaria began in 2007 as a simple notebook filled with imaginary football leagues, 
-                                scribbled during breaks and quiet evenings. What started as idle daydreaming about 
-                                fictional clubs and their histories slowly grew into something much larger — a fully 
-                                realised continent with its own geography, culture, and 100+ years of sporting history.
-                            </p>
-                            <p className="text-slate-600 leading-relaxed mb-6">
-                                Over the years, the project evolved from paper notes to spreadsheets, and finally 
-                                to this digital home. Each nation has been carefully developed with its own football 
-                                identity — from the powerhouse leagues of established federations to the emerging 
-                                scenes of smaller nations finding their place in continental competition.
-                            </p>
-                            <p className="text-slate-600 leading-relaxed">
-                                This isn't just a database of fictional stats. It's a living world where clubs have 
-                                risen and fallen, where dynasties have been built and broken, where every number 
-                                tells a story. Some clubs are inspired by real-world football culture, others are 
-                                entirely original — but all of them feel real to me, and I hope they will to you too.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">
+                        The Story of Volaria
+                    </h1>
+                    <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+                        18+ years of imagination, one fictional football universe at a time
+                    </p>
+                </div>
+            </div>
+
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                {/* Origin Story */}
+                <div className="grid md:grid-cols-3 gap-8 mb-16">
+                    <div className="md:col-span-2">
+                        <Card className="border-0 shadow-lg h-full">
+                            <CardContent className="p-8 md:p-10">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                                        <BookOpen className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-slate-900">How It All Began</h2>
+                                </div>
+                                <div className="prose prose-lg prose-slate max-w-none space-y-4">
+                                    <p className="text-lg text-slate-600">
+                                        It started with <strong className="text-emerald-600">dice games</strong>. As a kid, I always dreamed of running my own football league - creating teams, inventing histories, imagining the drama of promotion battles and title races. 
+                                    </p>
+                                    <p className="text-slate-600">
+                                        My friends and I would gather, roll dice, and play out matches with our made-up teams based on the English Football League system. Each team had a name, a story, and - most importantly - rivals.
+                                    </p>
+                                    <p className="text-slate-600">
+                                        What began as childhood games evolved into something much bigger. The <strong className="text-emerald-600">TFA Football League</strong> - my original creation - grew into a complete league pyramid. Then came more nations. More history. More stories.
+                                    </p>
+                                    <p className="text-slate-600">
+                                        Over 18+ years, I've run seasons using everything from pen-and-paper to spreadsheets to Football Manager. Each era added new layers of depth - club backstories, continental competitions, coefficients, and the rich tapestry of rivalries that make football magical.
+                                    </p>
+                                    <p className="text-slate-600">
+                                        Today, <strong className="text-emerald-600">Volaria</strong> is the culmination of all that work - a fictional continent home to {nations.length} nations, {clubs.length.toLocaleString()} clubs, and over {seasons.length} seasons of imagined football history. Every club has a story. Every season tells a tale.
+                                    </p>
+                                </div>
+                                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                                        <Users className="w-7 h-7 text-slate-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xl font-bold text-slate-800">- Matt</p>
+                                        <p className="text-slate-500">Creator of Volaria</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="space-y-4">
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                            <CardContent className="p-6">
+                                <Clock className="w-8 h-8 mb-3 opacity-80" />
+                                <div className="text-4xl font-bold">18+</div>
+                                <div className="text-emerald-100">Years in the Making</div>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                            <CardContent className="p-6">
+                                <Globe className="w-8 h-8 mb-3 opacity-80" />
+                                <div className="text-4xl font-bold">{nations.length}</div>
+                                <div className="text-blue-100">Nations</div>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+                            <CardContent className="p-6">
+                                <Trophy className="w-8 h-8 mb-3 opacity-80" />
+                                <div className="text-4xl font-bold">{seasons.length}</div>
+                                <div className="text-amber-100">Seasons Played</div>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-500 to-pink-600 text-white">
+                            <CardContent className="p-6">
+                                <Shield className="w-8 h-8 mb-3 opacity-80" />
+                                <div className="text-4xl font-bold">{clubs.length.toLocaleString()}</div>
+                                <div className="text-purple-100">Clubs with Stories</div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
 
                 {/* Timeline */}
-                <Card className="border-0 shadow-sm mb-8">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-emerald-500" />
-                            The Journey So Far
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                <Card className="border-0 shadow-lg mb-16">
+                    <CardContent className="p-8">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+                            <Sparkles className="w-6 h-6 text-amber-500" />
+                            The Evolution of Volaria
+                        </h2>
                         <div className="space-y-6">
                             <div className="flex gap-4">
-                                <div className="w-16 text-right">
-                                    <Badge className="bg-emerald-100 text-emerald-700">2007</Badge>
-                                </div>
-                                <div className="flex-1 pb-6 border-l-2 border-emerald-200 pl-6 relative">
-                                    <div className="absolute w-3 h-3 bg-emerald-500 rounded-full -left-[7px] top-1" />
-                                    <h4 className="font-semibold text-slate-800">The First Notebooks</h4>
-                                    <p className="text-slate-600 text-sm">First fictional leagues created on paper, inspired by a love of football and worldbuilding</p>
-                                </div>
+                            <div className="w-24 flex-shrink-0 text-right">
+                                <span className="text-sm font-bold text-emerald-600">~2006</span>
+                            </div>
+                            <div className="w-3 h-3 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></div>
+                            <div>
+                                <h3 className="font-semibold text-slate-900">The Beginning</h3>
+                                <p className="text-slate-600">Dice games with friends, creating made-up teams and playing out matches on paper.</p>
+                            </div>
                             </div>
                             <div className="flex gap-4">
-                                <div className="w-16 text-right">
-                                    <Badge className="bg-blue-100 text-blue-700">2010s</Badge>
-                                </div>
-                                <div className="flex-1 pb-6 border-l-2 border-blue-200 pl-6 relative">
-                                    <div className="absolute w-3 h-3 bg-blue-500 rounded-full -left-[7px] top-1" />
-                                    <h4 className="font-semibold text-slate-800">Digital Migration</h4>
-                                    <p className="text-slate-600 text-sm">Moved to spreadsheets, expanded to multiple nations, created continental competitions</p>
-                                </div>
+                            <div className="w-24 flex-shrink-0 text-right">
+                                <span className="text-sm font-bold text-blue-600">2008-2012</span>
+                            </div>
+                            <div className="w-3 h-3 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                            <div>
+                                <h3 className="font-semibold text-slate-900">TFA is Born</h3>
+                                <p className="text-slate-600">The TFA Football League takes shape - a full pyramid based on English football, with hundreds of clubs.</p>
+                            </div>
                             </div>
                             <div className="flex gap-4">
-                                <div className="w-16 text-right">
-                                    <Badge className="bg-purple-100 text-purple-700">2020s</Badge>
-                                </div>
-                                <div className="flex-1 pb-6 border-l-2 border-purple-200 pl-6 relative">
-                                    <div className="absolute w-3 h-3 bg-purple-500 rounded-full -left-[7px] top-1" />
-                                    <h4 className="font-semibold text-slate-800">Volaria Goes Online</h4>
-                                    <p className="text-slate-600 text-sm">Built this website to share the world, added detailed club histories and narratives</p>
-                                </div>
+                            <div className="w-24 flex-shrink-0 text-right">
+                                <span className="text-sm font-bold text-purple-600">2012-2018</span>
+                            </div>
+                            <div className="w-3 h-3 rounded-full bg-purple-500 mt-1.5 flex-shrink-0"></div>
+                            <div>
+                                <h3 className="font-semibold text-slate-900">Expansion Era</h3>
+                                <p className="text-slate-600">More nations join. Continental competitions emerge. Spreadsheets grow massive. Football Manager simulates seasons.</p>
+                            </div>
                             </div>
                             <div className="flex gap-4">
-                                <div className="w-16 text-right">
-                                    <Badge className="bg-amber-100 text-amber-700">Now</Badge>
-                                </div>
-                                <div className="flex-1 pl-6 relative">
-                                    <div className="absolute w-3 h-3 bg-amber-500 rounded-full -left-[7px] top-1" />
-                                    <h4 className="font-semibold text-slate-800">Continuous Expansion</h4>
-                                    <p className="text-slate-600 text-sm">Adding new nations, filling in historical gaps, and sharing stories with fellow football dreamers</p>
-                                </div>
+                            <div className="w-24 flex-shrink-0 text-right">
+                                <span className="text-sm font-bold text-amber-600">2018-2023</span>
+                            </div>
+                            <div className="w-3 h-3 rounded-full bg-amber-500 mt-1.5 flex-shrink-0"></div>
+                            <div>
+                                <h3 className="font-semibold text-slate-900">The Volarian Continent</h3>
+                                <p className="text-slate-600">All nations unified under one fictional continent. Rich backstories, coefficients, and interconnected histories.</p>
+                            </div>
+                            </div>
+                            <div className="flex gap-4">
+                            <div className="w-24 flex-shrink-0 text-right">
+                                <span className="text-sm font-bold text-rose-600">2024+</span>
+                            </div>
+                            <div className="w-3 h-3 rounded-full bg-rose-500 mt-1.5 flex-shrink-0"></div>
+                            <div>
+                                <h3 className="font-semibold text-slate-900">This Website</h3>
+                                <p className="text-slate-600">Finally, a home for Volaria online - where everyone can explore the world I've been building for nearly two decades.</p>
+                            </div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* What Makes Volaria Special */}
-                <Card className="border-0 shadow-sm mb-8">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Star className="w-5 h-5 text-amber-500" />
-                            What Makes Volaria Special
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-4 rounded-lg bg-slate-50">
-                                <Trophy className="w-8 h-8 text-amber-500 mb-3" />
-                                <h4 className="font-semibold text-slate-800 mb-2">Deep History</h4>
-                                <p className="text-slate-600 text-sm">
-                                    Every league has decades of results, every club has a story arc — 
-                                    from founding to glory days to potential decline.
-                                </p>
-                            </div>
-                            <div className="p-4 rounded-lg bg-slate-50">
-                                <MapPin className="w-8 h-8 text-emerald-500 mb-3" />
-                                <h4 className="font-semibold text-slate-800 mb-2">Geographic Logic</h4>
-                                <p className="text-slate-600 text-sm">
-                                    Nations have regions, districts, and settlements. Clubs are placed 
-                                    in locations that make sense for local rivalries.
-                                </p>
-                            </div>
-                            <div className="p-4 rounded-lg bg-slate-50">
-                                <Users className="w-8 h-8 text-blue-500 mb-3" />
-                                <h4 className="font-semibold text-slate-800 mb-2">Rivalries & Derbies</h4>
-                                <p className="text-slate-600 text-sm">
-                                    Organic rivalries emerge from geography and history — 
-                                    city derbies, regional conflicts, and old grudges.
-                                </p>
-                            </div>
-                            <div className="p-4 rounded-lg bg-slate-50">
-                                <BookOpen className="w-8 h-8 text-purple-500 mb-3" />
-                                <h4 className="font-semibold text-slate-800 mb-2">Narrative Focus</h4>
-                                <p className="text-slate-600 text-sm">
-                                    This isn't just stats — it's stories. Every dynasty, 
-                                    every relegation battle, every unexpected champion.
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <div className="mb-16">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6 text-center">What Makes Volaria Special</h2>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="p-6 text-center">
+                                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-100 flex items-center justify-center">
+                                    <Trophy className="w-6 h-6 text-amber-600" />
+                                </div>
+                                <h3 className="font-bold text-slate-900 mb-2">Complete Histories</h3>
+                                <p className="text-slate-600 text-sm">Every season tracked. Every champion recorded. Decades of fictional football preserved.</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="p-6 text-center">
+                                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-red-100 flex items-center justify-center">
+                                    <Zap className="w-6 h-6 text-red-600" />
+                                </div>
+                                <h3 className="font-bold text-slate-900 mb-2">Real Rivalries</h3>
+                                <p className="text-slate-600 text-sm">Derbies, grudge matches, and heated competitions that have evolved over imaginary decades.</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="p-6 text-center">
+                                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-100 flex items-center justify-center">
+                                    <MapPin className="w-6 h-6 text-emerald-600" />
+                                </div>
+                                <h3 className="font-bold text-slate-900 mb-2">Rich Geography</h3>
+                                <p className="text-slate-600 text-sm">Nations with distinct football cultures, from powerhouses to emerging minnows.</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
 
                 {/* Support Section */}
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white mb-8">
-                    <CardContent className="p-8">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                                <Heart className="w-6 h-6 text-red-400" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold">Support This Project</h2>
-                                <p className="text-slate-300">Help keep Volaria growing</p>
-                            </div>
-                        </div>
-                        
-                        <p className="text-slate-300 mb-6 leading-relaxed">
-                            Volaria is and always will be free to explore. This is a hobby, not a business. 
-                            But if you enjoy wandering through this fictional world and want to support its 
-                            continued development, there are a few ways you can help:
-                        </p>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div className="p-4 rounded-lg bg-white/10">
-                                <Coffee className="w-6 h-6 text-amber-400 mb-2" />
-                                <h4 className="font-semibold mb-1">Buy Me a Coffee</h4>
-                                <p className="text-slate-400 text-sm mb-3">
-                                    A small contribution to fuel late-night worldbuilding sessions
-                                </p>
-                                <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
-                                    Support on Ko-fi
-                                </Button>
-                            </div>
-                            <div className="p-4 rounded-lg bg-white/10">
-                                <Globe className="w-6 h-6 text-emerald-400 mb-2" />
-                                <h4 className="font-semibold mb-1">Spread the Word</h4>
-                                <p className="text-slate-400 text-sm mb-3">
-                                    Share Volaria with fellow football fans and worldbuilding enthusiasts
-                                </p>
-                                <Button size="sm" variant="outline" className="border-white/30 hover:bg-white/10">
-                                    Share Volaria
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-white/10 pt-6">
-                            <h4 className="font-semibold mb-4 flex items-center gap-2">
-                                <Download className="w-5 h-5 text-blue-400" />
-                                Digital Extras (Coming Soon)
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                                    <Map className="w-8 h-8 text-slate-400" />
-                                    <div>
-                                        <div className="font-medium text-sm">Volaria World Map</div>
-                                        <div className="text-xs text-slate-400">Printable A3 poster (PDF)</div>
-                                    </div>
-                                    <Badge variant="outline" className="ml-auto text-xs">Soon</Badge>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden mb-16">
+                    <CardContent className="p-8 md:p-10">
+                        <div className="flex flex-col md:flex-row items-center gap-8">
+                            <div className="flex-1">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-sm font-medium mb-4">
+                                    <Heart className="w-4 h-4" /> Support This Project
                                 </div>
-                                <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                                    <FileText className="w-8 h-8 text-slate-400" />
-                                    <div>
-                                        <div className="font-medium text-sm">Starter Guide</div>
-                                        <div className="text-xs text-slate-400">Introduction to the world (PDF)</div>
-                                    </div>
-                                    <Badge variant="outline" className="ml-auto text-xs">Soon</Badge>
+                                <h2 className="text-2xl md:text-3xl font-bold mb-4">Help Volaria Grow</h2>
+                                <p className="text-slate-300 mb-6">
+                                    This is a hobby project — built with love over 18+ years. If you enjoy exploring Volaria, consider supporting its ongoing development. 
+                                    Your support helps cover hosting costs and motivates continued work on new features, more nations, and richer histories.
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    <a 
+                                        href="https://ko-fi.com/volaria" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Button className="bg-[#FF5E5B] hover:bg-[#ff4744] text-white">
+                                            <Coffee className="w-4 h-4 mr-2" />
+                                            Buy Me a Coffee
+                                        </Button>
+                                    </a>
+                                </div>
+                                <p className="text-slate-400 text-sm mt-4">
+                                    All content remains free. Supporting is entirely optional but deeply appreciated.
+                                </p>
+                            </div>
+                            <div className="hidden md:block">
+                                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                                    <Globe className="w-14 h-14 text-white" />
                                 </div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Get Started CTA */}
-                <Card className="border-0 shadow-sm bg-emerald-50">
-                    <CardContent className="p-8 text-center">
-                        <Globe className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">Ready to Explore?</h3>
-                        <p className="text-slate-600 mb-6">
-                            Dive into the nations, clubs, and competitions of Volaria
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-3">
-                            <Link to={createPageUrl('Nations')}>
-                                <Button className="bg-emerald-600 hover:bg-emerald-700">
-                                    Explore Nations
-                                    <ChevronRight className="w-4 h-4 ml-2" />
-                                </Button>
-                            </Link>
-                            <Link to={createPageUrl('AllClubs')}>
-                                <Button variant="outline">
-                                    Browse Clubs
-                                </Button>
-                            </Link>
-                            <Link to={createPageUrl('ContinentalCompetitions')}>
-                                <Button variant="outline">
-                                    Continental Cups
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* CTA */}
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">Ready to Explore?</h2>
+                    <p className="text-slate-600 mb-6">Dive into the world of Volarian football</p>
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <Link to={createPageUrl('Nations')}>
+                            <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
+                                Explore Nations
+                                <ChevronRight className="w-5 h-5 ml-2" />
+                            </Button>
+                        </Link>
+                        <Link to={createPageUrl('Contact')}>
+                            <Button size="lg" variant="outline">
+                                Get in Touch
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
             </div>
         </div>
     );
