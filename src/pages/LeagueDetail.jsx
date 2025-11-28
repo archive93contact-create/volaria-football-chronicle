@@ -455,11 +455,15 @@ export default function LeagueDetail() {
                 {/* League History Timeline */}
                 <LeagueHistory league={league} seasons={seasons} nation={nation} />
 
+                {/* League Narratives */}
+                <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
                 </div>
 
-                {/* Season Storylines */}
+                {/* Season Storylines Section */}
                 <div id="season-story">
-                    {(selectedSeason || uniqueYears[0]) && (
+                {/* Season Storylines for selected season */}
+                {(selectedSeason || uniqueYears[0]) && (
+                    <div className="mb-8">
                         <SeasonStorylines 
                             season={seasons.find(s => s.year === (selectedSeason || uniqueYears[0]))}
                             league={league}
@@ -468,12 +472,12 @@ export default function LeagueDetail() {
                             allLeagueTables={leagueTables}
                             clubs={allNationClubs}
                         />
-                    )}
+                    </div>
+                )}
                 </div>
 
-                {/* League Narratives */}
-                <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
-
+                {/* Stats & Records Section */}
+                <div id="stats-records">
                 {/* Competitiveness & Flow */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <LeagueCompetitiveness seasons={seasons} leagueTables={leagueTables} />
@@ -488,20 +492,7 @@ export default function LeagueDetail() {
 
                 {/* Fierce Rivalries */}
                 <LeagueRivalries clubs={clubs} leagueTables={leagueTables} />
-
-                {/* Season Storylines for selected season */}
-                {(selectedSeason || uniqueYears[0]) && (
-                    <div className="mb-8">
-                        <SeasonStorylines 
-                            season={seasons.find(s => s.year === (selectedSeason || uniqueYears[0]))}
-                            league={league}
-                            leagueTable={currentSeasonTable}
-                            allSeasons={seasons}
-                            allLeagueTables={leagueTables}
-                            clubs={allNationClubs}
-                        />
-                    </div>
-                )}
+                </div>
 
                 {/* AI Predictions */}
                 <div className="mb-8">
