@@ -22,6 +22,7 @@ import ClubHistory from '@/components/clubs/ClubHistory';
 import RivalryTracker from '@/components/clubs/RivalryTracker';
 import DynastyTracker from '@/components/clubs/DynastyTracker';
 import AdminOnly from '@/components/common/AdminOnly';
+import StabilityBadge from '@/components/clubs/StabilityBadge';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -325,6 +326,9 @@ export default function ClubDetail() {
                                     <span className="px-2 py-1 bg-white/20 rounded text-xs font-bold text-white border border-white/30">
                                         TFA
                                     </span>
+                                )}
+                                {club.stability_status && (
+                                    <StabilityBadge status={club.stability_status} points={club.stability_points} showPoints />
                                 )}
                             </div>
                             {club.nickname && <p className="text-white/80 text-lg mt-1">"{club.nickname}"</p>}

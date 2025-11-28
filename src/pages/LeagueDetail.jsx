@@ -22,6 +22,7 @@ import LeagueClubsMap from '@/components/leagues/LeagueClubsMap';
 import HeadToHeadMatrix from '@/components/leagues/HeadToHeadMatrix';
 import LeagueRivalries from '@/components/leagues/LeagueRivalries';
 import AdminOnly from '@/components/common/AdminOnly';
+import AISeasonGenerator from '@/components/seasons/AISeasonGenerator';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
 import SeasonStorylines from '@/components/seasons/SeasonStorylines';
 import LeaguePredictions from '@/components/leagues/LeaguePredictions';
