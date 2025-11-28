@@ -194,6 +194,60 @@ export default function ContinentalCompetitions() {
                 <Label>History</Label>
                 <Textarea value={formData.history} onChange={(e) => setFormData({...formData, history: e.target.value})} rows={4} className="mt-1" />
             </div>
+            <div>
+                <Label>Custom Round Names (Optional)</Label>
+                <p className="text-xs text-slate-500 mb-2">Rename default rounds for this competition</p>
+                <div className="grid grid-cols-2 gap-2">
+                    <div>
+                        <Label className="text-xs">Round of 32 →</Label>
+                        <Input 
+                            value={formData.round_names?.['Round of 32'] || ''} 
+                            onChange={(e) => setFormData({
+                                ...formData, 
+                                round_names: { ...(formData.round_names || {}), 'Round of 32': e.target.value }
+                            })}
+                            placeholder="e.g., Qualifying Round"
+                            className="mt-1 text-sm"
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-xs">Round of 16 →</Label>
+                        <Input 
+                            value={formData.round_names?.['Round of 16'] || ''} 
+                            onChange={(e) => setFormData({
+                                ...formData, 
+                                round_names: { ...(formData.round_names || {}), 'Round of 16': e.target.value }
+                            })}
+                            placeholder="e.g., Round One"
+                            className="mt-1 text-sm"
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-xs">Quarter-final →</Label>
+                        <Input 
+                            value={formData.round_names?.['Quarter-final'] || ''} 
+                            onChange={(e) => setFormData({
+                                ...formData, 
+                                round_names: { ...(formData.round_names || {}), 'Quarter-final': e.target.value }
+                            })}
+                            placeholder="e.g., Quarter-final"
+                            className="mt-1 text-sm"
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-xs">Semi-final →</Label>
+                        <Input 
+                            value={formData.round_names?.['Semi-final'] || ''} 
+                            onChange={(e) => setFormData({
+                                ...formData, 
+                                round_names: { ...(formData.round_names || {}), 'Semi-final': e.target.value }
+                            })}
+                            placeholder="e.g., Semi-final"
+                            className="mt-1 text-sm"
+                        />
+                    </div>
+                </div>
+            </div>
             <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => { setIsAddOpen(false); setEditingComp(null); resetForm(); }}>Cancel</Button>
                 <Button onClick={handleSubmit} disabled={!formData.name} className="bg-emerald-600 hover:bg-emerald-700">
