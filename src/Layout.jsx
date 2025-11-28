@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, Calendar } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const location = useLocation();
+
+    // Scroll to top on page change
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [location.pathname, location.search]);
 
     const navItems = [
                   { name: 'Home', icon: Home, page: 'Home' },
