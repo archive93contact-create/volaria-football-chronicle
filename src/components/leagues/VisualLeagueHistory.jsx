@@ -103,15 +103,20 @@ export default function VisualLeagueHistory({ league, seasons = [], clubs = [] }
         return club?.id;
     };
 
-    // Generate a color for each club based on their name
+    // Get club's actual primary color, fallback to generated color
     const getClubColor = (clubName) => {
+        const club = clubs.find(c => c.name?.toLowerCase() === clubName?.toLowerCase());
+        if (club?.primary_color) {
+            return club.primary_color;
+        }
+        // Fallback: generate a color based on their name
         const colors = [
             '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', 
             '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
             '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'
         ];
         let hash = 0;
-        for (let i = 0; i < clubName.length; i++) {
+        for (let i = 0; i < (clubName || '').length; i++) {
             hash = clubName.charCodeAt(i) + ((hash << 5) - hash);
         }
         return colors[Math.abs(hash) % colors.length];
