@@ -726,7 +726,8 @@ export default function LeagueDetail() {
                                         />
                                     </TabsContent>
                                     </Tabs>
-                                    </div>
+                                </div>
+                            </div>
 
             {/* Edit League Dialog */}
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
