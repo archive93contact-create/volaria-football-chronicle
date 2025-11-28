@@ -1391,6 +1391,197 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         }
     }
 
+    // Season record-breaking narratives - check against all league tables
+    if (allLeagueTables.length > 0 && sortedSeasons.length > 0) {
+        // Group league tables by league for record comparisons
+        const tablesByLeague = {};
+        allLeagueTables.forEach(t => {
+            if (!tablesByLeague[t.league_id]) tablesByLeague[t.league_id] = [];
+            tablesByLeague[t.league_id].push(t);
+        });
+
+        sortedSeasons.forEach(season => {
+            const leagueTables = tablesByLeague[season.league_id] || [];
+            if (leagueTables.length < 5) return; // Need enough data for meaningful records
+            
+            const tier = getLeagueTier(season.league_id);
+            const tierText = tier === 1 ? 'top-flight' : `Tier ${tier}`;
+            const leagueName = getLeagueName(season.league_id);
+
+            // Most points ever
+            if (season.points) {
+                const maxPoints = Math.max(...leagueTables.filter(t => t.points).map(t => t.points));
+                if (season.points === maxPoints && season.points > 0) {
+                    const prevRecord = leagueTables
+                        .filter(t => t.year < season.year && t.points)
+                        .sort((a, b) => b.points - a.points)[0];
+                    if (!prevRecord || season.points > prevRecord.points) {
+                        narratives.push({
+                            icon: Star,
+                            color: 'text-amber-500',
+                            bg: 'bg-amber-50',
+                            title: 'Record Points Haul',
+                            text: `Set the ${tierText} record with ${season.points} points in ${season.year}${prevRecord ? ` (breaking ${prevRecord.club_name}'s ${prevRecord.points} from ${prevRecord.year})` : ''}.`
+                        });
+                    }
+                }
+            }
+
+            // Most goals scored ever
+            if (season.goals_for) {
+                const maxGoals = Math.max(...leagueTables.filter(t => t.goals_for).map(t => t.goals_for));
+                if (season.goals_for === maxGoals && season.goals_for > 0) {
+                    const prevRecord = leagueTables
+                        .filter(t => t.year < season.year && t.goals_for)
+                        .sort((a, b) => b.goals_for - a.goals_for)[0];
+                    if (!prevRecord || season.goals_for > prevRecord.goals_for) {
+                        narratives.push({
+                            icon: Flame,
+                            color: 'text-red-500',
+                            bg: 'bg-red-50',
+                            title: 'Record Goals Scored',
+                            text: `Netted a record ${season.goals_for} goals in ${season.year}${prevRecord ? ` (surpassing ${prevRecord.club_name}'s ${prevRecord.goals_for})` : ''}.`
+                        });
+                    }
+                }
+            }
+
+            // Fewest goals conceded (champion/top 3 only - meaningful record)
+            if (season.goals_against && season.position <= 3) {
+                const topTeamRecords = leagueTables.filter(t => t.goals_against && t.position <= 3);
+                const minConceded = Math.min(...topTeamRecords.map(t => t.goals_against));
+                if (season.goals_against === minConceded && topTeamRecords.length >= 5) {
+                    const prevRecord = topTeamRecords
+                        .filter(t => t.year < season.year)
+                        .sort((a, b) => a.goals_against - b.goals_against)[0];
+                    if (!prevRecord || season.goals_against < prevRecord.goals_against) {
+                        narratives.push({
+                            icon: Shield,
+                            color: 'text-emerald-500',
+                            bg: 'bg-emerald-50',
+                            title: 'Defensive Record',
+                            text: `Conceded just ${season.goals_against} goals in ${season.year} - a ${tierText} record for a top-3 finish.`
+                        });
+                    }
+                }
+            }
+
+            // Fewest losses (champion only)
+            if (season.lost !== undefined && season.status === 'champion') {
+                const champRecords = leagueTables.filter(t => t.status === 'champion' && t.lost !== undefined);
+                const minLosses = Math.min(...champRecords.map(t => t.lost));
+                if (season.lost === minLosses && champRecords.length >= 3) {
+                    const prevRecord = champRecords
+                        .filter(t => t.year < season.year)
+                        .sort((a, b) => a.lost - b.lost)[0];
+                    if (!prevRecord || season.lost < prevRecord.lost) {
+                        const lossText = season.lost === 0 ? 'unbeaten' : `losing just ${season.lost} ${season.lost === 1 ? 'game' : 'games'}`;
+                        narratives.push({
+                            icon: Trophy,
+                            color: 'text-yellow-500',
+                            bg: 'bg-yellow-50',
+                            title: season.lost === 0 ? 'Invincibles' : 'Record-Breaking Champions',
+                            text: `Won the ${season.year} title ${lossText} - the best defensive record by a champion.`
+                        });
+                    }
+                }
+            }
+
+            // Most wins in a season
+            if (season.won) {
+                const maxWins = Math.max(...leagueTables.filter(t => t.won).map(t => t.won));
+                if (season.won === maxWins && season.won > 0) {
+                    const prevRecord = leagueTables
+                        .filter(t => t.year < season.year && t.won)
+                        .sort((a, b) => b.won - a.won)[0];
+                    if (!prevRecord || season.won > prevRecord.won) {
+                        narratives.push({
+                            icon: Zap,
+                            color: 'text-purple-500',
+                            bg: 'bg-purple-50',
+                            title: 'Record Wins',
+                            text: `Won ${season.won} matches in ${season.year} - a ${tierText} record.`
+                        });
+                    }
+                }
+            }
+
+            // Best goal difference
+            if (season.goal_difference) {
+                const maxGD = Math.max(...leagueTables.filter(t => t.goal_difference).map(t => t.goal_difference));
+                if (season.goal_difference === maxGD && season.goal_difference > 30) {
+                    const prevRecord = leagueTables
+                        .filter(t => t.year < season.year && t.goal_difference)
+                        .sort((a, b) => b.goal_difference - a.goal_difference)[0];
+                    if (!prevRecord || season.goal_difference > prevRecord.goal_difference) {
+                        narratives.push({
+                            icon: Target,
+                            color: 'text-indigo-500',
+                            bg: 'bg-indigo-50',
+                            title: 'Record Goal Difference',
+                            text: `Achieved a ${tierText} record goal difference of +${season.goal_difference} in ${season.year}.`
+                        });
+                    }
+                }
+            }
+
+            // NEGATIVE RECORDS - only show if they've since improved or it's historic
+
+            // Most goals conceded (bottom half teams)
+            if (season.goals_against && season.position > 5) {
+                const bottomTeams = leagueTables.filter(t => t.goals_against && t.position > 5);
+                const maxConceded = Math.max(...bottomTeams.map(t => t.goals_against));
+                if (season.goals_against === maxConceded && bottomTeams.length >= 10 && season.goals_against >= 60) {
+                    const laterSeasons = sortedSeasons.filter(s => s.year > season.year);
+                    const hasRecovered = laterSeasons.some(s => s.status === 'champion' || s.status === 'promoted');
+                    if (hasRecovered) {
+                        narratives.push({
+                            icon: TrendingDown,
+                            color: 'text-red-500',
+                            bg: 'bg-red-50',
+                            title: 'Dark Days',
+                            text: `Conceded ${season.goals_against} goals in ${season.year} - a forgettable campaign they've since recovered from.`
+                        });
+                    }
+                }
+            }
+
+            // Most losses by a relegated team
+            if (season.lost && season.status === 'relegated') {
+                const relegatedTeams = leagueTables.filter(t => t.status === 'relegated' && t.lost);
+                const maxLosses = Math.max(...relegatedTeams.map(t => t.lost));
+                if (season.lost === maxLosses && relegatedTeams.length >= 5 && season.lost >= 20) {
+                    narratives.push({
+                        icon: TrendingDown,
+                        color: 'text-red-600',
+                        bg: 'bg-red-100',
+                        title: 'Forgettable Season',
+                        text: `Suffered ${season.lost} defeats in ${season.year} - a record for a relegated side.`
+                    });
+                }
+            }
+
+            // Fewest points ever (only show if historic/recovered)
+            if (season.points && season.points > 0) {
+                const allPoints = leagueTables.filter(t => t.points && t.points > 0).map(t => t.points);
+                const minPoints = Math.min(...allPoints);
+                if (season.points === minPoints && allPoints.length >= 20 && season.points <= 15) {
+                    const laterSeasons = sortedSeasons.filter(s => s.year > season.year);
+                    const hasRecovered = laterSeasons.some(s => s.position <= 3);
+                    if (hasRecovered || sortedSeasons.indexOf(season) < sortedSeasons.length - 5) {
+                        narratives.push({
+                            icon: Clock,
+                            color: 'text-slate-500',
+                            bg: 'bg-slate-100',
+                            title: 'Historic Low',
+                            text: `Finished with just ${season.points} points in ${season.year} - the lowest in ${tierText} history.`
+                        });
+                    }
+                }
+            }
+        });
+    }
+
     // Never relegated narrative
     if (club.seasons_played >= 10 && (club.relegations || 0) === 0) {
         narratives.push({
