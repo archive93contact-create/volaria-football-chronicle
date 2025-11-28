@@ -1179,6 +1179,7 @@ export default function ClubDetail() {
                         </div>
                     </TabsContent>
                 </Tabs>
+                </div>
             </div>
 
             {/* Edit Dialog */}
