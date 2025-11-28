@@ -29,6 +29,7 @@ import AllClubs from './pages/AllClubs';
 import EditSeasonTable from './pages/EditSeasonTable';
 import Support from './pages/Support';
 import StabilityManager from './pages/StabilityManager';
+import NationGenerator from './pages/NationGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "EditSeasonTable": EditSeasonTable,
     "Support": Support,
     "StabilityManager": StabilityManager,
+    "NationGenerator": NationGenerator,
 }
 
 export const pagesConfig = {
