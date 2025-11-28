@@ -1303,6 +1303,59 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         }
     }
 
+    // Perennial strugglers - frequently bottom of lowest tier
+    const lowestTierSeasons = sortedSeasons.filter(s => {
+        const tier = getLeagueTier(s.league_id);
+        const maxTier = Math.max(...leagues.map(l => l.tier || 1));
+        return tier === maxTier && s.position;
+    });
+    
+    if (lowestTierSeasons.length >= 3) {
+        // Count bottom 3 finishes
+        const bottomFinishes = lowestTierSeasons.filter(s => {
+            const leagueSize = s.played ? Math.round((s.played / 2) + 1) : 12;
+            return s.position >= leagueSize - 2;
+        });
+        const deadLastFinishes = lowestTierSeasons.filter(s => {
+            const leagueSize = s.played ? Math.round((s.played / 2) + 1) : 12;
+            return s.position === leagueSize;
+        });
+        
+        if (deadLastFinishes.length >= 3) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-700',
+                bg: 'bg-red-100',
+                title: 'Wooden Spoon Regulars',
+                text: `Finished bottom of the lowest tier ${deadLastFinishes.length} times - a club that knows the taste of rock bottom all too well.`
+            });
+        } else if (deadLastFinishes.length >= 2) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-600',
+                bg: 'bg-red-50',
+                title: 'Basement Dwellers',
+                text: `Finished dead last in the pyramid ${deadLastFinishes.length} times. Nowhere left to fall.`
+            });
+        } else if (bottomFinishes.length >= 4) {
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
+                title: 'Perennial Strugglers',
+                text: `Finished in the bottom 3 of the lowest tier ${bottomFinishes.length} times - survival is always the aim.`
+            });
+        } else if (bottomFinishes.length >= 2) {
+            narratives.push({
+                icon: Shield,
+                color: 'text-slate-500',
+                bg: 'bg-slate-50',
+                title: 'Fighting for Survival',
+                text: `Multiple bottom-3 finishes in the lowest tier - a club that knows the relegation battle intimately.`
+            });
+        }
+    }
+
     // Unbeaten narrative - high win rate in a season
     const bestSeason = sortedSeasons.reduce((best, s) => {
         if (s.played && s.played >= 10) {
