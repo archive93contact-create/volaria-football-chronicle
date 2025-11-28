@@ -444,10 +444,13 @@ export default function LeagueDetail() {
                             </div>
                         </CardContent>
                     </Card>
+                    </div>
                 )}
 
-                {/* Visual League History */}
-                <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
+                {/* League History Section */}
+                <div id="league-story">
+                    {/* Visual League History */}
+                    <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
 
                 {/* League History Timeline */}
                 <LeagueHistory league={league} seasons={seasons} nation={nation} />
