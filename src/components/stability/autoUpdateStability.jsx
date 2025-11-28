@@ -1,23 +1,14 @@
 import { base44 } from '@/api/base44Client';
 import { estimateNationPopulation, estimateSustainableProClubs } from '@/components/common/populationUtils';
 
-// Get nation strength modifier (1-10 scale, default 5)
-const getNationModifier = (nationStrength) => {
-    const strength = nationStrength || 5;
-    return Math.round((strength - 5) * 0.8);
-};
-
 // Get base stability points by tier
-const getBaseStabilityByTier = (tier, nationStrength) => {
-    let base;
-    if (tier >= 1 && tier <= 4) base = 20;
-    else if (tier === 5) base = 16;
-    else if (tier >= 6 && tier <= 9) base = 14;
-    else if (tier >= 10 && tier <= 11) base = 12;
-    else if (tier >= 12 && tier <= 14) base = 10;
-    else base = 8;
-    
-    return base + getNationModifier(nationStrength);
+const getBaseStabilityByTier = (tier) => {
+    if (tier >= 1 && tier <= 4) return 20;
+    if (tier === 5) return 16;
+    if (tier >= 6 && tier <= 9) return 14;
+    if (tier >= 10 && tier <= 11) return 12;
+    if (tier >= 12 && tier <= 14) return 10;
+    return 8;
 };
 
 // Champion bonus by tier
@@ -36,7 +27,7 @@ const getPromotionBonus = (tier) => {
 };
 
 // Calculate stability for a single club
-export const calculateClubStability = (clubId, leagueTables, leagues, seasons, nationStrength = 5) => {
+export const calculateClubStability = (clubId, leagueTables, leagues, seasons) => {
     const clubSeasons = leagueTables
         .filter(lt => lt.club_id === clubId)
         .sort((a, b) => a.year.localeCompare(b.year));
@@ -54,7 +45,7 @@ export const calculateClubStability = (clubId, leagueTables, leagues, seasons, n
         const teamsInLeague = seasonData?.number_of_teams || 20;
 
         if (index === 0) {
-            currentPoints = getBaseStabilityByTier(tier, nationStrength);
+            currentPoints = getBaseStabilityByTier(tier);
         }
 
         if (season.status === 'champion' || season.position === 1) {
@@ -75,133 +66,116 @@ export const calculateClubStability = (clubId, leagueTables, leagues, seasons, n
     return { points: currentPoints, status };
 };
 
-// Estimate nation strength score (same logic as Nations page)
-function estimateStrength(clubs, leagues, membership) {
-    let score = membership === 'VCC' ? 15 : membership === 'CCC' ? 5 : 0;
-    
-    score += clubs.filter(c => c.vcc_titles > 0).length * 10;
-    score += clubs.filter(c => c.ccc_titles > 0).length * 5;
-    
-    const maxTier = Math.max(...leagues.map(l => l.tier || 1), 1);
-    score += maxTier * 3;
-    
-    const topFlightLeagues = leagues.filter(l => l.tier === 1);
-    const topFlightTeams = topFlightLeagues.reduce((sum, l) => sum + (l.number_of_teams || 12), 0);
-    score += Math.min(topFlightTeams, 20);
-    
-    return Math.min(score, 100);
-}
-
 /**
- * Assign professional status using the same estimateSustainableProClubs logic from Nations page
- * This ensures consistency between the displayed "Pro Clubs" estimate and actual assignments
+ * Calculate pro club estimate using the same logic as Nations page
  */
-export const assignProfessionalStatusForNation = (nationClubs, nation, nationLeagues) => {
-    // Filter to active clubs only
-    const activeClubs = nationClubs.filter(c => !c.is_defunct && !c.is_former_name);
-    if (activeClubs.length === 0) return {};
-    
-    // Calculate nation stats (same as Nations page)
+const calculateProClubEstimate = (nationClubs, nationLeagues, nation) => {
+    const membership = nation?.membership;
     const maxTier = Math.max(...nationLeagues.map(l => l.tier || 1), 1);
+    
+    // Get top division size
     const topFlightLeagues = nationLeagues.filter(l => l.tier === 1);
     let topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
-    
     if (topDivisionSize === 0 && topFlightLeagues.length > 0) {
         const topFlightLeagueIds = topFlightLeagues.map(l => l.id);
-        const topFlightClubs = activeClubs.filter(c => topFlightLeagueIds.includes(c.league_id));
+        const topFlightClubs = nationClubs.filter(c => topFlightLeagueIds.includes(c.league_id));
         topDivisionSize = topFlightClubs.length || 8;
     }
-    if (topDivisionSize === 0) topDivisionSize = 12; // Default
+    if (topDivisionSize === 0) topDivisionSize = 12; // fallback
     
     // Calculate population estimate
-    const geoRegions = new Set(activeClubs.map(c => c.region).filter(Boolean));
-    const geoDistricts = new Set(activeClubs.map(c => c.district).filter(Boolean));
-    const geoSettlements = new Set(activeClubs.map(c => c.settlement || c.city).filter(Boolean));
+    const geoRegions = new Set(nationClubs.map(c => c.region).filter(Boolean));
+    const geoDistricts = new Set(nationClubs.map(c => c.district).filter(Boolean));
+    const geoSettlements = new Set(nationClubs.map(c => c.settlement || c.city).filter(Boolean));
     
-    const populationData = estimateNationPopulation(
-        activeClubs.length, 
-        nationLeagues.length, 
-        nation?.membership, 
-        maxTier, 
-        {
-            topDivisionSize,
-            avgDivisionSize: topDivisionSize,
-            totalDivisions: nationLeagues.length,
-            regionCount: geoRegions.size,
-            districtCount: geoDistricts.size,
-            settlementCount: geoSettlements.size
-        }
-    );
+    const leaguesWithTeams = nationLeagues.filter(l => l.number_of_teams > 0);
+    const avgDivisionSize = leaguesWithTeams.length > 0 
+        ? leaguesWithTeams.reduce((sum, l) => sum + l.number_of_teams, 0) / leaguesWithTeams.length 
+        : topDivisionSize;
     
-    // Calculate strength score
-    const strengthScore = estimateStrength(activeClubs, nationLeagues, nation?.membership);
+    const populationData = estimateNationPopulation(nationClubs.length, nationLeagues.length, membership, maxTier, {
+        topDivisionSize,
+        avgDivisionSize,
+        totalDivisions: nationLeagues.length,
+        regionCount: geoRegions.size,
+        districtCount: geoDistricts.size,
+        settlementCount: geoSettlements.size
+    });
     
-    // Get sustainable pro clubs estimate
-    const proClubsEstimate = estimateSustainableProClubs(
-        populationData.value, 
-        topDivisionSize, 
-        maxTier, 
-        nation?.membership, 
-        strengthScore
-    );
+    // Simple strength score
+    let strengthScore = membership === 'VCC' ? 50 : membership === 'CCC' ? 30 : 20;
+    strengthScore += nationClubs.filter(c => c.vcc_titles > 0).length * 10;
+    strengthScore += nationClubs.filter(c => c.ccc_titles > 0).length * 5;
+    strengthScore += maxTier * 3;
+    strengthScore = Math.min(strengthScore, 100);
     
-    // Use the estimated value as our target
-    const targetProClubs = proClubsEstimate.value || topDivisionSize;
-    const targetSemiProClubs = Math.round(targetProClubs * 0.75); // ~75% more as semi-pro
+    const proClubs = estimateSustainableProClubs(populationData.value, topDivisionSize, maxTier, membership, strengthScore);
     
-    // Sort clubs by stability points (highest first), then by tier (lower tier = better)
-    const sortedClubs = [...activeClubs]
+    return {
+        proClubsMax: proClubs.max,
+        proClubsMin: proClubs.min,
+        topDivisionSize,
+        maxTier
+    };
+};
+
+/**
+ * Determine professional status using the Nations page pro clubs estimate.
+ * Rules:
+ * 1. Calculate sustainable pro clubs using population/strength formulas
+ * 2. Top N clubs by stability (within pro estimate) in tier 1-2 = Professional
+ * 3. Next tier down = Semi-Professional
+ * 4. Everyone else = Amateur
+ */
+export const assignProfessionalStatusForNation = (nationClubs, nation, leagues) => {
+    const nationLeagues = leagues.filter(l => l.nation_id === nation?.id);
+    const { proClubsMax, topDivisionSize, maxTier } = calculateProClubEstimate(nationClubs, nationLeagues, nation);
+    
+    // Semi-pro slots = roughly 1.5x pro slots, capped reasonably
+    const semiProSlots = Math.round(proClubsMax * 1.5);
+    
+    // Sort all active clubs by stability points (highest first)
+    const sortedClubs = [...nationClubs]
+        .filter(c => !c.is_defunct && !c.is_former_name)
         .map(c => {
-            const league = nationLeagues.find(l => l.id === c.league_id);
+            const league = leagues.find(l => l.id === c.league_id);
             return { ...c, tier: league?.tier || 99 };
         })
-        .sort((a, b) => {
-            // First by stability (desc)
-            const stabilityDiff = (b.stability_points || 0) - (a.stability_points || 0);
-            if (stabilityDiff !== 0) return stabilityDiff;
-            // Then by tier (asc - lower tier is better)
-            return (a.tier || 99) - (b.tier || 99);
-        });
+        .sort((a, b) => (b.stability_points || 0) - (a.stability_points || 0));
     
     const assignments = {};
     let proCount = 0;
     let semiProCount = 0;
     
     sortedClubs.forEach((club) => {
-        const tier = club.tier;
         const stability = club.stability_points || 0;
+        const tier = club.tier;
         
         // Professional: 
-        // - Must be in top N clubs by stability (where N = targetProClubs)
-        // - Must be in tier 1-2 (or tier 3 with exceptional stability)
-        // - Must have positive stability
-        if (proCount < targetProClubs && stability >= 0) {
-            if (tier <= 2) {
-                assignments[club.id] = 'professional';
-                proCount++;
-                return;
-            }
-            // Tier 3 can be pro with very high stability
-            if (tier === 3 && stability >= 25) {
-                assignments[club.id] = 'professional';
-                proCount++;
-                return;
-            }
-        }
+        // - Within sustainable pro club limit
+        // - In tier 1 or 2 (or tier 3 with exceptional stability for small nations)
+        // - Has positive stability
+        const canBePro = tier <= 2 || (maxTier <= 2 && tier <= maxTier);
         
+        if (proCount < proClubsMax && canBePro && stability >= 0) {
+            assignments[club.id] = 'professional';
+            proCount++;
+        }
         // Semi-Professional:
-        // - Within semi-pro limit
-        // - In tiers 1-4
-        // - OR any tier 1-2 club that didn't make pro cut
-        if (tier <= 2 && stability >= -5) {
-            // Tier 1-2 clubs that didn't make pro are at least semi-pro
+        // - Beyond pro limit but within semi-pro range
+        // - In reasonable tiers (1-4)
+        // - Or: tier 1-2 club that didn't make pro cut
+        else if (semiProCount < semiProSlots && tier <= 4 && stability >= -5) {
             assignments[club.id] = 'semi-professional';
             semiProCount++;
-        } else if (semiProCount < targetSemiProClubs && tier <= 4 && stability >= 0) {
+        }
+        else if (tier <= 2 && stability >= -10) {
+            // Any top 2 tier club gets at least semi-pro
             assignments[club.id] = 'semi-professional';
             semiProCount++;
-        } else {
-            // Amateur: everyone else
+        }
+        // Amateur: everyone else
+        else {
             assignments[club.id] = 'amateur';
         }
     });
@@ -209,7 +183,7 @@ export const assignProfessionalStatusForNation = (nationClubs, nation, nationLea
     return assignments;
 };
 
-// Update stability for all clubs
+// Update stability for all clubs in a nation
 export const updateStabilityForClubs = async (clubIds, leagueTables, leagues, seasons, nations, allClubs) => {
     const updates = [];
     
@@ -227,18 +201,16 @@ export const updateStabilityForClubs = async (clubIds, leagueTables, leagues, se
     // Process each nation
     for (const nationId of Object.keys(clubsByNation)) {
         const nation = nations.find(n => n.id === nationId);
-        const nationStrength = nation?.nation_strength || 5;
         const nationClubs = allClubs.filter(c => c.nation_id === nationId);
-        const nationLeagues = leagues.filter(l => l.nation_id === nationId);
         
         // First, calculate stability for all requested clubs in this nation
         const stabilityUpdates = {};
         for (const club of clubsByNation[nationId]) {
-            const { points, status } = calculateClubStability(club.id, leagueTables, leagues, seasons, nationStrength);
+            const { points, status } = calculateClubStability(club.id, leagueTables, leagues, seasons);
             stabilityUpdates[club.id] = { points, status };
         }
         
-        // Update the stability in our working copy of ALL nation clubs
+        // Update the stability in our working copy
         const updatedNationClubs = nationClubs.map(c => {
             if (stabilityUpdates[c.id]) {
                 return { ...c, stability_points: stabilityUpdates[c.id].points };
@@ -246,8 +218,8 @@ export const updateStabilityForClubs = async (clubIds, leagueTables, leagues, se
             return c;
         });
         
-        // Now assign professional status for the whole nation using the populationUtils logic
-        const proStatusAssignments = assignProfessionalStatusForNation(updatedNationClubs, nation, nationLeagues);
+        // Now assign professional status for the whole nation
+        const proStatusAssignments = assignProfessionalStatusForNation(updatedNationClubs, nation, leagues);
         
         // Save updates for requested clubs
         for (const club of clubsByNation[nationId]) {
@@ -267,7 +239,7 @@ export const updateStabilityForClubs = async (clubIds, leagueTables, leagues, se
     return updates;
 };
 
-// Recalculate ALL clubs in a nation
+// Recalculate ALL clubs in a nation (useful for bulk updates)
 export const recalculateNationStability = async (nationId) => {
     const [allLeagueTables, allLeagues, allSeasons, allNations, allClubs] = await Promise.all([
         base44.entities.LeagueTable.list(),
@@ -285,6 +257,7 @@ export const recalculateNationStability = async (nationId) => {
 
 // Helper to get all data and update clubs after a season is saved
 export const recalculateStabilityAfterSeason = async (affectedClubIds) => {
+    // Fetch fresh data
     const [allLeagueTables, allLeagues, allSeasons, allNations, allClubs] = await Promise.all([
         base44.entities.LeagueTable.list(),
         base44.entities.League.list(),
