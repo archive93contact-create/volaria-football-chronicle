@@ -30,6 +30,7 @@ import AIFillMissingStats from '@/components/leagues/AIFillMissingStats';
 import SyncClubStats from '@/components/common/SyncClubStats';
 import LeagueRecords from '@/components/leagues/LeagueRecords';
 import AILeagueGenerator from '@/components/leagues/AILeagueGenerator';
+import RecalculateSeasonStats from '@/components/seasons/RecalculateSeasonStats';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -654,6 +655,10 @@ export default function LeagueDetail() {
                                 <CardTitle>Season History</CardTitle>
                                 <div className="flex gap-2">
                                     <AdminOnly>
+                                        <RecalculateSeasonStats 
+                                            seasons={seasons}
+                                            leagueTables={leagueTables}
+                                        />
                                         <SyncClubStats 
                                             clubs={allNationClubs}
                                             leagueTables={leagueTables}
