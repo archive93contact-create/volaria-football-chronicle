@@ -697,8 +697,9 @@ export default function ClubDetail() {
                 )}
 
                 {/* All-Time Stats */}
+                <div id="club-stats">
                 {combinedStats?.seasons_played > 0 && (
-                    <Card className="border-0 shadow-sm mb-8">
+                    <Card className="border-0 shadow-sm mb-4">
                         <CardHeader><CardTitle>All-Time League Statistics</CardTitle></CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
@@ -730,6 +731,65 @@ export default function ClubDetail() {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Top Flight Only Stats */}
+                {(() => {
+                    const topFlightSeasons = combinedSeasons.filter(s => {
+                        const seasonLeague = allLeagues.find(l => l.id === s.league_id);
+                        return seasonLeague?.tier === 1;
+                    });
+                    if (topFlightSeasons.length === 0) return null;
+                    
+                    const topFlightStats = topFlightSeasons.reduce((acc, s) => ({
+                        wins: acc.wins + (s.won || 0),
+                        draws: acc.draws + (s.drawn || 0),
+                        losses: acc.losses + (s.lost || 0),
+                        goalsFor: acc.goalsFor + (s.goals_for || 0),
+                        goalsAgainst: acc.goalsAgainst + (s.goals_against || 0),
+                        seasons: acc.seasons + 1
+                    }), { wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, seasons: 0 });
+
+                    return (
+                        <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="flex items-center gap-2 text-amber-800">
+                                    <Star className="w-5 h-5 text-amber-500" />
+                                    Top Flight Statistics Only
+                                    <Badge className="ml-2 bg-amber-500 text-white">{topFlightStats.seasons} Seasons</Badge>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+                                    <div className="p-3 bg-white/60 rounded-lg">
+                                        <div className="text-2xl font-bold text-green-600">{topFlightStats.wins}</div>
+                                        <div className="text-xs text-slate-500">Wins</div>
+                                    </div>
+                                    <div className="p-3 bg-white/60 rounded-lg">
+                                        <div className="text-2xl font-bold text-slate-600">{topFlightStats.draws}</div>
+                                        <div className="text-xs text-slate-500">Draws</div>
+                                    </div>
+                                    <div className="p-3 bg-white/60 rounded-lg">
+                                        <div className="text-2xl font-bold text-red-600">{topFlightStats.losses}</div>
+                                        <div className="text-xs text-slate-500">Losses</div>
+                                    </div>
+                                    <div className="p-3 bg-white/60 rounded-lg">
+                                        <div className="text-2xl font-bold">{topFlightStats.goalsFor}</div>
+                                        <div className="text-xs text-slate-500">Goals Scored</div>
+                                    </div>
+                                    <div className="p-3 bg-white/60 rounded-lg">
+                                        <div className="text-2xl font-bold">{topFlightStats.goalsAgainst}</div>
+                                        <div className="text-xs text-slate-500">Goals Conceded</div>
+                                    </div>
+                                    <div className="p-3 bg-white/60 rounded-lg">
+                                        <div className="text-2xl font-bold">{topFlightStats.goalsFor - topFlightStats.goalsAgainst}</div>
+                                        <div className="text-xs text-slate-500">Goal Difference</div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })()}
+                </div>
 
                 {/* Defunct/Successor Notice */}
                 {club.is_defunct && successorClub && (
