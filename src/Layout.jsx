@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, Calendar, Heart } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, Calendar } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const navItems = [
-        { name: 'Home', icon: Home, page: 'Home' },
-        { name: 'Nations', icon: Globe, page: 'Nations' },
-        { name: 'Seasons', icon: Trophy, page: 'Seasons' },
-        { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
-        { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
-        { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
-        { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
-        { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
-        { name: 'Locations', icon: Globe, page: 'Locations' },
-        { name: 'About', icon: Info, page: 'About' },
-        { name: 'Contact', icon: Mail, page: 'Contact' },
-        { name: 'Support', icon: Heart, page: 'Support' },
-        ];
+                  { name: 'Home', icon: Home, page: 'Home' },
+                  { name: 'Nations', icon: Globe, page: 'Nations' },
+                  { name: 'Seasons', icon: Trophy, page: 'Seasons' },
+                  { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
+                  { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
+                  { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
+                  { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
+                  { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
+                  { name: 'Locations', icon: Globe, page: 'Locations' },
+                  { name: 'About', icon: Info, page: 'About' },
+                  { name: 'Contact', icon: Mail, page: 'Contact' },
+                  { name: 'Support', icon: Star, page: 'Support', highlight: true },
+              ];
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -38,18 +38,18 @@ export default function Layout({ children, currentPageName }) {
                         {/* Desktop Nav */}
                         <div className="hidden md:flex items-center gap-1">
                             {navItems.map((item) => (
-                                <Link key={item.page} to={createPageUrl(item.page)}>
-                                    <Button 
-                                        variant="ghost" 
-                                        className={`text-slate-300 hover:text-white hover:bg-slate-800 ${
-                                            currentPageName === item.page ? 'bg-slate-800 text-white' : ''
-                                        }`}
-                                    >
-                                        <item.icon className="w-4 h-4 mr-2" />
-                                        {item.name}
-                                    </Button>
-                                </Link>
-                            ))}
+                                                                  <Link key={item.page} to={createPageUrl(item.page)}>
+                                                                      <Button 
+                                                                          variant="ghost" 
+                                                                          className={`text-slate-300 hover:text-white hover:bg-slate-800 ${
+                                                                              currentPageName === item.page ? 'bg-slate-800 text-white' : ''
+                                                                          } ${item.highlight ? 'text-rose-400 hover:text-rose-300' : ''}`}
+                                                                      >
+                                                                          <item.icon className="w-4 h-4 mr-2" />
+                                                                          {item.name}
+                                                                      </Button>
+                                                                  </Link>
+                                                              ))}
                         </div>
 
                         {/* Mobile Menu Button */}
