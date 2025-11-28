@@ -78,6 +78,24 @@ export default function LeagueDetail() {
         enabled: !!league?.nation_id,
     });
 
+    // Fetch all leagues in this nation (for tracking promotion/relegation across tiers)
+    const { data: allNationLeagues = [] } = useQuery({
+        queryKey: ['allNationLeagues', league?.nation_id],
+        queryFn: () => base44.entities.League.filter({ nation_id: league.nation_id }),
+        enabled: !!league?.nation_id,
+    });
+
+    // Fetch all seasons for all leagues in this nation
+    const { data: allNationSeasons = [] } = useQuery({
+        queryKey: ['allNationSeasons', league?.nation_id],
+        queryFn: async () => {
+            const leagueIds = allNationLeagues.map(l => l.id);
+            const allSeasons = await base44.entities.Season.list();
+            return allSeasons.filter(s => leagueIds.includes(s.league_id));
+        },
+        enabled: allNationLeagues.length > 0,
+    });
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.League.update(leagueId, data),
         onSuccess: () => {
