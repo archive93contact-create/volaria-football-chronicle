@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, Calendar } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -13,22 +19,34 @@ export default function Layout({ children, currentPageName }) {
         window.scrollTo(0, 0);
     }, [location.pathname, location.search]);
 
-    const navItems = [
+    const mainNavItems = [
                                 { name: 'Home', icon: Home, page: 'Home' },
                                 { name: 'Nations', icon: Globe, page: 'Nations' },
+                                { name: 'Clubs', icon: Shield, page: 'AllClubs' },
                                 { name: 'Seasons', icon: Trophy, page: 'Seasons' },
-                                { name: 'Continental Cups', icon: Star, page: 'ContinentalCompetitions' },
-                                { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
-                                { name: 'All Clubs', icon: Shield, page: 'AllClubs' },
-                                { name: 'Stability', icon: BarChart3, page: 'StabilityManager' },
-                                { name: 'Nation Generator', icon: Globe, page: 'NationGenerator' },
-                                { name: 'Compare Clubs', icon: BarChart3, page: 'ClubComparison' },
-                                { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
-                                { name: 'Locations', icon: Globe, page: 'Locations' },
-                                { name: 'About', icon: Info, page: 'About' },
-                                { name: 'Contact', icon: Mail, page: 'Contact' },
-                                { name: 'Support', icon: Star, page: 'Support', highlight: true },
+                                { name: 'Continental', icon: Star, page: 'ContinentalCompetitions' },
                             ];
+
+            const toolsDropdown = [
+                { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
+                { name: 'Stability Manager', icon: BarChart3, page: 'StabilityManager' },
+                { name: 'Nation Generator', icon: Sparkles, page: 'NationGenerator' },
+                { name: 'Compare Clubs', icon: Shield, page: 'ClubComparison' },
+                { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
+                { name: 'Locations', icon: MapPin, page: 'Locations' },
+            ];
+
+            const moreDropdown = [
+                { name: 'About', icon: Info, page: 'About' },
+                { name: 'Contact', icon: Mail, page: 'Contact' },
+                { name: 'Support', icon: Heart, page: 'Support' },
+            ];
+
+            const mobileNavItems = [
+                ...mainNavItems,
+                ...toolsDropdown,
+                ...moreDropdown,
+            ];
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -44,21 +62,62 @@ export default function Layout({ children, currentPageName }) {
                         </Link>
 
                         {/* Desktop Nav */}
-                        <div className="hidden md:flex items-center gap-1">
-                            {navItems.map((item) => (
-                                                                  <Link key={item.page} to={createPageUrl(item.page)}>
-                                                                      <Button 
-                                                                          variant="ghost" 
-                                                                          className={`text-slate-300 hover:text-white hover:bg-slate-800 ${
-                                                                              currentPageName === item.page ? 'bg-slate-800 text-white' : ''
-                                                                          } ${item.highlight ? 'text-rose-400 hover:text-rose-300' : ''}`}
-                                                                      >
-                                                                          <item.icon className="w-4 h-4 mr-2" />
-                                                                          {item.name}
-                                                                      </Button>
-                                                                  </Link>
-                                                              ))}
-                        </div>
+                                                    <div className="hidden md:flex items-center gap-1">
+                                                        {mainNavItems.map((item) => (
+                                                            <Link key={item.page} to={createPageUrl(item.page)}>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    className={`text-slate-300 hover:text-white hover:bg-slate-800 ${
+                                                                        currentPageName === item.page ? 'bg-slate-800 text-white' : ''
+                                                                    }`}
+                                                                >
+                                                                    <item.icon className="w-4 h-4 mr-2" />
+                                                                    {item.name}
+                                                                </Button>
+                                                            </Link>
+                                                        ))}
+
+                                                        {/* Tools Dropdown */}
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800">
+                                                                    <BarChart3 className="w-4 h-4 mr-2" />
+                                                                    Tools
+                                                                    <ChevronDown className="w-3 h-3 ml-1" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent className="bg-slate-800 border-slate-700">
+                                                                {toolsDropdown.map((item) => (
+                                                                    <DropdownMenuItem key={item.page} asChild>
+                                                                        <Link to={createPageUrl(item.page)} className="flex items-center gap-2 text-slate-200 hover:text-white cursor-pointer">
+                                                                            <item.icon className="w-4 h-4" />
+                                                                            {item.name}
+                                                                        </Link>
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+
+                                                        {/* More Dropdown */}
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800">
+                                                                    More
+                                                                    <ChevronDown className="w-3 h-3 ml-1" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent className="bg-slate-800 border-slate-700">
+                                                                {moreDropdown.map((item) => (
+                                                                    <DropdownMenuItem key={item.page} asChild>
+                                                                        <Link to={createPageUrl(item.page)} className="flex items-center gap-2 text-slate-200 hover:text-white cursor-pointer">
+                                                                            <item.icon className="w-4 h-4" />
+                                                                            {item.name}
+                                                                        </Link>
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
 
                         {/* Mobile Menu Button */}
                         <Button 
@@ -73,27 +132,27 @@ export default function Layout({ children, currentPageName }) {
                 </div>
 
                 {/* Mobile Menu */}
-                {mobileMenuOpen && (
-                    <div className="md:hidden bg-slate-800 border-t border-slate-700">
-                        <div className="px-4 py-3 space-y-1">
-                            {navItems.map((item) => (
-                                <Link 
-                                    key={item.page} 
-                                    to={createPageUrl(item.page)}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                                        currentPageName === item.page 
-                                            ? 'bg-emerald-600 text-white' 
-                                            : 'text-slate-300 hover:bg-slate-700'
-                                    }`}
-                                >
-                                    <item.icon className="w-5 h-5" />
-                                    {item.name}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                                    {mobileMenuOpen && (
+                                        <div className="md:hidden bg-slate-800 border-t border-slate-700">
+                                            <div className="px-4 py-3 space-y-1">
+                                                {mobileNavItems.map((item) => (
+                                                    <Link 
+                                                        key={item.page} 
+                                                        to={createPageUrl(item.page)}
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                                                            currentPageName === item.page 
+                                                                ? 'bg-emerald-600 text-white' 
+                                                                : 'text-slate-300 hover:bg-slate-700'
+                                                        }`}
+                                                    >
+                                                        <item.icon className="w-5 h-5" />
+                                                        {item.name}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
             </nav>
 
             {/* Page Content */}
