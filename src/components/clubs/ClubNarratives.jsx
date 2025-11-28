@@ -1234,7 +1234,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         }
     }
 
-    if (narratives.length === 0) return null;
+    if (narratives.length === 0 && !clubStature) return null;
 
     return (
         <Card className="border-0 shadow-sm">
@@ -1245,6 +1245,17 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                 </CardTitle>
             </CardHeader>
             <CardContent>
+                {/* Club Stature Section */}
+                {clubStature && (
+                    <div className={`mb-4 p-4 rounded-xl ${clubStature.bg} border border-slate-100`}>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Star className={`w-5 h-5 ${clubStature.color}`} />
+                            <h4 className={`font-bold ${clubStature.color}`}>{clubStature.tier}</h4>
+                        </div>
+                        <p className="text-slate-700 text-sm leading-relaxed">{clubStature.description}</p>
+                    </div>
+                )}
+
                 <div className="grid gap-3 md:grid-cols-2">
                     {narratives.slice(0, 8).map((narrative, idx) => (
                         <div key={idx} className={`flex gap-3 p-3 rounded-lg ${narrative.bg}`}>
