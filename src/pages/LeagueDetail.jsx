@@ -657,12 +657,20 @@ export default function LeagueDetail() {
                                             ))}
                                         </TableBody>
                                     </Table>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
-            </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </TabsContent>
+
+                                    <TabsContent value="records">
+                                        <LeagueRecords 
+                                            leagueTables={leagueTables}
+                                            clubs={allNationClubs}
+                                            seasons={seasons}
+                                        />
+                                    </TabsContent>
+                                    </Tabs>
+                                    </div>
 
             {/* Edit League Dialog */}
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
