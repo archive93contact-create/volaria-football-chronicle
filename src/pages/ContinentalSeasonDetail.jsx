@@ -241,17 +241,17 @@ export default function ContinentalSeasonDetail() {
                             <TabsTrigger value="rounds">By Round</TabsTrigger>
                         </TabsList>
                         <AdminOnly>
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={openEditRounds}>
-                                    <Settings className="w-4 h-4 mr-2" /> Round Names
+                            <div className="flex gap-2 flex-wrap">
+                                <Button variant="outline" size="sm" onClick={openEditRounds}>
+                                    <Settings className="w-4 h-4 mr-1" /> Round Names
                                 </Button>
                                 <Link to={createPageUrl(`UpdateContinentalStats?season=${seasonId}`)}>
-                                    <Button variant="outline">
-                                        <RefreshCw className="w-4 h-4 mr-2" /> Sync Club Stats
+                                    <Button variant="outline" size="sm">
+                                        <RefreshCw className="w-4 h-4 mr-1" /> Sync Stats
                                     </Button>
                                 </Link>
-                                <Button onClick={() => setIsAddMatchOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
-                                    <Plus className="w-4 h-4 mr-2" /> Add Match
+                                <Button size="sm" onClick={() => setIsAddMatchOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+                                    <Plus className="w-4 h-4 mr-1" /> Add Match
                                 </Button>
                             </div>
                         </AdminOnly>
@@ -264,6 +264,7 @@ export default function ContinentalSeasonDetail() {
                             clubs={clubs}
                             nations={nations}
                             competition={competition}
+                            onEditMatch={setEditingMatch}
                         />
                     </TabsContent>
 
