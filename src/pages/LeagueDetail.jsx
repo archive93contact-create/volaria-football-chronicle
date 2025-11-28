@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Calendar, Users } from 'lucide-react';
+import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Calendar, Users, Sparkles } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import VisualLeagueHistory from '@/components/leagues/VisualLeagueHistory';
 import AIFillMissingStats from '@/components/leagues/AIFillMissingStats';
 import SyncClubStats from '@/components/common/SyncClubStats';
 import LeagueRecords from '@/components/leagues/LeagueRecords';
+import AILeagueGenerator from '@/components/leagues/AILeagueGenerator';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -42,6 +43,8 @@ export default function LeagueDetail() {
     const [selectedTab, setSelectedTab] = useState('clubs');
     const [editingSeason, setEditingSeason] = useState(null);
     const [seasonEditData, setSeasonEditData] = useState({});
+    const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+    const [generatorYear, setGeneratorYear] = useState('');
 
     const { data: league } = useQuery({
         queryKey: ['league', leagueId],
@@ -662,6 +665,22 @@ export default function LeagueDetail() {
                                             leagueTables={leagueTables}
                                             allClubs={allNationClubs}
                                         />
+                                        <div className="flex items-center gap-2">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Year (e.g. 1880)" 
+                                                value={generatorYear}
+                                                onChange={(e) => setGeneratorYear(e.target.value)}
+                                                className="w-32 px-2 py-1 border rounded text-sm"
+                                            />
+                                            <Button 
+                                                variant="outline"
+                                                onClick={() => setIsGeneratorOpen(true)}
+                                                disabled={!generatorYear}
+                                            >
+                                                <Sparkles className="w-4 h-4 mr-2" /> AI Generate
+                                            </Button>
+                                        </div>
                                         <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
                                             <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
                                         </Link>
@@ -781,6 +800,19 @@ export default function LeagueDetail() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* AI League Generator */}
+            <AILeagueGenerator 
+                leagueId={leagueId}
+                seasonYear={generatorYear}
+                isOpen={isGeneratorOpen}
+                onClose={() => setIsGeneratorOpen(false)}
+                onGenerated={(season) => {
+                    queryClient.invalidateQueries(['leagueSeasons', leagueId]);
+                    queryClient.invalidateQueries(['leagueTables', leagueId]);
+                    setGeneratorYear('');
+                }}
+            />
 
             {/* Edit Season Dialog */}
             <Dialog open={!!editingSeason} onOpenChange={(open) => !open && setEditingSeason(null)}>
