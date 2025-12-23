@@ -15,6 +15,7 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
     const [ageRange, setAgeRange] = useState('balanced');
     const [qualityLevel, setQualityLevel] = useState('realistic');
     const [namingStyles, setNamingStyles] = useState([]);
+    const [overwriteExisting, setOverwriteExisting] = useState(false);
 
     const generatePlayers = async () => {
         setGenerating(true);
@@ -43,7 +44,9 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                 ? `Use these naming styles: ${namingStyles.join(', ')}. Mix them realistically.`
                 : `Use ${nation?.language || 'diverse'} naming conventions.`;
 
-            const nationalityText = `Most players (70-80%) should be from ${nation?.name || 'the home nation'}. Remaining players from neighboring or culturally similar nations.`;
+            // Adjust foreign player percentage based on tier
+            const foreignPlayerPercent = tier === 1 ? '25-35%' : tier === 2 ? '15-25%' : tier === 3 ? '10-15%' : tier === 4 ? '5-10%' : '0-5%';
+            const nationalityText = `${100 - parseInt(foreignPlayerPercent)}% players from ${nation?.name || 'home nation'}, ${foreignPlayerPercent} from neighboring or culturally similar nations (realistic foreign signings for tier ${tier} club).`;
 
             const prompt = `Generate ${count} football player names for ${club.name} in ${nation?.name || 'a fictional nation'}.
 Squad composition: ${ageProfiles[ageRange]}.
@@ -79,6 +82,14 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
             });
 
             if (result?.players) {
+                // If overwrite, delete existing players first
+                if (overwriteExisting) {
+                    const existingPlayers = await base44.entities.Player.filter({ club_id: club.id });
+                    for (const player of existingPlayers) {
+                        await base44.entities.Player.delete(player.id);
+                    }
+                }
+
                 // Assign shirt numbers
                 let shirtNum = 1;
                 const playersWithDetails = result.players.map(p => ({
@@ -92,7 +103,7 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
                 // Bulk create players
                 await base44.entities.Player.bulkCreate(playersWithDetails);
                 
-                toast.success(`Generated ${result.players.length} players!`);
+                toast.success(`${overwriteExisting ? 'Replaced squad with' : 'Generated'} ${result.players.length} players!`);
                 setOpen(false);
                 onPlayersGenerated?.();
             }
@@ -188,6 +199,19 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
                                 ))}
                             </div>
                             <p className="text-xs text-slate-500 mt-1">{namingStyles.length}/4 styles selected</p>
+                        </div>
+
+                        <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            <input
+                                type="checkbox"
+                                id="overwrite"
+                                checked={overwriteExisting}
+                                onChange={(e) => setOverwriteExisting(e.target.checked)}
+                                className="rounded"
+                            />
+                            <Label htmlFor="overwrite" className="cursor-pointer text-sm text-amber-800">
+                                Overwrite existing squad (deletes all current players)
+                            </Label>
                         </div>
 
                         <div className="flex justify-end gap-2 pt-4">
