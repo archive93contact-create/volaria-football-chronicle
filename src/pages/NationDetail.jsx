@@ -55,6 +55,11 @@ export default function NationDetail() {
         queryFn: () => base44.entities.Club.filter({ nation_id: nationId }, 'name'),
     });
 
+    const { data: allClubs = [] } = useQuery({
+        queryKey: ['allClubs'],
+        queryFn: () => base44.entities.Club.list(),
+    });
+
     const { data: seasons = [] } = useQuery({
         queryKey: ['nationSeasons', nationId],
         queryFn: async () => {
@@ -446,7 +451,7 @@ export default function NationDetail() {
                                                 <CardContent>
                                                     <div className="space-y-2">
                                                         {players.map(player => {
-                                                            const club = clubs.find(c => c.id === player.club_id);
+                                                            const club = allClubs.find(c => c.id === player.club_id);
                                                             return (
                                                                 <div key={player.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                                                                     <Link to={createPageUrl(`PlayerDetail?id=${player.id}`)} className="flex items-center gap-3 flex-1">
