@@ -144,7 +144,7 @@ For each player provide:
 - preferred_foot (Left/Right/Both)
 - nationality (MUST be one of: ${nationNames})
 - birth_place (city matching nationality)
-- club_history (for players aged 22+, list 1-3 previous clubs from this list: ${clubNames}. Format: "ClubName (2018-2020), ClubName (2020-${parseInt(currentYear)-1})". Match nationality realistically. Leave empty for younger players.)`;
+- club_history (for players aged 22+, list 1-3 previous clubs from THEIR OWN NATION ONLY. Use clubs from: ${clubNames}. Format: "ClubName (2018-2020), ClubName (2020-${parseInt(currentYear)-1})". Match the player's nationality - player history clubs MUST be from same nation as player. Leave empty for younger players.)`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
