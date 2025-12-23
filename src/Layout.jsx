@@ -37,6 +37,7 @@ export default function Layout({ children, currentPageName }) {
                 { name: 'Stability Manager', icon: BarChart3, page: 'StabilityManager' },
                 { name: 'Nation Generator', icon: Sparkles, page: 'NationGenerator' },
                 { name: 'Kit Generator', icon: Sparkles, page: 'KitGenerator' },
+                { name: 'Compare Nations', icon: Globe, page: 'NationComparison' },
                 { name: 'Compare Clubs', icon: Shield, page: 'ClubComparison' },
                 { name: 'Compare Leagues', icon: Trophy, page: 'LeagueComparison' },
                 { name: 'Locations', icon: MapPin, page: 'Locations' },

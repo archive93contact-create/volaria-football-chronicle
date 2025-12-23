@@ -89,7 +89,9 @@ export default function LeagueComparison() {
                 : null;
 
             // Homegrown percentage (same nation as league)
-            const homegrownPlayers = leaguePlayers.filter(p => p.nation_id === league.nation_id);
+            const homegrownPlayers = leaguePlayers.filter(p => 
+                p.nation_id === league.nation_id || p.nationality === nation?.name
+            );
             const homegrownPct = leaguePlayers.length > 0 
                 ? Math.round((homegrownPlayers.length / leaguePlayers.length) * 100)
                 : 0;
