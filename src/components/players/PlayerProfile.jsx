@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -21,7 +21,36 @@ export default function PlayerProfile({ player, onUpdate }) {
         queryFn: () => base44.entities.Nation.list(),
     });
 
+    const { data: allClubs = [] } = useQuery({
+        queryKey: ['allClubs'],
+        queryFn: () => base44.entities.Club.list(),
+    });
+
     const playerNation = nations.find(n => n.name === player.nationality);
+
+    // Parse club history and match with actual clubs
+    const clubHistory = useMemo(() => {
+        if (!player.club_history) return [];
+        
+        // Parse format: "ClubName (2018-2020), ClubName (2020-2023)"
+        const historyEntries = player.club_history.split(',').map(entry => {
+            const match = entry.trim().match(/^(.+?)\s*\((\d{4})-(\d{4})\)$/);
+            if (!match) return null;
+            
+            const [, clubName, startYear, endYear] = match;
+            const club = allClubs.find(c => c.name.toLowerCase() === clubName.trim().toLowerCase());
+            const nation = club ? nations.find(n => n.id === club.nation_id) : null;
+            
+            return {
+                clubName: clubName.trim(),
+                club,
+                nation,
+                years: `${startYear}-${endYear}`
+            };
+        }).filter(Boolean);
+        
+        return historyEntries;
+    }, [player.club_history, allClubs, nations]);
 
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Player.update(player.id, data),
@@ -78,6 +107,29 @@ export default function PlayerProfile({ player, onUpdate }) {
                             )}
                         </div>
                         <div className="text-sm text-slate-500">{player.position} • Age {player.age}</div>
+                        {clubHistory.length > 0 && (
+                            <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
+                                {clubHistory.map((entry, idx) => (
+                                    <React.Fragment key={idx}>
+                                        {entry.club ? (
+                                            <Link 
+                                                to={createPageUrl(`ClubDetail?id=${entry.club.id}`)} 
+                                                className="flex items-center gap-1 hover:text-emerald-600 transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {entry.nation?.flag_url && (
+                                                    <img src={entry.nation.flag_url} alt={entry.nation.name} className="w-4 h-2.5 object-contain" />
+                                                )}
+                                                <span>{entry.clubName}</span>
+                                            </Link>
+                                        ) : (
+                                            <span>{entry.clubName}</span>
+                                        )}
+                                        {idx < clubHistory.length - 1 && <span>•</span>}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="text-center">
