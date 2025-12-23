@@ -31,6 +31,9 @@ import SyncClubStats from '@/components/common/SyncClubStats';
 import LeagueRecords from '@/components/leagues/LeagueRecords';
 import AILeagueGenerator from '@/components/leagues/AILeagueGenerator';
 import RecalculateSeasonStats from '@/components/seasons/RecalculateSeasonStats';
+import ImmersiveHeader from '@/components/common/ImmersiveHeader';
+import ColorExtractor from '@/components/common/ColorExtractor';
+import StatsCard from '@/components/common/StatsCard';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -251,118 +254,105 @@ export default function LeagueDetail() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Hero */}
-            <div className="relative overflow-hidden" style={{ 
-                background: league.accent_color 
-                    ? `linear-gradient(135deg, ${league.primary_color || '#1e40af'}, ${league.accent_color}, ${league.secondary_color || '#3b82f6'})` 
-                    : `linear-gradient(135deg, ${league.primary_color || '#1e40af'}, ${league.secondary_color || '#3b82f6'})`
-            }}>
-                <div className="absolute inset-0 bg-black/20" />
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <nav className="flex items-center gap-2 text-sm text-white/70 mb-4">
-                        <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
-                        <ChevronRight className="w-4 h-4" />
-                        <Link to={createPageUrl('Nations')} className="hover:text-white">Nations</Link>
-                        <ChevronRight className="w-4 h-4" />
-                        {nation && <Link to={createPageUrl(`NationDetail?id=${nation.id}`)} className="hover:text-white">{nation.name}</Link>}
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="text-white">{league.name}</span>
-                    </nav>
-                    <div className="flex items-center gap-6">
-                        {league.logo_url ? (
-                            <img src={league.logo_url} alt={league.name} className="w-24 h-24 object-contain bg-white rounded-xl p-2" />
-                        ) : (
-                            <div className="w-24 h-24 bg-white/20 rounded-xl flex items-center justify-center">
-                                <Trophy className="w-12 h-12 text-white" />
+            {/* Immersive Hero */}
+            <ImmersiveHeader
+                title={league.name}
+                subtitle={league.description}
+                breadcrumbs={[
+                    { label: 'Nations', url: createPageUrl('Nations') },
+                    ...(nation ? [{ label: nation.name, url: createPageUrl(`NationDetail?id=${nation.id}`) }] : []),
+                    { label: league.name }
+                ]}
+                image={league.logo_url}
+                primaryColor={league.primary_color}
+                secondaryColor={league.secondary_color}
+                accentColor={league.accent_color}
+                textStyle={league.text_style}
+                atmosphere={league.tier === 1 ? 'electric' : 'modern'}
+            >
+                <div className="flex flex-col items-center gap-3">
+                    {/* Crests Grid */}
+                    {currentSeasonTable.length > 0 && (
+                        <div className="hidden lg:flex flex-wrap gap-1.5 max-w-xs justify-center">
+                            {currentSeasonTable.slice(0, 12).map((team) => {
+                                const club = clubs.find(c => c.id === team.club_id);
+                                const isChampion = team.position === 1;
+                                return club?.logo_url && (
+                                    <div 
+                                        key={team.id} 
+                                        className={`relative group ${isChampion ? 'w-12 h-12' : 'w-8 h-8'}`}
+                                        title={team.club_name}
+                                    >
+                                        <img 
+                                            src={club.logo_url} 
+                                            alt={team.club_name}
+                                            className={`w-full h-full object-contain bg-white rounded-lg p-1 shadow-sm ${isChampion ? 'ring-2 ring-amber-400' : ''}`}
+                                        />
+                                        {isChampion && <Trophy className="absolute -top-1 -right-1 w-4 h-4 text-amber-400" />}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 text-white/90 text-sm">
+                        <div className="flex items-center gap-1.5">
+                            <Users className="w-4 h-4" />
+                            <span className="font-bold">{clubs.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4" />
+                            <span className="font-bold">{seasons.length}</span>
+                        </div>
+                        {league.founded_year && (
+                            <div className="flex items-center gap-1.5">
+                                <span>Est. {league.founded_year}</span>
                             </div>
                         )}
-                        <div className="flex-1">
-                            <div className="flex items-start gap-4">
-                                <div className="flex-1">
-                                    <h1 className="text-3xl md:text-4xl font-bold text-white">{league.name}</h1>
-                                    {league.description && <p className="mt-2 text-white/80">{league.description}</p>}
-                                </div>
-                                {/* Current Season Club Crests */}
-                                {currentSeasonTable.length > 0 && (
-                                    <div className="hidden lg:flex flex-wrap gap-1.5 max-w-md">
-                                        {currentSeasonTable.slice(0, 20).map((team) => {
-                                            const club = clubs.find(c => c.id === team.club_id);
-                                            const isChampion = team.position === 1;
-                                            return club?.logo_url && (
-                                                <div 
-                                                    key={team.id} 
-                                                    className={`relative group ${isChampion ? 'w-12 h-12' : 'w-8 h-8'}`}
-                                                    title={team.club_name}
-                                                >
-                                                    <img 
-                                                        src={club.logo_url} 
-                                                        alt={team.club_name}
-                                                        className={`w-full h-full object-contain bg-white rounded-lg p-1 shadow-sm ${isChampion ? 'ring-2 ring-amber-400' : ''}`}
-                                                    />
-                                                    {isChampion && <Trophy className="absolute -top-1 -right-1 w-4 h-4 text-amber-400" />}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-6 mt-4 text-white/90">
-                                <div className="flex items-center gap-2">
-                                    <Users className="w-5 h-5" />
-                                    <span className="font-bold">{clubs.length}</span>
-                                    <span className="text-white/70">Clubs</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="w-5 h-5" />
-                                    <span className="font-bold">{seasons.length}</span>
-                                    <span className="text-white/70">Seasons</span>
-                                </div>
-                                {league.current_champion && (
-                                    <div className="flex items-center gap-2">
-                                        <Trophy className="w-5 h-5 text-amber-300" />
-                                        <span className="font-bold">{league.current_champion}</span>
-                                    </div>
-                                )}
-                                {league.founded_year && (
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-white/70">Est.</span>
-                                        <span className="font-bold">{league.founded_year}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <AdminOnly>
-                            <div className="flex gap-2">
-                                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader><AlertDialogTitle>Delete {league.name}?</AlertDialogTitle></AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </AdminOnly>
                     </div>
+                    {league.current_champion && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 rounded-lg border border-amber-400/30">
+                            <Trophy className="w-4 h-4 text-amber-300" />
+                            <span className="font-bold text-white text-sm">{league.current_champion}</span>
+                        </div>
+                    )}
                 </div>
-            </div>
+                <AdminOnly>
+                    <div className="flex gap-2">
+                        <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
+                            <Edit2 className="w-4 h-4 mr-2" /> Edit
+                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader><AlertDialogTitle>Delete {league.name}?</AlertDialogTitle></AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </AdminOnly>
+            </ImmersiveHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Quick Navigation Cards */}
+                {/* Quick Navigation Cards - Themed */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                    <a href="#league-table" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-yellow-50 group">
+                    <a href="#league-table" className="block" style={{
+                        background: league.accent_color 
+                            ? `linear-gradient(135deg, ${league.primary_color}15, ${league.accent_color}15)` 
+                            : undefined
+                    }}>
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer group" style={{
+                            backgroundColor: league.primary_color ? `${league.primary_color}10` : undefined
+                        }}>
                             <CardContent className="p-4 flex items-center gap-3">
-                                <Trophy className="w-8 h-8 text-amber-500" />
+                                <Trophy className="w-8 h-8" style={{ color: league.primary_color || '#f59e0b' }} />
                                 <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-amber-700">League Table</div>
+                                    <div className="font-semibold text-slate-800">League Table</div>
                                     <div className="text-xs text-slate-500">{currentYear} Season</div>
                                 </div>
                             </CardContent>
@@ -808,15 +798,29 @@ export default function LeagueDetail() {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Edit League</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
-                        <div className="flex justify-center">
-                            <ImageUploaderWithColors 
-                                currentImage={editData.logo_url} 
-                                onUpload={(url) => setEditData({...editData, logo_url: url})} 
-                                primaryColor={editData.primary_color}
-                                secondaryColor={editData.secondary_color}
-                                onColorsChange={(primary, secondary) => setEditData({...editData, primary_color: primary, secondary_color: secondary})}
-                                label="Upload Logo" 
-                            />
+                        <div className="space-y-3">
+                            <div className="flex justify-center">
+                                <ImageUploaderWithColors 
+                                    currentImage={editData.logo_url} 
+                                    onUpload={(url) => setEditData({...editData, logo_url: url})} 
+                                    primaryColor={editData.primary_color}
+                                    secondaryColor={editData.secondary_color}
+                                    onColorsChange={(primary, secondary) => setEditData({...editData, primary_color: primary, secondary_color: secondary})}
+                                    label="Upload Logo" 
+                                />
+                            </div>
+                            {editData.logo_url && (
+                                <ColorExtractor
+                                    imageUrl={editData.logo_url}
+                                    onColorsExtracted={(colors) => setEditData({
+                                        ...editData,
+                                        primary_color: colors.primary,
+                                        secondary_color: colors.secondary,
+                                        accent_color: colors.accent
+                                    })}
+                                    buttonText="🎨 Auto-Detect Colors from Logo"
+                                />
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div><Label>League Name</Label><Input value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
