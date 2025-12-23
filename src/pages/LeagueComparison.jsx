@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
-import { Trophy, Shield, Users, Calendar, Target, BarChart3, ArrowLeftRight } from 'lucide-react';
+import { Trophy, Shield, Users, Calendar, Target, BarChart3, ArrowLeftRight, Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
