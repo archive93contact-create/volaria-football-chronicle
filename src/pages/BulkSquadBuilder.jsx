@@ -187,11 +187,15 @@ Return a JSON array with this exact structure:
         let players = response.players || [];
         const requestedCount = parseInt(config.playerCount);
         
-        // Retry once if significantly undercounting
-        if (players.length < requestedCount * 0.7) {
-            console.warn(`Only got ${players.length}/${requestedCount}, retrying ${club.name}...`);
+        // Tolerance: within 18-26 for 25, or min 11 for lower counts
+        const minAcceptable = Math.max(11, Math.floor(requestedCount * 0.72));
+        const maxAcceptable = Math.ceil(requestedCount * 1.04);
+        
+        // Retry if outside tolerance
+        if (players.length < minAcceptable || players.length > maxAcceptable) {
+            console.warn(`Got ${players.length}/${requestedCount} (need ${minAcceptable}-${maxAcceptable}), retrying ${club.name}...`);
             const retryResponse = await base44.integrations.Core.InvokeLLM({
-                prompt: `CRITICAL: Generate EXACTLY ${requestedCount} players, not ${players.length}. ${prompt}`,
+                prompt: `CRITICAL: Generate between ${minAcceptable} and ${requestedCount} players (target ${requestedCount}). You provided ${players.length} which is outside range. ${prompt}`,
                 response_json_schema: {
                     type: "object",
                     properties: {
@@ -202,7 +206,7 @@ Return a JSON array with this exact structure:
                     }
                 }
             });
-            if (retryResponse?.players && retryResponse.players.length > players.length) {
+            if (retryResponse?.players && retryResponse.players.length >= minAcceptable && retryResponse.players.length <= maxAcceptable) {
                 players = retryResponse.players;
             }
         }
