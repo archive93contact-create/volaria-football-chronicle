@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +20,8 @@ export default function PlayerProfile({ player, onUpdate }) {
         queryKey: ['nations'],
         queryFn: () => base44.entities.Nation.list(),
     });
+
+    const playerNation = nations.find(n => n.name === player.nationality);
 
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Player.update(player.id, data),
@@ -54,45 +58,52 @@ export default function PlayerProfile({ player, onUpdate }) {
 
     if (!isEditing) {
         return (
-            <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 group">
-                {player.shirt_number && (
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700">
-                        {player.shirt_number}
+            <Link to={createPageUrl(`PlayerDetail?id=${player.id}`)} className="block">
+                <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 group cursor-pointer">
+                    {player.shirt_number && (
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700">
+                            {player.shirt_number}
+                        </div>
+                    )}
+                    {player.photo_url ? (
+                        <img src={player.photo_url} alt={player.full_name} className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-slate-200" />
+                    )}
+                    <div className="flex-1">
+                        <div className="font-semibold flex items-center gap-2">
+                            {player.full_name || `${player.first_name} ${player.last_name}`}
+                            {playerNation?.flag_url && (
+                                <img src={playerNation.flag_url} alt={player.nationality} className="w-5 h-4 object-cover rounded shadow-sm" title={player.nationality} />
+                            )}
+                        </div>
+                        <div className="text-sm text-slate-500">{player.position} • Age {player.age}</div>
                     </div>
-                )}
-                {player.photo_url ? (
-                    <img src={player.photo_url} alt={player.full_name} className="w-12 h-12 rounded-full object-cover" />
-                ) : (
-                    <div className="w-12 h-12 rounded-full bg-slate-200" />
-                )}
-                <div className="flex-1">
-                    <div className="font-semibold flex items-center gap-2">
-                        {player.full_name || `${player.first_name} ${player.last_name}`}
-                        {player.nationality && (
-                            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">{player.nationality}</span>
-                        )}
+                    <div className="flex items-center gap-3">
+                        <div className="text-center">
+                            <div className="text-lg font-bold text-emerald-600">{player.overall_rating}</div>
+                            <div className="text-xs text-slate-500">OVR</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-lg font-bold text-blue-600">{player.potential}</div>
+                            <div className="text-xs text-slate-500">POT</div>
+                        </div>
+                        <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => { 
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setEditData(player); 
+                                setIsEditing(true); 
+                            }}
+                            className="opacity-0 group-hover:opacity-100"
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </Button>
                     </div>
-                    <div className="text-sm text-slate-500">{player.position} • Age {player.age}</div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="text-center">
-                        <div className="text-lg font-bold text-emerald-600">{player.overall_rating}</div>
-                        <div className="text-xs text-slate-500">OVR</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-lg font-bold text-blue-600">{player.potential}</div>
-                        <div className="text-xs text-slate-500">POT</div>
-                    </div>
-                    <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => { setEditData(player); setIsEditing(true); }}
-                        className="opacity-0 group-hover:opacity-100"
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </Button>
-                </div>
-            </div>
+            </Link>
         );
     }
 
