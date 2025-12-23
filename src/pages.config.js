@@ -41,6 +41,7 @@ import StabilityManager from './pages/StabilityManager';
 import Support from './pages/Support';
 import UpdateAllPlayerImages from './pages/UpdateAllPlayerImages';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
+import NationComparison from './pages/NationComparison';
 import __Layout from './Layout.jsx';
 
 
@@ -88,6 +89,7 @@ export const PAGES = {
     "Support": Support,
     "UpdateAllPlayerImages": UpdateAllPlayerImages,
     "UpdateContinentalStats": UpdateContinentalStats,
+    "NationComparison": NationComparison,
 }
 
 export const pagesConfig = {

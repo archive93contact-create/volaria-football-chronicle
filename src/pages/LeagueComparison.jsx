@@ -38,6 +38,11 @@ export default function LeagueComparison() {
         queryFn: () => base44.entities.LeagueTable.list(),
     });
 
+    const { data: players = [] } = useQuery({
+        queryKey: ['players'],
+        queryFn: () => base44.entities.Player.list(),
+    });
+
     const compareStats = useMemo(() => {
         if (!league1Id || !league2Id) return null;
 
@@ -70,6 +75,40 @@ export default function LeagueComparison() {
             // Total stadium capacity
             const totalCapacity = leagueClubs.reduce((sum, c) => sum + (c.stadium_capacity || 0), 0);
 
+            // Player stats
+            const leaguePlayerIds = players.filter(p => leagueClubs.some(c => c.id === p.club_id));
+            const leaguePlayers = leaguePlayerIds.filter(p => !p.is_youth_player && p.overall_rating);
+            
+            const avgOVR = leaguePlayers.length > 0 
+                ? Math.round(leaguePlayers.reduce((sum, p) => sum + p.overall_rating, 0) / leaguePlayers.length)
+                : null;
+
+            // Best player
+            const bestPlayer = leaguePlayers.length > 0 
+                ? leaguePlayers.sort((a, b) => b.overall_rating - a.overall_rating)[0]
+                : null;
+
+            // Homegrown percentage (same nation as league)
+            const homegrownPlayers = leaguePlayers.filter(p => p.nation_id === league.nation_id);
+            const homegrownPct = leaguePlayers.length > 0 
+                ? Math.round((homegrownPlayers.length / leaguePlayers.length) * 100)
+                : 0;
+
+            // Average age
+            const avgAge = leaguePlayers.length > 0 
+                ? Math.round(leaguePlayers.reduce((sum, p) => sum + (p.age || 25), 0) / leaguePlayers.length)
+                : null;
+
+            // Average squad size per club
+            const clubsWithPlayers = leagueClubs.map(c => ({
+                club: c,
+                playerCount: players.filter(p => p.club_id === c.id && !p.is_youth_player).length
+            })).filter(x => x.playerCount > 0);
+            
+            const avgSquadSize = clubsWithPlayers.length > 0
+                ? Math.round(clubsWithPlayers.reduce((sum, x) => sum + x.playerCount, 0) / clubsWithPlayers.length)
+                : null;
+
             return {
                 league,
                 nation,
@@ -82,7 +121,12 @@ export default function LeagueComparison() {
                 avgGoals,
                 totalCapacity,
                 founded: league.founded_year,
-                tier: league.tier || 1
+                tier: league.tier || 1,
+                avgOVR,
+                bestPlayer,
+                homegrownPct,
+                avgAge,
+                avgSquadSize
             };
         };
 
@@ -90,7 +134,7 @@ export default function LeagueComparison() {
             league1: getLeagueStats(league1Id),
             league2: getLeagueStats(league2Id)
         };
-    }, [league1Id, league2Id, leagues, nations, clubs, seasons, leagueTables]);
+    }, [league1Id, league2Id, leagues, nations, clubs, seasons, leagueTables, players]);
 
     const renderComparison = (label, val1, val2, icon, higherBetter = true) => {
         const better1 = higherBetter ? val1 > val2 : val1 < val2;
@@ -201,6 +245,38 @@ export default function LeagueComparison() {
                             {renderComparison('CCC Titles', compareStats.league1.cccTitles, compareStats.league2.cccTitles, <Trophy className="w-4 h-4" />)}
                             {renderComparison('Total Capacity', compareStats.league1.totalCapacity.toLocaleString(), compareStats.league2.totalCapacity.toLocaleString(), <Users className="w-4 h-4" />)}
                             {renderComparison('Founded', compareStats.league1.founded || '—', compareStats.league2.founded || '—', <Calendar className="w-4 h-4" />, false)}
+                            
+                            <div className="my-4 border-t-2 border-slate-200" />
+                            <div className="text-center text-sm font-semibold text-slate-500 mb-3">Player Statistics</div>
+                            
+                            {renderComparison('League Avg OVR', compareStats.league1.avgOVR || '—', compareStats.league2.avgOVR || '—', <Users className="w-4 h-4" />)}
+                            
+                            <div className="grid grid-cols-3 gap-4 py-3 border-b border-slate-100">
+                                <div className="text-right text-sm">
+                                    {compareStats.league1.bestPlayer ? (
+                                        <Link to={createPageUrl(`PlayerDetail?id=${compareStats.league1.bestPlayer.id}`)} className="hover:text-emerald-600">
+                                            <div className="font-bold">{compareStats.league1.bestPlayer.full_name}</div>
+                                            <div className="text-xs text-slate-500">OVR {compareStats.league1.bestPlayer.overall_rating}</div>
+                                        </Link>
+                                    ) : '—'}
+                                </div>
+                                <div className="text-center flex items-center justify-center gap-2 text-slate-500">
+                                    <Star className="w-4 h-4" />
+                                    <span className="text-sm">Best Player</span>
+                                </div>
+                                <div className="text-left text-sm">
+                                    {compareStats.league2.bestPlayer ? (
+                                        <Link to={createPageUrl(`PlayerDetail?id=${compareStats.league2.bestPlayer.id}`)} className="hover:text-emerald-600">
+                                            <div className="font-bold">{compareStats.league2.bestPlayer.full_name}</div>
+                                            <div className="text-xs text-slate-500">OVR {compareStats.league2.bestPlayer.overall_rating}</div>
+                                        </Link>
+                                    ) : '—'}
+                                </div>
+                            </div>
+                            
+                            {renderComparison('% Homegrown', `${compareStats.league1.homegrownPct}%`, `${compareStats.league2.homegrownPct}%`, <Shield className="w-4 h-4" />)}
+                            {renderComparison('Average Age', compareStats.league1.avgAge || '—', compareStats.league2.avgAge || '—', <Users className="w-4 h-4" />, false)}
+                            {renderComparison('Avg Squad Size', compareStats.league1.avgSquadSize || '—', compareStats.league2.avgSquadSize || '—', <Users className="w-4 h-4" />)}
                         </CardContent>
                     </Card>
                 )}

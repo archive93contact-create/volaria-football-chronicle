@@ -37,6 +37,11 @@ export default function ClubComparison() {
         queryFn: () => base44.entities.LeagueTable.list(),
     });
 
+    const { data: players = [] } = useQuery({
+        queryKey: ['players'],
+        queryFn: () => base44.entities.Player.list(),
+    });
+
     const selectedClubs = selectedClubIds.map(id => clubs.find(c => c.id === id)).filter(Boolean);
     
     const addClub = (clubId) => {
@@ -294,6 +299,22 @@ export default function ClubComparison() {
                                                 return (
                                                     <TableCell key={club.id} className={`text-center font-bold ${gd > 0 ? 'text-green-600' : gd < 0 ? 'text-red-600' : ''}`}>
                                                         {gd > 0 ? `+${gd}` : gd}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                        <TableRow className="bg-emerald-50">
+                                            <TableCell className="font-medium flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-emerald-500" /> Squad Avg OVR
+                                            </TableCell>
+                                            {selectedClubs.map(club => {
+                                                const clubPlayers = players.filter(p => p.club_id === club.id && !p.is_youth_player && p.overall_rating);
+                                                const avgOVR = clubPlayers.length > 0 
+                                                    ? Math.round(clubPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / clubPlayers.length)
+                                                    : null;
+                                                return (
+                                                    <TableCell key={club.id} className="text-center font-bold text-emerald-600">
+                                                        {avgOVR || '-'}
                                                     </TableCell>
                                                 );
                                             })}
