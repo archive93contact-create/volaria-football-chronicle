@@ -6,6 +6,7 @@ import { createPageUrl } from '@/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Target, ArrowRightLeft } from 'lucide-react';
 
 export default function MatchDetailView({ match, isOpen, onClose }) {
@@ -63,6 +64,42 @@ export default function MatchDetailView({ match, isOpen, onClose }) {
     const goals = match.goals || [];
     const substitutions = match.substitutions || [];
 
+    const TeamLineup = ({ lineup, subs, title }) => (
+        <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    {title}
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                {lineup.length > 0 ? (
+                    <>
+                        <div className="mb-4">
+                            <div className="text-sm font-semibold text-slate-600 mb-2">Starting XI</div>
+                            <div className="space-y-1">
+                                {lineup.map(player => <PlayerRow key={player.id} player={player} />)}
+                            </div>
+                        </div>
+                        {subs.length > 0 && (
+                            <div>
+                                <div className="text-sm font-semibold text-slate-600 mb-2">Substitutes</div>
+                                <div className="space-y-1">
+                                    {subs.map(player => <PlayerRow key={player.id} player={player} />)}
+                                </div>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className="text-center py-8 text-slate-400">
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No lineup set</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -79,77 +116,47 @@ export default function MatchDetailView({ match, isOpen, onClose }) {
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Home Team */}
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Users className="w-5 h-5 text-blue-600" />
-                                {match.home_club_name}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {sortedHomeLineup.length > 0 ? (
-                                <>
-                                    <div className="mb-4">
-                                        <div className="text-sm font-semibold text-slate-600 mb-2">Starting XI</div>
-                                        <div className="space-y-1">
-                                            {sortedHomeLineup.map(player => <PlayerRow key={player.id} player={player} />)}
-                                        </div>
-                                    </div>
-                                    {sortedHomeSubs.length > 0 && (
-                                        <div>
-                                            <div className="text-sm font-semibold text-slate-600 mb-2">Substitutes</div>
-                                            <div className="space-y-1">
-                                                {sortedHomeSubs.map(player => <PlayerRow key={player.id} player={player} />)}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="text-center py-8 text-slate-400">
-                                    <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm">No lineup set</p>
+                {match.is_single_leg ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <TeamLineup lineup={sortedHomeLineup} subs={sortedHomeSubs} title={match.home_club_name} />
+                        <TeamLineup lineup={sortedAwayLineup} subs={sortedAwaySubs} title={match.away_club_name} />
+                    </div>
+                ) : (
+                    <Tabs defaultValue="leg1" className="space-y-4">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="leg1">
+                                <div className="flex items-center gap-2">
+                                    <span>Leg 1</span>
+                                    <Badge variant="outline" className="text-xs">
+                                        {match.home_score_leg1 ?? '-'} - {match.away_score_leg1 ?? '-'}
+                                    </Badge>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </TabsTrigger>
+                            <TabsTrigger value="leg2">
+                                <div className="flex items-center gap-2">
+                                    <span>Leg 2</span>
+                                    <Badge variant="outline" className="text-xs">
+                                        {match.home_score_leg2 ?? '-'} - {match.away_score_leg2 ?? '-'}
+                                    </Badge>
+                                </div>
+                            </TabsTrigger>
+                        </TabsList>
 
-                    {/* Away Team */}
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Users className="w-5 h-5 text-red-600" />
-                                {match.away_club_name}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {sortedAwayLineup.length > 0 ? (
-                                <>
-                                    <div className="mb-4">
-                                        <div className="text-sm font-semibold text-slate-600 mb-2">Starting XI</div>
-                                        <div className="space-y-1">
-                                            {sortedAwayLineup.map(player => <PlayerRow key={player.id} player={player} />)}
-                                        </div>
-                                    </div>
-                                    {sortedAwaySubs.length > 0 && (
-                                        <div>
-                                            <div className="text-sm font-semibold text-slate-600 mb-2">Substitutes</div>
-                                            <div className="space-y-1">
-                                                {sortedAwaySubs.map(player => <PlayerRow key={player.id} player={player} />)}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="text-center py-8 text-slate-400">
-                                    <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm">No lineup set</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+                        <TabsContent value="leg1" className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <TeamLineup lineup={sortedHomeLineup} subs={sortedHomeSubs} title={match.home_club_name} />
+                                <TeamLineup lineup={sortedAwayLineup} subs={sortedAwaySubs} title={match.away_club_name} />
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="leg2" className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <TeamLineup lineup={sortedHomeLineup} subs={sortedHomeSubs} title={match.home_club_name} />
+                                <TeamLineup lineup={sortedAwayLineup} subs={sortedAwaySubs} title={match.away_club_name} />
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                )}
 
                 {/* Match Events */}
                 {(goals.length > 0 || substitutions.length > 0) && (
