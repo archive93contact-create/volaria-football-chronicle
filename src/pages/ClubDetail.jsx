@@ -29,6 +29,8 @@ import AIKitGenerator from '@/components/clubs/AIKitGenerator';
 import ColorExtractor from '@/components/common/ColorExtractor';
 import ImmersiveHeader from '@/components/common/ImmersiveHeader';
 import StatsCard from '@/components/common/StatsCard';
+import ThemedCard from '@/components/common/ThemedCard';
+import { Badge } from "@/components/ui/badge";
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -424,8 +426,12 @@ export default function ClubDetail() {
                     </a>
                 </div>
 
-                {/* Stats */}
-                <div id="honours" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+                {/* Stats - with subtle club theming */}
+                <div 
+                    id="honours" 
+                    className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 p-4 rounded-xl" 
+                    style={{ backgroundColor: club.primary_color ? `${club.primary_color}05` : undefined }}
+                >
                     {/* Total Trophies */}
                     {(() => {
                         const totalTrophies = (combinedStats?.league_titles || 0) + 
@@ -433,7 +439,14 @@ export default function ClubDetail() {
                                               (combinedStats?.vcc_titles || 0) + 
                                               (combinedStats?.ccc_titles || 0);
                         if (totalTrophies === 0) return null;
-                        return <StatsCard icon={Star} label="Total Trophies" value={totalTrophies} color="amber" gradient />;
+                        return <StatsCard 
+                            icon={Star} 
+                            label="Total Trophies" 
+                            value={totalTrophies} 
+                            customColor={club.accent_color || club.primary_color}
+                            customBg={club.primary_color ? `${club.primary_color}15` : '#fef3c7'}
+                            gradient
+                        />;
                     })()}
                     {combinedStats?.league_titles > 0 && (
                         <StatsCard icon={Trophy} label="League Titles" value={combinedStats.league_titles} color="amber" />
@@ -463,9 +476,9 @@ export default function ClubDetail() {
                                                           <div className="text-xs text-slate-500">
                                                               Best Finish {combinedStats.best_finish_tier ? `(Tier ${combinedStats.best_finish_tier})` : ''}
                                                           </div>
-                                                      </CardContent>
-                                                  </Card>
-                                              )}
+                                                          </CardContent>
+                                                          </ThemedCard>
+                                                          )}
                                               {(() => {
                                                                       if (combinedSeasons.length === 0) return null;
                                                                       let worstFinish = null;
@@ -489,9 +502,9 @@ export default function ClubDetail() {
                                                                                   <div className="text-xs text-slate-500">
                                                                                       Worst Finish (Tier {worstTier})
                                                                                   </div>
-                                                                              </CardContent>
-                                                                          </Card>
-                                                                      );
+                                                                                  </CardContent>
+                                                                                  </ThemedCard>
+                                                                                  );
                                                                   })()}
                     {combinedStats?.seasons_played > 0 && (
                         <Card className="border-0 shadow-sm">
@@ -533,7 +546,13 @@ export default function ClubDetail() {
 
                 {/* Title Years */}
                 {combinedStats?.title_years && (
-                    <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-amber-50 to-yellow-50">
+                    <Card 
+                        className="border-0 shadow-sm mb-4 bg-gradient-to-r from-amber-50 to-yellow-50"
+                        style={{ 
+                            borderLeft: club.accent_color ? `4px solid ${club.accent_color}` : '4px solid #f59e0b',
+                            backgroundColor: club.primary_color ? `${club.primary_color}08` : undefined
+                        }}
+                    >
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
                                 <Trophy className="w-8 h-8 text-amber-500" />
@@ -548,7 +567,12 @@ export default function ClubDetail() {
 
                 {/* Cup Title Years */}
                 {combinedStats?.domestic_cup_title_years && (
-                    <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-orange-50 to-amber-50">
+                    <Card 
+                        className="border-0 shadow-sm mb-4 bg-gradient-to-r from-orange-50 to-amber-50"
+                        style={{ 
+                            borderLeft: club.secondary_color ? `4px solid ${club.secondary_color}` : '4px solid #fb923c'
+                        }}
+                    >
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
                                 <Award className="w-8 h-8 text-orange-500" />
@@ -565,7 +589,12 @@ export default function ClubDetail() {
 
                 {/* Continental Title Years */}
                 {(combinedStats?.vcc_title_years || combinedStats?.ccc_title_years) && (
-                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-purple-50 to-indigo-50">
+                    <Card 
+                        className="border-0 shadow-sm mb-8 bg-gradient-to-r from-purple-50 to-indigo-50"
+                        style={{ 
+                            borderLeft: club.accent_color ? `4px solid ${club.accent_color}` : '4px solid #a855f7'
+                        }}
+                    >
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
                                 <Star className="w-8 h-8 text-purple-500" />
@@ -587,14 +616,14 @@ export default function ClubDetail() {
 
                 {/* Continental Honours */}
                 {((combinedStats?.vcc_titles > 0) || (combinedStats?.ccc_titles > 0) || combinedStats?.vcc_appearances > 0 || combinedStats?.ccc_appearances > 0) && (
-                    <Card className="border-0 shadow-sm mb-8">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Star className="w-5 h-5 text-amber-500" />
-                                Continental Honours
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                    <ThemedCard 
+                        title="Continental Honours" 
+                        icon={Star}
+                        primaryColor={club.primary_color}
+                        accentColor={club.accent_color}
+                        className="mb-8"
+                    >
+                        <CardContent className="p-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* VCC Section */}
                                 {(combinedStats?.vcc_titles > 0 || combinedStats?.vcc_appearances > 0 || combinedStats?.vcc_best_finish) && (
@@ -728,15 +757,22 @@ export default function ClubDetail() {
                         }), { seasons: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 });
 
                         return (
-                            <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-l-amber-500">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="flex items-center gap-2 text-amber-800">
-                                        <Star className="w-5 h-5 text-amber-500" />
+                            <ThemedCard
+                                icon={Star}
+                                title={
+                                    <span className="flex items-center gap-2">
                                         Top Flight Statistics Only
-                                        <Badge className="bg-amber-500 text-white ml-2">{topFlightStats.seasons} seasons</Badge>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
+                                        <Badge className="ml-2" style={{ 
+                                            backgroundColor: club.accent_color || club.primary_color || '#f59e0b',
+                                            color: 'white'
+                                        }}>{topFlightStats.seasons} seasons</Badge>
+                                    </span>
+                                }
+                                primaryColor={club.primary_color}
+                                accentColor={club.accent_color}
+                                className="mb-8"
+                            >
+                                <CardContent className="p-0">
                                     <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
                                         <div className="p-3 bg-white/60 rounded-lg">
                                             <div className="text-2xl font-bold text-green-600">{topFlightStats.wins}</div>
@@ -979,9 +1015,13 @@ export default function ClubDetail() {
                     </TabsContent>
 
                     <TabsContent value="continental">
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader><CardTitle>Continental Competition Record</CardTitle></CardHeader>
-                            <CardContent>
+                        <ThemedCard 
+                            title="Continental Competition Record"
+                            icon={Star}
+                            primaryColor={club.primary_color}
+                            accentColor={club.accent_color}
+                        >
+                            <CardContent className="p-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     {/* VCC Stats */}
                                     <div>
@@ -1051,9 +1091,9 @@ export default function ClubDetail() {
                                         </div>
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                                </CardContent>
+                                </ThemedCard>
+                                </TabsContent>
 
                     <TabsContent value="info">
                                                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -7,7 +7,9 @@ export default function StatsCard({
     value, 
     color = 'slate', 
     gradient = false,
-    size = 'default'
+    size = 'default',
+    customColor,
+    customBg
 }) {
     const colorClasses = {
         amber: gradient ? 'bg-gradient-to-br from-amber-100 to-yellow-100 border-amber-200' : 'bg-amber-50',
@@ -42,6 +44,18 @@ export default function StatsCard({
     const sizeClasses = size === 'small' ? 'p-3' : 'p-4';
     const iconSize = size === 'small' ? 'w-5 h-5' : 'w-6 h-6';
     const textSize = size === 'small' ? 'text-lg' : 'text-2xl';
+
+    if (customColor && customBg) {
+        return (
+            <Card className="border-0 shadow-sm" style={{ backgroundColor: customBg, borderLeft: `3px solid ${customColor}` }}>
+                <CardContent className={`${sizeClasses} text-center`}>
+                    <Icon className={`${iconSize} mx-auto mb-2`} style={{ color: customColor }} />
+                    <div className={`${textSize} font-bold`} style={{ color: customColor }}>{value}</div>
+                    <div className="text-xs text-slate-600">{label}</div>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card className={`border-0 shadow-sm ${colorClasses[color]} ${gradient ? 'border' : ''}`}>

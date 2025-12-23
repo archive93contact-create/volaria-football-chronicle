@@ -7,6 +7,19 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
     
     if (!club || seasons.length === 0) return null;
 
+    // Pattern overlay generator
+    const getPatternStyle = (pattern) => {
+        if (!pattern || pattern === 'solid') return {};
+        
+        const patterns = {
+            'vertical_stripes': 'repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, transparent 2px, transparent 12px, rgba(0,0,0,0.02) 14px)',
+            'horizontal_hoops': 'repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, transparent 2px, transparent 12px, rgba(0,0,0,0.02) 14px)',
+            'diagonal_stripe': 'repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, transparent 2px, transparent 20px, rgba(0,0,0,0.02) 22px)',
+        };
+        
+        return { backgroundImage: patterns[pattern] || 'none' };
+    };
+
     // Calculate club stature/size for narrative
     const calculateClubStature = () => {
         // Continental elite: VCC/CCC titles - VCC weighted more heavily
@@ -1609,18 +1622,32 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
 
     if (narratives.length === 0 && !clubStature) return null;
 
+    const patternStyle = getPatternStyle(club.pattern_preference);
+
     return (
-        <Card className="border-0 shadow-sm">
+        <Card 
+            className="border-0 shadow-sm" 
+            style={{ 
+                borderLeft: club.accent_color ? `4px solid ${club.accent_color}` : undefined,
+                backgroundColor: club.primary_color ? `${club.primary_color}03` : undefined
+            }}
+        >
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-emerald-600" />
+                    <BookOpen className="w-5 h-5" style={{ color: club.accent_color || '#10b981' }} />
                     Club Story
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 {/* Club Stature Section */}
                 {clubStature && (
-                    <div className={`mb-4 p-4 rounded-xl ${clubStature.bg} border border-slate-100`}>
+                    <div 
+                        className={`mb-4 p-4 rounded-xl ${clubStature.bg} border`}
+                        style={{ 
+                            borderColor: club.accent_color ? `${club.accent_color}30` : undefined,
+                            ...patternStyle
+                        }}
+                    >
                         <div className="flex items-center gap-2 mb-2">
                             <Star className={`w-5 h-5 ${clubStature.color}`} />
                             <h4 className={`font-bold ${clubStature.color}`}>{clubStature.tier}</h4>
@@ -1631,7 +1658,11 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
 
                 <div className="grid gap-3 md:grid-cols-2">
                     {narratives.slice(0, 8).map((narrative, idx) => (
-                        <div key={idx} className={`flex gap-3 p-3 rounded-lg ${narrative.bg}`}>
+                        <div 
+                            key={idx} 
+                            className={`flex gap-3 p-3 rounded-lg ${narrative.bg} border border-transparent`}
+                            style={patternStyle}
+                        >
                             <narrative.icon className={`w-5 h-5 ${narrative.color} flex-shrink-0 mt-0.5`} />
                             <div>
                                 <h4 className="font-semibold text-slate-800 text-sm">{narrative.title}</h4>

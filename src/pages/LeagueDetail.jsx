@@ -34,6 +34,7 @@ import RecalculateSeasonStats from '@/components/seasons/RecalculateSeasonStats'
 import ImmersiveHeader from '@/components/common/ImmersiveHeader';
 import ColorExtractor from '@/components/common/ColorExtractor';
 import StatsCard from '@/components/common/StatsCard';
+import ThemedCard from '@/components/common/ThemedCard';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -396,13 +397,22 @@ export default function LeagueDetail() {
                 {/* LEAGUE TABLE */}
                 {currentSeasonTable.length > 0 && (
                     <div id="league-table">
-                    <Card className="border-0 shadow-lg mb-8">
-                        <CardHeader className="flex flex-row items-center justify-between bg-slate-50 border-b">
-                            <CardTitle className="flex items-center gap-2">
-                                <Trophy className="w-5 h-5 text-amber-500" />
-                                League Table {currentYear}
-                                {hasDivisions && ` (${divisionNames.length} Divisions)`}
-                            </CardTitle>
+                    <ThemedCard
+                        title={
+                            <span className="flex items-center gap-2 justify-between w-full">
+                                <span className="flex items-center gap-2">
+                                    <Trophy className="w-5 h-5" style={{ color: league.accent_color || '#f59e0b' }} />
+                                    League Table {currentYear}
+                                    {hasDivisions && ` (${divisionNames.length} Divisions)`}
+                                </span>
+                            </span>
+                        }
+                        primaryColor={league.primary_color}
+                        accentColor={league.accent_color}
+                        className="mb-8 shadow-lg"
+                    >
+                        <CardHeader className="flex flex-row items-center justify-between bg-slate-50 border-b p-0 pt-4 px-6">
+                            <div></div>
                             {uniqueYears.length > 0 && (
                                 <Select value={selectedSeason || uniqueYears[0]} onValueChange={setSelectedSeason}>
                                     <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -484,7 +494,7 @@ export default function LeagueDetail() {
                                 ))}
                             </div>
                         </CardContent>
-                    </Card>
+                    </ThemedCard>
                     </div>
                 )}
 
@@ -550,9 +560,13 @@ export default function LeagueDetail() {
                     </TabsList>
 
                     <TabsContent value="clubs">
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader className="flex flex-row items-center justify-between">
-                                <CardTitle>Clubs</CardTitle>
+                        <ThemedCard 
+                            title="Clubs"
+                            icon={Shield}
+                            primaryColor={league.primary_color}
+                            accentColor={league.accent_color}
+                        >
+                            <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
                                 <AdminOnly>
                                     <Link to={createPageUrl(`AddClub?nation_id=${league.nation_id}&league_id=${leagueId}`)}>
                                         <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Club</Button>
@@ -604,14 +618,17 @@ export default function LeagueDetail() {
                                     </div>
                                 )}
                             </CardContent>
-                        </Card>
+                        </ThemedCard>
                     </TabsContent>
 
                     <TabsContent value="titles">
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader>
-                                <CardTitle>All-Time Title Winners</CardTitle>
-                            </CardHeader>
+                        <ThemedCard 
+                            title="All-Time Title Winners"
+                            icon={Trophy}
+                            primaryColor={league.primary_color}
+                            accentColor={league.accent_color}
+                        >
+                            <CardHeader className="p-0 pb-4"></CardHeader>
                             <CardContent>
                                 {(() => {
                                     // Count titles per club from season data
@@ -667,13 +684,17 @@ export default function LeagueDetail() {
                                     );
                                 })()}
                             </CardContent>
-                        </Card>
+                        </ThemedCard>
                     </TabsContent>
 
                     <TabsContent value="history">
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader className="flex flex-row items-center justify-between">
-                                <CardTitle>Season History</CardTitle>
+                        <ThemedCard 
+                            title="Season History"
+                            icon={Calendar}
+                            primaryColor={league.primary_color}
+                            accentColor={league.accent_color}
+                        >
+                            <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
                                 <div className="flex gap-2">
                                     <AdminOnly>
                                         <RecalculateSeasonStats 
@@ -779,7 +800,7 @@ export default function LeagueDetail() {
                                     </Table>
                                                 )}
                                             </CardContent>
-                                        </Card>
+                                        </ThemedCard>
                                     </TabsContent>
 
                                     <TabsContent value="records">
