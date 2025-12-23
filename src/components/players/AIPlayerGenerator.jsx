@@ -214,10 +214,51 @@ OUTPUT EXACTLY ${count} PLAYERS WITH:
                 }
             });
 
-            if (result?.players) {
+            let players = result?.players || [];
+            const requestedCount = parseInt(count);
+            
+            // Tolerance: within 18-26 for 25, or min 11 for lower counts
+            const minAcceptable = Math.max(11, Math.floor(requestedCount * 0.72));
+            const maxAcceptable = Math.ceil(requestedCount * 1.04);
+            
+            // Retry if outside tolerance
+            if (players.length < minAcceptable || players.length > maxAcceptable) {
+                console.warn(`Got ${players.length}/${requestedCount} (need ${minAcceptable}-${maxAcceptable}), retrying...`);
+                const retryResult = await base44.integrations.Core.InvokeLLM({
+                    prompt: `CRITICAL: Generate between ${minAcceptable} and ${requestedCount} players (target ${requestedCount}). You provided ${players.length} which is outside range. ${prompt}`,
+                    response_json_schema: {
+                        type: "object",
+                        properties: {
+                            players: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        first_name: { type: "string" },
+                                        last_name: { type: "string" },
+                                        age: { type: "number" },
+                                        position: { type: "string" },
+                                        overall_rating: { type: "number" },
+                                        potential: { type: "number" },
+                                        preferred_foot: { type: "string" },
+                                        nationality: { type: "string" },
+                                        birth_place: { type: "string" },
+                                        club_history: { type: "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                if (retryResult?.players && retryResult.players.length >= minAcceptable && retryResult.players.length <= maxAcceptable) {
+                    players = retryResult.players;
+                }
+            }
+
+            if (players.length > 0) {
                 // Assign shirt numbers
                 let shirtNum = 1;
-                const playersWithDetails = result.players.map(p => ({
+                const playersWithDetails = players.map(p => ({
                     ...p,
                     club_id: club.id,
                     nation_id: nation?.id,
@@ -244,7 +285,7 @@ OUTPUT EXACTLY ${count} PLAYERS WITH:
                     }
                 });
                 
-                toast.success(`${overwriteExisting ? 'Replaced squad with' : 'Generated'} ${result.players.length} players! Generating portraits...`);
+                toast.success(`${overwriteExisting ? 'Replaced squad with' : 'Generated'} ${players.length} players! Generating portraits...`);
                 setOpen(false);
                 onPlayersGenerated?.();
             }
