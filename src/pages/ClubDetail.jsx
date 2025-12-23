@@ -31,6 +31,7 @@ import ImmersiveHeader from '@/components/common/ImmersiveHeader';
 import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
 import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
+import PlayerProfile from '@/components/players/PlayerProfile';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1071,32 +1072,11 @@ export default function ClubDetail() {
                                                 <CardContent>
                                                     <div className="space-y-2">
                                                         {plrs.sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(player => (
-                                                            <div key={player.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50">
-                                                                {player.shirt_number && (
-                                                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700">
-                                                                        {player.shirt_number}
-                                                                    </div>
-                                                                )}
-                                                                {player.photo_url ? (
-                                                                    <img src={player.photo_url} alt={player.full_name} className="w-12 h-12 rounded-full object-cover" />
-                                                                ) : (
-                                                                    <div className="w-12 h-12 rounded-full bg-slate-200" />
-                                                                )}
-                                                                <div className="flex-1">
-                                                                    <div className="font-semibold">{player.full_name || `${player.first_name} ${player.last_name}`}</div>
-                                                                    <div className="text-sm text-slate-500">{player.position} • Age {player.age}</div>
-                                                                </div>
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg font-bold text-emerald-600">{player.overall_rating}</div>
-                                                                        <div className="text-xs text-slate-500">OVR</div>
-                                                                    </div>
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg font-bold text-blue-600">{player.potential}</div>
-                                                                        <div className="text-xs text-slate-500">POT</div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                                            <PlayerProfile 
+                                                                key={player.id} 
+                                                                player={player}
+                                                                onUpdate={() => queryClient.invalidateQueries(['players'])}
+                                                            />
                                                         ))}
                                                     </div>
                                                 </CardContent>

@@ -242,6 +242,23 @@ export default function EnhancedLocationDetail({
                 </TabsList>
 
                 <TabsContent value="overview">
+                    {/* Location Images/Maps */}
+                    {existingLocation?.image_url && (
+                        <div className="mb-6">
+                            <img src={existingLocation.image_url} alt={locationName} className="w-full h-96 object-cover rounded-xl shadow-lg" />
+                        </div>
+                    )}
+                    {existingLocation?.map_url && (
+                        <div className="mb-6">
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader><CardTitle>Area Map</CardTitle></CardHeader>
+                                <CardContent>
+                                    <img src={existingLocation.map_url} alt={`${locationName} map`} className="w-full h-96 object-contain rounded-lg" />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
                     {/* Location Narratives */}
                     <LocationNarratives 
                         locationName={locationName}

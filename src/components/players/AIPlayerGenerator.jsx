@@ -14,6 +14,7 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
     const [count, setCount] = useState('25');
     const [ageRange, setAgeRange] = useState('balanced');
     const [qualityLevel, setQualityLevel] = useState('realistic');
+    const [namingStyles, setNamingStyles] = useState([]);
 
     const generatePlayers = async () => {
         setGenerating(true);
@@ -38,12 +39,19 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                 lower: `modest ratings 45-65, developing tier ${tier} squad`
             };
 
+            const namingStylesText = namingStyles.length > 0 
+                ? `Use these naming styles: ${namingStyles.join(', ')}. Mix them realistically.`
+                : `Use ${nation?.language || 'diverse'} naming conventions.`;
+
+            const nationalityText = `Most players (70-80%) should be from ${nation?.name || 'the home nation'}. Remaining players from neighboring or culturally similar nations.`;
+
             const prompt = `Generate ${count} football player names for ${club.name} in ${nation?.name || 'a fictional nation'}.
 Squad composition: ${ageProfiles[ageRange]}.
 Quality: ${qualityLevels[qualityLevel]}.
 Positions needed: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST).
-Cultural context: ${nation?.language || 'diverse'} names, ${nation?.culture || 'international'} influences.
-For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST), overall_rating (30-99), potential (overall+0 to +15), preferred_foot (Left/Right/Both), nationality (${nation?.name || 'Nation'}).`;
+${namingStylesText}
+${nationalityText}
+For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST), overall_rating (30-99), potential (overall+0 to +15), preferred_foot (Left/Right/Both), nationality (make realistic based on club nation and neighbors).`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
@@ -151,6 +159,35 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
                                     <SelectItem value="lower">Developing (45-65)</SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+
+                        <div>
+                            <Label>Naming Styles (optional, select up to 4)</Label>
+                            <div className="grid grid-cols-2 gap-2 mt-2 p-3 bg-slate-50 rounded-lg max-h-48 overflow-y-auto">
+                                {[
+                                    'English/British', 'Spanish', 'Italian', 'German', 'French', 'Portuguese',
+                                    'Dutch', 'Scandinavian', 'Eastern European', 'Balkan', 'Turkish',
+                                    'Arabic', 'African', 'Brazilian', 'Asian', 'Celtic', 'Nordic'
+                                ].map(style => (
+                                    <label key={style} className="flex items-center gap-2 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={namingStyles.includes(style)}
+                                            onChange={(e) => {
+                                                if (e.target.checked && namingStyles.length < 4) {
+                                                    setNamingStyles([...namingStyles, style]);
+                                                } else if (!e.target.checked) {
+                                                    setNamingStyles(namingStyles.filter(s => s !== style));
+                                                }
+                                            }}
+                                            disabled={!namingStyles.includes(style) && namingStyles.length >= 4}
+                                            className="rounded"
+                                        />
+                                        {style}
+                                    </label>
+                                ))}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">{namingStyles.length}/4 styles selected</p>
                         </div>
 
                         <div className="flex justify-end gap-2 pt-4">
