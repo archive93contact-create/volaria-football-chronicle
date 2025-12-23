@@ -265,54 +265,7 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
     if (!stats) return null;
 
     return (
-        <>
-            {/* Culture & Identity Section */}
-            {(nation.culture || nation.geography || nation.national_media || nation.cuisine || nation.famous_for) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    {nation.culture && (
-                        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
-                            <CardHeader className="pb-2"><CardTitle className="text-lg">National Culture</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-slate-700 text-sm whitespace-pre-line">{nation.culture}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {nation.geography && (
-                        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 border-l-4 border-l-emerald-500">
-                            <CardHeader className="pb-2"><CardTitle className="text-lg">Geography</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-slate-700 text-sm whitespace-pre-line">{nation.geography}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {nation.national_media && (
-                        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-l-blue-500">
-                            <CardHeader className="pb-2"><CardTitle className="text-lg">National Media</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-slate-700 text-sm whitespace-pre-line">{nation.national_media}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {nation.cuisine && (
-                        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 border-l-4 border-l-amber-500">
-                            <CardHeader className="pb-2"><CardTitle className="text-lg">Traditional Cuisine</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-slate-700 text-sm whitespace-pre-line">{nation.cuisine}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {nation.famous_for && (
-                        <Card className="border-0 shadow-sm bg-gradient-to-br from-rose-50 to-pink-50 border-l-4 border-l-rose-500 md:col-span-2">
-                            <CardHeader className="pb-2"><CardTitle className="text-lg">Famous For</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-slate-700 text-sm whitespace-pre-line">{nation.famous_for}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-            )}
-            
-            <Card className="border-0 shadow-sm mb-6">
+        <Card className="border-0 shadow-sm mb-6">
                 <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg">
                         <Globe className="w-5 h-5 text-emerald-600" />
