@@ -302,112 +302,76 @@ export default function ClubDetail() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Hero */}
-            <div className="relative overflow-hidden" style={{ 
-                background: club.accent_color 
-                    ? `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.accent_color}, ${club.secondary_color || '#3b82f6'})` 
-                    : `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.secondary_color || club.primary_color || '#3b82f6'})`
-            }}>
-                <div className="absolute inset-0 bg-black/30" />
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <nav className="flex items-center gap-2 text-sm text-white/70 mb-4 flex-wrap">
-                        <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
-                        <ChevronRight className="w-4 h-4" />
-                        <Link to={createPageUrl('Nations')} className="hover:text-white">Nations</Link>
-                        {nation && <><ChevronRight className="w-4 h-4" /><Link to={createPageUrl(`NationDetail?id=${nation.id}`)} className="hover:text-white">{nation.name}</Link></>}
-                        {league && <><ChevronRight className="w-4 h-4" /><Link to={createPageUrl(`LeagueDetail?id=${league.id}`)} className="hover:text-white">{league.name}</Link></>}
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="text-white">{club.name}</span>
-                    </nav>
-                    <div className="flex items-center gap-6">
-                        <div className="flex flex-col items-center gap-3">
-                            {club.logo_url ? (
-                                <img src={club.logo_url} alt={club.name} className="w-32 h-32 md:w-40 md:h-40 object-contain bg-white rounded-2xl p-3 shadow-2xl" />
-                            ) : (
-                                <div className="w-32 h-32 md:w-40 md:h-40 bg-white/20 rounded-2xl flex items-center justify-center">
-                                    <Shield className="w-20 h-20 text-white" />
-                                </div>
-                            )}
-                            {club.primary_color && (
-                                <AdminOnly>
-                                    <AIKitGenerator 
-                                        club={club} 
-                                        onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
-                                        compact={true}
-                                    />
-                                </AdminOnly>
-                            )}
-                        </div>
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-3xl md:text-4xl font-bold text-white">{club.name}</h1>
-                                {nation?.name === 'Turuliand' && league?.tier <= 4 && (
-                                    <span className="px-2 py-1 bg-white/20 rounded text-xs font-bold text-white border border-white/30">
-                                        TFA
-                                    </span>
-                                )}
-                            </div>
-                            {club.nickname && <p className="text-white/80 text-lg mt-1">"{club.nickname}"</p>}
-                                <div className="flex items-center gap-2 mt-2">
-                                    {club.professional_status && (
-                                        <ProfessionalStatusBadge status={club.professional_status} size="small" />
-                                    )}
-                                    {club.stability_points !== undefined && (
-                                        <StabilityBadge 
-                                            points={club.stability_points} 
-                                            status={club.stability_status}
-                                            iconOnly={true}
-                                        />
-                                    )}
-                                </div>
-                            {(club.settlement || club.district || club.region || club.city) && (
-                                    <div className="flex items-center gap-2 mt-2 text-white/80 flex-wrap">
-                                        <MapPin className="w-4 h-4" />
-                                        {club.settlement && (
-                                            <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.settlement)}&type=settlement&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">
-                                                {club.settlement}
-                                            </Link>
-                                        )}
-                                        {club.settlement && club.district && <span className="text-white/50">•</span>}
-                                        {club.district && (
-                                            <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.district)}&type=district&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">
-                                                {club.district}
-                                            </Link>
-                                        )}
-                                        {(club.settlement || club.district) && club.region && <span className="text-white/50">•</span>}
-                                        {club.region && (
-                                            <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.region)}&type=region&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">
-                                                {club.region}
-                                            </Link>
-                                        )}
-                                        {!club.settlement && !club.district && !club.region && club.city && (
-                                            <span>{club.city}</span>
-                                        )}
-                                    </div>
-                                )}
-                        </div>
+            {/* Immersive Hero */}
+            <ImmersiveHeader
+                title={club.name}
+                subtitle={club.nickname ? `"${club.nickname}"` : undefined}
+                breadcrumbs={[
+                    { label: 'Nations', url: createPageUrl('Nations') },
+                    ...(nation ? [{ label: nation.name, url: createPageUrl(`NationDetail?id=${nation.id}`) }] : []),
+                    ...(league ? [{ label: league.name, url: createPageUrl(`LeagueDetail?id=${league.id}`) }] : []),
+                    { label: club.name }
+                ]}
+                image={club.logo_url}
+                primaryColor={club.primary_color}
+                secondaryColor={club.secondary_color}
+                accentColor={club.accent_color}
+                textStyle={club.text_style}
+                pattern={club.pattern_preference}
+                atmosphere={club.stadium_capacity > 30000 ? 'electric' : club.founded_year < 1900 ? 'historic' : 'modern'}
+            >
+                <div className="flex flex-col items-center gap-3">
+                    {/* Kit Display */}
+                    {club.primary_color && (
                         <AdminOnly>
-                            <div className="flex gap-2">
-                                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader><AlertDialogTitle>Delete {club.name}?</AlertDialogTitle></AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
+                            <AIKitGenerator 
+                                club={club} 
+                                onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
+                                compact={true}
+                            />
                         </AdminOnly>
+                    )}
+                    {/* Badges */}
+                    <div className="flex items-center gap-2">
+                        {nation?.name === 'Turuliand' && league?.tier <= 4 && (
+                            <span className="px-2 py-1 bg-white/20 rounded text-xs font-bold text-white border border-white/30">TFA</span>
+                        )}
+                        {club.professional_status && <ProfessionalStatusBadge status={club.professional_status} size="small" />}
+                        {club.stability_points !== undefined && <StabilityBadge points={club.stability_points} status={club.stability_status} iconOnly={true} />}
                     </div>
+                    {/* Location */}
+                    {(club.settlement || club.district || club.region || club.city) && (
+                        <div className="flex items-center gap-2 text-white/80 flex-wrap text-sm">
+                            <MapPin className="w-4 h-4" />
+                            {club.settlement && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.settlement)}&type=settlement&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.settlement}</Link>}
+                            {club.settlement && club.district && <span className="text-white/50">•</span>}
+                            {club.district && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.district)}&type=district&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.district}</Link>}
+                            {(club.settlement || club.district) && club.region && <span className="text-white/50">•</span>}
+                            {club.region && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.region)}&type=region&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.region}</Link>}
+                            {!club.settlement && !club.district && !club.region && club.city && <span>{club.city}</span>}
+                        </div>
+                    )}
                 </div>
-            </div>
+                <AdminOnly>
+                    <div className="flex gap-2">
+                        <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
+                            <Edit2 className="w-4 h-4 mr-2" /> Edit
+                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader><AlertDialogTitle>Delete {club.name}?</AlertDialogTitle></AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </AdminOnly>
+            </ImmersiveHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Quick Navigation Cards */}
@@ -467,33 +431,13 @@ export default function ClubDetail() {
                                               (combinedStats?.vcc_titles || 0) + 
                                               (combinedStats?.ccc_titles || 0);
                         if (totalTrophies === 0) return null;
-                        return (
-                            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-100 to-yellow-100">
-                                <CardContent className="p-4 text-center">
-                                    <Star className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                                    <div className="text-2xl font-bold text-amber-800">{totalTrophies}</div>
-                                    <div className="text-xs text-amber-700">Total Trophies</div>
-                                </CardContent>
-                            </Card>
-                        );
+                        return <StatsCard icon={Star} label="Total Trophies" value={totalTrophies} color="amber" gradient />;
                     })()}
                     {combinedStats?.league_titles > 0 && (
-                        <Card className="border-0 shadow-sm bg-amber-50">
-                            <CardContent className="p-4 text-center">
-                                <Trophy className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-amber-700">{combinedStats.league_titles}</div>
-                                <div className="text-xs text-amber-600">League Titles</div>
-                            </CardContent>
-                        </Card>
+                        <StatsCard icon={Trophy} label="League Titles" value={combinedStats.league_titles} color="amber" />
                     )}
                     {combinedStats?.domestic_cup_titles > 0 && (
-                        <Card className="border-0 shadow-sm bg-orange-50">
-                            <CardContent className="p-4 text-center">
-                                <Award className="w-6 h-6 text-orange-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-orange-700">{combinedStats.domestic_cup_titles}</div>
-                                <div className="text-xs text-orange-600">Cup Titles</div>
-                            </CardContent>
-                        </Card>
+                        <StatsCard icon={Award} label="Cup Titles" value={combinedStats.domestic_cup_titles} color="orange" />
                     )}
                     {/* Cup Best Finish - show for all clubs that have any cup history */}
                     {(combinedStats?.domestic_cup_best_finish || combinedStats?.domestic_cup_titles > 0 || combinedStats?.domestic_cup_runner_up > 0) && (
