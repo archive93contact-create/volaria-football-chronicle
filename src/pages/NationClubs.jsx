@@ -47,6 +47,16 @@ export default function NationClubs() {
         enabled: !!nationId,
     });
 
+    const { data: players = [] } = useQuery({
+        queryKey: ['nationPlayers', nationId],
+        queryFn: async () => {
+            const allPlayers = await base44.entities.Player.list();
+            const clubIds = clubs.map(c => c.id);
+            return allPlayers.filter(p => clubIds.includes(p.club_id));
+        },
+        enabled: clubs.length > 0,
+    });
+
     const { data: allLeagueTables = [] } = useQuery({
         queryKey: ['allLeagueTables', nationId],
         queryFn: async () => {
@@ -91,6 +101,19 @@ export default function NationClubs() {
         const years = clubTables.map(t => t.year).filter(Boolean);
         return years.sort().reverse()[0] || null;
     };
+
+    // Calculate club OVR ratings
+    const clubOVRMap = useMemo(() => {
+        const map = {};
+        clubs.forEach(club => {
+            const clubPlayers = players.filter(p => p.club_id === club.id && !p.is_youth_player && p.overall_rating);
+            if (clubPlayers.length > 0) {
+                const avgOVR = clubPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / clubPlayers.length;
+                map[club.id] = Math.round(avgOVR);
+            }
+        });
+        return map;
+    }, [clubs, players]);
 
     // Check if a club is inactive (not in most recent season)
     const isClubInactive = (clubId) => {
@@ -163,6 +186,10 @@ export default function NationClubs() {
                 case 'tfa':
                     aVal = a.seasons_in_tfa || 0;
                     bVal = b.seasons_in_tfa || 0;
+                    break;
+                case 'ovr':
+                    aVal = clubOVRMap[a.id] || 0;
+                    bVal = clubOVRMap[b.id] || 0;
                     break;
                 default:
                     aVal = a.name || '';
@@ -318,6 +345,11 @@ export default function NationClubs() {
                                                 Club <SortIcon field="name" />
                                             </button>
                                         </TableHead>
+                                        <TableHead className="text-center">
+                                            <button onClick={() => handleSort('ovr')} className="flex items-center gap-1 hover:text-slate-900">
+                                                OVR <SortIcon field="ovr" />
+                                            </button>
+                                        </TableHead>
                                         <TableHead className="hidden md:table-cell">Location</TableHead>
                                         <TableHead>
                                             <button onClick={() => handleSort('tier')} className="flex items-center gap-1 hover:text-slate-900">
@@ -399,6 +431,13 @@ export default function NationClubs() {
                                                             {club.nickname && <div className="text-xs text-slate-500">{club.nickname}</div>}
                                                         </div>
                                                     </Link>
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {clubOVRMap[club.id] ? (
+                                                        <span className="font-bold text-emerald-600">{clubOVRMap[club.id]}</span>
+                                                    ) : (
+                                                        <span className="text-slate-300">-</span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="hidden md:table-cell">
                                                     <div className="text-sm">

@@ -40,6 +40,11 @@ export default function AllClubs() {
         queryFn: () => base44.entities.League.list(),
     });
 
+    const { data: players = [] } = useQuery({
+        queryKey: ['allPlayers'],
+        queryFn: () => base44.entities.Player.list(),
+    });
+
     // Create lookup maps
     const nationMap = useMemo(() => {
         const map = {};
@@ -52,6 +57,19 @@ export default function AllClubs() {
         leagues.forEach(l => { map[l.id] = l; });
         return map;
     }, [leagues]);
+
+    // Calculate club OVR ratings
+    const clubOVRMap = useMemo(() => {
+        const map = {};
+        clubs.forEach(club => {
+            const clubPlayers = players.filter(p => p.club_id === club.id && !p.is_youth_player && p.overall_rating);
+            if (clubPlayers.length > 0) {
+                const avgOVR = clubPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / clubPlayers.length;
+                map[club.id] = Math.round(avgOVR);
+            }
+        });
+        return map;
+    }, [clubs, players]);
 
     // Extract unique filter values
     const filterOptions = useMemo(() => {
@@ -145,6 +163,10 @@ export default function AllClubs() {
                 case 'totalTrophies':
                     aVal = (a.league_titles || 0) + (a.domestic_cup_titles || 0) + (a.vcc_titles || 0) + (a.ccc_titles || 0);
                     bVal = (b.league_titles || 0) + (b.domestic_cup_titles || 0) + (b.vcc_titles || 0) + (b.ccc_titles || 0);
+                    break;
+                case 'ovr':
+                    aVal = clubOVRMap[a.id] || 0;
+                    bVal = clubOVRMap[b.id] || 0;
                     break;
                 default:
                     aVal = a.name || '';
