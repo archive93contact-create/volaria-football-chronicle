@@ -35,6 +35,7 @@ import ImmersiveHeader from '@/components/common/ImmersiveHeader';
 import ColorExtractor from '@/components/common/ColorExtractor';
 import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
+import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -530,6 +531,9 @@ export default function LeagueDetail() {
 
                     {/* League History Timeline */}
                     <LeagueHistory league={league} seasons={seasons} nation={nation} />
+
+                    {/* Player Statistics */}
+                    <LeaguePlayerStats league={league} clubs={clubs} nation={nation} />
                 </div>
 
                 {/* Season Storylines */}
