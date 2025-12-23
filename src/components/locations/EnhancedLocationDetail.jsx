@@ -52,8 +52,6 @@ export default function EnhancedLocationDetail({
         enabled: !!nationId && !!locationName,
     });
 
-    const isCapital = nation?.capital?.toLowerCase() === locationName?.toLowerCase();
-
     // Predict settlement size
     const settlementSize = useMemo(() => {
         if (locationType !== 'settlement') return null;
@@ -407,15 +405,22 @@ export default function EnhancedLocationDetail({
                         </Card>
                     )}
                 </div>
-            )}
+                    ) : (
+                        <Card className="border-dashed border-2 border-slate-300">
+                            <CardContent className="flex flex-col items-center justify-center py-12">
+                                <MapPin className="w-12 h-12 text-slate-300 mb-4" />
+                                <h3 className="text-lg font-semibold text-slate-700 mb-2">No Details Yet</h3>
+                                <p className="text-slate-500">Click "Manage" then save to create this location, then use AI Enhance</p>
+                            </CardContent>
+                        </Card>
+                    )}
 
-            {/* Description if exists */}
-            {existingLocation?.description && (
-                <Card className="border-0 shadow-sm mb-6 bg-blue-50 border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                        <p className="text-slate-700 italic">{existingLocation.description}</p>
-                    </CardContent>
-                    </Card>
+                    {existingLocation?.description && (
+                        <Card className="border-0 shadow-sm mt-6 bg-blue-50 border-l-4 border-l-blue-500">
+                            <CardContent className="p-4">
+                                <p className="text-slate-700 italic">{existingLocation.description}</p>
+                            </CardContent>
+                        </Card>
                     )}
 
                     {existingLocation?.notes && (
