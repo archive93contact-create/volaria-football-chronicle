@@ -140,7 +140,13 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
                                 No players available
                             </div>
                         ) : (
-                            players.sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(player => {
+                            players.sort((a, b) => {
+                                const posOrder = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
+                                const posA = posOrder.indexOf(a.position);
+                                const posB = posOrder.indexOf(b.position);
+                                if (posA !== posB) return posA - posB;
+                                return (a.shirt_number || 99) - (b.shirt_number || 99);
+                            }).map(player => {
                                 const nation = nations.find(n => n.name === player.nationality);
                                 return (
                                     <button
