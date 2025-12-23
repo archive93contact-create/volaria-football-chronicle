@@ -208,7 +208,7 @@ function generateCapital(nationName, clubs, leagues) {
     return baseName + suffix;
 }
 
-export default function NationStats({ nation, clubs = [], leagues = [], coefficient, seasons = [] }) {
+export default function NationStats({ nation, clubs = [], leagues = [], coefficient, seasons = [], nationalTeamStrength }) {
     const stats = useMemo(() => {
         if (!nation) return null;
         
@@ -273,7 +273,7 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
                     {/* Capital */}
                     <Link 
                         to={stats.capital ? createPageUrl(`LocationDetail?name=${encodeURIComponent(stats.capital)}&type=settlement&nation_id=${nation.id}`) : '#'}
@@ -307,6 +307,18 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
                             <div className="text-xs text-slate-500">{stats.language.family}</div>
                         )}
                     </div>
+
+                    {/* National Team Strength */}
+                    {nationalTeamStrength && (
+                        <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg">
+                            <div className="flex items-center gap-2 text-amber-600 text-xs mb-1">
+                                <Trophy className="w-3 h-3" />
+                                National Team
+                            </div>
+                            <div className="font-semibold text-amber-800 text-2xl">{nationalTeamStrength}</div>
+                            <div className="text-xs text-amber-600">Average OVR</div>
+                        </div>
+                    )}
 
                     {/* League Strength */}
                     <div className={`p-3 rounded-lg ${stats.strength.bg}`}>
