@@ -15,6 +15,8 @@ export default function Players() {
     const [nationalityFilter, setNationalityFilter] = useState('all');
     const [positionFilter, setPositionFilter] = useState('all');
     const [clubFilter, setClubFilter] = useState('all');
+    const [basedInNationFilter, setBasedInNationFilter] = useState('all');
+    const [leagueFilter, setLeagueFilter] = useState('all');
     const [minAge, setMinAge] = useState('');
     const [maxAge, setMaxAge] = useState('');
     const [minRating, setMinRating] = useState('');
@@ -36,9 +38,22 @@ export default function Players() {
         queryFn: () => base44.entities.Club.list(),
     });
 
+    const { data: leagues = [] } = useQuery({
+        queryKey: ['allLeagues'],
+        queryFn: () => base44.entities.League.list(),
+    });
+
     const uniqueNationalities = [...new Set(players.map(p => p.nationality).filter(Boolean))].sort();
     const uniquePositions = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
     const uniqueClubs = [...new Set(players.map(p => p.club_id).filter(Boolean))];
+    const uniqueBasedInNations = [...new Set(players.map(p => {
+        const club = clubs.find(c => c.id === p.club_id);
+        return club && nations.find(n => n.id === club.nation_id)?.name;
+    }).filter(Boolean))].sort();
+    const uniqueLeagues = [...new Set(players.map(p => {
+        const club = clubs.find(c => c.id === p.club_id);
+        return club?.league_id;
+    }).filter(Boolean))].map(id => leagues.find(l => l.id === id)).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
 
     const filteredPlayers = players.filter(player => {
         const matchesSearch = !search || 
@@ -48,12 +63,18 @@ export default function Players() {
         const matchesNationality = nationalityFilter === 'all' || player.nationality === nationalityFilter;
         const matchesPosition = positionFilter === 'all' || player.position === positionFilter;
         const matchesClub = clubFilter === 'all' || player.club_id === clubFilter;
+        
+        const playerClub = clubs.find(c => c.id === player.club_id);
+        const matchesBasedInNation = basedInNationFilter === 'all' || 
+            (playerClub && nations.find(n => n.id === playerClub.nation_id)?.name === basedInNationFilter);
+        const matchesLeague = leagueFilter === 'all' || (playerClub && playerClub.league_id === leagueFilter);
+        
         const matchesMinAge = !minAge || (player.age && player.age >= parseInt(minAge));
         const matchesMaxAge = !maxAge || (player.age && player.age <= parseInt(maxAge));
         const matchesMinRating = !minRating || (player.overall_rating && player.overall_rating >= parseInt(minRating));
         
         return matchesSearch && matchesNationality && matchesPosition && matchesClub && 
-               matchesMinAge && matchesMaxAge && matchesMinRating;
+               matchesBasedInNation && matchesLeague && matchesMinAge && matchesMaxAge && matchesMinRating;
     }).sort((a, b) => {
         let aVal = a[sortField];
         let bVal = b[sortField];
@@ -141,6 +162,30 @@ export default function Players() {
                                             const club = clubs.find(c => c.id === clubId);
                                             return club && <SelectItem key={clubId} value={clubId}>{club.name}</SelectItem>;
                                         })}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-500 mb-1 block">Based in Nation</label>
+                                <Select value={basedInNationFilter} onValueChange={setBasedInNationFilter}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Nations</SelectItem>
+                                        {uniqueBasedInNations.map(nation => (
+                                            <SelectItem key={nation} value={nation}>{nation}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-500 mb-1 block">League</label>
+                                <Select value={leagueFilter} onValueChange={setLeagueFilter}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Leagues</SelectItem>
+                                        {uniqueLeagues.map(league => (
+                                            <SelectItem key={league.id} value={league.id}>{league.name}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
