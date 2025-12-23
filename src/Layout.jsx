@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users, ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -14,6 +14,7 @@ import PageTransition from '@/components/common/PageTransition';
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
 
     // Scroll to top on page change
     useEffect(() => {
@@ -133,9 +134,20 @@ export default function Layout({ children, currentPageName }) {
                                                                 ))}
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
-                                                    </div>
 
-                        {/* Mobile Menu Button */}
+                                                        {/* Back Button */}
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon"
+                                                            onClick={() => navigate(-1)}
+                                                            className="text-slate-300 hover:text-white hover:bg-slate-800"
+                                                            title="Go back"
+                                                        >
+                                                            <ArrowLeft className="w-5 h-5" />
+                                                        </Button>
+                                                        </div>
+
+                                                        {/* Mobile Menu Button */}
                         <Button 
                             variant="ghost" 
                             size="icon" 

@@ -965,14 +965,14 @@ export default function ClubDetail() {
                 </div>
 
                 <div id="season-history">
-                    <Tabs defaultValue="seasons" className="space-y-6">
-                    <TabsList>
-                        <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
-                        <TabsTrigger value="squad">Squad ({players.length})</TabsTrigger>
-                        <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
-                        <TabsTrigger value="continental">Continental</TabsTrigger>
-                        <TabsTrigger value="info">Club Info</TabsTrigger>
-                    </TabsList>
+                                <Tabs defaultValue="seasons" className="space-y-6">
+                                <TabsList>
+                                    <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
+                                    <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
+                                    <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
+                                    <TabsTrigger value="continental">Continental</TabsTrigger>
+                                    <TabsTrigger value="info">Club Info</TabsTrigger>
+                                </TabsList>
 
                     <TabsContent value="seasons">
                         <Card className="border-0 shadow-sm">
