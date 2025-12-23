@@ -180,6 +180,13 @@ export default function ClubDetail() {
         enabled: !!club?.former_name_club_2_id,
     });
 
+    // Fetch players for Squad tab
+    const { data: players = [] } = useQuery({
+        queryKey: ['players', clubId],
+        queryFn: () => base44.entities.Player.filter({ club_id: clubId }),
+        enabled: !!clubId,
+    });
+
     // Fetch current name club if this is a former name record
     const { data: currentNameClub } = useQuery({
         queryKey: ['currentNameClub', club?.current_name_club_id],
