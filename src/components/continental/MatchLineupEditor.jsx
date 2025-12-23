@@ -19,16 +19,26 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
     const [goals, setGoals] = useState([]);
     const [substitutions, setSubstitutions] = useState([]);
 
+    // Fetch all clubs to look up club IDs from names
+    const { data: clubs = [] } = useQuery({
+        queryKey: ['allClubs'],
+        queryFn: () => base44.entities.Club.list(),
+    });
+
+    // Get club IDs from names if not directly available
+    const homeClubId = match?.home_club_id || clubs.find(c => c.name === match?.home_club_name)?.id;
+    const awayClubId = match?.away_club_id || clubs.find(c => c.name === match?.away_club_name)?.id;
+
     const { data: homePlayers = [] } = useQuery({
-        queryKey: ['players', match?.home_club_id],
-        queryFn: () => base44.entities.Player.filter({ club_id: match.home_club_id }).then(p => p.filter(pl => !pl.is_youth_player)),
-        enabled: !!match?.home_club_id,
+        queryKey: ['players', homeClubId],
+        queryFn: () => base44.entities.Player.filter({ club_id: homeClubId }).then(p => p.filter(pl => !pl.is_youth_player)),
+        enabled: !!homeClubId,
     });
 
     const { data: awayPlayers = [] } = useQuery({
-        queryKey: ['players', match?.away_club_id],
-        queryFn: () => base44.entities.Player.filter({ club_id: match.away_club_id }).then(p => p.filter(pl => !pl.is_youth_player)),
-        enabled: !!match?.away_club_id,
+        queryKey: ['players', awayClubId],
+        queryFn: () => base44.entities.Player.filter({ club_id: awayClubId }).then(p => p.filter(pl => !pl.is_youth_player)),
+        enabled: !!awayClubId,
     });
 
     const { data: nations = [] } = useQuery({
