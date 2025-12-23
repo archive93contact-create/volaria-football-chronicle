@@ -143,7 +143,50 @@ export default function ContinentalSeasonDetail() {
                             {competition.tier === 1 ? <Star className="w-10 h-10 text-white" /> : <Trophy className="w-10 h-10 text-white" />}
                         </div>
                         <div className="flex-1">
-                            <h1 className="text-2xl md:text-4xl font-bold text-white">{competition.name} {season.year}</h1>
+                            <div className="flex items-start gap-4">
+                                <div className="flex-1">
+                                    <h1 className="text-2xl md:text-4xl font-bold text-white">{competition.name} {season.year}</h1>
+                                </div>
+                                {/* Participant Club Crests */}
+                                {(() => {
+                                    const participants = new Map();
+                                    matches.forEach(m => {
+                                        if (m.home_club_name && m.home_club_name !== 'TBD') {
+                                            const club = clubs.find(c => c.name === m.home_club_name);
+                                            if (club?.logo_url && !participants.has(club.id)) {
+                                                participants.set(club.id, { ...club, isChampion: m.home_club_name === season.champion_name });
+                                            }
+                                        }
+                                        if (m.away_club_name && m.away_club_name !== 'TBD') {
+                                            const club = clubs.find(c => c.name === m.away_club_name);
+                                            if (club?.logo_url && !participants.has(club.id)) {
+                                                participants.set(club.id, { ...club, isChampion: m.away_club_name === season.champion_name });
+                                            }
+                                        }
+                                    });
+                                    const participantArray = Array.from(participants.values());
+                                    if (participantArray.length === 0) return null;
+                                    
+                                    return (
+                                        <div className="hidden lg:flex flex-wrap gap-1.5 max-w-md">
+                                            {participantArray.slice(0, 20).map((club) => (
+                                                <div 
+                                                    key={club.id} 
+                                                    className={`relative group ${club.isChampion ? 'w-12 h-12' : 'w-8 h-8'}`}
+                                                    title={club.name}
+                                                >
+                                                    <img 
+                                                        src={club.logo_url} 
+                                                        alt={club.name}
+                                                        className={`w-full h-full object-contain bg-white/20 rounded-lg p-1 ${club.isChampion ? 'ring-2 ring-amber-400' : ''}`}
+                                                    />
+                                                    {club.isChampion && <Trophy className="absolute -top-1 -right-1 w-4 h-4 text-amber-400" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+                            </div>
                             {season.champion_name && (
                                 <p className="mt-2 text-white/90 flex items-center gap-2">
                                     <Trophy className="w-5 h-5 text-amber-300" />

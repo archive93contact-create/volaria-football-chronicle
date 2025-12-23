@@ -273,8 +273,35 @@ export default function LeagueDetail() {
                             </div>
                         )}
                         <div className="flex-1">
-                            <h1 className="text-3xl md:text-4xl font-bold text-white">{league.name}</h1>
-                            {league.description && <p className="mt-2 text-white/80">{league.description}</p>}
+                            <div className="flex items-start gap-4">
+                                <div className="flex-1">
+                                    <h1 className="text-3xl md:text-4xl font-bold text-white">{league.name}</h1>
+                                    {league.description && <p className="mt-2 text-white/80">{league.description}</p>}
+                                </div>
+                                {/* Current Season Club Crests */}
+                                {currentSeasonTable.length > 0 && (
+                                    <div className="hidden lg:flex flex-wrap gap-1.5 max-w-md">
+                                        {currentSeasonTable.slice(0, 20).map((team) => {
+                                            const club = clubs.find(c => c.id === team.club_id);
+                                            const isChampion = team.position === 1;
+                                            return club?.logo_url && (
+                                                <div 
+                                                    key={team.id} 
+                                                    className={`relative group ${isChampion ? 'w-12 h-12' : 'w-8 h-8'}`}
+                                                    title={team.club_name}
+                                                >
+                                                    <img 
+                                                        src={club.logo_url} 
+                                                        alt={team.club_name}
+                                                        className={`w-full h-full object-contain bg-white/20 rounded-lg p-1 ${isChampion ? 'ring-2 ring-amber-400' : ''}`}
+                                                    />
+                                                    {isChampion && <Trophy className="absolute -top-1 -right-1 w-4 h-4 text-amber-400" />}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                             <div className="flex items-center gap-6 mt-4 text-white/90">
                                 <div className="flex items-center gap-2">
                                     <Users className="w-5 h-5" />

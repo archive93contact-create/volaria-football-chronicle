@@ -142,6 +142,13 @@ export default function Nations() {
             return matchesSearch && matchesRegion && matchesMembership;
         })
         .sort((a, b) => {
+            // ALWAYS VCC before CCC regardless of sort
+            if (a.membership !== b.membership) {
+                if (a.membership === 'VCC') return -1;
+                if (b.membership === 'VCC') return 1;
+            }
+            
+            // Then apply user's sort preference within same membership tier
             switch (sortBy) {
                 case 'name': return a.name.localeCompare(b.name);
                 case 'population': return b.population - a.population;
