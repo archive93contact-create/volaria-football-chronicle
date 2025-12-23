@@ -202,6 +202,14 @@ export default function ClubDetail() {
     // Combine seasons from current club, predecessors, and former names
     const combinedSeasons = [...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2, ...formerNameSeasons, ...formerNameSeasons2].sort((a, b) => b.year.localeCompare(a.year));
 
+    // Calculate club average OVR from squad
+    const clubAverageOVR = React.useMemo(() => {
+        const seniorPlayers = players.filter(p => !p.is_youth_player && p.overall_rating);
+        if (seniorPlayers.length === 0) return null;
+        const avgOVR = seniorPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / seniorPlayers.length;
+        return Math.round(avgOVR);
+    }, [players]);
+
     // Combine stats from former name clubs (same club, just renamed)
     const combinedStats = React.useMemo(() => {
         if (!club) return null;
@@ -441,6 +449,16 @@ export default function ClubDetail() {
                     className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 p-4 rounded-xl" 
                     style={{ backgroundColor: club.primary_color ? `${club.primary_color}05` : undefined }}
                 >
+                    {/* Club OVR */}
+                    {clubAverageOVR && (
+                        <StatsCard 
+                            icon={Users} 
+                            label="Squad OVR" 
+                            value={clubAverageOVR} 
+                            customColor={club.primary_color || '#10b981'}
+                            customBg={club.primary_color ? `${club.primary_color}10` : '#d1fae5'}
+                        />
+                    )}
                     {/* Total Trophies */}
                     {(() => {
                         const totalTrophies = (combinedStats?.league_titles || 0) + 
