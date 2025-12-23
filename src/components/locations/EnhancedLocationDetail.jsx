@@ -520,69 +520,8 @@ export default function EnhancedLocationDetail({
                             </Card>
                         </div>
 
-                        {/* Sidebar - Successful Club */}
+                        {/* Sidebar */}
                         <div>
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Building2 className="w-5 h-5 text-blue-500" />
-                                    Districts
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2 max-h-80 overflow-y-auto">
-                                    {subLocations.districts.map(district => (
-                                        <Link 
-                                            key={district.name}
-                                            to={createPageUrl(`LocationDetail?name=${encodeURIComponent(district.name)}&type=district&nation_id=${nationId}`)}
-                                            className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100"
-                                        >
-                                            <span className="font-medium text-sm">{district.name}</span>
-                                            <Badge variant="outline">{district.clubs.length} clubs</Badge>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {subLocations?.settlements?.length > 0 && (
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Home className="w-5 h-5 text-amber-500" />
-                                    {locationType === 'region' ? 'Major Cities' : 'Settlements'}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2 max-h-80 overflow-y-auto">
-                                    {subLocations.settlements
-                                        .sort((a, b) => b.clubs.length - a.clubs.length)
-                                        .slice(0, 20)
-                                        .map(settlement => {
-                                            const isLargeCity = settlement.clubs.length >= 3 || 
-                                                nation?.capital?.toLowerCase() === settlement.name.toLowerCase();
-                                            return (
-                                                <Link 
-                                                    key={settlement.name}
-                                                    to={createPageUrl(`LocationDetail?name=${encodeURIComponent(settlement.name)}&type=settlement&nation_id=${nationId}`)}
-                                                    className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 ${isLargeCity ? 'bg-amber-50' : ''}`}
-                                                >
-                                                    <span className={`font-medium text-sm flex items-center gap-1 ${isLargeCity ? 'text-amber-800' : ''}`}>
-                                                        {isLargeCity && <Landmark className="w-3 h-3" />}
-                                                        {settlement.name}
-                                                    </span>
-                                                    <Badge variant={isLargeCity ? "default" : "outline"} className={isLargeCity ? 'bg-amber-500' : ''}>
-                                                        {settlement.clubs.length}
-                                                    </Badge>
-                                                </Link>
-                                            );
-                                        })}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
                             {locationClubs.length > 0 && (() => {
                         const sorted = [...locationClubs].sort((a, b) => 
                             ((b.vcc_titles || 0) * 10 + (b.league_titles || 0) + (b.domestic_cup_titles || 0)) - 
