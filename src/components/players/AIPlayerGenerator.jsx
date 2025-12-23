@@ -105,47 +105,47 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
             let foreignCount = 0;
             
             if (isVCC && tier === 1) {
-                // Top VCC clubs: diverse, attract talent from other VCC nations
-                domesticCount = Math.floor(count * 0.70); // 70% domestic minimum
+                // Top VCC clubs: still mostly domestic, some international
+                domesticCount = Math.floor(count * 0.78); // 78% domestic minimum
                 foreignCount = count - domesticCount;
-                const vccOptions = vccNations.filter(n => n !== nation?.name).slice(0, 4).join(', ');
-                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
-MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
-MAXIMUM ${Math.floor(foreignCount * 0.75)} players from VCC nations ONLY: ${vccOptions}
-MAXIMUM ${Math.floor(foreignCount * 0.25)} elite CCC players (rating 72+, very rare signings)
-NO other CCC nations beyond this limit
-COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
+                const vccOptions = vccNations.filter(n => n !== nation?.name).slice(0, 3).join(', ');
+                nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
+YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
+MAXIMUM ${Math.floor(foreignCount * 0.80)} players from VCC nations: ${vccOptions}
+MAXIMUM ${Math.floor(foreignCount * 0.20)} elite CCC players (rating 75+, extremely rare)
+ABSOLUTELY NO other CCC players
+VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
             } else if (isVCC && tier <= 3) {
-                // Mid-tier VCC clubs: mostly domestic, some VCC neighbors
-                domesticCount = Math.floor(count * 0.83); // 83% domestic
+                // Mid-tier VCC clubs: overwhelmingly domestic
+                domesticCount = Math.floor(count * 0.88); // 88% domestic
                 foreignCount = count - domesticCount;
-                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
-MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
-MAXIMUM ${foreignCount} players from neighboring VCC nations
-ZERO CCC players (CCC players too expensive for tier ${tier})
-COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
+                nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
+YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
+MAXIMUM ${foreignCount} players from VCC nations (neighboring countries only)
+ABSOLUTELY ZERO CCC players
+VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
             } else if (isCCC && tier === 1) {
-                // Top CCC clubs: mostly domestic, occasional VCC player
-                domesticCount = Math.floor(count * 0.90); // 90% domestic
+                // Top CCC clubs: almost entirely domestic
+                domesticCount = Math.floor(count * 0.94); // 94% domestic
                 foreignCount = count - domesticCount;
-                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
-MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
-MAXIMUM ${foreignCount} VCC players (very expensive, elite quality 70+ ratings)
-ZERO players from other CCC nations (CCC-to-CCC transfers are EXTREMELY RARE, basically never happen)
-COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
+                nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
+YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
+MAXIMUM ${foreignCount} VCC players (very rare, expensive, 73+ rating)
+ABSOLUTELY ZERO players from other CCC nations (CCC nations don't trade players with each other)
+VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
             } else if (isCCC) {
-                // Lower CCC clubs: almost entirely domestic
-                domesticCount = Math.floor(count * 0.97); // 97% domestic
+                // Lower CCC clubs: 100% domestic with rare exception
+                domesticCount = Math.floor(count * 0.98); // 98% domestic
                 foreignCount = Math.max(1, count - domesticCount);
-                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
-MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
-MAXIMUM ${foreignCount} foreign player total (extremely rare)
-ZERO players from other CCC nations
-COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
+                nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
+YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
+MAXIMUM ${foreignCount} foreign player (one player maximum, extremely rare case)
+ABSOLUTELY ZERO players from CCC nations
+VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
             } else {
                 // Default fallback
-                domesticCount = Math.floor(count * 0.85);
-                nationalityRules = `ABSOLUTE REQUIREMENT: MINIMUM ${domesticCount} players from ${nation?.name}`;
+                domesticCount = Math.floor(count * 0.88);
+                nationalityRules = `YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}`;
             }
 
             const prompt = `Generate EXACTLY ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
