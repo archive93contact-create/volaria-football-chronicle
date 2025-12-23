@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
+import BulkKitGenerator from '@/components/clubs/BulkKitGenerator';
+import AdminOnly from '@/components/common/AdminOnly';
 
 export default function AllClubs() {
     const [search, setSearch] = useState('');
@@ -189,6 +191,13 @@ export default function AllClubs() {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Bulk Kit Generator */}
+                <AdminOnly>
+                    <div className="mb-6">
+                        <BulkKitGenerator clubs={clubs} />
+                    </div>
+                </AdminOnly>
+
                 {/* Filters */}
                 <Card className="border-0 shadow-sm mb-6">
                     <CardContent className="p-4">
