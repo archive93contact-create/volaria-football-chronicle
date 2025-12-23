@@ -30,7 +30,6 @@ import ColorExtractor from '@/components/common/ColorExtractor';
 import ImmersiveHeader from '@/components/common/ImmersiveHeader';
 import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
-import { Badge } from "@/components/ui/badge";
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -476,9 +475,9 @@ export default function ClubDetail() {
                                                           <div className="text-xs text-slate-500">
                                                               Best Finish {combinedStats.best_finish_tier ? `(Tier ${combinedStats.best_finish_tier})` : ''}
                                                           </div>
-                                                          </CardContent>
-                                                          </ThemedCard>
-                                                          )}
+                                                      </CardContent>
+                                                  </Card>
+                                              )}
                                               {(() => {
                                                                       if (combinedSeasons.length === 0) return null;
                                                                       let worstFinish = null;
@@ -503,9 +502,9 @@ export default function ClubDetail() {
                                                                                       Worst Finish (Tier {worstTier})
                                                                                   </div>
                                                                                   </CardContent>
-                                                                                  </ThemedCard>
+                                                                                  </Card>
                                                                                   );
-                                                                  })()}
+                                                                                  })()}
                     {combinedStats?.seasons_played > 0 && (
                         <Card className="border-0 shadow-sm">
                             <CardContent className="p-4 text-center">
@@ -799,11 +798,11 @@ export default function ClubDetail() {
                                             <div className="text-xs text-slate-600">Goal Difference</div>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        );
-                    })()}
-                </div>
+                                    </CardContent>
+                                    </ThemedCard>
+                                    );
+                                    })()}
+                                    </div>
 
                 {/* Defunct/Successor Notice */}
                 {club.is_defunct && successorClub && (
