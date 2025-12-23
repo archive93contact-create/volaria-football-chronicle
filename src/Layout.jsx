@@ -51,13 +51,15 @@ export default function Layout({ children, currentPageName }) {
     return (
         <div className="min-h-screen bg-slate-50">
             <style>{`
-                /* White backgrounds for all club crests */
+                /* White backgrounds for all club crests and nation flags */
                 img[src*="logo"],
                 img[alt*="crest"],
-                .club-crest {
+                img[alt*="flag"],
+                .club-crest,
+                .nation-flag {
                     background-color: white;
                     padding: 2px;
-                    border-radius: 6px;
+                    border-radius: 4px;
                 }
             `}</style>
             {/* Top Navigation */}

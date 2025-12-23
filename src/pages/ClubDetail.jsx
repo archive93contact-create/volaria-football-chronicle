@@ -25,7 +25,8 @@ import AdminOnly from '@/components/common/AdminOnly';
 import StabilityBadge from '@/components/stability/StabilityBadge';
 import ClubInfrastructure from '@/components/clubs/ClubInfrastructure';
 import ProfessionalStatusBadge from '@/components/clubs/ProfessionalStatusBadge';
-import { KitDisplay } from '@/components/clubs/KitGenerator';
+import AIKitGenerator from '@/components/clubs/AIKitGenerator';
+import ColorExtractor from '@/components/common/ColorExtractor';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -302,7 +303,11 @@ export default function ClubDetail() {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.secondary_color || club.primary_color || '#3b82f6'})` }}>
+            <div className="relative overflow-hidden" style={{ 
+                background: club.accent_color 
+                    ? `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.accent_color}, ${club.secondary_color || '#3b82f6'})` 
+                    : `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.secondary_color || club.primary_color || '#3b82f6'})`
+            }}>
                 <div className="absolute inset-0 bg-black/30" />
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <nav className="flex items-center gap-2 text-sm text-white/70 mb-4 flex-wrap">
@@ -315,13 +320,24 @@ export default function ClubDetail() {
                         <span className="text-white">{club.name}</span>
                     </nav>
                     <div className="flex items-center gap-6">
-                        {club.logo_url ? (
-                            <img src={club.logo_url} alt={club.name} className="w-32 h-32 md:w-40 md:h-40 object-contain bg-white rounded-2xl p-3 shadow-2xl" />
-                        ) : (
-                            <div className="w-32 h-32 md:w-40 md:h-40 bg-white/20 rounded-2xl flex items-center justify-center">
-                                <Shield className="w-20 h-20 text-white" />
-                            </div>
-                        )}
+                        <div className="flex flex-col items-center gap-3">
+                            {club.logo_url ? (
+                                <img src={club.logo_url} alt={club.name} className="w-32 h-32 md:w-40 md:h-40 object-contain bg-white rounded-2xl p-3 shadow-2xl" />
+                            ) : (
+                                <div className="w-32 h-32 md:w-40 md:h-40 bg-white/20 rounded-2xl flex items-center justify-center">
+                                    <Shield className="w-20 h-20 text-white" />
+                                </div>
+                            )}
+                            {club.primary_color && (
+                                <AdminOnly>
+                                    <AIKitGenerator 
+                                        club={club} 
+                                        onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
+                                        compact={true}
+                                    />
+                                </AdminOnly>
+                            )}
+                        </div>
                         <div className="flex-1">
                             <div className="flex items-center gap-3">
                                 <h1 className="text-3xl md:text-4xl font-bold text-white">{club.name}</h1>
@@ -1096,15 +1112,20 @@ export default function ClubDetail() {
                     <TabsContent value="info">
                                                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                       <div className="lg:col-span-2 space-y-6">
-                                                          {/* Club Kits */}
-                                                          {club.primary_color && (
-                                                              <Card className="border-0 shadow-sm">
-                                                                  <CardHeader><CardTitle>Club Kits</CardTitle></CardHeader>
-                                                                  <CardContent>
-                                                                      <KitDisplay club={club} />
-                                                                  </CardContent>
-                                                              </Card>
-                                                          )}
+                                                          {/* AI Kit Generator */}
+                                                          <AdminOnly>
+                                                              {club.primary_color && (
+                                                                  <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50">
+                                                                      <CardHeader><CardTitle>AI Kit Generator</CardTitle></CardHeader>
+                                                                      <CardContent>
+                                                                          <AIKitGenerator 
+                                                                              club={club} 
+                                                                              onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
+                                                                          />
+                                                                      </CardContent>
+                                                                  </Card>
+                                                              )}
+                                                          </AdminOnly>
                                                           
                                                           {/* Club Infrastructure */}
                                                           <ClubInfrastructure club={club} league={league} nation={nation} />
@@ -1216,7 +1237,8 @@ export default function ClubDetail() {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Edit Club</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
-                        <div className="flex justify-center">
+                        <div className="space-y-3">
+                            <div className="flex justify-center">
                                 <ImageUploaderWithColors 
                                     currentImage={editData.logo_url} 
                                     onUpload={(url) => setEditData({...editData, logo_url: url})} 
@@ -1226,6 +1248,19 @@ export default function ClubDetail() {
                                     label="Upload Logo" 
                                 />
                             </div>
+                            {editData.logo_url && (
+                                <ColorExtractor
+                                    imageUrl={editData.logo_url}
+                                    onColorsExtracted={(colors) => setEditData({
+                                        ...editData,
+                                        primary_color: colors.primary,
+                                        secondary_color: colors.secondary,
+                                        accent_color: colors.accent
+                                    })}
+                                    buttonText="🎨 Auto-Detect Colors from Crest"
+                                />
+                            )}
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div><Label>Club Name</Label><Input value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
                             <div><Label>Nickname</Label><Input value={editData.nickname || ''} onChange={(e) => setEditData({...editData, nickname: e.target.value})} className="mt-1" /></div>
