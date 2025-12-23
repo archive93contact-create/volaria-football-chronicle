@@ -20,6 +20,9 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
     const generatePlayers = async () => {
         setGenerating(true);
         toast.loading('🤖 AI is generating players... This takes 20-30 seconds', { id: 'gen-status', duration: Infinity });
+        
+        const requestedCount = parseInt(count);
+        
         try {
             // Delete existing squad first if overwrite is enabled
             if (overwriteExisting) {
@@ -111,8 +114,8 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
             
             if (isVCC && tier === 1) {
                 // Top VCC clubs: mostly domestic, foreign from VCC only with rare CCC exception
-                domesticCount = Math.floor(count * 0.80); // 80% domestic minimum
-                foreignCount = count - domesticCount;
+                domesticCount = Math.floor(requestedCount * 0.80); // 80% domestic minimum
+                foreignCount = requestedCount - domesticCount;
                 const maxCCC = Math.min(2, Math.floor(foreignCount * 0.15)); // Max 2 CCC players, or 15% of foreign slots
                 const vccOptions = vccNations.filter(n => n !== nation?.name).slice(0, 5).join(', ');
                 nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
@@ -120,30 +123,30 @@ STEP 1: Generate EXACTLY ${domesticCount} players from ${nation?.name}
 STEP 2: Generate ${foreignCount - maxCCC} players from VCC nations ONLY: ${vccOptions}
 STEP 3: Generate ${maxCCC} CCC players MAXIMUM (elite quality 75+ only, extremely rare)
 ABSOLUTELY FORBIDDEN: Do NOT add more than ${maxCCC} CCC players under any circumstance
-VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount - maxCCC} VCC + ${maxCCC} CCC = ${count} total`;
+VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount - maxCCC} VCC + ${maxCCC} CCC = ${requestedCount} total`;
             } else if (isVCC && tier <= 3) {
                 // Mid-tier VCC clubs: overwhelmingly domestic, rare VCC foreign
-                domesticCount = Math.floor(count * 0.92); // 92% domestic
-                foreignCount = count - domesticCount;
+                domesticCount = Math.floor(requestedCount * 0.92); // 92% domestic
+                foreignCount = requestedCount - domesticCount;
                 const vccOptions = vccNations.filter(n => n !== nation?.name).slice(0, 3).join(', ');
                 nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
 STEP 1: Generate EXACTLY ${domesticCount} players from ${nation?.name}
 STEP 2: Generate MAXIMUM ${foreignCount} players from nearby VCC nations: ${vccOptions}
 ABSOLUTELY FORBIDDEN: ZERO CCC players allowed at this tier
-VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount} VCC = ${count} total`;
+VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount} VCC = ${requestedCount} total`;
             } else if (isVCC) {
                 // Lower tier VCC clubs: almost entirely domestic
-                domesticCount = Math.floor(count * 0.96); // 96% domestic
-                foreignCount = count - domesticCount;
+                domesticCount = Math.floor(requestedCount * 0.96); // 96% domestic
+                foreignCount = requestedCount - domesticCount;
                 nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
 STEP 1: Generate EXACTLY ${domesticCount} players from ${nation?.name}
 STEP 2: Generate MAXIMUM ${foreignCount} players from nearby VCC nations (rare cases only)
 ABSOLUTELY FORBIDDEN: ZERO CCC players allowed at this tier
-VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount} VCC = ${count} total`;
+VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount} VCC = ${requestedCount} total`;
             } else if (isCCC && tier === 1) {
                 // Top CCC clubs: almost entirely domestic
-                domesticCount = Math.floor(count * 0.94); // 94% domestic
-                foreignCount = count - domesticCount;
+                domesticCount = Math.floor(requestedCount * 0.94); // 94% domestic
+                foreignCount = requestedCount - domesticCount;
                 nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
 YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
 MAXIMUM ${foreignCount} VCC players (very rare, expensive, 73+ rating)
@@ -151,8 +154,8 @@ ABSOLUTELY ZERO players from other CCC nations (CCC nations don't trade players 
 VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
             } else if (isCCC) {
                 // Lower CCC clubs: 100% domestic with rare exception
-                domesticCount = Math.floor(count * 0.98); // 98% domestic
-                foreignCount = Math.max(1, count - domesticCount);
+                domesticCount = Math.floor(requestedCount * 0.98); // 98% domestic
+                foreignCount = Math.max(1, requestedCount - domesticCount);
                 nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
 YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
 MAXIMUM ${foreignCount} foreign player (one player maximum, extremely rare case)
@@ -160,11 +163,15 @@ ABSOLUTELY ZERO players from CCC nations
 VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
             } else {
                 // Default fallback
-                domesticCount = Math.floor(count * 0.88);
+                domesticCount = Math.floor(requestedCount * 0.88);
                 nationalityRules = `YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}`;
             }
 
-            const prompt = `Generate EXACTLY ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
+            const prompt = `YOU MUST OUTPUT EXACTLY ${requestedCount} PLAYERS - NO MORE, NO LESS!
+
+Generate EXACTLY ${requestedCount} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
+
+CRITICAL: Your response MUST contain EXACTLY ${requestedCount} player objects in the array. Count them before responding!
 
             ${nationalityRules}
 
@@ -227,17 +234,28 @@ OUTPUT EXACTLY ${count} PLAYERS WITH:
             });
 
             let players = result?.players || [];
-            const requestedCount = parseInt(count);
             
             // Tolerance: within 18-26 for 25, or min 11 for lower counts
             const minAcceptable = Math.max(11, Math.floor(requestedCount * 0.72));
             const maxAcceptable = Math.ceil(requestedCount * 1.04);
             
-            // Retry if outside tolerance
-            if (players.length < minAcceptable || players.length > maxAcceptable) {
-                console.warn(`Got ${players.length}/${requestedCount} (need ${minAcceptable}-${maxAcceptable}), retrying...`);
+            console.log(`First attempt: Got ${players.length}/${requestedCount} players`);
+            
+            // Retry up to 2 times if outside tolerance
+            let retryCount = 0;
+            while ((players.length < minAcceptable || players.length > maxAcceptable) && retryCount < 2) {
+                retryCount++;
+                console.warn(`Retry ${retryCount}: Got ${players.length}/${requestedCount} (need ${minAcceptable}-${maxAcceptable})`);
+                toast.loading(`Retry ${retryCount}/2: Got ${players.length}, need ${minAcceptable}-${requestedCount}...`, { id: 'gen-status' });
+                
                 const retryResult = await base44.integrations.Core.InvokeLLM({
-                    prompt: `CRITICAL: Generate between ${minAcceptable} and ${requestedCount} players (target ${requestedCount}). You provided ${players.length} which is outside range. ${prompt}`,
+                    prompt: `CRITICAL ERROR: You generated ${players.length} players but I need EXACTLY ${requestedCount} players (acceptable range: ${minAcceptable}-${requestedCount}).
+
+YOU MUST GENERATE BETWEEN ${minAcceptable} AND ${requestedCount} PLAYERS.
+TARGET: ${requestedCount} players exactly.
+DO NOT STOP AT ${players.length} - KEEP GOING UNTIL YOU REACH ${requestedCount}!
+
+${prompt}`,
                     response_json_schema: {
                         type: "object",
                         properties: {
@@ -264,7 +282,20 @@ OUTPUT EXACTLY ${count} PLAYERS WITH:
                 });
                 if (retryResult?.players && retryResult.players.length >= minAcceptable && retryResult.players.length <= maxAcceptable) {
                     players = retryResult.players;
+                    console.log(`Retry ${retryCount} SUCCESS: Got ${players.length} players`);
+                    break;
+                } else if (retryResult?.players) {
+                    players = retryResult.players;
+                    console.log(`Retry ${retryCount}: Still got ${players.length} players`);
                 }
+            }
+            
+            // Final check
+            if (players.length < minAcceptable) {
+                toast.dismiss('gen-status');
+                toast.error(`AI only generated ${players.length}/${requestedCount} players. Try again or reduce player count.`);
+                setGenerating(false);
+                return;
             }
 
             if (players.length > 0) {
