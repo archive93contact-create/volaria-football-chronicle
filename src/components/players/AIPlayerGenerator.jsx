@@ -54,13 +54,13 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
             const foreignPlayerPercent = tier === 1 ? '25-35%' : tier === 2 ? '15-25%' : tier === 3 ? '10-15%' : tier === 4 ? '5-10%' : '0-5%';
             const nationalityText = `${100 - parseInt(foreignPlayerPercent)}% players from ${nation?.name || 'home nation'}, ${foreignPlayerPercent} from neighboring or culturally similar nations (realistic foreign signings for tier ${tier} club).`;
 
-            const prompt = `Generate ${count} football player names for ${club.name} in ${nation?.name || 'a fictional nation'}.
+            const prompt = `Generate ${count} football player names for ${club.name} (tier ${tier} club) in ${nation?.name || 'a fictional nation'}.
 Squad composition: ${ageProfiles[ageRange]}.
 Quality: ${qualityLevels[qualityLevel]}.
 Positions needed: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST).
 ${namingStylesText}
 ${nationalityText}
-For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST), overall_rating (30-99), potential (overall+0 to +15), preferred_foot (Left/Right/Both), nationality (make realistic based on club nation and neighbors).`;
+For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST), overall_rating (30-99), potential (overall+0 to +15), preferred_foot (Left/Right/Both), nationality (nation name), birth_place (city where born, match nationality).`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
