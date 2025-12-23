@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit2, Save, X, Trash2 } from 'lucide-react';
+import { Edit2, Save, X, Trash2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PlayerProfile({ player, onUpdate }) {
@@ -82,6 +82,8 @@ export default function PlayerProfile({ player, onUpdate }) {
             appearances: editData.appearances ? parseInt(editData.appearances) : null,
             goals: editData.goals ? parseInt(editData.goals) : null,
             assists: editData.assists ? parseInt(editData.assists) : null,
+            national_team_caps: editData.national_team_caps ? parseInt(editData.national_team_caps) : null,
+            national_team_goals: editData.national_team_goals ? parseInt(editData.national_team_goals) : null,
         });
     };
 
@@ -105,8 +107,16 @@ export default function PlayerProfile({ player, onUpdate }) {
                             {playerNation?.flag_url && (
                                 <img src={playerNation.flag_url} alt={player.nationality} className="w-5 h-4 object-cover rounded shadow-sm" title={player.nationality} />
                             )}
+                            {player.is_national_team && (
+                                <Shield className="w-4 h-4 text-amber-600" title={`${player.nationality} National Team`} />
+                            )}
                         </div>
-                        <div className="text-sm text-slate-500">{player.position} • Age {player.age}</div>
+                        <div className="text-sm text-slate-500">
+                            {player.position} • Age {player.age}
+                            {player.national_team_caps > 0 && (
+                                <span className="text-amber-600 ml-2">• {player.national_team_caps} caps</span>
+                            )}
+                        </div>
                         {clubHistory.length > 0 && (
                             <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
                                 {clubHistory.map((entry, idx) => (
@@ -262,6 +272,31 @@ export default function PlayerProfile({ player, onUpdate }) {
                         <div>
                             <Label>Assists</Label>
                             <Input type="number" value={editData.assists || ''} onChange={(e) => setEditData({...editData, assists: e.target.value})} className="mt-1" />
+                        </div>
+                    </div>
+                    <div className="border-t pt-4 mt-2">
+                        <div className="flex items-center gap-4 mb-3">
+                            <Shield className="w-5 h-5 text-amber-600" />
+                            <span className="font-semibold">International Career</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={editData.is_national_team || false}
+                                    onChange={(e) => setEditData({...editData, is_national_team: e.target.checked})}
+                                    className="rounded"
+                                />
+                                <Label>Current Squad</Label>
+                            </div>
+                            <div>
+                                <Label>Caps</Label>
+                                <Input type="number" value={editData.national_team_caps || ''} onChange={(e) => setEditData({...editData, national_team_caps: e.target.value})} className="mt-1" />
+                            </div>
+                            <div>
+                                <Label>Int'l Goals</Label>
+                                <Input type="number" value={editData.national_team_goals || ''} onChange={(e) => setEditData({...editData, national_team_goals: e.target.value})} className="mt-1" />
+                            </div>
                         </div>
                     </div>
                     <div className="flex justify-between pt-4">
