@@ -30,6 +30,7 @@ import ColorExtractor from '@/components/common/ColorExtractor';
 import ImmersiveHeader from '@/components/common/ImmersiveHeader';
 import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
+import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1042,9 +1043,13 @@ export default function ClubDetail() {
                                         <h3 className="text-xl font-semibold text-slate-700 mb-2">No Players Yet</h3>
                                         <p className="text-slate-500 mb-4">Start building your squad</p>
                                         <AdminOnly>
-                                            <Button className="bg-emerald-600">
-                                                <Plus className="w-4 h-4 mr-2" /> Add Player
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <AIPlayerGenerator 
+                                                    club={club} 
+                                                    nation={nation}
+                                                    onPlayersGenerated={() => queryClient.invalidateQueries(['players'])}
+                                                />
+                                            </div>
                                         </AdminOnly>
                                     </CardContent>
                                 </Card>
@@ -1099,9 +1104,13 @@ export default function ClubDetail() {
                                         );
                                     })}
                                     <AdminOnly>
-                                        <Button className="w-full bg-emerald-600">
-                                            <Plus className="w-4 h-4 mr-2" /> Add New Player
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <AIPlayerGenerator 
+                                                club={club} 
+                                                nation={nation}
+                                                onPlayersGenerated={() => queryClient.invalidateQueries(['players'])}
+                                            />
+                                        </div>
                                     </AdminOnly>
                                 </div>
                             );

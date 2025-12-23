@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
 import AILocationEnhancer from '@/components/locations/AILocationEnhancer';
+import AILocationImagery from '@/components/locations/AILocationImagery';
 import AdminOnly from '@/components/common/AdminOnly';
 import { estimateLocationPopulation } from '@/components/common/populationUtils';
 
@@ -343,15 +344,21 @@ export default function EnhancedLocationDetail({
 
                 <TabsContent value="details">
                     <AdminOnly>
-                        <div className="mb-6">
-                            {existingLocation && (
+                        {existingLocation && (
+                            <div className="space-y-6 mb-6">
+                                <AILocationImagery
+                                    location={existingLocation}
+                                    locationType={locationType}
+                                    nation={nation}
+                                    onImageGenerated={() => queryClient.invalidateQueries(['location'])}
+                                />
                                 <AILocationEnhancer 
                                     location={existingLocation} 
                                     nation={nation}
                                     onUpdate={() => queryClient.invalidateQueries(['location'])}
                                 />
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </AdminOnly>
 
                     {existingLocation && (existingLocation.culture_description || existingLocation.geography || existingLocation.local_media) ? (
