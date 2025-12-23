@@ -104,38 +104,55 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
                 <Button 
                     variant="outline" 
                     className="w-full justify-start text-left font-normal"
-                    onClick={() => setOpen(!open)}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        setOpen(!open);
+                    }}
+                    type="button"
                 >
                     {selectedPlayer ? (
                         <span className="flex items-center gap-2">
-                            <span className="font-mono text-sm">{selectedPlayer.shirt_number}</span>
-                            {selectedPlayer.full_name}
+                            <span className="font-mono text-sm text-slate-600">{selectedPlayer.shirt_number}</span>
+                            <span className="flex-1">{selectedPlayer.full_name}</span>
+                            <Badge variant="outline" className="text-xs">{selectedPlayer.position}</Badge>
+                            <span className="text-xs text-slate-500">Age {selectedPlayer.age}</span>
+                            <Badge className="bg-emerald-600 text-white">{selectedPlayer.overall_rating}</Badge>
                         </span>
                     ) : (
                         <span className="text-slate-500">{placeholder}</span>
                     )}
-                    {open ? <ChevronUp className="ml-auto w-4 h-4" /> : <ChevronDown className="ml-auto w-4 h-4" />}
+                    {open ? <ChevronUp className="ml-2 w-4 h-4" /> : <ChevronDown className="ml-2 w-4 h-4" />}
                 </Button>
                 {open && (
                     <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {players.map(player => {
-                            const nation = nations.find(n => n.name === player.nationality);
-                            return (
-                                <button
-                                    key={player.id}
-                                    className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center gap-2"
-                                    onClick={() => {
-                                        onChange(player.id);
-                                        setOpen(false);
-                                    }}
-                                >
-                                    <span className="font-mono text-sm text-slate-500 w-6">{player.shirt_number}</span>
-                                    <span className="flex-1">{player.full_name}</span>
-                                    {nation?.flag_url && <img src={nation.flag_url} alt="" className="w-5 h-3 object-contain" />}
-                                    <Badge variant="outline" className="text-xs">{player.position}</Badge>
-                                </button>
-                            );
-                        })}
+                        {players.length === 0 ? (
+                            <div className="px-3 py-4 text-center text-slate-500 text-sm">
+                                No players available
+                            </div>
+                        ) : (
+                            players.sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(player => {
+                                const nation = nations.find(n => n.name === player.nationality);
+                                return (
+                                    <button
+                                        key={player.id}
+                                        type="button"
+                                        className="w-full px-3 py-2 text-left hover:bg-emerald-50 flex items-center gap-2 border-b last:border-b-0"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            onChange(player.id);
+                                            setOpen(false);
+                                        }}
+                                    >
+                                        <span className="font-mono text-sm text-slate-500 w-8">{player.shirt_number}</span>
+                                        <span className="flex-1 font-medium">{player.full_name}</span>
+                                        <Badge variant="outline" className="text-xs">{player.position}</Badge>
+                                        <span className="text-xs text-slate-500 w-12">Age {player.age}</span>
+                                        <Badge className="bg-emerald-600 text-white text-xs">{player.overall_rating}</Badge>
+                                        {nation?.flag_url && <img src={nation.flag_url} alt="" className="w-5 h-3 object-contain" />}
+                                    </button>
+                                );
+                            })
+                        )}
                     </div>
                 )}
             </div>
