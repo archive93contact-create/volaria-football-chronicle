@@ -315,10 +315,10 @@ export default function ClubDetail() {
                     </nav>
                     <div className="flex items-center gap-6">
                         {club.logo_url ? (
-                            <img src={club.logo_url} alt={club.name} className="w-28 h-28 object-contain bg-white rounded-xl p-2 shadow-xl" />
+                            <img src={club.logo_url} alt={club.name} className="w-32 h-32 md:w-40 md:h-40 object-contain bg-white rounded-2xl p-3 shadow-2xl" />
                         ) : (
-                            <div className="w-28 h-28 bg-white/20 rounded-xl flex items-center justify-center">
-                                <Shield className="w-14 h-14 text-white" />
+                            <div className="w-32 h-32 md:w-40 md:h-40 bg-white/20 rounded-2xl flex items-center justify-center">
+                                <Shield className="w-20 h-20 text-white" />
                             </div>
                         )}
                         <div className="flex-1">

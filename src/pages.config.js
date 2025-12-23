@@ -1,71 +1,81 @@
-import Home from './pages/Home';
-import Nations from './pages/Nations';
-import AddNation from './pages/AddNation';
-import NationDetail from './pages/NationDetail';
-import ContinentalCompetitions from './pages/ContinentalCompetitions';
-import CompetitionDetail from './pages/CompetitionDetail';
-import AddLeague from './pages/AddLeague';
-import AddClub from './pages/AddClub';
-import LeagueDetail from './pages/LeagueDetail';
-import ClubDetail from './pages/ClubDetail';
-import AddSeason from './pages/AddSeason';
-import NationClubs from './pages/NationClubs';
-import ContinentalSeasonDetail from './pages/ContinentalSeasonDetail';
 import About from './pages/About';
-import Contact from './pages/Contact';
-import Seasons from './pages/Seasons';
-import UpdateContinentalStats from './pages/UpdateContinentalStats';
-import ClubComparison from './pages/ClubComparison';
-import DomesticCups from './pages/DomesticCups';
-import DomesticCupDetail from './pages/DomesticCupDetail';
+import AddClub from './pages/AddClub';
+import AddCompetitionSeason from './pages/AddCompetitionSeason';
 import AddDomesticCupSeason from './pages/AddDomesticCupSeason';
-import DomesticCupSeasonDetail from './pages/DomesticCupSeasonDetail';
-import Locations from './pages/Locations';
-import LocationDetail from './pages/LocationDetail';
-import LeagueComparison from './pages/LeagueComparison';
-import RecalculateCoefficients from './pages/RecalculateCoefficients';
-import Coefficients from './pages/Coefficients';
+import AddLeague from './pages/AddLeague';
+import AddNation from './pages/AddNation';
+import AddSeason from './pages/AddSeason';
 import AllClubs from './pages/AllClubs';
+import ClubComparison from './pages/ClubComparison';
+import ClubDetail from './pages/ClubDetail';
+import ClubStability from './pages/ClubStability';
+import Coefficients from './pages/Coefficients';
+import CompetitionDetail from './pages/CompetitionDetail';
+import CompetitionSeasonDetail from './pages/CompetitionSeasonDetail';
+import Contact from './pages/Contact';
+import ContinentalCompetitions from './pages/ContinentalCompetitions';
+import ContinentalSeasonDetail from './pages/ContinentalSeasonDetail';
+import CountryRankings from './pages/CountryRankings';
+import DomesticCupDetail from './pages/DomesticCupDetail';
+import DomesticCupSeasonDetail from './pages/DomesticCupSeasonDetail';
+import DomesticCups from './pages/DomesticCups';
+import EditSeason from './pages/EditSeason';
 import EditSeasonTable from './pages/EditSeasonTable';
-import Support from './pages/Support';
-import StabilityManager from './pages/StabilityManager';
+import Home from './pages/Home';
+import LeagueComparison from './pages/LeagueComparison';
+import LeagueDetail from './pages/LeagueDetail';
+import LocationDetail from './pages/LocationDetail';
+import Locations from './pages/Locations';
+import NationClubs from './pages/NationClubs';
+import NationDetail from './pages/NationDetail';
 import NationGenerator from './pages/NationGenerator';
+import Nations from './pages/Nations';
+import RecalculateCoefficients from './pages/RecalculateCoefficients';
+import Seasons from './pages/Seasons';
+import StabilityManager from './pages/StabilityManager';
+import Support from './pages/Support';
+import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
-    "Nations": Nations,
-    "AddNation": AddNation,
-    "NationDetail": NationDetail,
-    "ContinentalCompetitions": ContinentalCompetitions,
-    "CompetitionDetail": CompetitionDetail,
-    "AddLeague": AddLeague,
-    "AddClub": AddClub,
-    "LeagueDetail": LeagueDetail,
-    "ClubDetail": ClubDetail,
-    "AddSeason": AddSeason,
-    "NationClubs": NationClubs,
-    "ContinentalSeasonDetail": ContinentalSeasonDetail,
     "About": About,
-    "Contact": Contact,
-    "Seasons": Seasons,
-    "UpdateContinentalStats": UpdateContinentalStats,
-    "ClubComparison": ClubComparison,
-    "DomesticCups": DomesticCups,
-    "DomesticCupDetail": DomesticCupDetail,
+    "AddClub": AddClub,
+    "AddCompetitionSeason": AddCompetitionSeason,
     "AddDomesticCupSeason": AddDomesticCupSeason,
-    "DomesticCupSeasonDetail": DomesticCupSeasonDetail,
-    "Locations": Locations,
-    "LocationDetail": LocationDetail,
-    "LeagueComparison": LeagueComparison,
-    "RecalculateCoefficients": RecalculateCoefficients,
-    "Coefficients": Coefficients,
+    "AddLeague": AddLeague,
+    "AddNation": AddNation,
+    "AddSeason": AddSeason,
     "AllClubs": AllClubs,
+    "ClubComparison": ClubComparison,
+    "ClubDetail": ClubDetail,
+    "ClubStability": ClubStability,
+    "Coefficients": Coefficients,
+    "CompetitionDetail": CompetitionDetail,
+    "CompetitionSeasonDetail": CompetitionSeasonDetail,
+    "Contact": Contact,
+    "ContinentalCompetitions": ContinentalCompetitions,
+    "ContinentalSeasonDetail": ContinentalSeasonDetail,
+    "CountryRankings": CountryRankings,
+    "DomesticCupDetail": DomesticCupDetail,
+    "DomesticCupSeasonDetail": DomesticCupSeasonDetail,
+    "DomesticCups": DomesticCups,
+    "EditSeason": EditSeason,
     "EditSeasonTable": EditSeasonTable,
-    "Support": Support,
-    "StabilityManager": StabilityManager,
+    "Home": Home,
+    "LeagueComparison": LeagueComparison,
+    "LeagueDetail": LeagueDetail,
+    "LocationDetail": LocationDetail,
+    "Locations": Locations,
+    "NationClubs": NationClubs,
+    "NationDetail": NationDetail,
     "NationGenerator": NationGenerator,
+    "Nations": Nations,
+    "RecalculateCoefficients": RecalculateCoefficients,
+    "Seasons": Seasons,
+    "StabilityManager": StabilityManager,
+    "Support": Support,
+    "UpdateContinentalStats": UpdateContinentalStats,
 }
 
 export const pagesConfig = {

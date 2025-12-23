@@ -34,59 +34,72 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
                 continue;
             }
 
-            // Calculate totals from league tables
-            let totalWins = 0, totalDraws = 0, totalLosses = 0;
-            let totalGF = 0, totalGA = 0;
-            let seasonsPlayed = 0;
-            let seasonsTopFlight = 0;
-            let promotions = 0, relegations = 0;
-            let leagueTitles = 0;
-            const titleYears = [];
+            // Calculate totals from league tables - preserve existing data
+            const currentStats = {
+                total_wins: club.total_wins || 0,
+                total_draws: club.total_draws || 0,
+                total_losses: club.total_losses || 0,
+                total_goals_scored: club.total_goals_scored || 0,
+                total_goals_conceded: club.total_goals_conceded || 0,
+                seasons_played: club.seasons_played || 0,
+                seasons_top_flight: club.seasons_top_flight || 0,
+                promotions: club.promotions || 0,
+                relegations: club.relegations || 0,
+                league_titles: club.league_titles || 0,
+                title_years: club.title_years || ''
+            };
+
+            // Calculate this batch's stats
+            let batchWins = 0, batchDraws = 0, batchLosses = 0;
+            let batchGF = 0, batchGA = 0;
+            let batchSeasons = 0;
+            let batchTopFlightSeasons = 0;
+            let batchPromotions = 0, batchRelegations = 0;
+            let batchTitles = 0;
+            const batchTitleYears = [];
 
             for (const table of clubTables) {
                 if (table.played > 0 || table.won > 0) {
-                    totalWins += table.won || 0;
-                    totalDraws += table.drawn || 0;
-                    totalLosses += table.lost || 0;
-                    totalGF += table.goals_for || 0;
-                    totalGA += table.goals_against || 0;
-                    seasonsPlayed++;
+                    batchWins += table.won || 0;
+                    batchDraws += table.drawn || 0;
+                    batchLosses += table.lost || 0;
+                    batchGF += table.goals_for || 0;
+                    batchGA += table.goals_against || 0;
+                    batchSeasons++;
 
-                    // Check tier for top flight count
                     const tableLeague = leagues.find(l => l.id === table.league_id);
                     if (tableLeague?.tier === 1) {
-                        seasonsTopFlight++;
-                    }
-
-                    // Count titles, promotions, relegations
-                    if (table.status === 'champion' || table.position === 1) {
-                        if (tableLeague?.tier === 1) {
-                            leagueTitles++;
-                            titleYears.push(table.year);
+                        batchTopFlightSeasons++;
+                        if (table.status === 'champion' || table.position === 1) {
+                            batchTitles++;
+                            batchTitleYears.push(table.year);
                         }
                     }
                     if (table.status === 'promoted' || table.status === 'playoff_winner') {
-                        promotions++;
+                        batchPromotions++;
                     }
                     if (table.status === 'relegated') {
-                        relegations++;
+                        batchRelegations++;
                     }
                 }
             }
 
-            // Update the club
+            // Merge with existing stats (don't overwrite, add to them)
+            const existingTitleYears = currentStats.title_years ? currentStats.title_years.split(',').map(y => y.trim()) : [];
+            const allTitleYears = [...new Set([...existingTitleYears, ...batchTitleYears])].filter(Boolean).sort();
+
             await base44.entities.Club.update(club.id, {
-                total_wins: totalWins,
-                total_draws: totalDraws,
-                total_losses: totalLosses,
-                total_goals_scored: totalGF,
-                total_goals_conceded: totalGA,
-                seasons_played: seasonsPlayed,
-                seasons_top_flight: seasonsTopFlight,
-                league_titles: leagueTitles,
-                title_years: titleYears.sort().join(', '),
-                promotions: promotions,
-                relegations: relegations
+                total_wins: currentStats.total_wins + batchWins,
+                total_draws: currentStats.total_draws + batchDraws,
+                total_losses: currentStats.total_losses + batchLosses,
+                total_goals_scored: currentStats.total_goals_scored + batchGF,
+                total_goals_conceded: currentStats.total_goals_conceded + batchGA,
+                seasons_played: currentStats.seasons_played + batchSeasons,
+                seasons_top_flight: currentStats.seasons_top_flight + batchTopFlightSeasons,
+                league_titles: currentStats.league_titles + batchTitles,
+                title_years: allTitleYears.join(', '),
+                promotions: currentStats.promotions + batchPromotions,
+                relegations: currentStats.relegations + batchRelegations
             });
             updated++;
         }

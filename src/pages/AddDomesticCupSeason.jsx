@@ -172,114 +172,109 @@ export default function AddDomesticCupSeason() {
         return years.sort().reverse();
     }, [allLeagueTables]);
 
-    // Generate bracket with proper seeding and byes
+    // Generate bracket with proper seeding, byes, and exciting draw mechanics
     const generateBracket = () => {
         const numTeams = selectedClubs.length;
+        if (numTeams < 2) return;
+        
         const bracketSize = nextPowerOf2(numTeams);
         const numByes = bracketSize - numTeams;
         const rounds = calculateRounds(numTeams);
         const matches = [];
         
-        // Sort clubs by tier (lower = better) then by position (lower = better)
+        // Sort clubs by tier and position for seeding
         const seededClubs = [...selectedClubs].sort((a, b) => {
             if (a.tier !== b.tier) return a.tier - b.tier;
             return a.position - b.position;
         });
         
-        // Top seeds get byes (clubs with lowest tier and position)
+        // Top seeds get byes
         const clubsWithByes = seededClubs.slice(0, numByes);
         const clubsInFirstRound = seededClubs.slice(numByes);
         
-        // Shuffle the remaining clubs for the first round draw while keeping some seeding
-        // Put higher seeds against lower seeds
+        // Create first round draw - shuffle for excitement!
+        const shuffled = [...clubsInFirstRound].sort(() => Math.random() - 0.5);
         const firstRoundPairs = [];
-        const half = Math.floor(clubsInFirstRound.length / 2);
-        for (let i = 0; i < half; i++) {
-            // Pair top half with bottom half (reversed)
-            firstRoundPairs.push({
-                home: clubsInFirstRound[i],
-                away: clubsInFirstRound[clubsInFirstRound.length - 1 - i]
-            });
+        for (let i = 0; i < shuffled.length; i += 2) {
+            if (i + 1 < shuffled.length) {
+                firstRoundPairs.push({
+                    home: shuffled[i],
+                    away: shuffled[i + 1]
+                });
+            }
         }
         
         // Generate first round matches
         const firstRound = rounds[0];
         if (firstRound) {
-            for (let i = 0; i < firstRoundPairs.length; i++) {
-                const pair = firstRoundPairs[i];
+            firstRoundPairs.forEach((pair, i) => {
                 matches.push({
                     round: firstRound.name,
                     match_number: i + 1,
-                    home_club_id: pair.home?.id || '',
-                    home_club_name: pair.home?.name || 'TBD',
-                    home_tier: pair.home?.tier,
-                    away_club_id: pair.away?.id || '',
-                    away_club_name: pair.away?.name || 'TBD',
-                    away_tier: pair.away?.tier,
+                    home_club_id: pair.home.id,
+                    home_club_name: pair.home.name,
+                    home_tier: pair.home.tier,
+                    away_club_id: pair.away.id,
+                    away_club_name: pair.away.name,
+                    away_tier: pair.away.tier,
                     home_score: null,
                     away_score: null,
-                    winner: ''
+                    winner: '',
+                    isBye: false
                 });
-            }
+            });
         }
         
-        // Generate second round with byes filled in
-        if (rounds.length > 1) {
-            const secondRound = rounds[1];
-            const firstRoundMatchCount = firstRoundPairs.length;
-            
-            // Figure out how many second round matches and which get bye clubs
-            for (let i = 0; i < secondRound.matches; i++) {
-                // Check if this match slot should have a bye club
-                const byeClub = clubsWithByes[i];
-                if (byeClub && i < numByes) {
-                    matches.push({
-                        round: secondRound.name,
-                        match_number: i + 1,
-                        home_club_id: byeClub.id || '',
-                        home_club_name: byeClub.name,
-                        home_tier: byeClub.tier,
-                        away_club_id: '',
-                        away_club_name: 'TBD', // Will be filled by first round winner
-                        home_score: null,
-                        away_score: null,
-                        winner: ''
-                    });
-                } else {
-                    matches.push({
-                        round: secondRound.name,
-                        match_number: i + 1,
-                        home_club_id: '',
-                        home_club_name: 'TBD',
-                        away_club_id: '',
-                        away_club_name: 'TBD',
-                        home_score: null,
-                        away_score: null,
-                        winner: ''
-                    });
-                }
-            }
+        // Handle odd number: add bye match for last team
+        if (clubsInFirstRound.length % 2 !== 0) {
+            const lastTeam = clubsInFirstRound[clubsInFirstRound.length - 1];
+            matches.push({
+                round: firstRound.name,
+                match_number: firstRoundPairs.length + 1,
+                home_club_id: lastTeam.id,
+                home_club_name: lastTeam.name,
+                home_tier: lastTeam.tier,
+                away_club_id: '',
+                away_club_name: 'BYE',
+                away_tier: null,
+                home_score: null,
+                away_score: null,
+                winner: lastTeam.name,
+                isBye: true
+            });
         }
         
-        // Generate empty matches for subsequent rounds (after second)
-        for (let r = 2; r < rounds.length; r++) {
-            for (let i = 0; i < rounds[r].matches; i++) {
+        // Generate remaining rounds with TBD placeholders and bye clubs in second round
+        for (let r = 1; r < rounds.length; r++) {
+            const round = rounds[r];
+            for (let i = 0; i < round.matches; i++) {
+                // Check if this is second round and we have a bye club for this slot
+                const byeClub = (r === 1 && i < clubsWithByes.length) ? clubsWithByes[i] : null;
+                
                 matches.push({
-                    round: rounds[r].name,
+                    round: round.name,
                     match_number: i + 1,
-                    home_club_id: '',
-                    home_club_name: 'TBD',
+                    home_club_id: byeClub?.id || '',
+                    home_club_name: byeClub?.name || 'TBD',
+                    home_tier: byeClub?.tier || null,
                     away_club_id: '',
                     away_club_name: 'TBD',
+                    away_tier: null,
                     home_score: null,
                     away_score: null,
-                    winner: ''
+                    winner: '',
+                    isBye: false
                 });
             }
         }
         
         setBracketMatches(matches);
         setActiveTab('bracket');
+        
+        // Show exciting draw animation message
+        setTimeout(() => {
+            alert(`🎉 Cup Draw Complete!\n\n${numTeams} teams entered\n${clubsWithByes.length} top seeds receive byes\n${firstRoundPairs.length + (clubsInFirstRound.length % 2)} first round matches\n\nLet the tournament begin!`);
+        }, 100);
     };
 
     const updateMatch = (roundName, matchNumber, field, value) => {
@@ -312,7 +307,7 @@ export default function AddDomesticCupSeason() {
                 return m;
             });
             
-            // Auto-advance winner to next round
+            // Auto-advance winner to next round - preserve bye clubs!
             const roundOrder = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
             const currentRoundIdx = roundOrder.indexOf(roundName);
             const nextRound = roundOrder[currentRoundIdx + 1];
@@ -323,9 +318,10 @@ export default function AddDomesticCupSeason() {
                 
                 return updated.map(m => {
                     if (m.round === nextRound && m.match_number === nextMatchNumber) {
-                        if (isFirstOfPair) {
+                        // Only fill empty slots (TBD), preserve existing bye clubs
+                        if (isFirstOfPair && m.home_club_name === 'TBD') {
                             return { ...m, home_club_name: winnerName, home_club_id: winnerId, home_tier: winnerTier };
-                        } else {
+                        } else if (!isFirstOfPair && m.away_club_name === 'TBD') {
                             return { ...m, away_club_name: winnerName, away_club_id: winnerId, away_tier: winnerTier };
                         }
                     }
