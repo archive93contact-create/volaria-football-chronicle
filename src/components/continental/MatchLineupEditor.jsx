@@ -105,9 +105,10 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
         setSubstitutions(substitutions.filter((_, i) => i !== index));
     };
 
-    const PlayerPicker = ({ value, onChange, players, placeholder }) => {
+    const PlayerPicker = ({ value, onChange, players, placeholder, excludeIds = [] }) => {
         const [open, setOpen] = useState(false);
         const selectedPlayer = players.find(p => p.id === value);
+        const availablePlayers = players.filter(p => !excludeIds.includes(p.id) || p.id === value);
         
         return (
             <div className="relative">
@@ -135,12 +136,12 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
                 </Button>
                 {open && (
                     <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {players.length === 0 ? (
+                        {availablePlayers.length === 0 ? (
                             <div className="px-3 py-4 text-center text-slate-500 text-sm">
                                 No players available
                             </div>
                         ) : (
-                            players.sort((a, b) => {
+                            availablePlayers.sort((a, b) => {
                                 const posOrder = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
                                 const posA = posOrder.indexOf(a.position);
                                 const posB = posOrder.indexOf(b.position);
@@ -199,6 +200,7 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
                                         }}
                                         players={players}
                                         placeholder={`Select player ${index + 1}`}
+                                        excludeIds={[...lineup, ...subs].filter(id => id !== playerId)}
                                     />
                                 </div>
                                 <Button variant="ghost" size="sm" onClick={() => setLineup(lineup.filter((_, i) => i !== index))}>
@@ -234,6 +236,7 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
                                     }}
                                     players={players}
                                     placeholder={`Select substitute ${index + 1}`}
+                                    excludeIds={[...lineup, ...subs].filter(id => id !== playerId)}
                                 />
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => setSubs(subs.filter((_, i) => i !== index))}>
