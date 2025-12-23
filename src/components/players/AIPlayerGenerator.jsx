@@ -20,11 +20,21 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
     const generatePlayers = async () => {
         setGenerating(true);
         try {
-            // Delete existing squad first
-            const existingPlayers = await base44.entities.Player.filter({ club_id: club.id });
-            if (existingPlayers.length > 0) {
-                await Promise.all(existingPlayers.map(p => base44.entities.Player.delete(p.id)));
+            // Delete existing squad first if overwrite is enabled
+            if (overwriteExisting) {
+                const existingPlayers = await base44.entities.Player.filter({ club_id: club.id });
+                if (existingPlayers.length > 0) {
+                    await Promise.all(existingPlayers.map(p => base44.entities.Player.delete(p.id)));
+                }
             }
+
+            // Fetch all Volaria nations
+            const allNations = await base44.entities.Nation.list();
+            const nationNames = allNations.map(n => n.name).join(', ');
+
+            // Get latest season year for this nation
+            const latestSeasons = await base44.entities.Season.filter({ league_id: club.league_id }, '-year', 1);
+            const currentYear = latestSeasons[0]?.year || new Date().getFullYear().toString();
 
             // Build prompt for AI to generate player data
             const tier = await (async () => {
@@ -52,15 +62,26 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
 
             // Adjust foreign player percentage based on tier
             const foreignPlayerPercent = tier === 1 ? '25-35%' : tier === 2 ? '15-25%' : tier === 3 ? '10-15%' : tier === 4 ? '5-10%' : '0-5%';
-            const nationalityText = `${100 - parseInt(foreignPlayerPercent)}% players from ${nation?.name || 'home nation'}, ${foreignPlayerPercent} from neighboring or culturally similar nations (realistic foreign signings for tier ${tier} club).`;
+            const nationalityText = `IMPORTANT: All players MUST be from nations in Volaria. Available nations: ${nationNames}. 
+${100 - parseInt(foreignPlayerPercent)}% players from ${nation?.name || 'home nation'}, ${foreignPlayerPercent} from other Volaria nations only.`;
 
-            const prompt = `Generate ${count} football player names for ${club.name} (tier ${tier} club) in ${nation?.name || 'a fictional nation'}.
+            const prompt = `Generate ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name || 'a fictional nation'}. Current year: ${currentYear}.
+
 Squad composition: ${ageProfiles[ageRange]}.
 Quality: ${qualityLevels[qualityLevel]}.
 Positions needed: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST).
 ${namingStylesText}
 ${nationalityText}
-For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST), overall_rating (30-99), potential (overall+0 to +15), preferred_foot (Left/Right/Both), nationality (nation name), birth_place (city where born, match nationality).`;
+
+For each player provide:
+- first_name, last_name
+- age (between 17-34)
+- position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST)
+- overall_rating (30-99), potential (overall+0 to +15)
+- preferred_foot (Left/Right/Both)
+- nationality (MUST be one of: ${nationNames})
+- birth_place (city matching nationality)
+- club_history (for players aged 22+, list 1-3 previous clubs with years, e.g., "FC Example (2018-2020), Another FC (2020-${parseInt(currentYear)-1})". Use clubs from Volaria nations. Leave empty for younger players.)`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
@@ -80,7 +101,8 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
                                     potential: { type: "number" },
                                     preferred_foot: { type: "string" },
                                     nationality: { type: "string" },
-                                    birth_place: { type: "string" }
+                                    birth_place: { type: "string" },
+                                    club_history: { type: "string" }
                                 }
                             }
                         }
@@ -89,14 +111,6 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
             });
 
             if (result?.players) {
-                // If overwrite, delete existing players first
-                if (overwriteExisting) {
-                    const existingPlayers = await base44.entities.Player.filter({ club_id: club.id });
-                    for (const player of existingPlayers) {
-                        await base44.entities.Player.delete(player.id);
-                    }
-                }
-
                 // Assign shirt numbers
                 let shirtNum = 1;
                 const playersWithDetails = result.players.map(p => ({
@@ -108,9 +122,24 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
                 }));
 
                 // Bulk create players
-                await base44.entities.Player.bulkCreate(playersWithDetails);
+                const createdPlayers = await base44.entities.Player.bulkCreate(playersWithDetails);
                 
-                toast.success(`${overwriteExisting ? 'Replaced squad with' : 'Generated'} ${result.players.length} players!`);
+                // Generate player images in background (don't await)
+                createdPlayers.forEach(async (player, idx) => {
+                    try {
+                        const ethnicityHint = allNations.find(n => n.name === player.nationality)?.culture || 'diverse';
+                        const imagePrompt = `Professional headshot portrait of a male football/soccer player, age ${player.age}, ${ethnicityHint} appearance, athletic build, neutral expression, sports photography style, clean background, high quality, realistic`;
+                        
+                        const imageResult = await base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
+                        if (imageResult?.url) {
+                            await base44.entities.Player.update(player.id, { photo_url: imageResult.url });
+                        }
+                    } catch (err) {
+                        console.log(`Failed to generate image for ${player.full_name}`);
+                    }
+                });
+                
+                toast.success(`${overwriteExisting ? 'Replaced squad with' : 'Generated'} ${result.players.length} players! Generating portraits...`);
                 setOpen(false);
                 onPlayersGenerated?.();
             }
