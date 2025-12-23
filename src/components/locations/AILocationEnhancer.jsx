@@ -32,7 +32,7 @@ ${location.clubs?.length > 0 ? `Has ${location.clubs.length} football club(s)` :
 Population: ~${location.population?.toLocaleString() || 'unknown'}
             `.trim();
 
-            const prompt = `Generate detailed, immersive local content for this location. Make it feel authentic and unique to the culture and region. Be creative and specific, not generic.
+            const prompt = `Generate detailed, immersive local content for this location. CRITICAL: All names MUST sound authentic to the ${nation.language || 'local'} language - NOT English. Use the language's phonetics, word structure, and naming conventions.
 
 Context:
 ${context}
@@ -41,13 +41,13 @@ Generate the following as a JSON object:
 {
   "culture_description": "200-word rich cultural description - local traditions, festivals, community character, social fabric, typical lifestyle",
   "geography": "Geographic features - terrain, rivers, climate, natural landmarks, environmental characteristics",
-  "local_media": "3-5 realistic local media outlet names appropriate for the culture/language (e.g., '[LocationName] Herald, Radio [Region], [City] Sports Network')",
-  "major_companies": "5-7 realistic local businesses/employers specific to this area (e.g., '[City] Brewing Company, [Region] Steel Works, [Name] Textiles')",
-  "landmarks": "Notable local landmarks, historic sites, popular gathering places",
+  "local_media": "3-5 authentic ${nation.language || 'local language'} media outlet names. Examples: NOT 'Herald' or 'Radio Station' - use language-appropriate words like 'Tidningen', 'Gazeta', 'Nouvelle', 'Zeitung' etc. Make them sound NATIVE, not English translations.",
+  "major_companies": "5-7 businesses with AUTHENTIC ${nation.language || 'local language'} names - use the language's word structure. NOT '[City] Industries' - create unique names that feel like real companies from that culture (e.g., for Nordic: 'Bjørnsen Bryggeri', for Romance: 'Antica Fabbrica', for Slavic: 'Zakłady Przemysłowe')",
+  "landmarks": "Notable local landmarks with authentic local language names",
   "industries": "Primary local industries and economic activities"
 }
 
-Make names authentic to the nation's language and culture. Be specific and creative.`;
+CRITICAL: Do NOT use English words in names. Research the language phonetics and create authentic-sounding names.`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,

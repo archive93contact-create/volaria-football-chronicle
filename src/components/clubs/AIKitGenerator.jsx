@@ -42,21 +42,42 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false,
             const secondary = params.secondaryColor || primary;
             const accent = params.accentColor;
             
-            // Generate contextual sponsor based on club/nation
+            // Generate contextual sponsor based on club/nation language
             const generateSponsor = () => {
-                const nationName = nation?.name || 'Generic';
                 const language = nation?.language || 'English';
                 const clubWords = club.name.split(' ');
-                const cityName = club.settlement || club.city || club.region || '';
+                const baseName = clubWords[0] || club.settlement || club.city || club.region || nation?.name || 'United';
                 
-                // Create sponsor suggestions based on context
-                const sponsorTypes = [
-                    `${cityName} Bank`, `${nationName} Airways`, `${clubWords[0]} Industries`,
-                    `${cityName} Telecom`, `${nationName} Energy`, `${clubWords[0]} Group`,
-                    `${cityName} Motors`, `${nationName} Financial`, `${clubWords[0]} Corporation`
-                ];
-                const randomSponsor = sponsorTypes[Math.abs(club.id?.charCodeAt(0) || 0) % sponsorTypes.length];
-                return randomSponsor;
+                // Generate authentic sponsor names based on language/culture
+                const hash = Math.abs(club.id?.charCodeAt(0) || 0);
+                const sponsorType = hash % 6;
+                
+                // Use language-appropriate suffixes and patterns
+                const patterns = {
+                    // Nordic/Scandinavian
+                    nordic: ['Bryggeri', 'Industrier', 'Energi', 'Finans', 'Gruppen', 'Motorer'],
+                    // Germanic
+                    germanic: ['Werke', 'Industrie', 'Bank', 'Gruppe', 'Technologie', 'Energie'],
+                    // Romance/Latin
+                    romance: ['Industrie', 'Gruppo', 'Energia', 'Banca', 'Telecom', 'Fabbrica'],
+                    // Slavic
+                    slavic: ['Przemysł', 'Energia', 'Bank', 'Grupa', 'Zakłady', 'Telekom'],
+                    // Anglo/English
+                    anglo: ['Industries', 'Group', 'Motors', 'Energy', 'Financial', 'Bank'],
+                    // Iberian
+                    iberian: ['Industrias', 'Grupo', 'Energía', 'Banco', 'Telecom', 'Fábrica']
+                };
+                
+                // Detect language pattern
+                const lang = language.toLowerCase();
+                let suffixes = patterns.anglo;
+                if (/nord|skan|finn|swe|dan|norw/i.test(lang)) suffixes = patterns.nordic;
+                else if (/germ|deut|öster|schwei/i.test(lang)) suffixes = patterns.germanic;
+                else if (/roman|ital|fran|port|span|catal/i.test(lang)) suffixes = patterns.romance;
+                else if (/slav|pol|czech|rus|ukr|bulg|serb/i.test(lang)) suffixes = patterns.slavic;
+                else if (/hispan|castell|iberi|galleg/i.test(lang)) suffixes = patterns.iberian;
+                
+                return `${baseName} ${suffixes[sponsorType]}`;
             };
             
             const sponsorContext = generateSponsor();

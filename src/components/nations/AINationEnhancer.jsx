@@ -32,7 +32,7 @@ Existing description: ${nation.description || 'none'}
 Football federation: ${nation.federation_name || 'unknown'}
             `.trim();
 
-            const prompt = `Generate detailed, immersive national content for this fictional nation. Make it feel like a real country with unique identity, culture, and character. Be creative and specific, not generic.
+            const prompt = `Generate detailed, immersive national content for this fictional nation. CRITICAL: All media outlet names MUST sound authentic to the ${nation.language || 'local'} language - NOT English generic names.
 
 Context:
 ${context}
@@ -41,13 +41,13 @@ Generate the following as a JSON object:
 {
   "culture": "Rich 250-word cultural description - traditions, values, social norms, arts, music, festivals, national character, regional variations",
   "geography": "Geographic description - climate zones, terrain, major rivers/mountains, natural resources, environmental features",
-  "national_media": "5-7 major national media outlets (newspapers, TV networks, sports channels) with authentic names for the language/culture",
-  "cuisine": "Traditional foods, signature dishes, dining culture, regional specialties",
+  "national_media": "5-7 major AUTHENTIC ${nation.language || 'local language'} media outlets. CRITICAL: Use language-appropriate words (NOT 'Times', 'Herald', 'News', 'Broadcasting'). For Nordic: 'Dagbladet', 'Televisjon'; Romance: 'Quotidiano', 'Televisione'; Slavic: 'Gazeta', 'Telewizja'; Germanic: 'Zeitung', 'Rundfunk'. Make them feel NATIVE and unique.",
+  "cuisine": "Traditional foods, signature dishes, dining culture, regional specialties with authentic dish names in the local language",
   "famous_for": "What the nation is internationally known for - exports, achievements, contributions, unique characteristics",
   "government_type": "Type of government (e.g., Constitutional Monarchy, Federal Republic, Parliamentary Democracy)"
 }
 
-Make it authentic to the nation's language and culture. Be specific and creative, creating a believable national identity.`;
+CRITICAL: Research the language phonetics and naming patterns. Create authentic-sounding names that feel like they belong to that culture, NOT English translations.`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
