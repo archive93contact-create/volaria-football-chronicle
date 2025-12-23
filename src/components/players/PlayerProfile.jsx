@@ -72,19 +72,28 @@ export default function PlayerProfile({ player, onUpdate }) {
     });
 
     const handleSave = () => {
-        updateMutation.mutate({
-            ...editData,
+        const dataToUpdate = {
+            first_name: editData.first_name,
+            last_name: editData.last_name,
+            full_name: `${editData.first_name} ${editData.last_name}`,
             age: parseInt(editData.age),
             shirt_number: editData.shirt_number ? parseInt(editData.shirt_number) : null,
             overall_rating: parseInt(editData.overall_rating),
             potential: parseInt(editData.potential),
+            position: editData.position,
+            preferred_foot: editData.preferred_foot,
+            nationality: editData.nationality,
+            birth_place: editData.birth_place,
+            club_history: editData.club_history,
             height_cm: editData.height_cm ? parseInt(editData.height_cm) : null,
             appearances: editData.appearances ? parseInt(editData.appearances) : null,
             goals: editData.goals ? parseInt(editData.goals) : null,
             assists: editData.assists ? parseInt(editData.assists) : null,
+            is_national_team: editData.is_national_team || false,
             national_team_caps: editData.national_team_caps ? parseInt(editData.national_team_caps) : null,
             national_team_goals: editData.national_team_goals ? parseInt(editData.national_team_goals) : null,
-        });
+        };
+        updateMutation.mutate(dataToUpdate);
     };
 
     if (!isEditing) {
