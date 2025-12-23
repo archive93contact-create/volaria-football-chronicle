@@ -1,15 +1,20 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Star, ChevronRight, Flag, Edit2 } from 'lucide-react';
+import { Trophy, Star, ChevronRight, Flag, Edit2, Users, Eye } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import AdminOnly from '@/components/common/AdminOnly';
+import MatchLineupEditor from '@/components/continental/MatchLineupEditor';
+import MatchDetailView from '@/components/continental/MatchDetailView';
 
 const ROUND_ORDER = ['Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
 export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition, onEditMatch }) {
+    const [lineupEditMatch, setLineupEditMatch] = useState(null);
+    const [detailViewMatch, setDetailViewMatch] = useState(null);
+    
     // Get custom round names from competition
     const getRoundDisplayName = (roundName) => {
         if (competition?.round_names && competition.round_names[roundName]) {
@@ -167,20 +172,38 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                         📍 {match.venue}
                     </div>
                 )}
-                {onEditMatch && (
-                    <AdminOnly>
-                        <div className="border-t border-slate-100">
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="w-full text-xs text-slate-500 hover:text-slate-700 h-8"
-                                onClick={() => onEditMatch(match)}
-                            >
-                                <Edit2 className="w-3 h-3 mr-1" /> Edit Match
-                            </Button>
-                        </div>
-                    </AdminOnly>
-                )}
+                <div className="border-t border-slate-100 flex">
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex-1 text-xs text-slate-500 hover:text-slate-700 h-8"
+                        onClick={() => setDetailViewMatch(match)}
+                    >
+                        <Eye className="w-3 h-3 mr-1" /> View Details
+                    </Button>
+                    {onEditMatch && (
+                        <AdminOnly>
+                            <div className="flex border-l">
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-xs text-slate-500 hover:text-slate-700 h-8"
+                                    onClick={() => setLineupEditMatch(match)}
+                                >
+                                    <Users className="w-3 h-3 mr-1" /> Lineups
+                                </Button>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-xs text-slate-500 hover:text-slate-700 h-8"
+                                    onClick={() => onEditMatch(match)}
+                                >
+                                    <Edit2 className="w-3 h-3 mr-1" /> Edit
+                                </Button>
+                            </div>
+                        </AdminOnly>
+                    )}
+                </div>
             </div>
         );
     };
@@ -268,6 +291,18 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                     Advanced
                 </span>
             </div>
+
+            <MatchLineupEditor 
+                match={lineupEditMatch}
+                isOpen={!!lineupEditMatch}
+                onClose={() => setLineupEditMatch(null)}
+            />
+
+            <MatchDetailView 
+                match={detailViewMatch}
+                isOpen={!!detailViewMatch}
+                onClose={() => setDetailViewMatch(null)}
+            />
         </div>
     );
 }
