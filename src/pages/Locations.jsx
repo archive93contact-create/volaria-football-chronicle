@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { MapPin, Users, Shield, ChevronRight, Search, Globe, Building2, Home, Star, Filter, ArrowUpDown } from 'lucide-react';
+import { MapPin, Users, Shield, ChevronRight, Search, Globe, Building2, Home, Star, Filter, ArrowUpDown, Plus } from 'lucide-react';
+import AdminOnly from '@/components/common/AdminOnly';
 import { estimateLocationPopulation as calcLocationPop } from '@/components/common/populationUtils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -214,7 +215,15 @@ export default function Locations() {
                     ...(nation ? [{ label: nation.name, url: createPageUrl(`NationDetail?id=${nation.id}`) }] : []),
                     { label: 'Locations' }
                 ]}
-            />
+            >
+                <AdminOnly>
+                    <Link to={createPageUrl('AddLocation')}>
+                        <Button className="bg-emerald-600 hover:bg-emerald-700">
+                            <Plus className="w-4 h-4 mr-2" /> Add Location
+                        </Button>
+                    </Link>
+                </AdminOnly>
+            </PageHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Search and Filters */}
