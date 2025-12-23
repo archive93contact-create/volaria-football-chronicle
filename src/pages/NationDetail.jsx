@@ -536,7 +536,7 @@ export default function NationDetail() {
                             <GoldenEras clubs={clubs} nation={nation} />
                         </div>
 
-                {/* Quick Stats */}
+                {/* League Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 mt-8">
                     <Card className="border-0 shadow-sm">
                         <CardContent className="p-4 text-center">

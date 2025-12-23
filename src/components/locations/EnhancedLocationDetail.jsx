@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { MapPin, Users, Shield, Trophy, Star, Globe, Building2, Home, Landmark, Edit2, Save, X, Plus, Trash2, ChevronRight } from 'lucide-react';
+import { MapPin, Users, Shield, Trophy, Star, Globe, Building2, Home, Landmark, Edit2, Save, X, Plus, Trash2, ChevronRight, Layers } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,8 @@ export default function EnhancedLocationDetail({
     leagues,
     clubs,
     parentInfo,
-    subLocations
+    subLocations,
+    isCapital
 }) {
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
@@ -143,6 +145,19 @@ export default function EnhancedLocationDetail({
 
     return (
         <>
+            {/* Capital Badge */}
+            {isCapital && (
+                <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-l-amber-500">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <Landmark className="w-8 h-8 text-amber-600" />
+                        <div>
+                            <span className="font-semibold text-amber-800">National Capital of {nation?.name}</span>
+                            <p className="text-sm text-amber-700">The political and cultural heart of the nation, home to the country's most prestigious institutions.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
                 <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50">
@@ -195,8 +210,153 @@ export default function EnhancedLocationDetail({
                 )}
             </div>
 
-            {/* Enhanced Content Display */}
-            {existingLocation && (existingLocation.culture_description || existingLocation.geography || existingLocation.local_media) && (
+            {/* Tabs */}
+            <Tabs defaultValue="overview" className="mt-6">
+                <TabsList className="mb-6">
+                    <TabsTrigger value="overview">
+                        <Shield className="w-4 h-4 mr-2" />
+                        Overview
+                    </TabsTrigger>
+                    <TabsTrigger value="details">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        Details
+                    </TabsTrigger>
+                    <TabsTrigger value="clubs">
+                        <Trophy className="w-4 h-4 mr-2" />
+                        Clubs
+                    </TabsTrigger>
+                    {(() => {
+                        const topClub = [...locationClubs].sort((a, b) => 
+                            ((b.vcc_titles || 0) * 10 + (b.league_titles || 0) + (b.domestic_cup_titles || 0)) - 
+                            ((a.vcc_titles || 0) * 10 + (a.league_titles || 0) + (a.domestic_cup_titles || 0))
+                        )[0];
+                        if (topClub && ((topClub.league_titles || 0) + (topClub.domestic_cup_titles || 0) + (topClub.vcc_titles || 0) + (topClub.ccc_titles || 0)) > 0) {
+                            return (
+                                <TabsTrigger value="successful">
+                                    <Star className="w-4 h-4 mr-2" />
+                                    Most Successful
+                                </TabsTrigger>
+                            );
+                        }
+                        return null;
+                    })()}
+                </TabsList>
+
+                <TabsContent value="overview">
+                    {/* Location Narratives */}
+                    <LocationNarratives 
+                        locationName={locationName}
+                        locationType={locationType}
+                        clubs={locationClubs}
+                        leagues={leagues}
+                        nation={nation}
+                        isCapital={isCapital}
+                        parentRegion={parentInfo?.region}
+                        parentDistrict={parentInfo?.district}
+                        settlementSize={sizeLabel}
+                    />
+
+                    {/* Parent Locations */}
+                    {(parentInfo?.region || parentInfo?.district) && (
+                        <Card className="border-0 shadow-sm mt-6">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 flex-wrap">
+                                    <MapPin className="w-4 h-4 text-slate-400" />
+                                    <span className="text-slate-500">Located in:</span>
+                                    {parentInfo.region && (
+                                        <>
+                                            <Link 
+                                                to={createPageUrl(`LocationDetail?name=${encodeURIComponent(parentInfo.region)}&type=region&nation_id=${nationId}`)}
+                                                className="font-medium text-emerald-600 hover:underline flex items-center gap-1"
+                                            >
+                                                <Globe className="w-3 h-3" />
+                                                {parentInfo.region}
+                                            </Link>
+                                            {parentInfo.district && <ChevronRight className="w-3 h-3 text-slate-400" />}
+                                        </>
+                                    )}
+                                    {parentInfo.district && (
+                                        <Link 
+                                            to={createPageUrl(`LocationDetail?name=${encodeURIComponent(parentInfo.district)}&type=district&nation_id=${nationId}`)}
+                                            className="font-medium text-blue-600 hover:underline flex items-center gap-1"
+                                        >
+                                            <Building2 className="w-3 h-3" />
+                                            {parentInfo.district}
+                                        </Link>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Sub-locations */}
+                    {(subLocations?.districts?.length > 0 || subLocations?.settlements?.length > 0) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            {subLocations?.districts?.length > 0 && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><Building2 className="w-5 h-5 text-blue-500" />Districts</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto">
+                                            {subLocations.districts.map(district => (
+                                                <Link 
+                                                    key={district.name}
+                                                    to={createPageUrl(`LocationDetail?name=${encodeURIComponent(district.name)}&type=district&nation_id=${nationId}`)}
+                                                    className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100"
+                                                >
+                                                    <span className="font-medium text-sm">{district.name}</span>
+                                                    <Badge variant="outline">{district.clubs.length}</Badge>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {subLocations?.settlements?.length > 0 && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><Home className="w-5 h-5 text-amber-500" />{locationType === 'region' ? 'Major Cities' : 'Settlements'}</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto">
+                                            {subLocations.settlements.slice(0, 20).map(settlement => {
+                                                const isLargeCity = settlement.clubs.length >= 3 || nation?.capital?.toLowerCase() === settlement.name.toLowerCase();
+                                                return (
+                                                    <Link 
+                                                        key={settlement.name}
+                                                        to={createPageUrl(`LocationDetail?name=${encodeURIComponent(settlement.name)}&type=settlement&nation_id=${nationId}`)}
+                                                        className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 ${isLargeCity ? 'bg-amber-50' : ''}`}
+                                                    >
+                                                        <span className={`font-medium text-sm flex items-center gap-1 ${isLargeCity ? 'text-amber-800' : ''}`}>
+                                                            {isLargeCity && <Landmark className="w-3 h-3" />}
+                                                            {settlement.name}
+                                                        </span>
+                                                        <Badge variant={isLargeCity ? "default" : "outline"} className={isLargeCity ? 'bg-amber-500' : ''}>
+                                                            {settlement.clubs.length}
+                                                        </Badge>
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="details">
+                    <AdminOnly>
+                        <div className="mb-6">
+                            {existingLocation && (
+                                <AILocationEnhancer 
+                                    location={existingLocation} 
+                                    nation={nation}
+                                    onUpdate={() => queryClient.invalidateQueries(['location'])}
+                                />
+                            )}
+                        </div>
+                    </AdminOnly>
+
+                    {existingLocation && (existingLocation.culture_description || existingLocation.geography || existingLocation.local_media) ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {existingLocation.culture_description && (
                         <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
@@ -255,79 +415,34 @@ export default function EnhancedLocationDetail({
                     <CardContent className="p-4">
                         <p className="text-slate-700 italic">{existingLocation.description}</p>
                     </CardContent>
-                </Card>
-            )}
+                    </Card>
+                    )}
 
-            {/* Parent Locations - Navigate Through */}
-            {(parentInfo?.region || parentInfo?.district) && (
-                <Card className="border-0 shadow-sm mb-6">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-sm text-slate-600 flex-wrap">
-                            <MapPin className="w-4 h-4 text-slate-400" />
-                            <span className="text-slate-500">Located in:</span>
-                            {parentInfo.region && (
-                                <>
-                                    <Link 
-                                        to={createPageUrl(`LocationDetail?name=${encodeURIComponent(parentInfo.region)}&type=region&nation_id=${nationId}`)}
-                                        className="font-medium text-emerald-600 hover:underline flex items-center gap-1"
-                                    >
-                                        <Globe className="w-3 h-3" />
-                                        {parentInfo.region}
-                                    </Link>
-                                    {parentInfo.district && <ChevronRight className="w-3 h-3 text-slate-400" />}
-                                </>
-                            )}
-                            {parentInfo.district && (
-                                <Link 
-                                    to={createPageUrl(`LocationDetail?name=${encodeURIComponent(parentInfo.district)}&type=district&nation_id=${nationId}`)}
-                                    className="font-medium text-blue-600 hover:underline flex items-center gap-1"
-                                >
-                                    <Building2 className="w-3 h-3" />
-                                    {parentInfo.district}
-                                </Link>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+                    {existingLocation?.notes && (
+                        <Card className="border-0 shadow-sm mt-6">
+                            <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+                            <CardContent>
+                                <p className="text-slate-600 whitespace-pre-line">{existingLocation.notes}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                </TabsContent>
 
-            {/* Location Narratives */}
-            <LocationNarratives 
-                locationName={locationName}
-                locationType={locationType}
-                clubs={locationClubs}
-                leagues={leagues}
-                nation={nation}
-                isCapital={isCapital}
-                parentRegion={parentInfo?.region}
-                parentDistrict={parentInfo?.district}
-                settlementSize={sizeLabel}
-            />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                {/* Main Content - Clubs */}
-                <div className="lg:col-span-2">
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                                <Shield className="w-5 h-5 text-emerald-600" />
-                                Football Clubs in {locationName}
-                            </CardTitle>
-                            <AdminOnly>
-                                <div className="flex gap-2">
-                                    {existingLocation && (
-                                        <AILocationEnhancer 
-                                            location={existingLocation} 
-                                            nation={nation}
-                                            onUpdate={() => queryClient.invalidateQueries(['location'])}
-                                        />
-                                    )}
-                                    <Button variant="outline" size="sm" onClick={handleEdit}>
-                                        <Edit2 className="w-4 h-4 mr-2" /> Manage
-                                    </Button>
-                                </div>
-                            </AdminOnly>
-                        </CardHeader>
+                <TabsContent value="clubs">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2">
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Shield className="w-5 h-5 text-emerald-600" />
+                                        Football Clubs in {locationName}
+                                    </CardTitle>
+                                    <AdminOnly>
+                                        <Button variant="outline" size="sm" onClick={handleEdit}>
+                                            <Edit2 className="w-4 h-4 mr-2" /> Manage
+                                        </Button>
+                                    </AdminOnly>
+                                </CardHeader>
                         <CardContent className="p-0">
                             {locationClubs.length === 0 ? (
                                 <p className="p-6 text-center text-slate-500">No clubs found in this location</p>
@@ -401,24 +516,12 @@ export default function EnhancedLocationDetail({
                                     </TableBody>
                                 </Table>
                             )}
-                        </CardContent>
-                    </Card>
+                                </CardContent>
+                            </Card>
+                        </div>
 
-                    {/* Notes */}
-                    {existingLocation?.notes && (
-                        <Card className="border-0 shadow-sm mt-6">
-                            <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-slate-600 whitespace-pre-line">{existingLocation.notes}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-
-                {/* Sidebar */}
-                <div className="space-y-6">
-                    {/* Sub-locations with large cities highlighted */}
-                    {subLocations?.districts?.length > 0 && (
+                        {/* Sidebar - Successful Club */}
+                        <div>
                         <Card className="border-0 shadow-sm">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-lg flex items-center gap-2">
@@ -480,8 +583,7 @@ export default function EnhancedLocationDetail({
                         </Card>
                     )}
 
-                    {/* Most Successful Club */}
-                    {locationClubs.length > 0 && (() => {
+                            {locationClubs.length > 0 && (() => {
                         const sorted = [...locationClubs].sort((a, b) => 
                             ((b.vcc_titles || 0) * 10 + (b.league_titles || 0) + (b.domestic_cup_titles || 0)) - 
                             ((a.vcc_titles || 0) * 10 + (a.league_titles || 0) + (a.domestic_cup_titles || 0))
@@ -529,11 +631,65 @@ export default function EnhancedLocationDetail({
                                         </div>
                                     </Link>
                                 </CardContent>
-                            </Card>
+                                </Card>
+                            );
+                        })()}
+                        </div>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="successful">
+                    {(() => {
+                        const sorted = [...locationClubs].sort((a, b) => 
+                            ((b.vcc_titles || 0) * 10 + (b.league_titles || 0) + (b.domestic_cup_titles || 0)) - 
+                            ((a.vcc_titles || 0) * 10 + (a.league_titles || 0) + (a.domestic_cup_titles || 0))
                         );
+                        const winners = sorted.filter(c => ((c.league_titles || 0) + (c.domestic_cup_titles || 0) + (c.vcc_titles || 0) + (c.ccc_titles || 0)) > 0);
+                        
+                        return winners.length > 0 ? (
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader><CardTitle>Most Successful Clubs in {locationName}</CardTitle></CardHeader>
+                                <CardContent>
+                                    <div className="space-y-3">
+                                        {winners.map((club, idx) => (
+                                            <Link 
+                                                key={club.id}
+                                                to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                className="flex items-center gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100"
+                                            >
+                                                <span className="w-8 text-center font-bold text-2xl text-slate-300">{idx + 1}</span>
+                                                {club.logo_url ? (
+                                                    <img src={club.logo_url} alt="" className="w-16 h-16 object-contain bg-white rounded-lg p-2" />
+                                                ) : (
+                                                    <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center">
+                                                        <Shield className="w-8 h-8 text-slate-400" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1">
+                                                    <div className="font-bold text-lg">{club.name}</div>
+                                                    <div className="text-sm text-slate-500">{club.nickname}</div>
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        {club.league_titles > 0 && <span className="text-amber-600">🏆 {club.league_titles}</span>}
+                                                        {club.domestic_cup_titles > 0 && <span className="text-orange-600">🏆 {club.domestic_cup_titles}</span>}
+                                                    </div>
+                                                    {((club.vcc_titles || 0) + (club.ccc_titles || 0)) > 0 && (
+                                                        <div className="flex gap-2">
+                                                            {club.vcc_titles > 0 && <Badge className="bg-purple-500 text-white text-xs">{club.vcc_titles} VCC</Badge>}
+                                                            {club.ccc_titles > 0 && <Badge className="bg-blue-500 text-white text-xs">{club.ccc_titles} CCC</Badge>}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ) : null;
                     })()}
-                </div>
-            </div>
+                </TabsContent>
+            </Tabs>
 
             {/* Edit Location Dialog */}
             <Dialog open={isEditing} onOpenChange={setIsEditing}>

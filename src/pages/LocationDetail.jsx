@@ -193,20 +193,8 @@ export default function LocationDetail() {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Capital Badge */}
-                {isCapital && (
-                    <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-l-amber-500">
-                        <CardContent className="p-4 flex items-center gap-3">
-                            <Landmark className="w-8 h-8 text-amber-600" />
-                            <div>
-                                <span className="font-semibold text-amber-800">National Capital of {nation?.name}</span>
-                                <p className="text-sm text-amber-700">The political and cultural heart of the nation, home to the country's most prestigious institutions.</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
                 <EnhancedLocationDetail
+                    isCapital={isCapital}
                     locationName={locationName}
                     locationType={locationType}
                     nationId={nationId}
