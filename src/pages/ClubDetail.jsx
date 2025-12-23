@@ -941,6 +941,7 @@ export default function ClubDetail() {
                     <Tabs defaultValue="seasons" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
+                        <TabsTrigger value="squad">Squad</TabsTrigger>
                         <TabsTrigger value="continental">Continental</TabsTrigger>
                         <TabsTrigger value="info">Club Info</TabsTrigger>
                     </TabsList>
@@ -1016,6 +1017,93 @@ export default function ClubDetail() {
                                 )}
                             </CardContent>
                         </Card>
+                    </TabsContent>
+
+                    <TabsContent value="squad">
+                        {(() => {
+                            const { data: players = [] } = useQuery({
+                                queryKey: ['players', clubId],
+                                queryFn: () => base44.entities.Player.filter({ club_id: clubId }),
+                            });
+
+                            const byPosition = {
+                                GK: players.filter(p => p.position === 'GK'),
+                                DEF: players.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
+                                MID: players.filter(p => ['CDM', 'CM', 'CAM'].includes(p.position)),
+                                FWD: players.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
+                            };
+
+                            return players.length === 0 ? (
+                                <Card className="border-dashed border-2 border-slate-300">
+                                    <CardContent className="flex flex-col items-center justify-center py-16">
+                                        <Users className="w-16 h-16 text-slate-300 mb-4" />
+                                        <h3 className="text-xl font-semibold text-slate-700 mb-2">No Players Yet</h3>
+                                        <p className="text-slate-500 mb-4">Start building your squad</p>
+                                        <AdminOnly>
+                                            <Button className="bg-emerald-600">
+                                                <Plus className="w-4 h-4 mr-2" /> Add Player
+                                            </Button>
+                                        </AdminOnly>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <div className="space-y-6">
+                                    {Object.entries(byPosition).map(([pos, plrs]) => {
+                                        if (plrs.length === 0) return null;
+                                        const positionNames = {
+                                            GK: 'Goalkeepers',
+                                            DEF: 'Defenders',
+                                            MID: 'Midfielders',
+                                            FWD: 'Forwards'
+                                        };
+                                        return (
+                                            <Card key={pos} className="border-0 shadow-sm">
+                                                <CardHeader>
+                                                    <CardTitle>{positionNames[pos]}</CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <div className="space-y-2">
+                                                        {plrs.sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(player => (
+                                                            <div key={player.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50">
+                                                                {player.shirt_number && (
+                                                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700">
+                                                                        {player.shirt_number}
+                                                                    </div>
+                                                                )}
+                                                                {player.photo_url ? (
+                                                                    <img src={player.photo_url} alt={player.full_name} className="w-12 h-12 rounded-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-12 h-12 rounded-full bg-slate-200" />
+                                                                )}
+                                                                <div className="flex-1">
+                                                                    <div className="font-semibold">{player.full_name || `${player.first_name} ${player.last_name}`}</div>
+                                                                    <div className="text-sm text-slate-500">{player.position} • Age {player.age}</div>
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="text-center">
+                                                                        <div className="text-lg font-bold text-emerald-600">{player.overall_rating}</div>
+                                                                        <div className="text-xs text-slate-500">OVR</div>
+                                                                    </div>
+                                                                    <div className="text-center">
+                                                                        <div className="text-lg font-bold text-blue-600">{player.potential}</div>
+                                                                        <div className="text-xs text-slate-500">POT</div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
+                                    <AdminOnly>
+                                        <Button className="w-full bg-emerald-600">
+                                            <Plus className="w-4 h-4 mr-2" /> Add New Player
+                                        </Button>
+                                    </AdminOnly>
+                                </div>
+                            );
+                        })()}
                     </TabsContent>
 
                     <TabsContent value="continental">

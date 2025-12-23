@@ -21,6 +21,7 @@ import NationNarratives from '@/components/nations/NationNarratives';
 import GoldenEras from '@/components/nations/GoldenEras';
 import AdminOnly from '@/components/common/AdminOnly';
 import AINationEnhancer from '@/components/nations/AINationEnhancer';
+import ImmersiveNationContent from '@/components/nations/ImmersiveNationContent';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
@@ -383,72 +384,7 @@ export default function NationDetail() {
                             </div>
                         </AdminOnly>
 
-                        {(nation.culture || nation.geography || nation.national_media || nation.cuisine || nation.famous_for) ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {nation.culture && (
-                                    <Card className="border-0 shadow-sm border-l-4" style={{ 
-                                        backgroundColor: nation.primary_color ? `${nation.primary_color}08` : undefined,
-                                        borderLeftColor: nation.primary_color || '#a855f7'
-                                    }}>
-                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Culture & Identity</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.culture}</p>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                                {nation.geography && (
-                                    <Card className="border-0 shadow-sm border-l-4" style={{ 
-                                        backgroundColor: nation.secondary_color ? `${nation.secondary_color}08` : undefined,
-                                        borderLeftColor: nation.secondary_color || '#10b981'
-                                    }}>
-                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Geography & Climate</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.geography}</p>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                                {nation.national_media && (
-                                    <Card className="border-0 shadow-sm bg-blue-50 border-l-4 border-l-blue-500">
-                                        <CardHeader className="pb-2"><CardTitle className="text-lg">National Media</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.national_media}</p>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                                {nation.cuisine && (
-                                    <Card className="border-0 shadow-sm bg-amber-50 border-l-4 border-l-amber-500">
-                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Cuisine</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.cuisine}</p>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                                {nation.famous_for && (
-                                    <Card className="border-0 shadow-sm bg-rose-50 border-l-4 border-l-rose-500">
-                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Famous For</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.famous_for}</p>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                                {nation.government_type && (
-                                    <Card className="border-0 shadow-sm bg-slate-50 border-l-4 border-l-slate-500">
-                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Government</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-700 text-sm">{nation.government_type}</p>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                            </div>
-                        ) : (
-                            <Card className="border-dashed border-2 border-slate-300">
-                                <CardContent className="flex flex-col items-center justify-center py-12">
-                                    <MapPin className="w-12 h-12 text-slate-300 mb-4" />
-                                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No Nation Details Yet</h3>
-                                    <p className="text-slate-500 mb-4">Generate immersive content for {nation.name}</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <ImmersiveNationContent nation={nation} />
                     </TabsContent>
 
                     <TabsContent value="clubs">
