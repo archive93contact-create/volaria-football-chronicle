@@ -179,14 +179,24 @@ export default function PlayerProfile({ player, onUpdate }) {
                             <Input type="number" value={editData.potential || ''} onChange={(e) => setEditData({...editData, potential: e.target.value})} className="mt-1" />
                         </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label>Nationality</Label>
+                            <Select value={editData.nationality || ''} onValueChange={(v) => setEditData({...editData, nationality: v})}>
+                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select nation" /></SelectTrigger>
+                                <SelectContent>
+                                    {nations.map(n => <SelectItem key={n.id} value={n.name}>{n.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Birth Place</Label>
+                            <Input value={editData.birth_place || ''} onChange={(e) => setEditData({...editData, birth_place: e.target.value})} className="mt-1" />
+                        </div>
+                    </div>
                     <div>
-                        <Label>Nationality</Label>
-                        <Select value={editData.nationality || ''} onValueChange={(v) => setEditData({...editData, nationality: v})}>
-                            <SelectTrigger className="mt-1"><SelectValue placeholder="Select nation" /></SelectTrigger>
-                            <SelectContent>
-                                {nations.map(n => <SelectItem key={n.id} value={n.name}>{n.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+                        <Label>Club History</Label>
+                        <Input value={editData.club_history || ''} onChange={(e) => setEditData({...editData, club_history: e.target.value})} className="mt-1" placeholder="e.g., FC Example (2018-2020), Another FC (2020-2023)" />
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                         <div>
