@@ -72,7 +72,7 @@ export default function ImmersiveNationContent({ nation }) {
         }
     ];
 
-    const hasCon = sections.some(s => nation[s.key]);
+    const hasContent = sections.some(s => nation[s.key]);
 
     return (
         <>
