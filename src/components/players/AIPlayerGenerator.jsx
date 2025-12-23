@@ -91,10 +91,13 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                     nationNamingMap[n.name] = n.naming_styles;
                 }
             }
-            
+
             const namingStylesText = Object.keys(nationNamingMap).length > 0
-                ? `IMPORTANT: Use naming styles per nation: ${Object.entries(nationNamingMap).map(([name, styles]) => `${name}: ${styles.join(', ')}`).join(' | ')}`
-                : `Use realistic naming conventions for each nation.`;
+                ? `CRITICAL NAMING RULE: Each player MUST have names matching THEIR NATIONALITY's naming style, NOT the club's nation:
+            ${Object.entries(nationNamingMap).map(([name, styles]) => `- ${name} players: ${styles.join(', ')} names ONLY`).join('\n')}
+            WRONG: A player from Turuliand with British names
+            RIGHT: A Turuliand player with ${nationNamingMap[nation?.name]?.join(', ') || 'appropriate'} names matching their cultural background`
+                : `Use realistic naming conventions matching each player's nationality.`;
 
             // Build realistic squad composition rules based on continental membership
             const isVCC = nation?.membership === 'VCC';
@@ -150,9 +153,11 @@ VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
 
             const prompt = `Generate EXACTLY ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
 
-${nationalityRules}
+            ${nationalityRules}
 
-BIRTH PLACES - USE REAL LOCATIONS:
+            ${namingStylesText}
+
+            BIRTH PLACES - USE REAL LOCATIONS:
 ${birthPlaceGuidance}
 For foreign players, use major cities from their nation.
 DO NOT INVENT CITY NAMES - use only real settlements provided above.
@@ -172,7 +177,7 @@ Positions needed: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM,
 ${namingStylesText}
 
 OUTPUT EXACTLY ${count} PLAYERS WITH:
-- first_name, last_name (matching naming style of nationality)
+- first_name, last_name (CRITICAL: names MUST match the player's nationality's naming style from the list above, NOT ${nation?.name}'s style)
 - age (between 17-34)
 - position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST)
 - overall_rating (30-99), potential (overall+0 to +15)
