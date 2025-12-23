@@ -125,13 +125,16 @@ export default function Nations() {
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
             const proClubs = estimateSustainableProClubs(population, topDivisionSize, maxTier, nation.membership, strength.score);
             
-            // Calculate national team average OVR (players in the national squad)
-            const nationalTeamPlayers = players.filter(p => 
-                p.nation_id === nation.id && p.is_national_team && p.overall_rating
+            // Calculate national team strength (top 22 players)
+            const nationalPlayers = players.filter(p => 
+                p.nation_id === nation.id && p.overall_rating
             );
-            const avgOVR = nationalTeamPlayers.length > 0 
-                ? Math.round(nationalTeamPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / nationalTeamPlayers.length)
-                : null;
+            let nationalTeamOVR = null;
+            if (nationalPlayers.length > 0) {
+                const sortedPlayers = nationalPlayers.sort((a, b) => b.overall_rating - a.overall_rating);
+                const top22 = sortedPlayers.slice(0, 22);
+                nationalTeamOVR = Math.round(top22.reduce((sum, p) => sum + p.overall_rating, 0) / top22.length);
+            }
             
             return {
                 ...nation,
@@ -144,7 +147,7 @@ export default function Nations() {
                 maxTier,
                 topDivisionSize,
                 proClubs,
-                avgOVR
+                nationalTeamOVR
             };
         });
     }, [nations, leagues, clubs, coefficients]);
@@ -170,7 +173,7 @@ export default function Nations() {
                 case 'clubs': return b.clubCount - a.clubCount;
                 case 'leagues': return b.leagueCount - a.leagueCount;
                 case 'strength': return b.strength.score - a.strength.score;
-                case 'ovr': return (b.avgOVR || 0) - (a.avgOVR || 0);
+                case 'ovr': return (b.nationalTeamOVR || 0) - (a.nationalTeamOVR || 0);
                 case 'rank':
                 default:
                     if (a.rank !== b.rank) return a.rank - b.rank;
@@ -244,7 +247,7 @@ export default function Nations() {
                             <SelectContent>
                                 <SelectItem value="rank">Ranking</SelectItem>
                                 <SelectItem value="name">Name (A-Z)</SelectItem>
-                                <SelectItem value="ovr">Avg OVR</SelectItem>
+                                <SelectItem value="ovr">National Team OVR</SelectItem>
                                 <SelectItem value="population">Population</SelectItem>
                                 <SelectItem value="clubs">Most Clubs</SelectItem>
                                 <SelectItem value="leagues">Most Leagues</SelectItem>
@@ -296,7 +299,7 @@ export default function Nations() {
                                     <TableHead>Nation</TableHead>
                                     <TableHead>Membership</TableHead>
                                     <TableHead className="text-center">Rank</TableHead>
-                                    <TableHead className="text-center">Avg OVR</TableHead>
+                                    <TableHead className="text-center">National Team</TableHead>
                                     <TableHead className="text-center">Clubs</TableHead>
                                     <TableHead className="text-center">Leagues</TableHead>
                                     <TableHead className="text-center">Tiers</TableHead>
@@ -337,8 +340,8 @@ export default function Nations() {
                                             )}
                                         </TableCell>
                                         <TableCell className="text-center">
-                                            {nation.avgOVR ? (
-                                                <span className="font-bold text-emerald-600">{nation.avgOVR}</span>
+                                            {nation.nationalTeamOVR ? (
+                                                <span className="font-bold text-emerald-600">{nation.nationalTeamOVR}</span>
                                             ) : (
                                                 <span className="text-slate-300">-</span>
                                             )}
