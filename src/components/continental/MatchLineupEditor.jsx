@@ -95,33 +95,7 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
         });
     };
 
-    const addGoal = (isHome) => {
-        setGoals([...goals, { player_id: '', minute: null, is_home: isHome }]);
-    };
 
-    const updateGoal = (index, field, value) => {
-        const updated = [...goals];
-        updated[index][field] = field === 'minute' ? parseInt(value) : value;
-        setGoals(updated);
-    };
-
-    const removeGoal = (index) => {
-        setGoals(goals.filter((_, i) => i !== index));
-    };
-
-    const addSubstitution = (isHome) => {
-        setSubstitutions([...substitutions, { player_in_id: '', player_out_id: '', minute: null, is_home: isHome }]);
-    };
-
-    const updateSubstitution = (index, field, value) => {
-        const updated = [...substitutions];
-        updated[index][field] = field === 'minute' ? parseInt(value) : value;
-        setSubstitutions(updated);
-    };
-
-    const removeSubstitution = (index) => {
-        setSubstitutions(substitutions.filter((_, i) => i !== index));
-    };
 
     const PlayerPicker = ({ value, onChange, players, placeholder, excludeIds = [] }) => {
         const [open, setOpen] = useState(false);
@@ -270,105 +244,135 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
         </div>
     );
 
-    const EventsEditor = ({ goals, setGoals, substitutions, setSubstitutions, homePlayers, awayPlayers }) => (
-        <div className="space-y-6">
-            <div>
-                <div className="flex items-center justify-between mb-3">
-                    <Label className="text-base font-semibold">Goals</Label>
-                </div>
-                <div className="space-y-3">
-                    {goals.map((goal, index) => {
-                        const players = goal.is_home ? homePlayers : awayPlayers;
-                        return (
-                            <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                                <div className="flex-1">
-                                    <PlayerPicker 
-                                        value={goal.player_id}
-                                        onChange={(id) => updateGoal(index, 'player_id', id)}
-                                        players={players}
-                                        placeholder="Select scorer"
-                                    />
-                                </div>
-                                <Input 
-                                    type="number" 
-                                    placeholder="Min" 
-                                    value={goal.minute || ''} 
-                                    onChange={(e) => updateGoal(index, 'minute', e.target.value)}
-                                    className="w-20"
-                                />
-                                <Badge>{goal.is_home ? match.home_club_name : match.away_club_name}</Badge>
-                                <Button variant="ghost" size="sm" onClick={() => removeGoal(index)}>
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                </Button>
-                            </div>
-                        );
-                    })}
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => addGoal(true)}>
-                            <Plus className="w-4 h-4 mr-2" /> {match.home_club_name} Goal
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => addGoal(false)}>
-                            <Plus className="w-4 h-4 mr-2" /> {match.away_club_name} Goal
-                        </Button>
-                    </div>
-                </div>
-            </div>
+    const EventsEditor = ({ goals, setGoals, substitutions, setSubstitutions, homePlayers, awayPlayers }) => {
+        const addGoal = (isHome) => {
+            setGoals([...goals, { player_id: '', minute: null, is_home: isHome }]);
+        };
 
-            <div>
-                <div className="flex items-center justify-between mb-3">
-                    <Label className="text-base font-semibold">Substitutions</Label>
-                </div>
-                <div className="space-y-3">
-                    {substitutions.map((sub, index) => {
-                        const players = sub.is_home ? homePlayers : awayPlayers;
-                        return (
-                            <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                                <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs text-green-600 w-8">IN:</span>
+        const updateGoal = (index, field, value) => {
+            const updated = [...goals];
+            updated[index][field] = field === 'minute' ? parseInt(value) : value;
+            setGoals(updated);
+        };
+
+        const removeGoal = (index) => {
+            setGoals(goals.filter((_, i) => i !== index));
+        };
+
+        const addSubstitution = (isHome) => {
+            setSubstitutions([...substitutions, { player_in_id: '', player_out_id: '', minute: null, is_home: isHome }]);
+        };
+
+        const updateSubstitution = (index, field, value) => {
+            const updated = [...substitutions];
+            updated[index][field] = field === 'minute' ? parseInt(value) : value;
+            setSubstitutions(updated);
+        };
+
+        const removeSubstitution = (index) => {
+            setSubstitutions(substitutions.filter((_, i) => i !== index));
+        };
+
+        return (
+            <div className="space-y-6">
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <Label className="text-base font-semibold">Goals</Label>
+                    </div>
+                    <div className="space-y-3">
+                        {goals.map((goal, index) => {
+                            const players = goal.is_home ? homePlayers : awayPlayers;
+                            return (
+                                <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                                    <div className="flex-1">
                                         <PlayerPicker 
-                                            value={sub.player_in_id}
-                                            onChange={(id) => updateSubstitution(index, 'player_in_id', id)}
+                                            value={goal.player_id}
+                                            onChange={(id) => updateGoal(index, 'player_id', id)}
                                             players={players}
-                                            placeholder="Player in"
+                                            placeholder="Select scorer"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs text-red-600 w-8">OUT:</span>
-                                        <PlayerPicker 
-                                            value={sub.player_out_id}
-                                            onChange={(id) => updateSubstitution(index, 'player_out_id', id)}
-                                            players={players}
-                                            placeholder="Player out"
-                                        />
-                                    </div>
+                                    <Input 
+                                        type="number" 
+                                        placeholder="Min" 
+                                        value={goal.minute || ''} 
+                                        onChange={(e) => updateGoal(index, 'minute', e.target.value)}
+                                        className="w-20"
+                                    />
+                                    <Badge>{goal.is_home ? match.home_club_name : match.away_club_name}</Badge>
+                                    <Button variant="ghost" size="sm" onClick={() => removeGoal(index)}>
+                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                    </Button>
                                 </div>
-                                <Input 
-                                    type="number" 
-                                    placeholder="Min" 
-                                    value={sub.minute || ''} 
-                                    onChange={(e) => updateSubstitution(index, 'minute', e.target.value)}
-                                    className="w-20"
-                                />
-                                <Badge>{sub.is_home ? match.home_club_name : match.away_club_name}</Badge>
-                                <Button variant="ghost" size="sm" onClick={() => removeSubstitution(index)}>
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                </Button>
-                            </div>
-                        );
-                    })}
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => addSubstitution(true)}>
-                            <Plus className="w-4 h-4 mr-2" /> {match.home_club_name} Sub
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => addSubstitution(false)}>
-                            <Plus className="w-4 h-4 mr-2" /> {match.away_club_name} Sub
-                        </Button>
+                            );
+                        })}
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => addGoal(true)}>
+                                <Plus className="w-4 h-4 mr-2" /> {match.home_club_name} Goal
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => addGoal(false)}>
+                                <Plus className="w-4 h-4 mr-2" /> {match.away_club_name} Goal
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <Label className="text-base font-semibold">Substitutions</Label>
+                    </div>
+                    <div className="space-y-3">
+                        {substitutions.map((sub, index) => {
+                            const players = sub.is_home ? homePlayers : awayPlayers;
+                            return (
+                                <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-green-600 w-8">IN:</span>
+                                            <PlayerPicker 
+                                                value={sub.player_in_id}
+                                                onChange={(id) => updateSubstitution(index, 'player_in_id', id)}
+                                                players={players}
+                                                placeholder="Player in"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-red-600 w-8">OUT:</span>
+                                            <PlayerPicker 
+                                                value={sub.player_out_id}
+                                                onChange={(id) => updateSubstitution(index, 'player_out_id', id)}
+                                                players={players}
+                                                placeholder="Player out"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Input 
+                                        type="number" 
+                                        placeholder="Min" 
+                                        value={sub.minute || ''} 
+                                        onChange={(e) => updateSubstitution(index, 'minute', e.target.value)}
+                                        className="w-20"
+                                    />
+                                    <Badge>{sub.is_home ? match.home_club_name : match.away_club_name}</Badge>
+                                    <Button variant="ghost" size="sm" onClick={() => removeSubstitution(index)}>
+                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                    </Button>
+                                </div>
+                            );
+                        })}
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => addSubstitution(true)}>
+                                <Plus className="w-4 h-4 mr-2" /> {match.home_club_name} Sub
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => addSubstitution(false)}>
+                                <Plus className="w-4 h-4 mr-2" /> {match.away_club_name} Sub
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     if (!match) return null;
 
