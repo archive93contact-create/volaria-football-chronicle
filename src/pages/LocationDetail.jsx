@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
+import EnhancedLocationDetail from '@/components/locations/EnhancedLocationDetail';
 
 import { estimateNationPopulation, estimateLocationPopulation } from '@/components/common/populationUtils';
 
