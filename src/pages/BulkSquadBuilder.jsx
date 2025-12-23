@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import PageHeader from '@/components/common/PageHeader';
 import AdminOnly, { useIsAdmin } from '@/components/common/AdminOnly';
 import { toast } from 'sonner';
@@ -486,6 +487,26 @@ Return a JSON array with this exact structure:
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Progress Bar */}
+                        {generating && selectedCount > 0 && (
+                            <Card className="border-0 shadow-sm mb-6">
+                                <CardContent className="pt-6">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="font-medium">Overall Progress</span>
+                                            <span className="text-slate-600">
+                                                {Object.values(progress).filter(p => p === 'success').length} / {selectedCount} completed
+                                            </span>
+                                        </div>
+                                        <Progress 
+                                            value={(Object.values(progress).filter(p => p === 'success').length / selectedCount) * 100} 
+                                            className="h-2"
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
