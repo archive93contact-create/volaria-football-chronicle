@@ -802,11 +802,11 @@ export default function ClubDetail() {
                                             <div className="text-xs text-slate-600">Goal Difference</div>
                                         </div>
                                     </div>
-                                    </CardContent>
-                                    </ThemedCard>
-                                    );
-                                    })()}
-                                    </div>
+                                </CardContent>
+                            </ThemedCard>
+                        );
+                    })()}
+                </div>
 
                 {/* Defunct/Successor Notice */}
                 {club.is_defunct && successorClub && (
