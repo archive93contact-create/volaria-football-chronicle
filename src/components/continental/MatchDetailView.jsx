@@ -263,14 +263,6 @@ const MatchEvents = ({ goals, substitutions, homePlayers, awayPlayers, nations, 
         </CardContent>
     </Card>
 );
-
-function Link({ to, children, className }) {
-    return (
-        <a href={to} className={className}>
-            {children}
-        </a>
-    );
-}
                     <Card className="border-0 shadow-sm">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-lg">Match Events</CardTitle>
