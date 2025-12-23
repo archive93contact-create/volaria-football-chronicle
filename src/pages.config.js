@@ -7,6 +7,7 @@ import AddLocation from './pages/AddLocation';
 import AddNation from './pages/AddNation';
 import AddSeason from './pages/AddSeason';
 import AllClubs from './pages/AllClubs';
+import BulkSquadBuilder from './pages/BulkSquadBuilder';
 import ClubComparison from './pages/ClubComparison';
 import ClubDetail from './pages/ClubDetail';
 import ClubStability from './pages/ClubStability';
@@ -33,13 +34,12 @@ import NationDetail from './pages/NationDetail';
 import NationGenerator from './pages/NationGenerator';
 import Nations from './pages/Nations';
 import PlayerDetail from './pages/PlayerDetail';
+import Players from './pages/Players';
 import RecalculateCoefficients from './pages/RecalculateCoefficients';
 import Seasons from './pages/Seasons';
 import StabilityManager from './pages/StabilityManager';
 import Support from './pages/Support';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
-import Players from './pages/Players';
-import BulkSquadBuilder from './pages/BulkSquadBuilder';
 import __Layout from './Layout.jsx';
 
 
@@ -53,6 +53,7 @@ export const PAGES = {
     "AddNation": AddNation,
     "AddSeason": AddSeason,
     "AllClubs": AllClubs,
+    "BulkSquadBuilder": BulkSquadBuilder,
     "ClubComparison": ClubComparison,
     "ClubDetail": ClubDetail,
     "ClubStability": ClubStability,
@@ -79,13 +80,12 @@ export const PAGES = {
     "NationGenerator": NationGenerator,
     "Nations": Nations,
     "PlayerDetail": PlayerDetail,
+    "Players": Players,
     "RecalculateCoefficients": RecalculateCoefficients,
     "Seasons": Seasons,
     "StabilityManager": StabilityManager,
     "Support": Support,
     "UpdateContinentalStats": UpdateContinentalStats,
-    "Players": Players,
-    "BulkSquadBuilder": BulkSquadBuilder,
 }
 
 export const pagesConfig = {

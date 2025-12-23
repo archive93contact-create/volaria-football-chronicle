@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 
 export default function BulkSquadBuilder() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
+    const [selectedNation, setSelectedNation] = useState('');
     const [selectedLeague, setSelectedLeague] = useState('');
     const [selectedClubs, setSelectedClubs] = useState({});
     const [clubConfigs, setClubConfigs] = useState({});
@@ -29,6 +30,10 @@ export default function BulkSquadBuilder() {
         queryKey: ['allNations'],
         queryFn: () => base44.entities.Nation.list(),
     });
+
+    const filteredLeagues = selectedNation 
+        ? leagues.filter(l => l.nation_id === selectedNation).sort((a, b) => (a.tier || 1) - (b.tier || 1))
+        : [];
 
     const { data: clubs = [] } = useQuery({
         queryKey: ['clubsByLeague', selectedLeague],
@@ -253,30 +258,47 @@ Return a JSON array with this exact structure:
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* League Selection */}
+                {/* Nation & League Selection */}
                 <Card className="border-0 shadow-sm mb-6">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Shield className="w-5 h-5 text-emerald-600" />
-                            Select League
+                            Select Nation & League
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Select value={selectedLeague} onValueChange={(v) => { setSelectedLeague(v); setSelectedClubs({}); setClubConfigs({}); }}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Choose a league" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {leagues.map(league => {
-                                    const nation = nations.find(n => n.id === league.nation_id);
-                                    return (
-                                        <SelectItem key={league.id} value={league.id}>
-                                            {league.name} ({nation?.name}) - Tier {league.tier || 1}
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label>Nation</Label>
+                                <Select value={selectedNation} onValueChange={(v) => { setSelectedNation(v); setSelectedLeague(''); setSelectedClubs({}); setClubConfigs({}); }}>
+                                    <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Choose a nation" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {nations.map(nation => (
+                                            <SelectItem key={nation.id} value={nation.id}>
+                                                {nation.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label>League</Label>
+                                <Select value={selectedLeague} onValueChange={(v) => { setSelectedLeague(v); setSelectedClubs({}); setClubConfigs({}); }} disabled={!selectedNation}>
+                                    <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder={selectedNation ? "Choose a league" : "Select nation first"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {filteredLeagues.map(league => (
+                                            <SelectItem key={league.id} value={league.id}>
+                                                {league.name} - Tier {league.tier || 1}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
