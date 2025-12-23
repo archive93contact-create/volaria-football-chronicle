@@ -37,6 +37,7 @@ import StabilityManager from './pages/StabilityManager';
 import Support from './pages/Support';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import AddLocation from './pages/AddLocation';
+import PlayerDetail from './pages/PlayerDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +81,7 @@ export const PAGES = {
     "Support": Support,
     "UpdateContinentalStats": UpdateContinentalStats,
     "AddLocation": AddLocation,
+    "PlayerDetail": PlayerDetail,
 }
 
 export const pagesConfig = {
