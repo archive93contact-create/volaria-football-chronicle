@@ -19,6 +19,7 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
 
     const generatePlayers = async () => {
         setGenerating(true);
+        toast.loading('🤖 AI is generating players... This takes 20-30 seconds', { id: 'gen-status', duration: Infinity });
         try {
             // Delete existing squad first if overwrite is enabled
             if (overwriteExisting) {
@@ -296,13 +297,18 @@ OUTPUT EXACTLY ${count} PLAYERS WITH:
                     }
                 });
                 
+                toast.dismiss('gen-status');
                 toast.success(`${overwriteExisting ? 'Replaced squad with' : 'Generated'} ${players.length} players! Generating portraits...`);
                 setOpen(false);
                 onPlayersGenerated?.();
+            } else {
+                toast.dismiss('gen-status');
+                toast.error('No players generated. Please try again.');
             }
         } catch (error) {
-            toast.error('Failed to generate players');
-            console.error(error);
+            toast.dismiss('gen-status');
+            toast.error(`Failed to generate players: ${error.message || 'Unknown error'}. Please try again.`);
+            console.error('Player generation error:', error);
         } finally {
             setGenerating(false);
         }
