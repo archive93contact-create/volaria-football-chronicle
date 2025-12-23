@@ -50,6 +50,16 @@ export default function Layout({ children, currentPageName }) {
 
     return (
         <div className="min-h-screen bg-slate-50">
+            <style>{`
+                /* White backgrounds for all club crests */
+                img[src*="logo"],
+                img[alt*="crest"],
+                .club-crest {
+                    background-color: white;
+                    padding: 2px;
+                    border-radius: 6px;
+                }
+            `}</style>
             {/* Top Navigation */}
             <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
