@@ -125,13 +125,12 @@ export default function Nations() {
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
             const proClubs = estimateSustainableProClubs(population, topDivisionSize, maxTier, nation.membership, strength.score);
             
-            // Calculate nation average OVR
-            const nationPlayers = players.filter(p => {
-                const club = clubs.find(c => c.id === p.club_id);
-                return club?.nation_id === nation.id && !p.is_youth_player && p.overall_rating;
-            });
-            const avgOVR = nationPlayers.length > 0 
-                ? Math.round(nationPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / nationPlayers.length)
+            // Calculate national team average OVR (players in the national squad)
+            const nationalTeamPlayers = players.filter(p => 
+                p.nation_id === nation.id && p.is_national_team && p.overall_rating
+            );
+            const avgOVR = nationalTeamPlayers.length > 0 
+                ? Math.round(nationalTeamPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / nationalTeamPlayers.length)
                 : null;
             
             return {

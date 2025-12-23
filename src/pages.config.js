@@ -39,8 +39,8 @@ import RecalculateCoefficients from './pages/RecalculateCoefficients';
 import Seasons from './pages/Seasons';
 import StabilityManager from './pages/StabilityManager';
 import Support from './pages/Support';
-import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import UpdateAllPlayerImages from './pages/UpdateAllPlayerImages';
+import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import __Layout from './Layout.jsx';
 
 
@@ -86,8 +86,8 @@ export const PAGES = {
     "Seasons": Seasons,
     "StabilityManager": StabilityManager,
     "Support": Support,
-    "UpdateContinentalStats": UpdateContinentalStats,
     "UpdateAllPlayerImages": UpdateAllPlayerImages,
+    "UpdateContinentalStats": UpdateContinentalStats,
 }
 
 export const pagesConfig = {
