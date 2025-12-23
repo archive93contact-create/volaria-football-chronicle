@@ -257,70 +257,6 @@ export default function NationDetail() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* AI Enhanced Nation Content */}
-                <AdminOnly>
-                    <div className="mb-6">
-                        <AINationEnhancer 
-                            nation={nation} 
-                            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['nation', nationId] })}
-                        />
-                    </div>
-                </AdminOnly>
-
-                {/* Display AI-Generated Content */}
-                {(nation.culture || nation.geography || nation.national_media || nation.cuisine || nation.famous_for) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                        {nation.culture && (
-                            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
-                                <CardHeader className="pb-2"><CardTitle className="text-lg">Culture & Identity</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.culture}</p>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {nation.geography && (
-                            <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 border-l-4 border-l-emerald-500">
-                                <CardHeader className="pb-2"><CardTitle className="text-lg">Geography & Climate</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.geography}</p>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {nation.national_media && (
-                            <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-l-blue-500">
-                                <CardHeader className="pb-2"><CardTitle className="text-lg">National Media</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.national_media}</p>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {nation.cuisine && (
-                            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 border-l-4 border-l-amber-500">
-                                <CardHeader className="pb-2"><CardTitle className="text-lg">Cuisine</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.cuisine}</p>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {nation.famous_for && (
-                            <Card className="border-0 shadow-sm bg-gradient-to-br from-rose-50 to-pink-50 border-l-4 border-l-rose-500">
-                                <CardHeader className="pb-2"><CardTitle className="text-lg">Famous For</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.famous_for}</p>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {nation.government_type && (
-                            <Card className="border-0 shadow-sm bg-gradient-to-br from-slate-50 to-gray-50 border-l-4 border-l-slate-500">
-                                <CardHeader className="pb-2"><CardTitle className="text-lg">Government</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="text-slate-700 text-sm">{nation.government_type}</p>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                )}
-
                 {/* Nation Stats */}
                 <NationStats nation={nation} clubs={clubs} leagues={leagues} coefficient={coefficient} />
 
@@ -423,10 +359,172 @@ export default function NationDetail() {
                             <Layers className="w-4 h-4" />
                             League Pyramid
                         </TabsTrigger>
+                        <TabsTrigger value="details" className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4" />
+                            Nation Details
+                        </TabsTrigger>
+                        <TabsTrigger value="clubs" className="flex items-center gap-2">
+                            <Star className="w-4 h-4" />
+                            Most Successful
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="pyramid">
                         <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
+                    </TabsContent>
+
+                    <TabsContent value="details">
+                        <AdminOnly>
+                            <div className="mb-6">
+                                <AINationEnhancer 
+                                    nation={nation} 
+                                    onUpdate={() => queryClient.invalidateQueries({ queryKey: ['nation', nationId] })}
+                                />
+                            </div>
+                        </AdminOnly>
+
+                        {(nation.culture || nation.geography || nation.national_media || nation.cuisine || nation.famous_for) ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {nation.culture && (
+                                    <Card className="border-0 shadow-sm border-l-4" style={{ 
+                                        backgroundColor: nation.primary_color ? `${nation.primary_color}08` : undefined,
+                                        borderLeftColor: nation.primary_color || '#a855f7'
+                                    }}>
+                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Culture & Identity</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.culture}</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {nation.geography && (
+                                    <Card className="border-0 shadow-sm border-l-4" style={{ 
+                                        backgroundColor: nation.secondary_color ? `${nation.secondary_color}08` : undefined,
+                                        borderLeftColor: nation.secondary_color || '#10b981'
+                                    }}>
+                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Geography & Climate</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.geography}</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {nation.national_media && (
+                                    <Card className="border-0 shadow-sm bg-blue-50 border-l-4 border-l-blue-500">
+                                        <CardHeader className="pb-2"><CardTitle className="text-lg">National Media</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.national_media}</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {nation.cuisine && (
+                                    <Card className="border-0 shadow-sm bg-amber-50 border-l-4 border-l-amber-500">
+                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Cuisine</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.cuisine}</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {nation.famous_for && (
+                                    <Card className="border-0 shadow-sm bg-rose-50 border-l-4 border-l-rose-500">
+                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Famous For</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <p className="text-slate-700 text-sm whitespace-pre-line">{nation.famous_for}</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {nation.government_type && (
+                                    <Card className="border-0 shadow-sm bg-slate-50 border-l-4 border-l-slate-500">
+                                        <CardHeader className="pb-2"><CardTitle className="text-lg">Government</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <p className="text-slate-700 text-sm">{nation.government_type}</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                        ) : (
+                            <Card className="border-dashed border-2 border-slate-300">
+                                <CardContent className="flex flex-col items-center justify-center py-12">
+                                    <MapPin className="w-12 h-12 text-slate-300 mb-4" />
+                                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No Nation Details Yet</h3>
+                                    <p className="text-slate-500 mb-4">Generate immersive content for {nation.name}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="clubs">
+                        {clubs.length > 0 ? (
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader>
+                                    <CardTitle>Most Successful Clubs in {nation.name}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-3">
+                                        {clubs
+                                            .map(club => ({
+                                                ...club,
+                                                totalDomesticTrophies: (club.league_titles || 0) + (club.domestic_cup_titles || 0),
+                                                totalTitles: (club.league_titles || 0) + (club.lower_tier_titles || 0)
+                                            }))
+                                            .filter(club => club.totalDomesticTrophies > 0)
+                                            .sort((a, b) => b.totalDomesticTrophies - a.totalDomesticTrophies || b.league_titles - a.league_titles)
+                                            .map((club, idx) => (
+                                                <Link 
+                                                    key={club.id} 
+                                                    to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                    className="flex items-center gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100"
+                                                >
+                                                    <span className="w-8 text-center font-bold text-2xl text-slate-300">{idx + 1}</span>
+                                                    {club.logo_url ? (
+                                                        <img src={club.logo_url} alt={club.name} className="w-16 h-16 object-contain bg-white rounded-lg p-2" />
+                                                    ) : (
+                                                        <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center">
+                                                            <Shield className="w-8 h-8 text-slate-400" />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex-1">
+                                                        <div className="font-bold text-lg text-slate-900">{club.name}</div>
+                                                        <div className="text-sm text-slate-500">{club.city || club.settlement}</div>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="flex items-center gap-1 text-amber-600 font-bold">
+                                                                <Star className="w-4 h-4" /> {club.totalDomesticTrophies}
+                                                            </span>
+                                                            {club.league_titles > 0 && (
+                                                                <span className="flex items-center gap-1 text-slate-600">
+                                                                    <Trophy className="w-4 h-4" /> {club.league_titles}
+                                                                </span>
+                                                            )}
+                                                            {club.domestic_cup_titles > 0 && (
+                                                                <span className="flex items-center gap-1 text-orange-600">
+                                                                    <Award className="w-4 h-4" /> {club.domestic_cup_titles}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {((club.vcc_titles || 0) + (club.ccc_titles || 0)) > 0 && (
+                                                            <div className="flex items-center gap-2">
+                                                                {club.vcc_titles > 0 && (
+                                                                    <Badge className="bg-purple-500 text-white text-xs">{club.vcc_titles} VCC</Badge>
+                                                                )}
+                                                                {club.ccc_titles > 0 && (
+                                                                    <Badge className="bg-blue-500 text-white text-xs">{club.ccc_titles} CCC</Badge>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <Card className="border-dashed border-2 border-slate-300">
+                                <CardContent className="flex flex-col items-center justify-center py-12">
+                                    <Trophy className="w-12 h-12 text-slate-300 mb-4" />
+                                    <p className="text-slate-500">No trophy winners yet</p>
+                                </CardContent>
+                            </Card>
+                        )}
                     </TabsContent>
 
                     <TabsContent value="overview">
@@ -599,63 +697,6 @@ export default function NationDetail() {
                                 </CardContent>
                             </Card>
                         )}
-
-                        {/* Most Successful Clubs - by total domestic trophies */}
-                            {clubs.length > 0 && (
-                                <Card className="border-0 shadow-sm">
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="text-lg">Most Successful Clubs</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-3">
-                                            {clubs
-                                                .map(club => ({
-                                                    ...club,
-                                                    totalDomesticTrophies: (club.league_titles || 0) + (club.domestic_cup_titles || 0),
-                                                    totalTitles: (club.league_titles || 0) + (club.lower_tier_titles || 0)
-                                                }))
-                                                .filter(club => club.totalDomesticTrophies > 0)
-                                                .sort((a, b) => b.totalDomesticTrophies - a.totalDomesticTrophies || b.league_titles - a.league_titles)
-                                                .slice(0, 10)
-                                                .map((club, idx) => (
-                                                    <Link 
-                                                        key={club.id} 
-                                                        to={createPageUrl(`ClubDetail?id=${club.id}`)}
-                                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
-                                                    >
-                                                        <span className="w-6 text-center font-bold text-slate-400">{idx + 1}</span>
-                                                        {club.logo_url ? (
-                                                            <img src={club.logo_url} alt={club.name} className="w-8 h-8 object-contain" />
-                                                        ) : (
-                                                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                                                <Shield className="w-4 h-4 text-slate-400" />
-                                                            </div>
-                                                        )}
-                                                        <span className="font-medium text-sm text-slate-700 flex-1 truncate">{club.name}</span>
-                                                        <div className="flex items-center gap-2 text-xs">
-                                                            <span className="flex items-center gap-1 text-amber-600 font-bold">
-                                                                <Star className="w-3 h-3" /> {club.totalDomesticTrophies}
-                                                            </span>
-                                                            {club.league_titles > 0 && (
-                                                                <span className="flex items-center gap-1 text-slate-500">
-                                                                    <Trophy className="w-3 h-3" /> {club.league_titles}
-                                                                </span>
-                                                            )}
-                                                            {club.domestic_cup_titles > 0 && (
-                                                                <span className="flex items-center gap-1 text-orange-500">
-                                                                    <Award className="w-3 h-3" /> {club.domestic_cup_titles}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </Link>
-                                                ))}
-                                            {clubs.filter(c => (c.league_titles || 0) + (c.domestic_cup_titles || 0) > 0).length === 0 && (
-                                                <p className="text-slate-500 text-sm">No trophy winners yet</p>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
 
                             {/* All Clubs */}
                                           <Card className="border-0 shadow-sm">

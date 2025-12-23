@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import AdminOnly from '@/components/common/AdminOnly';
+import BulkNationEnhancer from '@/components/nations/BulkNationEnhancer';
 
 import { estimateNationPopulation, estimateSustainableProClubs } from '@/components/common/populationUtils';
 
@@ -170,13 +171,16 @@ export default function Nations() {
                 breadcrumbs={[{ label: 'Nations' }]}
             >
                 <AdminOnly>
-                    <Link to={createPageUrl('AddNation')}>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Nation
-                        </Button>
-                    </Link>
-                </AdminOnly>
+                        <div className="flex gap-2">
+                            <BulkNationEnhancer />
+                            <Link to={createPageUrl('AddNation')}>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700">
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Nation
+                                </Button>
+                            </Link>
+                        </div>
+                    </AdminOnly>
             </PageHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
