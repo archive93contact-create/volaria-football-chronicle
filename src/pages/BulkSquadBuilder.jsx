@@ -114,6 +114,21 @@ export default function BulkSquadBuilder() {
 
         const tier = selectedLeagueData?.tier || 1;
 
+        // Get all nations and categorize by membership
+        const allNations = await base44.entities.Nation.list();
+        
+        // Get naming styles from nations
+        const nationNamingMap = {};
+        for (const n of allNations) {
+            if (n.naming_styles && n.naming_styles.length > 0) {
+                nationNamingMap[n.name] = n.naming_styles;
+            }
+        }
+
+        const namingStylesText = nationNamingMap[clubNation?.name]
+            ? `CRITICAL NAMING RULE: ALL ${clubNation.name} players MUST have ${nationNamingMap[clubNation.name].join(', ')} names matching their cultural background. Use authentic ${nationNamingMap[clubNation.name].join('/')} naming conventions ONLY.`
+            : `Use realistic naming conventions matching ${clubNation?.name}'s culture.`;
+
         const ageProfiles = {
             young: 'mostly young players ages 17-23, some experienced 24-28',
             balanced: 'mix of youth (17-20), prime (21-28), and experienced (29-34)',
@@ -127,9 +142,6 @@ export default function BulkSquadBuilder() {
             lower: `modest ratings 45-65, developing tier ${tier} squad`,
             amateur: `amateur level ratings 25-55, grassroots tier ${tier} club`
         };
-
-        // Get all nations and categorize by membership
-        const allNations = await base44.entities.Nation.list();
         const vccNations = allNations.filter(n => n.membership === 'VCC').map(n => n.name);
         const cccNations = allNations.filter(n => n.membership === 'CCC').map(n => n.name);
         const isVCC = clubNation?.membership === 'VCC';
@@ -175,10 +187,10 @@ MAXIMUM ${foreignCount} foreign player (extremely rare, VCC only if any)
 ABSOLUTELY FORBIDDEN: ZERO other CCC players`;
         }
 
-        const prompt = `Generate ${config.playerCount} realistic football players for ${club.name}, a club in ${clubNation?.name || 'Volaria'}.
+        const prompt = `Generate ${config.playerCount} realistic MALE football players for ${club.name}, a club in ${clubNation?.name || 'Volaria'}.
 
 SQUAD REQUIREMENTS:
-- ${config.playerCount} total players
+- ${config.playerCount} total MALE players
 - Position distribution: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST)
 - Squad composition: ${ageProfiles[config.ageProfile]}
 - Quality: ${qualityLevels[config.quality]}
@@ -186,7 +198,7 @@ SQUAD REQUIREMENTS:
 
 ${nationalityRules}
 
-${clubNation?.naming_styles ? `NAMING STYLES for ${clubNation.name}: ${clubNation.naming_styles.join(', ')}` : ''}
+${namingStylesText}
 
 BIRTHPLACES:
 ${clubLocations.length > 0 ? `- Prioritize: ${clubLocations.map(l => l.name).join(', ')}` : ''}
@@ -268,8 +280,11 @@ Return a JSON array with this exact structure:
         // Generate photos asynchronously
         for (const player of createdPlayers) {
             try {
+                const playerNation = allNations.find(n => n.name === player.nationality);
+                const namingStyles = playerNation?.naming_styles?.join(', ') || 'diverse';
+                const clubColor = club.primary_color || 'blue';
                 const photoResult = await base44.integrations.Core.GenerateImage({
-                    prompt: `Professional headshot photo of ${player.full_name}, a ${player.age}-year-old ${player.nationality} footballer, ${player.position} position, realistic, high quality, clean background`
+                    prompt: `Professional headshot portrait of a MALE football/soccer player wearing ${clubColor} colored football jersey, age ${player.age}, ${namingStyles} cultural appearance and ethnic features, athletic build, neutral expression, modern sports photography style, clean background, high quality, photorealistic. Appearance should authentically reflect ${namingStyles} heritage. MUST be wearing football kit/jersey.`
                 });
                 await base44.entities.Player.update(player.id, { photo_url: photoResult.url });
             } catch (err) {
