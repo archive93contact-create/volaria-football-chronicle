@@ -1,16 +1,34 @@
 import React, { useState } from 'react';
-import { Shirt, Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { Shirt, Loader2, Sparkles, Wand2, Settings2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 export default function AIKitGenerator({ club, onKitsGenerated, compact = false }) {
     const [generating, setGenerating] = useState(false);
     const [generatingType, setGeneratingType] = useState(null);
+    const [showCustomParams, setShowCustomParams] = useState(false);
+    const [customParams, setCustomParams] = useState({
+        pattern: club.pattern_preference || 'solid',
+        primaryColor: club.primary_color || '',
+        secondaryColor: club.secondary_color || '',
+        accentColor: club.accent_color || ''
+    });
 
-    const generateKit = async (type) => {
-        if (!club.primary_color) {
+    const generateKit = async (type, useCustomParams = false) => {
+        const params = useCustomParams ? customParams : {
+            pattern: club.pattern_preference || 'solid',
+            primaryColor: club.primary_color,
+            secondaryColor: club.secondary_color,
+            accentColor: club.accent_color
+        };
+
+        if (!params.primaryColor) {
             toast.error('Please set club colors first');
             return;
         }
@@ -19,10 +37,10 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
         setGeneratingType(type);
 
         try {
-            const pattern = club.pattern_preference || 'solid';
-            const primary = club.primary_color;
-            const secondary = club.secondary_color || primary;
-            const accent = club.accent_color;
+            const pattern = params.pattern;
+            const primary = params.primaryColor;
+            const secondary = params.secondaryColor || primary;
+            const accent = params.accentColor;
             
             let prompt = '';
             
@@ -31,14 +49,14 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                                    pattern === 'horizontal_hoops' ? 'with horizontal hoops' : 
                                    pattern === 'sash' ? 'with diagonal sash' : 
                                    pattern === 'diagonal_stripe' ? 'with diagonal stripe' : 
-                                   pattern === 'halves' ? 'with half and half design' : 
-                                   pattern === 'quarters' ? 'with quartered design' : '';
-                prompt = `Professional football soccer jersey kit ${patternDesc}, primary color ${primary}, secondary accent ${secondary}, modern athletic design, front view centered, clean product photography, white background`;
+                                   pattern === 'halves' ? 'with half and half split design' : 
+                                   pattern === 'quarters' ? 'with quartered design' : 'solid color';
+                prompt = `Professional football soccer jersey, short sleeve, ${patternDesc}, main color ${primary}, accent color ${secondary}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             } else if (type === 'away') {
-                prompt = `Professional football soccer jersey kit, primary color ${secondary || '#ffffff'}, secondary accent ${primary}, clean modern design, front view centered, product photography, white background`;
+                prompt = `Professional football soccer jersey, short sleeve, solid or minimal design, main color ${secondary || '#ffffff'}, accent trim ${primary}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             } else {
                 const thirdColor = accent || '#1a1a1a';
-                prompt = `Professional football soccer jersey kit, primary color ${thirdColor}, modern alternative design, front view centered, product photography, white background`;
+                prompt = `Professional football soccer jersey, short sleeve, clean modern design, main color ${thirdColor}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             }
 
             const result = await base44.integrations.Core.GenerateImage({
@@ -71,8 +89,13 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
 
     const generateAllKits = async () => {
         for (const type of ['home', 'away', 'third']) {
-            await generateKit(type);
+            await generateKit(type, false);
         }
+    };
+
+    const handleCustomGenerate = (type) => {
+        setShowCustomParams(false);
+        generateKit(type, true);
     };
 
     if (compact) {
@@ -117,15 +140,64 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                     <h4 className="font-semibold">AI Kit Generator</h4>
                     <p className="text-xs text-slate-500">Generate realistic kits based on club colors</p>
                 </div>
-                <Button
-                    size="sm"
-                    onClick={generateAllKits}
-                    disabled={generating}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                >
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate All
-                </Button>
+                <div className="flex gap-2">
+                    <Dialog open={showCustomParams} onOpenChange={setShowCustomParams}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" variant="outline">
+                                <Settings2 className="w-4 h-4 mr-2" />
+                                Custom
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader><DialogTitle>Custom Kit Parameters</DialogTitle></DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div>
+                                    <Label>Pattern</Label>
+                                    <Select value={customParams.pattern} onValueChange={(v) => setCustomParams({...customParams, pattern: v})}>
+                                        <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="solid">Solid</SelectItem>
+                                            <SelectItem value="vertical_stripes">Vertical Stripes</SelectItem>
+                                            <SelectItem value="horizontal_hoops">Horizontal Hoops</SelectItem>
+                                            <SelectItem value="sash">Sash</SelectItem>
+                                            <SelectItem value="diagonal_stripe">Diagonal Stripe</SelectItem>
+                                            <SelectItem value="halves">Halves</SelectItem>
+                                            <SelectItem value="quarters">Quarters</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <Label className="text-xs">Primary Color</Label>
+                                        <Input type="color" value={customParams.primaryColor} onChange={(e) => setCustomParams({...customParams, primaryColor: e.target.value})} className="mt-1 h-10" />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">Secondary Color</Label>
+                                        <Input type="color" value={customParams.secondaryColor} onChange={(e) => setCustomParams({...customParams, secondaryColor: e.target.value})} className="mt-1 h-10" />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">Accent Color</Label>
+                                        <Input type="color" value={customParams.accentColor} onChange={(e) => setCustomParams({...customParams, accentColor: e.target.value})} className="mt-1 h-10" />
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button onClick={() => handleCustomGenerate('home')} className="flex-1">Generate Home</Button>
+                                    <Button onClick={() => handleCustomGenerate('away')} className="flex-1" variant="outline">Generate Away</Button>
+                                    <Button onClick={() => handleCustomGenerate('third')} className="flex-1" variant="outline">Generate Third</Button>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                    <Button
+                        size="sm"
+                        onClick={generateAllKits}
+                        disabled={generating}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    >
+                        <Wand2 className="w-4 h-4 mr-2" />
+                        Generate All
+                    </Button>
+                </div>
             </div>
             
             <div className="grid grid-cols-3 gap-4">
@@ -137,7 +209,7 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                         <div key={type} className="text-center space-y-2">
                             <div className="aspect-[3/4] bg-white rounded-lg border-2 border-slate-200 flex items-center justify-center overflow-hidden relative group">
                                 {kitUrl ? (
-                                    <img src={kitUrl} alt={`${type} kit`} className="w-full h-full object-cover" />
+                                    <img src={kitUrl} alt={`${type} kit`} className="w-full h-full object-contain p-2" />
                                 ) : (
                                     <Shirt className="w-12 h-12 text-slate-300" />
                                 )}
@@ -148,19 +220,65 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                                 )}
                             </div>
                             <div className="text-sm font-medium capitalize">{type}</div>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => generateKit(type)}
-                                disabled={generating}
-                                className="w-full"
-                            >
-                                {isGenerating ? (
-                                    <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating...</>
-                                ) : (
-                                    <><Sparkles className="w-3 h-3 mr-1" /> {kitUrl ? 'Regenerate' : 'Generate'}</>
-                                )}
-                            </Button>
+                            <div className="flex gap-1">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => generateKit(type, false)}
+                                    disabled={generating}
+                                    className="flex-1"
+                                >
+                                    {isGenerating ? (
+                                        <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating...</>
+                                    ) : (
+                                        <><Sparkles className="w-3 h-3 mr-1" /> {kitUrl ? 'Regenerate' : 'Generate'}</>
+                                    )}
+                                </Button>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm" variant="ghost" className="px-2">
+                                            <Settings2 className="w-3 h-3" />
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader><DialogTitle>Custom {type.charAt(0).toUpperCase() + type.slice(1)} Kit</DialogTitle></DialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <div>
+                                                <Label>Pattern</Label>
+                                                <Select value={customParams.pattern} onValueChange={(v) => setCustomParams({...customParams, pattern: v})}>
+                                                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="solid">Solid</SelectItem>
+                                                        <SelectItem value="vertical_stripes">Vertical Stripes</SelectItem>
+                                                        <SelectItem value="horizontal_hoops">Horizontal Hoops</SelectItem>
+                                                        <SelectItem value="sash">Sash</SelectItem>
+                                                        <SelectItem value="diagonal_stripe">Diagonal Stripe</SelectItem>
+                                                        <SelectItem value="halves">Halves</SelectItem>
+                                                        <SelectItem value="quarters">Quarters</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div>
+                                                    <Label className="text-xs">Primary</Label>
+                                                    <Input type="color" value={customParams.primaryColor} onChange={(e) => setCustomParams({...customParams, primaryColor: e.target.value})} className="mt-1 h-10" />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs">Secondary</Label>
+                                                    <Input type="color" value={customParams.secondaryColor} onChange={(e) => setCustomParams({...customParams, secondaryColor: e.target.value})} className="mt-1 h-10" />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs">Accent</Label>
+                                                    <Input type="color" value={customParams.accentColor} onChange={(e) => setCustomParams({...customParams, accentColor: e.target.value})} className="mt-1 h-10" />
+                                                </div>
+                                            </div>
+                                            <Button onClick={() => handleCustomGenerate(type)} className="w-full bg-purple-600 hover:bg-purple-700">
+                                                <Sparkles className="w-4 h-4 mr-2" /> Generate Custom Kit
+                                            </Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
                         </div>
                     );
                 })}
