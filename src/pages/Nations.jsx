@@ -77,6 +77,11 @@ export default function Nations() {
         queryFn: () => base44.entities.Club.list(),
     });
 
+    const { data: players = [] } = useQuery({
+        queryKey: ['allPlayers'],
+        queryFn: () => base44.entities.Player.list(),
+    });
+
     const filterRegions = [...new Set(nations.filter(n => n.region).map(n => n.region))];
 
     // Compute nation stats
@@ -120,6 +125,15 @@ export default function Nations() {
             const strength = estimateStrength(nationClubs, nationLeagues, coeff, nation.membership);
             const proClubs = estimateSustainableProClubs(population, topDivisionSize, maxTier, nation.membership, strength.score);
             
+            // Calculate nation average OVR
+            const nationPlayers = players.filter(p => {
+                const club = clubs.find(c => c.id === p.club_id);
+                return club?.nation_id === nation.id && !p.is_youth_player && p.overall_rating;
+            });
+            const avgOVR = nationPlayers.length > 0 
+                ? Math.round(nationPlayers.reduce((sum, p) => sum + p.overall_rating, 0) / nationPlayers.length)
+                : null;
+            
             return {
                 ...nation,
                 leagueCount: nationLeagues.length,
@@ -130,7 +144,8 @@ export default function Nations() {
                 strength,
                 maxTier,
                 topDivisionSize,
-                proClubs
+                proClubs,
+                avgOVR
             };
         });
     }, [nations, leagues, clubs, coefficients]);
@@ -156,6 +171,7 @@ export default function Nations() {
                 case 'clubs': return b.clubCount - a.clubCount;
                 case 'leagues': return b.leagueCount - a.leagueCount;
                 case 'strength': return b.strength.score - a.strength.score;
+                case 'ovr': return (b.avgOVR || 0) - (a.avgOVR || 0);
                 case 'rank':
                 default:
                     if (a.rank !== b.rank) return a.rank - b.rank;
@@ -229,6 +245,7 @@ export default function Nations() {
                             <SelectContent>
                                 <SelectItem value="rank">Ranking</SelectItem>
                                 <SelectItem value="name">Name (A-Z)</SelectItem>
+                                <SelectItem value="ovr">Avg OVR</SelectItem>
                                 <SelectItem value="population">Population</SelectItem>
                                 <SelectItem value="clubs">Most Clubs</SelectItem>
                                 <SelectItem value="leagues">Most Leagues</SelectItem>
@@ -280,6 +297,7 @@ export default function Nations() {
                                     <TableHead>Nation</TableHead>
                                     <TableHead>Membership</TableHead>
                                     <TableHead className="text-center">Rank</TableHead>
+                                    <TableHead className="text-center">Avg OVR</TableHead>
                                     <TableHead className="text-center">Clubs</TableHead>
                                     <TableHead className="text-center">Leagues</TableHead>
                                     <TableHead className="text-center">Tiers</TableHead>
@@ -317,6 +335,13 @@ export default function Nations() {
                                                 <span className="font-bold">{nation.rank}</span>
                                             ) : (
                                                 <span className="text-slate-400">—</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {nation.avgOVR ? (
+                                                <span className="font-bold text-emerald-600">{nation.avgOVR}</span>
+                                            ) : (
+                                                <span className="text-slate-300">-</span>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-center font-medium">{nation.clubCount}</TableCell>
