@@ -20,7 +20,7 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
         accentColor: club.accent_color || ''
     });
 
-    const generateKit = async (type, useCustomParams = false) => {
+    const generateKit = async (type, useCustomParams = false, nationContext = null) => {
         const params = useCustomParams ? customParams : {
             pattern: club.pattern_preference || 'solid',
             primaryColor: club.primary_color,
@@ -42,6 +42,10 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
             const secondary = params.secondaryColor || primary;
             const accent = params.accentColor;
             
+            // Generate consistent sponsor/manufacturer context for the club
+            const sponsorSeed = club.id ? club.id.slice(0, 8) : 'default';
+            const kitContext = nationContext ? `, ${nationContext} style branding` : '';
+            
             let prompt = '';
             
             if (type === 'home') {
@@ -51,17 +55,23 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                                    pattern === 'diagonal_stripe' ? 'with diagonal stripe' : 
                                    pattern === 'halves' ? 'with half and half split design' : 
                                    pattern === 'quarters' ? 'with quartered design' : 'solid color';
-                prompt = `Professional football soccer jersey, short sleeve, ${patternDesc}, main color ${primary}, accent color ${secondary}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
+                prompt = `Professional football soccer jersey, short sleeve, ${patternDesc}, main color ${primary}, accent color ${secondary}, consistent sponsor logo placement, modern athletic manufacturer branding${kitContext}, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             } else if (type === 'away') {
-                prompt = `Professional football soccer jersey, short sleeve, solid or minimal design, main color ${secondary || '#ffffff'}, accent trim ${primary}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
+                prompt = `Professional football soccer jersey, short sleeve, solid or minimal design, main color ${secondary || '#ffffff'}, accent trim ${primary}, same sponsor and manufacturer as home kit${kitContext}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             } else {
                 const thirdColor = accent || '#1a1a1a';
-                prompt = `Professional football soccer jersey, short sleeve, clean modern design, main color ${thirdColor}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
+                prompt = `Professional football soccer jersey, short sleeve, clean modern design, main color ${thirdColor}, same sponsor and manufacturer as home kit${kitContext}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             }
 
+            // Include home kit as reference for consistency if generating away/third
+            const referenceImages = club.logo_url ? [club.logo_url] : [];
+            if (type !== 'home' && club.home_kit_url) {
+                referenceImages.push(club.home_kit_url);
+            }
+            
             const result = await base44.integrations.Core.GenerateImage({
                 prompt,
-                existing_image_urls: club.logo_url ? [club.logo_url] : []
+                existing_image_urls: referenceImages
             });
 
             if (result?.url) {
