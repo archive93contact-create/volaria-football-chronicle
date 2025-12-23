@@ -317,7 +317,8 @@ ${prompt}`,
                     try {
                         const playerNation = allNations.find(n => n.name === player.nationality);
                         const namingStyles = playerNation?.naming_styles?.join(', ') || 'diverse';
-                        const imagePrompt = `Professional headshot portrait of a male football/soccer player, age ${player.age}, ${namingStyles} cultural appearance and ethnic features, athletic build, neutral expression, modern sports photography style, clean background, high quality, photorealistic. Appearance should authentically reflect ${namingStyles} heritage.`;
+                        const clubColor = club.primary_color || 'blue';
+                        const imagePrompt = `Professional headshot portrait of a MALE football/soccer player wearing ${clubColor} colored football jersey, age ${player.age}, ${namingStyles} cultural appearance and ethnic features, athletic build, neutral expression, modern sports photography style, clean background, high quality, photorealistic. Appearance should authentically reflect ${namingStyles} heritage. MUST be wearing football kit/jersey.`;
                         
                         const imageResult = await base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
                         if (imageResult?.url) {
