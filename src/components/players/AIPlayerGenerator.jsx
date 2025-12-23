@@ -80,34 +80,49 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
             const isCCC = nation?.membership === 'CCC';
             
             let nationalityRules = '';
+            let domesticCount = 0;
+            let foreignCount = 0;
+            
             if (isVCC && tier === 1) {
                 // Top VCC clubs: diverse, attract talent from other VCC nations
-                nationalityRules = `Squad composition (realistic for top VCC club):
-- 60-70% from ${nation?.name}
-- 20-30% from other VCC nations (${vccNations.filter(n => n !== nation?.name).slice(0, 5).join(', ')})
-- 0-10% top quality players from CCC nations (only the best, ratings 70+)
-- Foreign players should be high quality signings`;
+                domesticCount = Math.floor(count * 0.65); // 65% domestic
+                foreignCount = count - domesticCount;
+                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
+- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (65% of squad)
+- Up to ${Math.floor(foreignCount * 0.8)} players from other VCC nations: ${vccNations.filter(n => n !== nation?.name).slice(0, 5).join(', ')}
+- Maximum ${Math.floor(foreignCount * 0.2)} elite players from CCC nations (only if rating 70+)
+- MAJORITY MUST BE FROM ${nation?.name}`;
             } else if (isVCC && tier <= 3) {
                 // Mid-tier VCC clubs: mostly domestic, some VCC neighbors
-                nationalityRules = `Squad composition (realistic for mid-tier VCC club):
-- 75-85% from ${nation?.name}
-- 10-20% from neighboring VCC nations
-- 0-5% from CCC (very rare)`;
+                domesticCount = Math.floor(count * 0.80); // 80% domestic
+                foreignCount = count - domesticCount;
+                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
+- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (80% of squad)
+- Maximum ${foreignCount} players from other VCC nations
+- NO players from CCC nations
+- MAJORITY MUST BE FROM ${nation?.name}`;
             } else if (isCCC && tier === 1) {
                 // Top CCC clubs: mostly domestic, occasional VCC player
-                nationalityRules = `Squad composition (realistic for top CCC club):
-- 85-90% from ${nation?.name}
-- 5-10% from VCC nations (rare, expensive signings, high quality)
-- 0-5% from other CCC nations (very rare, CCC players don't travel between CCC nations often)`;
+                domesticCount = Math.floor(count * 0.87); // 87% domestic
+                foreignCount = count - domesticCount;
+                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
+- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (87% of squad)
+- Maximum ${foreignCount} players from VCC nations (expensive signings, high quality only)
+- ZERO players from other CCC nations (CCC players DON'T travel between CCC nations)
+- MAJORITY MUST BE FROM ${nation?.name}`;
             } else if (isCCC) {
                 // Lower CCC clubs: almost entirely domestic
-                nationalityRules = `Squad composition (realistic for CCC club):
-- 95-100% from ${nation?.name}
-- 0-5% from other nations (extremely rare, maybe 1 player)
-- CCC clubs rarely attract foreign players`;
+                domesticCount = Math.floor(count * 0.96); // 96% domestic
+                foreignCount = Math.max(1, count - domesticCount);
+                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
+- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (96% of squad)
+- Maximum ${foreignCount} player from other nations (extremely rare)
+- ZERO players from other CCC nations
+- MAJORITY MUST BE FROM ${nation?.name}`;
             } else {
                 // Default fallback
-                nationalityRules = `Squad composition: 80-90% from ${nation?.name}, rest from neighboring nations`;
+                domesticCount = Math.floor(count * 0.85);
+                nationalityRules = `CRITICAL: ${domesticCount} players from ${nation?.name}, rest from neighboring nations`;
             }
 
             const prompt = `Generate ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
