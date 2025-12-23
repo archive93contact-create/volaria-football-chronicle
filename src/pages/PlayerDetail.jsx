@@ -276,13 +276,22 @@ export default function PlayerDetail() {
                             </CardContent>
                         </Card>
 
-                        {/* Club History Placeholder */}
-                        <Card className="border-0 shadow-sm">
-                            <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-slate-500 text-sm">Club history tracking coming soon</p>
-                            </CardContent>
-                        </Card>
+                        {/* Club History */}
+                        {player.club_history && (
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
+                                <CardContent>
+                                    <div className="space-y-2">
+                                        {player.club_history.split(',').map((entry, idx) => (
+                                            <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                                <Shield className="w-5 h-5 text-slate-400" />
+                                                <span className="font-medium">{entry.trim()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </div>
             </div>
@@ -339,6 +348,7 @@ export default function PlayerDetail() {
                             </Select>
                         </div>
                         <div><Label>Place of Birth</Label><Input value={editData.birth_place || ''} onChange={(e) => setEditData({...editData, birth_place: e.target.value})} className="mt-1" placeholder="City, Region" /></div>
+                        <div><Label>Club History</Label><Input value={editData.club_history || ''} onChange={(e) => setEditData({...editData, club_history: e.target.value})} className="mt-1" placeholder="FC Example (2018-2020), Another FC (2020-2023)" /></div>
                         <div className="grid grid-cols-3 gap-4">
                             <div><Label>Appearances</Label><Input type="number" value={editData.appearances || ''} onChange={(e) => setEditData({...editData, appearances: e.target.value})} className="mt-1" /></div>
                             <div><Label>Goals</Label><Input type="number" value={editData.goals || ''} onChange={(e) => setEditData({...editData, goals: e.target.value})} className="mt-1" /></div>
