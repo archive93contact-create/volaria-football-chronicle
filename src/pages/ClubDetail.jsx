@@ -699,7 +699,7 @@ export default function ClubDetail() {
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </ThemedCard>
                 )}
 
                 {/* All-Time Stats */}
