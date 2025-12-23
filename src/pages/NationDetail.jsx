@@ -89,6 +89,12 @@ export default function NationDetail() {
 
     const coefficient = coefficients.find(c => c.nation_id === nationId);
 
+    const { data: nationalPlayers = [] } = useQuery({
+        queryKey: ['nationalSquadPlayers', nation?.name],
+        queryFn: () => base44.entities.Player.filter({ nationality: nation.name }),
+        enabled: !!nation?.name,
+    });
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Nation.update(nationId, data),
         onSuccess: () => {
@@ -380,17 +386,12 @@ export default function NationDetail() {
 
                     <TabsContent value="national-squad">
                         {(() => {
-                            const { data: allPlayers = [] } = useQuery({
-                                queryKey: ['nationalSquadPlayers', nation.name],
-                                queryFn: () => base44.entities.Player.filter({ nationality: nation.name }),
-                            });
-
                             // Pick top 2 per position based on overall + potential
                             const positions = {
-                                GK: allPlayers.filter(p => p.position === 'GK'),
-                                DEF: allPlayers.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
-                                MID: allPlayers.filter(p => ['CDM', 'CM', 'CAM'].includes(p.position)),
-                                FWD: allPlayers.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
+                                GK: nationalPlayers.filter(p => p.position === 'GK'),
+                                DEF: nationalPlayers.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
+                                MID: nationalPlayers.filter(p => ['CDM', 'CM', 'CAM'].includes(p.position)),
+                                FWD: nationalPlayers.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
                             };
 
                             const squad = {};
