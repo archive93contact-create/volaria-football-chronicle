@@ -705,9 +705,13 @@ export default function ClubDetail() {
                 {/* All-Time Stats */}
                 <div id="all-time-stats">
                     {combinedStats?.seasons_played > 0 && (
-                        <Card className="border-0 shadow-sm mb-4">
-                            <CardHeader><CardTitle>All-Time League Statistics</CardTitle></CardHeader>
-                            <CardContent>
+                        <ThemedCard 
+                            title="All-Time League Statistics"
+                            primaryColor={club.primary_color}
+                            accentColor={club.accent_color}
+                            className="mb-4"
+                        >
+                            <CardContent className="p-0">
                                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
                                     <div className="p-3 bg-slate-50 rounded-lg">
                                         <div className="text-2xl font-bold text-green-600">{combinedStats.total_wins || 0}</div>
@@ -735,7 +739,7 @@ export default function ClubDetail() {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </ThemedCard>
                     )}
 
                     {/* Top Flight Stats */}
