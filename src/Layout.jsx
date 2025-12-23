@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users, ArrowLeft } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users, ArrowLeft, LogIn } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -45,6 +46,7 @@ export default function Layout({ children, currentPageName }) {
                 { name: 'About', icon: Info, page: 'About' },
                 { name: 'Contact', icon: Mail, page: 'Contact' },
                 { name: 'Support', icon: Heart, page: 'Support' },
+                { name: 'Login', icon: LogIn, action: 'login' },
             ];
 
             const mobileNavItems = [
@@ -125,11 +127,21 @@ export default function Layout({ children, currentPageName }) {
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent className="bg-slate-800 border-slate-700">
                                                                 {moreDropdown.map((item) => (
-                                                                    <DropdownMenuItem key={item.page} asChild>
-                                                                        <Link to={createPageUrl(item.page)} className="flex items-center gap-2 text-slate-200 hover:text-white cursor-pointer">
-                                                                            <item.icon className="w-4 h-4" />
-                                                                            {item.name}
-                                                                        </Link>
+                                                                    <DropdownMenuItem key={item.page || item.action} asChild={!item.action}>
+                                                                        {item.action === 'login' ? (
+                                                                            <button 
+                                                                                onClick={() => base44.auth.redirectToLogin()} 
+                                                                                className="flex items-center gap-2 text-slate-200 hover:text-white cursor-pointer w-full"
+                                                                            >
+                                                                                <item.icon className="w-4 h-4" />
+                                                                                {item.name}
+                                                                            </button>
+                                                                        ) : (
+                                                                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2 text-slate-200 hover:text-white cursor-pointer">
+                                                                                <item.icon className="w-4 h-4" />
+                                                                                {item.name}
+                                                                            </Link>
+                                                                        )}
                                                                     </DropdownMenuItem>
                                                                 ))}
                                                             </DropdownMenuContent>
@@ -163,22 +175,36 @@ export default function Layout({ children, currentPageName }) {
                                     {mobileMenuOpen && (
                                         <div className="md:hidden bg-slate-800 border-t border-slate-700">
                                             <div className="px-4 py-3 space-y-1">
-                                                {mobileNavItems.map((item) => (
-                                                    <Link 
-                                                        key={item.page} 
-                                                        to={createPageUrl(item.page)}
-                                                        onClick={() => setMobileMenuOpen(false)}
-                                                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                                                            currentPageName === item.page 
-                                                                ? 'bg-emerald-600 text-white' 
-                                                                : 'text-slate-300 hover:bg-slate-700'
-                                                        }`}
-                                                    >
-                                                        <item.icon className="w-5 h-5" />
-                                                        {item.name}
-                                                    </Link>
-                                                ))}
-                                            </div>
+                                                    {mobileNavItems.map((item) => (
+                                                        item.action === 'login' ? (
+                                                            <button
+                                                                key={item.action}
+                                                                onClick={() => {
+                                                                    setMobileMenuOpen(false);
+                                                                    base44.auth.redirectToLogin();
+                                                                }}
+                                                                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-slate-300 hover:bg-slate-700 w-full"
+                                                            >
+                                                                <item.icon className="w-5 h-5" />
+                                                                {item.name}
+                                                            </button>
+                                                        ) : (
+                                                            <Link 
+                                                                key={item.page} 
+                                                                to={createPageUrl(item.page)}
+                                                                onClick={() => setMobileMenuOpen(false)}
+                                                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                                                                    currentPageName === item.page 
+                                                                        ? 'bg-emerald-600 text-white' 
+                                                                        : 'text-slate-300 hover:bg-slate-700'
+                                                                }`}
+                                                            >
+                                                                <item.icon className="w-5 h-5" />
+                                                                {item.name}
+                                                            </Link>
+                                                        )
+                                                    ))}
+                                                </div>
                                         </div>
                                     )}
             </nav>
