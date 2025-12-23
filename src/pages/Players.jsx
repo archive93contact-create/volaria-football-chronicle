@@ -202,24 +202,19 @@ export default function Players() {
                                                 </Link>
                                             </TableCell>
                                             <TableCell>
-                                                {(() => {
-                                                    const nation = nations.find(n => n.name === player.nationality);
-                                                    return nation ? (
-                                                        <Link 
-                                                            to={createPageUrl(`NationDetail?id=${nation.id}`)}
-                                                            className="flex items-center gap-2 hover:text-emerald-600"
-                                                        >
-                                                            {nation.flag_url && (
-                                                                <img src={nation.flag_url} alt={player.nationality} className="w-6 h-4 object-cover rounded shadow-sm" />
-                                                            )}
-                                                            <span>{player.nationality}</span>
-                                                        </Link>
-                                                    ) : (
-                                                        <div className="flex items-center gap-2">
-                                                            <span>{player.nationality}</span>
-                                                        </div>
-                                                    );
-                                                })()}
+                                                {player.nationality ? (
+                                                    <Link 
+                                                        to={createPageUrl(`NationDetail?id=${nations.find(n => n.name === player.nationality)?.id}`)}
+                                                        className="flex items-center gap-2 hover:text-emerald-600"
+                                                    >
+                                                        {getNationFlag(player.nationality) && (
+                                                            <img src={getNationFlag(player.nationality)} alt={player.nationality} className="w-6 h-4 object-cover rounded shadow-sm" />
+                                                        )}
+                                                        <span>{player.nationality}</span>
+                                                    </Link>
+                                                ) : (
+                                                    <span className="text-slate-400">Unknown</span>
+                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 {player.club_id ? (
