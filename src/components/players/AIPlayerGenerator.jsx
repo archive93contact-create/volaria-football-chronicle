@@ -299,15 +299,18 @@ ${prompt}`,
             }
 
             if (players.length > 0) {
-                // Assign shirt numbers
+                // Assign shirt numbers and look up nation_id for each player based on their nationality
                 let shirtNum = 1;
-                const playersWithDetails = players.map(p => ({
-                    ...p,
-                    club_id: club.id,
-                    nation_id: nation?.id,
-                    full_name: `${p.first_name} ${p.last_name}`,
-                    shirt_number: shirtNum++
-                }));
+                const playersWithDetails = players.map(p => {
+                    const playerNation = allNations.find(n => n.name === p.nationality);
+                    return {
+                        ...p,
+                        club_id: club.id,
+                        nation_id: playerNation?.id || nation?.id,
+                        full_name: `${p.first_name} ${p.last_name}`,
+                        shirt_number: shirtNum++
+                    };
+                });
 
                 // Bulk create players
                 const createdPlayers = await base44.entities.Player.bulkCreate(playersWithDetails);
