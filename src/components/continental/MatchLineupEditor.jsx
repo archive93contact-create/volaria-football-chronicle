@@ -12,12 +12,18 @@ import { Badge } from "@/components/ui/badge";
 
 export default function MatchLineupEditor({ match, isOpen, onClose }) {
     const queryClient = useQueryClient();
-    const [homeLineup, setHomeLineup] = useState([]);
-    const [awayLineup, setAwayLineup] = useState([]);
-    const [homeSubs, setHomeSubs] = useState([]);
-    const [awaySubs, setAwaySubs] = useState([]);
-    const [goals, setGoals] = useState([]);
-    const [substitutions, setSubstitutions] = useState([]);
+    const [homeLineupLeg1, setHomeLineupLeg1] = useState([]);
+    const [awayLineupLeg1, setAwayLineupLeg1] = useState([]);
+    const [homeSubsLeg1, setHomeSubsLeg1] = useState([]);
+    const [awaySubsLeg1, setAwaySubsLeg1] = useState([]);
+    const [goalsLeg1, setGoalsLeg1] = useState([]);
+    const [substitutionsLeg1, setSubstitutionsLeg1] = useState([]);
+    const [homeLineupLeg2, setHomeLineupLeg2] = useState([]);
+    const [awayLineupLeg2, setAwayLineupLeg2] = useState([]);
+    const [homeSubsLeg2, setHomeSubsLeg2] = useState([]);
+    const [awaySubsLeg2, setAwaySubsLeg2] = useState([]);
+    const [goalsLeg2, setGoalsLeg2] = useState([]);
+    const [substitutionsLeg2, setSubstitutionsLeg2] = useState([]);
 
     // Fetch all clubs to look up club IDs from names
     const { data: clubs = [] } = useQuery({
@@ -48,12 +54,18 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
 
     useEffect(() => {
         if (match) {
-            setHomeLineup(match.home_lineup || []);
-            setAwayLineup(match.away_lineup || []);
-            setHomeSubs(match.home_subs || []);
-            setAwaySubs(match.away_subs || []);
-            setGoals(match.goals || []);
-            setSubstitutions(match.substitutions || []);
+            setHomeLineupLeg1(match.home_lineup_leg1 || []);
+            setAwayLineupLeg1(match.away_lineup_leg1 || []);
+            setHomeSubsLeg1(match.home_subs_leg1 || []);
+            setAwaySubsLeg1(match.away_subs_leg1 || []);
+            setGoalsLeg1(match.goals_leg1 || []);
+            setSubstitutionsLeg1(match.substitutions_leg1 || []);
+            setHomeLineupLeg2(match.home_lineup_leg2 || []);
+            setAwayLineupLeg2(match.away_lineup_leg2 || []);
+            setHomeSubsLeg2(match.home_subs_leg2 || []);
+            setAwaySubsLeg2(match.away_subs_leg2 || []);
+            setGoalsLeg2(match.goals_leg2 || []);
+            setSubstitutionsLeg2(match.substitutions_leg2 || []);
         }
     }, [match]);
 
@@ -68,12 +80,18 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
 
     const handleSave = () => {
         updateMutation.mutate({
-            home_lineup: homeLineup,
-            away_lineup: awayLineup,
-            home_subs: homeSubs,
-            away_subs: awaySubs,
-            goals,
-            substitutions
+            home_lineup_leg1: homeLineupLeg1,
+            away_lineup_leg1: awayLineupLeg1,
+            home_subs_leg1: homeSubsLeg1,
+            away_subs_leg1: awaySubsLeg1,
+            goals_leg1: goalsLeg1,
+            substitutions_leg1: substitutionsLeg1,
+            home_lineup_leg2: homeLineupLeg2,
+            away_lineup_leg2: awayLineupLeg2,
+            home_subs_leg2: homeSubsLeg2,
+            away_subs_leg2: awaySubsLeg2,
+            goals_leg2: goalsLeg2,
+            substitutions_leg2: substitutionsLeg2
         });
     };
 
@@ -363,45 +381,103 @@ export default function MatchLineupEditor({ match, isOpen, onClose }) {
                         Match Lineup - {match.home_club_name} vs {match.away_club_name}
                     </DialogTitle>
                 </DialogHeader>
-                <Tabs defaultValue="home" className="space-y-4">
-                    <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="home">{match.home_club_name}</TabsTrigger>
-                        <TabsTrigger value="away">{match.away_club_name}</TabsTrigger>
-                        <TabsTrigger value="events">Goals & Subs</TabsTrigger>
+                <Tabs defaultValue={match.is_single_leg ? "leg1" : "leg1"} className="space-y-4">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="leg1">
+                            {match.is_single_leg ? "Match" : "Leg 1"}
+                        </TabsTrigger>
+                        {!match.is_single_leg && (
+                            <TabsTrigger value="leg2">Leg 2</TabsTrigger>
+                        )}
                     </TabsList>
 
-                    <TabsContent value="home">
-                        <LineupSelector 
-                            lineup={homeLineup}
-                            setLineup={setHomeLineup}
-                            subs={homeSubs}
-                            setSubs={setHomeSubs}
-                            players={homePlayers}
-                            teamName={match.home_club_name}
-                        />
+                    <TabsContent value="leg1">
+                        <Tabs defaultValue="home" className="space-y-4">
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="home">{match.home_club_name}</TabsTrigger>
+                                <TabsTrigger value="away">{match.away_club_name}</TabsTrigger>
+                                <TabsTrigger value="events">Goals & Subs</TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="home">
+                                <LineupSelector 
+                                    lineup={homeLineupLeg1}
+                                    setLineup={setHomeLineupLeg1}
+                                    subs={homeSubsLeg1}
+                                    setSubs={setHomeSubsLeg1}
+                                    players={homePlayers}
+                                    teamName={match.home_club_name}
+                                />
+                            </TabsContent>
+
+                            <TabsContent value="away">
+                                <LineupSelector 
+                                    lineup={awayLineupLeg1}
+                                    setLineup={setAwayLineupLeg1}
+                                    subs={awaySubsLeg1}
+                                    setSubs={setAwaySubsLeg1}
+                                    players={awayPlayers}
+                                    teamName={match.away_club_name}
+                                />
+                            </TabsContent>
+
+                            <TabsContent value="events">
+                                <EventsEditor 
+                                    goals={goalsLeg1}
+                                    setGoals={setGoalsLeg1}
+                                    substitutions={substitutionsLeg1}
+                                    setSubstitutions={setSubstitutionsLeg1}
+                                    homePlayers={homePlayers}
+                                    awayPlayers={awayPlayers}
+                                />
+                            </TabsContent>
+                        </Tabs>
                     </TabsContent>
 
-                    <TabsContent value="away">
-                        <LineupSelector 
-                            lineup={awayLineup}
-                            setLineup={setAwayLineup}
-                            subs={awaySubs}
-                            setSubs={setAwaySubs}
-                            players={awayPlayers}
-                            teamName={match.away_club_name}
-                        />
-                    </TabsContent>
+                    {!match.is_single_leg && (
+                        <TabsContent value="leg2">
+                            <Tabs defaultValue="home" className="space-y-4">
+                                <TabsList className="grid w-full grid-cols-3">
+                                    <TabsTrigger value="home">{match.home_club_name}</TabsTrigger>
+                                    <TabsTrigger value="away">{match.away_club_name}</TabsTrigger>
+                                    <TabsTrigger value="events">Goals & Subs</TabsTrigger>
+                                </TabsList>
 
-                    <TabsContent value="events">
-                        <EventsEditor 
-                            goals={goals}
-                            setGoals={setGoals}
-                            substitutions={substitutions}
-                            setSubstitutions={setSubstitutions}
-                            homePlayers={homePlayers}
-                            awayPlayers={awayPlayers}
-                        />
-                    </TabsContent>
+                                <TabsContent value="home">
+                                    <LineupSelector 
+                                        lineup={homeLineupLeg2}
+                                        setLineup={setHomeLineupLeg2}
+                                        subs={homeSubsLeg2}
+                                        setSubs={setHomeSubsLeg2}
+                                        players={homePlayers}
+                                        teamName={match.home_club_name}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value="away">
+                                    <LineupSelector 
+                                        lineup={awayLineupLeg2}
+                                        setLineup={setAwayLineupLeg2}
+                                        subs={awaySubsLeg2}
+                                        setSubs={setAwaySubsLeg2}
+                                        players={awayPlayers}
+                                        teamName={match.away_club_name}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value="events">
+                                    <EventsEditor 
+                                        goals={goalsLeg2}
+                                        setGoals={setGoalsLeg2}
+                                        substitutions={substitutionsLeg2}
+                                        setSubstitutions={setSubstitutionsLeg2}
+                                        homePlayers={homePlayers}
+                                        awayPlayers={awayPlayers}
+                                    />
+                                </TabsContent>
+                            </Tabs>
+                        </TabsContent>
+                    )}
                 </Tabs>
 
                 <div className="flex justify-end gap-2 pt-4 border-t">

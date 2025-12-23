@@ -39,32 +39,46 @@ export default function MatchDetailView({ match, isOpen, onClose }) {
 
     if (!match) return null;
 
-    const homeLineupPlayers = (match.home_lineup || []).map(id => homePlayers.find(p => p.id === id)).filter(Boolean);
-    const awayLineupPlayers = (match.away_lineup || []).map(id => awayPlayers.find(p => p.id === id)).filter(Boolean);
-    const homeSubsPlayers = (match.home_subs || []).map(id => homePlayers.find(p => p.id === id)).filter(Boolean);
-    const awaySubsPlayers = (match.away_subs || []).map(id => awayPlayers.find(p => p.id === id)).filter(Boolean);
+    const getLineupData = (leg) => {
+        const homeLineupIds = leg === 1 ? (match.home_lineup_leg1 || []) : (match.home_lineup_leg2 || []);
+        const awayLineupIds = leg === 1 ? (match.away_lineup_leg1 || []) : (match.away_lineup_leg2 || []);
+        const homeSubsIds = leg === 1 ? (match.home_subs_leg1 || []) : (match.home_subs_leg2 || []);
+        const awaySubsIds = leg === 1 ? (match.away_subs_leg1 || []) : (match.away_subs_leg2 || []);
+        const goals = leg === 1 ? (match.goals_leg1 || []) : (match.goals_leg2 || []);
+        const substitutions = leg === 1 ? (match.substitutions_leg1 || []) : (match.substitutions_leg2 || []);
 
-    const sortedHomeLineup = [...homeLineupPlayers].sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
-    const sortedAwayLineup = [...awayLineupPlayers].sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
-    const sortedHomeSubs = [...homeSubsPlayers].sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
-    const sortedAwaySubs = [...awaySubsPlayers].sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
+        const homeLineupPlayers = homeLineupIds.map(id => homePlayers.find(p => p.id === id)).filter(Boolean);
+        const awayLineupPlayers = awayLineupIds.map(id => awayPlayers.find(p => p.id === id)).filter(Boolean);
+        const homeSubsPlayers = homeSubsIds.map(id => homePlayers.find(p => p.id === id)).filter(Boolean);
+        const awaySubsPlayers = awaySubsIds.map(id => awayPlayers.find(p => p.id === id)).filter(Boolean);
 
-    const PlayerRow = ({ player }) => {
+        return { homeLineupPlayers, awayLineupPlayers, homeSubsPlayers, awaySubsPlayers, goals, substitutions };
+    };
+
+    const PlayerRow = ({ player, goals, isHome }) => {
         const nation = nations.find(n => n.name === player.nationality);
+        const playerGoals = goals.filter(g => g.player_id === player.id && g.is_home === isHome);
+        
         return (
             <Link to={createPageUrl(`PlayerDetail?id=${player.id}`)} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded group">
                 <span className="font-mono text-sm text-slate-500 w-8">{player.shirt_number}</span>
                 <span className="flex-1">{player.full_name}</span>
+                {playerGoals.length > 0 && (
+                    <div className="flex items-center gap-1">
+                        {playerGoals.map((goal, idx) => (
+                            <span key={idx} className="flex items-center text-xs font-semibold text-emerald-600">
+                                ⚽ {goal.minute}'
+                            </span>
+                        ))}
+                    </div>
+                )}
                 {nation?.flag_url && <img src={nation.flag_url} alt="" className="w-5 h-3 object-contain" />}
                 <Badge variant="outline" className="text-xs">{player.position}</Badge>
             </Link>
         );
     };
 
-    const goals = match.goals || [];
-    const substitutions = match.substitutions || [];
-
-    const TeamLineup = ({ lineup, subs, title }) => (
+    const TeamLineup = ({ lineup, subs, title, goals, isHome }) => (
         <Card className="border-0 shadow-sm">
             <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -78,14 +92,14 @@ export default function MatchDetailView({ match, isOpen, onClose }) {
                         <div className="mb-4">
                             <div className="text-sm font-semibold text-slate-600 mb-2">Starting XI</div>
                             <div className="space-y-1">
-                                {lineup.map(player => <PlayerRow key={player.id} player={player} />)}
+                                {lineup.map(player => <PlayerRow key={player.id} player={player} goals={goals} isHome={isHome} />)}
                             </div>
                         </div>
                         {subs.length > 0 && (
                             <div>
                                 <div className="text-sm font-semibold text-slate-600 mb-2">Substitutes</div>
                                 <div className="space-y-1">
-                                    {subs.map(player => <PlayerRow key={player.id} player={player} />)}
+                                    {subs.map(player => <PlayerRow key={player.id} player={player} goals={goals} isHome={isHome} />)}
                                 </div>
                             </div>
                         )}
@@ -117,10 +131,15 @@ export default function MatchDetailView({ match, isOpen, onClose }) {
                 </DialogHeader>
 
                 {match.is_single_leg ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <TeamLineup lineup={sortedHomeLineup} subs={sortedHomeSubs} title={match.home_club_name} />
-                        <TeamLineup lineup={sortedAwayLineup} subs={sortedAwaySubs} title={match.away_club_name} />
-                    </div>
+                    (() => {
+                        const { homeLineupPlayers, awayLineupPlayers, homeSubsPlayers, awaySubsPlayers, goals } = getLineupData(1);
+                        return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <TeamLineup lineup={homeLineupPlayers} subs={homeSubsPlayers} title={match.home_club_name} goals={goals} isHome={true} />
+                                <TeamLineup lineup={awayLineupPlayers} subs={awaySubsPlayers} title={match.away_club_name} goals={goals} isHome={false} />
+                            </div>
+                        );
+                    })()
                 ) : (
                     <Tabs defaultValue="leg1" className="space-y-4">
                         <TabsList className="grid w-full grid-cols-2">
@@ -143,23 +162,115 @@ export default function MatchDetailView({ match, isOpen, onClose }) {
                         </TabsList>
 
                         <TabsContent value="leg1" className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <TeamLineup lineup={sortedHomeLineup} subs={sortedHomeSubs} title={match.home_club_name} />
-                                <TeamLineup lineup={sortedAwayLineup} subs={sortedAwaySubs} title={match.away_club_name} />
-                            </div>
+                            {(() => {
+                                const { homeLineupPlayers, awayLineupPlayers, homeSubsPlayers, awaySubsPlayers, goals, substitutions } = getLineupData(1);
+                                return (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <TeamLineup lineup={homeLineupPlayers} subs={homeSubsPlayers} title={match.home_club_name} goals={goals} isHome={true} />
+                                            <TeamLineup lineup={awayLineupPlayers} subs={awaySubsPlayers} title={match.away_club_name} goals={goals} isHome={false} />
+                                        </div>
+                                        {(goals.length > 0 || substitutions.length > 0) && (
+                                            <MatchEvents goals={goals} substitutions={substitutions} homePlayers={homePlayers} awayPlayers={awayPlayers} nations={nations} match={match} />
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </TabsContent>
 
                         <TabsContent value="leg2" className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <TeamLineup lineup={sortedHomeLineup} subs={sortedHomeSubs} title={match.home_club_name} />
-                                <TeamLineup lineup={sortedAwayLineup} subs={sortedAwaySubs} title={match.away_club_name} />
-                            </div>
+                            {(() => {
+                                const { homeLineupPlayers, awayLineupPlayers, homeSubsPlayers, awaySubsPlayers, goals, substitutions } = getLineupData(2);
+                                return (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <TeamLineup lineup={homeLineupPlayers} subs={homeSubsPlayers} title={match.home_club_name} goals={goals} isHome={true} />
+                                            <TeamLineup lineup={awayLineupPlayers} subs={awaySubsPlayers} title={match.away_club_name} goals={goals} isHome={false} />
+                                        </div>
+                                        {(goals.length > 0 || substitutions.length > 0) && (
+                                            <MatchEvents goals={goals} substitutions={substitutions} homePlayers={homePlayers} awayPlayers={awayPlayers} nations={nations} match={match} />
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </TabsContent>
                     </Tabs>
                 )}
+            </DialogContent>
+        </Dialog>
+    );
+}
 
-                {/* Match Events */}
-                {(goals.length > 0 || substitutions.length > 0) && (
+const MatchEvents = ({ goals, substitutions, homePlayers, awayPlayers, nations, match }) => (
+    <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Match Events</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <div className="space-y-3">
+                {/* Goals */}
+                {goals.sort((a, b) => a.minute - b.minute).map((goal, index) => {
+                    const players = goal.is_home ? homePlayers : awayPlayers;
+                    const player = players.find(p => p.id === goal.player_id);
+                    const nation = nations.find(n => n.name === player?.nationality);
+                    return (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
+                            <Target className="w-5 h-5 text-emerald-600" />
+                            <span className="font-mono text-sm text-emerald-700 font-bold w-12">{goal.minute}'</span>
+                            {player ? (
+                                <Link to={createPageUrl(`PlayerDetail?id=${player.id}`)} className="flex-1 hover:underline">
+                                    {player.full_name}
+                                </Link>
+                            ) : (
+                                <span className="flex-1">Unknown Player</span>
+                            )}
+                            {nation?.flag_url && <img src={nation.flag_url} alt="" className="w-5 h-3 object-contain" />}
+                            <Badge className={goal.is_home ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"}>
+                                {goal.is_home ? match.home_club_name : match.away_club_name}
+                            </Badge>
+                        </div>
+                    );
+                })}
+                
+                {/* Substitutions */}
+                {substitutions.sort((a, b) => a.minute - b.minute).map((sub, index) => {
+                    const players = sub.is_home ? homePlayers : awayPlayers;
+                    const playerIn = players.find(p => p.id === sub.player_in_id);
+                    const playerOut = players.find(p => p.id === sub.player_out_id);
+                    return (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                            <ArrowRightLeft className="w-5 h-5 text-slate-600" />
+                            <span className="font-mono text-sm text-slate-700 font-bold w-12">{sub.minute}'</span>
+                            <div className="flex-1">
+                                <div className="text-sm">
+                                    <span className="text-green-600">IN: </span>
+                                    {playerIn ? (
+                                        <Link to={createPageUrl(`PlayerDetail?id=${playerIn.id}`)} className="hover:underline">{playerIn.full_name}</Link>
+                                    ) : 'Unknown'}
+                                </div>
+                                <div className="text-sm">
+                                    <span className="text-red-600">OUT: </span>
+                                    {playerOut ? (
+                                        <Link to={createPageUrl(`PlayerDetail?id=${playerOut.id}`)} className="hover:underline">{playerOut.full_name}</Link>
+                                    ) : 'Unknown'}
+                                </div>
+                            </div>
+                            <Badge variant="outline">{sub.is_home ? match.home_club_name : match.away_club_name}</Badge>
+                        </div>
+                    );
+                })}
+            </div>
+        </CardContent>
+    </Card>
+);
+
+function Link({ to, children, className }) {
+    return (
+        <a href={to} className={className}>
+            {children}
+        </a>
+    );
+}
                     <Card className="border-0 shadow-sm">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-lg">Match Events</CardTitle>
