@@ -231,7 +231,6 @@ Return a JSON array with this exact structure:
         });
 
         let players = response.players || [];
-        const requestedCount = parseInt(config.playerCount);
         
         // Tolerance: within 18-26 for 25, or min 11 for lower counts
         const minAcceptable = Math.max(11, Math.floor(requestedCount * 0.72));
