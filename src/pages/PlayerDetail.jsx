@@ -70,6 +70,30 @@ export default function PlayerDetail() {
         queryFn: () => base44.entities.Club.list(),
     });
 
+    // Parse club history and match with actual clubs
+    const clubHistory = useMemo(() => {
+        if (!player?.club_history) return [];
+        
+        // Parse format: "ClubName (2018-2020), ClubName (2020-2023)"
+        const historyEntries = player.club_history.split(',').map(entry => {
+            const match = entry.trim().match(/^(.+?)\s*\((\d{4})-(\d{4})\)$/);
+            if (!match) return null;
+            
+            const [, clubName, startYear, endYear] = match;
+            const foundClub = allClubs.find(c => c.name.toLowerCase() === clubName.trim().toLowerCase());
+            const clubNation = foundClub ? nations.find(n => n.id === foundClub.nation_id) : null;
+            
+            return {
+                clubName: clubName.trim(),
+                club: foundClub,
+                nation: clubNation,
+                years: `${startYear}-${endYear}`
+            };
+        }).filter(Boolean);
+        
+        return historyEntries;
+    }, [player?.club_history, allClubs, nations]);
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Player.update(playerId, data),
         onSuccess: () => {
@@ -103,30 +127,6 @@ export default function PlayerDetail() {
 
     const displayName = player.full_name || `${player.first_name} ${player.last_name}`;
     const age = player.age || new Date().getFullYear() - (player.date_of_birth ? new Date(player.date_of_birth).getFullYear() : 2000);
-
-    // Parse club history and match with actual clubs
-    const clubHistory = useMemo(() => {
-        if (!player.club_history) return [];
-        
-        // Parse format: "ClubName (2018-2020), ClubName (2020-2023)"
-        const historyEntries = player.club_history.split(',').map(entry => {
-            const match = entry.trim().match(/^(.+?)\s*\((\d{4})-(\d{4})\)$/);
-            if (!match) return null;
-            
-            const [, clubName, startYear, endYear] = match;
-            const club = allClubs.find(c => c.name.toLowerCase() === clubName.trim().toLowerCase());
-            const clubNation = club ? nations.find(n => n.id === club.nation_id) : null;
-            
-            return {
-                clubName: clubName.trim(),
-                club,
-                nation: clubNation,
-                years: `${startYear}-${endYear}`
-            };
-        }).filter(Boolean);
-        
-        return historyEntries;
-    }, [player.club_history, allClubs, nations]);
 
     return (
         <div className="min-h-screen bg-slate-50">
