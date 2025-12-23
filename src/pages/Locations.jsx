@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { MapPin, Users, Shield, ChevronRight, Search, Globe, Building2, Home, Star, Filter, ArrowUpDown } from 'lucide-react';
+import { estimateLocationPopulation as calcLocationPop } from '@/components/common/populationUtils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,42 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from '@/components/common/PageHeader';
 
-// Estimate population based on clubs in location with pseudo-random variance
-function estimateLocationPopulation(clubCount, locationType, isCapital = false, locationName = '') {
-    // Use location name as seed for consistent "random" values
-    const seed = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const pseudoRandom = (min, max) => {
-        const x = Math.sin(seed) * 10000;
-        const rand = x - Math.floor(x);
-        return Math.floor(rand * (max - min + 1)) + min;
-    };
-    
-    const baseMultipliers = {
-        region: 400000,
-        district: 80000,
-        settlement: 20000
-    };
-    let base = baseMultipliers[locationType] || 50000;
-    
-    // Capitals get a significant boost
-    if (isCapital) {
-        base = Math.max(base * 5, 300000);
-    }
-    
-    // Random variance (0.7 to 1.4)
-    const variance = 0.7 + (pseudoRandom(0, 70) / 100);
-    let population = Math.floor((clubCount * base + base * 0.3) * variance);
-    
-    // Ensure capitals have respectable minimum
-    if (isCapital && population < 600000) {
-        population = 600000 + (clubCount * 120000) + pseudoRandom(10000, 50000);
-    }
-    
-    if (population >= 1000000) {
-        return `${(population / 1000000).toFixed(2)}M`;
-    }
-    return `${Math.round(population / 1000)}K`;
-}
+import { estimateLocationPopulation as calcLocationPop } from '@/components/common/populationUtils';
 
 export default function Locations() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -140,22 +106,10 @@ export default function Locations() {
         };
     }, [displayClubs, nations]);
 
-    // Helper to get population value for sorting
+    // Helper to get population value for sorting - use same calculation as detail page
     const getPopulationValue = (location) => {
-        const seed = location.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const pseudoRandom = (min, max) => {
-            const x = Math.sin(seed) * 10000;
-            const rand = x - Math.floor(x);
-            return Math.floor(rand * (max - min + 1)) + min;
-        };
-        const baseMultipliers = { region: 400000, district: 80000, settlement: 20000 };
-        const isCapital = location.type === 'settlement' && location.nation?.capital?.toLowerCase() === location.name.toLowerCase();
-        let base = baseMultipliers[location.type] || 50000;
-        if (isCapital) base = Math.max(base * 5, 300000);
-        const variance = 0.7 + (pseudoRandom(0, 70) / 100);
-        let population = Math.floor((location.clubs.length * base + base * 0.3) * variance);
-        if (isCapital && population < 600000) population = 600000 + (location.clubs.length * 120000);
-        return population;
+        const pop = calcLocationPop(location.type, location.clubs, location.nation, location.name);
+        return pop?.value || 0;
     };
 
     // Sort locations
@@ -234,7 +188,7 @@ export default function Locations() {
                                     )}
                                     <span className="flex items-center gap-1">
                                         <Users className="w-3 h-3" />
-                                        ~{estimateLocationPopulation(location.clubs.length, location.type, isCapital, location.name)}
+                                        ~{calcLocationPop(location.type, location.clubs, location.nation, location.name)?.display || '—'}
                                     </span>
                                 </div>
                                 {location.region && location.type !== 'region' && (
