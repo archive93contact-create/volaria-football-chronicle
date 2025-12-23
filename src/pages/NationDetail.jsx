@@ -811,6 +811,40 @@ export default function NationDetail() {
                             </Select>
                         </div>
 
+                        <div>
+                            <Label>Naming Convention Styles (select up to 4)</Label>
+                            <div className="grid grid-cols-2 gap-2 mt-2 p-3 bg-slate-50 rounded-lg max-h-64 overflow-y-auto">
+                                {[
+                                    'English/British', 'Spanish', 'Italian', 'German', 'French', 'Portuguese',
+                                    'Dutch', 'Scandinavian', 'Eastern European', 'Balkan', 'Turkish',
+                                    'Arabic', 'North African', 'East African', 'South African', 'Brazilian', 
+                                    'Central Asian', 'South East Asian', 'East Asian', 'Celtic', 'Nordic'
+                                ].map(style => {
+                                    const currentStyles = editData.naming_styles || [];
+                                    const isSelected = currentStyles.includes(style);
+                                    return (
+                                        <label key={style} className="flex items-center gap-2 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                onChange={(e) => {
+                                                    if (e.target.checked && currentStyles.length < 4) {
+                                                        setEditData({...editData, naming_styles: [...currentStyles, style]});
+                                                    } else if (!e.target.checked) {
+                                                        setEditData({...editData, naming_styles: currentStyles.filter(s => s !== style)});
+                                                    }
+                                                }}
+                                                disabled={!isSelected && currentStyles.length >= 4}
+                                                className="rounded"
+                                            />
+                                            {style}
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">{(editData.naming_styles || []).length}/4 styles selected</p>
+                        </div>
+
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}>
                                 <X className="w-4 h-4 mr-2" /> Cancel
