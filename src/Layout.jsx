@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -21,12 +21,13 @@ export default function Layout({ children, currentPageName }) {
     }, [location.pathname, location.search]);
 
     const mainNavItems = [
-                                { name: 'Home', icon: Home, page: 'Home' },
-                                { name: 'Nations', icon: Globe, page: 'Nations' },
-                                { name: 'Clubs', icon: Shield, page: 'AllClubs' },
-                                { name: 'Seasons', icon: Trophy, page: 'Seasons' },
-                                { name: 'Continental', icon: Star, page: 'ContinentalCompetitions' },
-                            ];
+                                        { name: 'Home', icon: Home, page: 'Home' },
+                                        { name: 'Nations', icon: Globe, page: 'Nations' },
+                                        { name: 'Clubs', icon: Shield, page: 'AllClubs' },
+                                        { name: 'Players', icon: Users, page: 'Players' },
+                                        { name: 'Seasons', icon: Trophy, page: 'Seasons' },
+                                        { name: 'Continental', icon: Star, page: 'ContinentalCompetitions' },
+                                    ];
 
             const toolsDropdown = [
                 { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },

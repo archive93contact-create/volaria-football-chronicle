@@ -360,6 +360,10 @@ export default function NationDetail() {
                             <Layers className="w-4 h-4" />
                             League Pyramid
                         </TabsTrigger>
+                        <TabsTrigger value="national-squad" className="flex items-center gap-2">
+                            <Trophy className="w-4 h-4" />
+                            National Squad
+                        </TabsTrigger>
                         <TabsTrigger value="details" className="flex items-center gap-2">
                             <MapPin className="w-4 h-4" />
                             Nation Details
@@ -372,6 +376,122 @@ export default function NationDetail() {
 
                     <TabsContent value="pyramid">
                         <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
+                    </TabsContent>
+
+                    <TabsContent value="national-squad">
+                        {(() => {
+                            const { data: allPlayers = [] } = useQuery({
+                                queryKey: ['nationalSquadPlayers', nation.name],
+                                queryFn: () => base44.entities.Player.filter({ nationality: nation.name }),
+                            });
+
+                            // Pick top 2 per position based on overall + potential
+                            const positions = {
+                                GK: allPlayers.filter(p => p.position === 'GK'),
+                                DEF: allPlayers.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
+                                MID: allPlayers.filter(p => ['CDM', 'CM', 'CAM'].includes(p.position)),
+                                FWD: allPlayers.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
+                            };
+
+                            const squad = {};
+                            Object.keys(positions).forEach(pos => {
+                                squad[pos] = positions[pos]
+                                    .sort((a, b) => (b.overall_rating + b.potential) - (a.overall_rating + a.potential))
+                                    .slice(0, pos === 'DEF' ? 8 : pos === 'MID' ? 8 : pos === 'GK' ? 3 : 5);
+                            });
+
+                            const totalPlayers = Object.values(squad).flat().length;
+
+                            if (totalPlayers === 0) {
+                                return (
+                                    <Card className="border-dashed border-2 border-slate-300">
+                                        <CardContent className="flex flex-col items-center justify-center py-16">
+                                            <Trophy className="w-16 h-16 text-slate-300 mb-4" />
+                                            <h3 className="text-xl font-semibold text-slate-700 mb-2">No Players from {nation.name}</h3>
+                                            <p className="text-slate-500">Generate players for clubs to build a national squad</p>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            }
+
+                            const positionNames = {
+                                GK: 'Goalkeepers',
+                                DEF: 'Defenders',
+                                MID: 'Midfielders',
+                                FWD: 'Forwards'
+                            };
+
+                            return (
+                                <div className="space-y-6">
+                                    <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Trophy className="w-6 h-6 text-blue-600" />
+                                                {nation.name} National Squad
+                                            </CardTitle>
+                                            <p className="text-sm text-slate-600 mt-1">
+                                                {totalPlayers} players selected based on ratings and potential
+                                            </p>
+                                        </CardHeader>
+                                    </Card>
+
+                                    {Object.entries(squad).map(([pos, players]) => {
+                                        if (players.length === 0) return null;
+                                        return (
+                                            <Card key={pos} className="border-0 shadow-sm">
+                                                <CardHeader>
+                                                    <CardTitle>{positionNames[pos]}</CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <div className="space-y-2">
+                                                        {players.map(player => {
+                                                            const club = clubs.find(c => c.id === player.club_id);
+                                                            return (
+                                                                <div key={player.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                                                    <Link to={createPageUrl(`PlayerDetail?id=${player.id}`)} className="flex items-center gap-3 flex-1">
+                                                                        {player.photo_url ? (
+                                                                            <img src={player.photo_url} alt={player.full_name} className="w-12 h-12 rounded-full object-cover" />
+                                                                        ) : (
+                                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                                                                                <span className="text-lg font-bold text-blue-600">{player.first_name?.[0]}{player.last_name?.[0]}</span>
+                                                                            </div>
+                                                                        )}
+                                                                        <div className="flex-1">
+                                                                            <div className="font-semibold text-slate-900">{player.full_name || `${player.first_name} ${player.last_name}`}</div>
+                                                                            <div className="text-sm text-slate-500 flex items-center gap-2">
+                                                                                <span className="px-2 py-0.5 bg-slate-200 rounded text-xs font-semibold">{player.position}</span>
+                                                                                <span>Age {player.age}</span>
+                                                                                {player.birth_place && <span>• {player.birth_place}</span>}
+                                                                            </div>
+                                                                        </div>
+                                                                    </Link>
+                                                                    {club && (
+                                                                        <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-2 hover:text-emerald-600">
+                                                                            {club.logo_url && <img src={club.logo_url} alt={club.name} className="w-8 h-8 object-contain" />}
+                                                                            <span className="text-sm font-medium hidden md:block">{club.name}</span>
+                                                                        </Link>
+                                                                    )}
+                                                                    <div className="flex gap-3">
+                                                                        <div className="text-center">
+                                                                            <div className="text-lg font-bold text-emerald-600">{player.overall_rating}</div>
+                                                                            <div className="text-xs text-slate-500">OVR</div>
+                                                                        </div>
+                                                                        <div className="text-center">
+                                                                            <div className="text-lg font-bold text-blue-600">{player.potential}</div>
+                                                                            <div className="text-xs text-slate-500">POT</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
                     </TabsContent>
 
                     <TabsContent value="details">
