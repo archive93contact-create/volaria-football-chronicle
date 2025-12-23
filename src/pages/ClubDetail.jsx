@@ -950,7 +950,8 @@ export default function ClubDetail() {
                     <Tabs defaultValue="seasons" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
-                        <TabsTrigger value="squad">Squad</TabsTrigger>
+                        <TabsTrigger value="squad">Squad ({players.length})</TabsTrigger>
+                        <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="continental">Continental</TabsTrigger>
                         <TabsTrigger value="info">Club Info</TabsTrigger>
                     </TabsList>
@@ -1030,14 +1031,15 @@ export default function ClubDetail() {
 
                     <TabsContent value="squad">
                         {(() => {
+                            const seniorPlayers = players.filter(p => !p.is_youth_player);
                             const byPosition = {
-                                GK: players.filter(p => p.position === 'GK'),
-                                DEF: players.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
-                                MID: players.filter(p => ['CDM', 'CM', 'CAM'].includes(p.position)),
-                                FWD: players.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
+                                GK: seniorPlayers.filter(p => p.position === 'GK'),
+                                DEF: seniorPlayers.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
+                                MID: seniorPlayers.filter(p => ['CDM', 'CM', 'CAM'].includes(p.position)),
+                                FWD: seniorPlayers.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
                             };
 
-                            return players.length === 0 ? (
+                            return seniorPlayers.length === 0 ? (
                                 <Card className="border-dashed border-2 border-slate-300">
                                     <CardContent className="flex flex-col items-center justify-center py-16">
                                         <Users className="w-16 h-16 text-slate-300 mb-4" />
@@ -1095,6 +1097,61 @@ export default function ClubDetail() {
                                 </div>
                             );
                         })()}
+                    </TabsContent>
+
+                    <TabsContent value="youth">
+                    {(() => {
+                        const youthPlayers = players.filter(p => p.is_youth_player);
+                        const byPosition = {
+                            GK: youthPlayers.filter(p => p.position === 'GK'),
+                            DEF: youthPlayers.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
+                            MID: youthPlayers.filter(p => ['CDM', 'CM', 'CAM'].includes(p.position)),
+                            FWD: youthPlayers.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
+                        };
+
+                        return youthPlayers.length === 0 ? (
+                            <Card className="border-dashed border-2 border-slate-300">
+                                <CardContent className="flex flex-col items-center justify-center py-16">
+                                    <Users className="w-16 h-16 text-slate-300 mb-4" />
+                                    <h3 className="text-xl font-semibold text-slate-700 mb-2">No Youth Players</h3>
+                                    <p className="text-slate-500 mb-4">Youth academy not yet populated</p>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="space-y-6">
+                                {Object.entries(byPosition).map(([pos, plrs]) => {
+                                    if (plrs.length === 0) return null;
+                                    const positionNames = {
+                                        GK: 'Goalkeepers',
+                                        DEF: 'Defenders',
+                                        MID: 'Midfielders',
+                                        FWD: 'Forwards'
+                                    };
+                                    return (
+                                        <Card key={pos} className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <Users className="w-5 h-5 text-blue-600" />
+                                                    {positionNames[pos]}
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-2">
+                                                    {plrs.sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(player => (
+                                                        <PlayerProfile 
+                                                            key={player.id} 
+                                                            player={player}
+                                                            onUpdate={() => queryClient.invalidateQueries(['players'])}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
                     </TabsContent>
 
                     <TabsContent value="continental">
