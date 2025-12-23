@@ -81,7 +81,8 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                 top: `elite quality ratings 75-90, world-class potential for top tier ${tier} club`,
                 good: `strong quality ratings 65-80, competitive for tier ${tier}`,
                 realistic: `realistic ratings 55-75 suitable for tier ${tier} club`,
-                lower: `modest ratings 45-65, developing tier ${tier} squad`
+                lower: `modest ratings 45-65, developing tier ${tier} squad`,
+                amateur: `amateur level ratings 25-55, grassroots tier ${tier} club`
             };
 
             // Get naming styles from nations
@@ -308,6 +309,7 @@ OUTPUT EXACTLY ${count} PLAYERS WITH:
                                     <SelectItem value="good">Good Quality (65-80)</SelectItem>
                                     <SelectItem value="realistic">Realistic (55-75)</SelectItem>
                                     <SelectItem value="lower">Developing (45-65)</SelectItem>
+                                    <SelectItem value="amateur">Amateur (25-55)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
