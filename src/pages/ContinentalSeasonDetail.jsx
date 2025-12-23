@@ -178,7 +178,7 @@ export default function ContinentalSeasonDetail() {
                                                     <img 
                                                         src={club.logo_url} 
                                                         alt={club.name}
-                                                        className={`w-full h-full object-contain bg-white/20 rounded-lg p-1 ${club.isChampion ? 'ring-2 ring-amber-400' : ''}`}
+                                                        className={`w-full h-full object-contain bg-white rounded-lg p-1 shadow-sm ${club.isChampion ? 'ring-2 ring-amber-400' : ''}`}
                                                     />
                                                     {club.isChampion && <Trophy className="absolute -top-1 -right-1 w-4 h-4 text-amber-400" />}
                                                 </div>

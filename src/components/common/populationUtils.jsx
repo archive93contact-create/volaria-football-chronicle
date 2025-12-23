@@ -223,10 +223,20 @@ export function estimateLocationPopulation(locationType, locationClubs, nation, 
     
     let display;
     if (totalPopulation >= 1000000) {
-        display = `${(totalPopulation / 1000000).toFixed(2)} million`;
+        display = `${(totalPopulation / 1000000).toFixed(2)}M`;
+    } else if (totalPopulation >= 1000) {
+        display = `${Math.round(totalPopulation / 1000)}K`;
     } else {
         display = totalPopulation.toLocaleString();
     }
     
-    return { value: totalPopulation, display };
+    // Determine settlement size based on population
+    let settlementSizeCategory = null;
+    if (locationType === 'settlement') {
+        if (totalPopulation >= 150000) settlementSizeCategory = 'city';
+        else if (totalPopulation >= 20000) settlementSizeCategory = 'town';
+        else settlementSizeCategory = 'village';
+    }
+    
+    return { value: totalPopulation, display, settlementSize: settlementSizeCategory };
 }
