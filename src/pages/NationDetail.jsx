@@ -257,6 +257,70 @@ export default function NationDetail() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* AI Enhanced Nation Content */}
+                <AdminOnly>
+                    <div className="mb-6">
+                        <AINationEnhancer 
+                            nation={nation} 
+                            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['nation', nationId] })}
+                        />
+                    </div>
+                </AdminOnly>
+
+                {/* Display AI-Generated Content */}
+                {(nation.culture || nation.geography || nation.national_media || nation.cuisine || nation.famous_for) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        {nation.culture && (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
+                                <CardHeader className="pb-2"><CardTitle className="text-lg">Culture & Identity</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.culture}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {nation.geography && (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 border-l-4 border-l-emerald-500">
+                                <CardHeader className="pb-2"><CardTitle className="text-lg">Geography & Climate</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.geography}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {nation.national_media && (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-l-blue-500">
+                                <CardHeader className="pb-2"><CardTitle className="text-lg">National Media</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.national_media}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {nation.cuisine && (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 border-l-4 border-l-amber-500">
+                                <CardHeader className="pb-2"><CardTitle className="text-lg">Cuisine</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.cuisine}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {nation.famous_for && (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-rose-50 to-pink-50 border-l-4 border-l-rose-500">
+                                <CardHeader className="pb-2"><CardTitle className="text-lg">Famous For</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-slate-700 text-sm whitespace-pre-line">{nation.famous_for}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {nation.government_type && (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-slate-50 to-gray-50 border-l-4 border-l-slate-500">
+                                <CardHeader className="pb-2"><CardTitle className="text-lg">Government</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-slate-700 text-sm">{nation.government_type}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                )}
+
                 {/* Nation Stats */}
                 <NationStats nation={nation} clubs={clubs} leagues={leagues} coefficient={coefficient} />
 
