@@ -301,8 +301,12 @@ export default function ClubDetail() {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.secondary_color || club.primary_color || '#3b82f6'})` }}>
-                <div className="absolute inset-0 bg-black/30" />
+                  <div className="relative overflow-hidden" style={{ 
+                      background: club.accent_color 
+                          ? `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.accent_color}, ${club.secondary_color || '#3b82f6'})` 
+                          : `linear-gradient(135deg, ${club.primary_color || '#1e40af'}, ${club.secondary_color || club.primary_color || '#3b82f6'})`
+                  }}>
+                      <div className="absolute inset-0 bg-black/30" />
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <nav className="flex items-center gap-2 text-sm text-white/70 mb-4 flex-wrap">
                         <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
@@ -1096,10 +1100,15 @@ export default function ClubDetail() {
                                                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                       <div className="lg:col-span-2 space-y-6">
                                                           {/* Club Infrastructure */}
-                                                          <ClubInfrastructure club={club} league={league} nation={nation} />
+                                                                                                    <ClubInfrastructure club={club} league={league} nation={nation} />
 
-                                                          {/* Location & Basic Info Card */}
-                                                          <Card className="border-0 shadow-sm">
+                                                                                                    {/* Club Kits */}
+                                                                                                    <KitDisplay club={club} onKitsGenerated={(updatedClub) => {
+                                                                                                        queryClient.setQueryData(['club', clubId], updatedClub);
+                                                                                                    }} />
+
+                                                                                                    {/* Location & Basic Info Card */}
+                                                                                                    <Card className="border-0 shadow-sm">
                                     <CardHeader><CardTitle>Club Information</CardTitle></CardHeader>
                                     <CardContent>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -1474,6 +1483,9 @@ export default function ClubDetail() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Branding Palette */}
+                        <BrandingPalette club={club} editData={editData} setEditData={setEditData} />
 
                         {/* Continental Honours Section */}
                         <div className="border-t pt-4 mt-4">

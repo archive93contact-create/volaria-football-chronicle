@@ -252,7 +252,11 @@ export default function LeagueDetail() {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${league.primary_color || '#1e40af'}, ${league.secondary_color || '#3b82f6'})` }}>
+            <div className="relative overflow-hidden" style={{ 
+                background: league.accent_color 
+                    ? `linear-gradient(135deg, ${league.primary_color || '#1e40af'}, ${league.accent_color}, ${league.secondary_color || '#3b82f6'})` 
+                    : `linear-gradient(135deg, ${league.primary_color || '#1e40af'}, ${league.secondary_color || '#3b82f6'})`
+            }}>
                 <div className="absolute inset-0 bg-black/20" />
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <nav className="flex items-center gap-2 text-sm text-white/70 mb-4">
@@ -817,6 +821,39 @@ export default function LeagueDetail() {
                         <div className="grid grid-cols-2 gap-4">
                             <div><Label>League Name</Label><Input value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
                             <div><Label>Tier</Label><Input type="number" value={editData.tier || ''} onChange={(e) => setEditData({...editData, tier: e.target.value})} className="mt-1" /></div>
+                        </div>
+                        <div>
+                            <Label className="text-xs">Accent Color</Label>
+                            <div className="flex gap-2 mt-1">
+                                <input 
+                                    type="color" 
+                                    value={editData.accent_color || '#10b981'} 
+                                    onChange={(e) => setEditData({...editData, accent_color: e.target.value})}
+                                    className="w-12 h-10 rounded cursor-pointer"
+                                />
+                                <input 
+                                    type="text" 
+                                    value={editData.accent_color || ''} 
+                                    onChange={(e) => setEditData({...editData, accent_color: e.target.value})}
+                                    placeholder="#10b981"
+                                    className="flex-1 px-3 py-2 border rounded text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <Label className="text-xs">Text Style</Label>
+                            <Select 
+                                value={editData.text_style || 'modern'} 
+                                onValueChange={(v) => setEditData({...editData, text_style: v})}
+                            >
+                                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="modern">Modern</SelectItem>
+                                    <SelectItem value="classic">Classic</SelectItem>
+                                    <SelectItem value="bold">Bold</SelectItem>
+                                    <SelectItem value="elegant">Elegant</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div><Label>Founded</Label><Input type="number" value={editData.founded_year || ''} onChange={(e) => setEditData({...editData, founded_year: e.target.value})} className="mt-1" /></div>
