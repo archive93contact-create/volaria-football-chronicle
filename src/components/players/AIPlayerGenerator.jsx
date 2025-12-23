@@ -63,9 +63,17 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                 lower: `modest ratings 45-65, developing tier ${tier} squad`
             };
 
-            const namingStylesText = namingStyles.length > 0 
-                ? `Use these naming styles: ${namingStyles.join(', ')}. Mix them realistically.`
-                : `Use ${nation?.language || 'diverse'} naming conventions.`;
+            // Get naming styles from nations
+            const nationNamingMap = {};
+            for (const n of allNations) {
+                if (n.naming_styles && n.naming_styles.length > 0) {
+                    nationNamingMap[n.name] = n.naming_styles;
+                }
+            }
+            
+            const namingStylesText = Object.keys(nationNamingMap).length > 0
+                ? `IMPORTANT: Use naming styles per nation: ${Object.entries(nationNamingMap).map(([name, styles]) => `${name}: ${styles.join(', ')}`).join(' | ')}`
+                : `Use realistic naming conventions for each nation.`;
 
             // Build realistic squad composition rules based on continental membership
             const isVCC = nation?.membership === 'VCC';
@@ -248,34 +256,7 @@ For each player provide:
                             </Select>
                         </div>
 
-                        <div>
-                            <Label>Naming Styles (optional, select up to 4)</Label>
-                            <div className="grid grid-cols-2 gap-2 mt-2 p-3 bg-slate-50 rounded-lg max-h-48 overflow-y-auto">
-                                {[
-                                    'English/British', 'Spanish', 'Italian', 'German', 'French', 'Portuguese',
-                                    'Dutch', 'Scandinavian', 'Eastern European', 'Balkan', 'Turkish',
-                                    'Arabic', 'African', 'Brazilian', 'Asian', 'Celtic', 'Nordic'
-                                ].map(style => (
-                                    <label key={style} className="flex items-center gap-2 text-sm">
-                                        <input
-                                            type="checkbox"
-                                            checked={namingStyles.includes(style)}
-                                            onChange={(e) => {
-                                                if (e.target.checked && namingStyles.length < 4) {
-                                                    setNamingStyles([...namingStyles, style]);
-                                                } else if (!e.target.checked) {
-                                                    setNamingStyles(namingStyles.filter(s => s !== style));
-                                                }
-                                            }}
-                                            disabled={!namingStyles.includes(style) && namingStyles.length >= 4}
-                                            className="rounded"
-                                        />
-                                        {style}
-                                    </label>
-                                ))}
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1">{namingStyles.length}/4 styles selected</p>
-                        </div>
+
 
                         <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
                             <input
