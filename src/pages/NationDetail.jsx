@@ -405,7 +405,7 @@ export default function NationDetail() {
 
                     <TabsContent value="national-squad">
                         {(() => {
-                            // Pick top 2 per position based on overall + potential
+                            // Pick top 22 players with balanced squad
                             const positions = {
                                 GK: nationalPlayers.filter(p => p.position === 'GK'),
                                 DEF: nationalPlayers.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
@@ -413,11 +413,42 @@ export default function NationDetail() {
                                 FWD: nationalPlayers.filter(p => ['LW', 'RW', 'ST'].includes(p.position))
                             };
 
-                            const squad = {};
+                            // Sort all players by rating
                             Object.keys(positions).forEach(pos => {
-                                squad[pos] = positions[pos]
-                                    .sort((a, b) => (b.overall_rating + b.potential) - (a.overall_rating + a.potential))
-                                    .slice(0, pos === 'DEF' ? 8 : pos === 'MID' ? 8 : pos === 'GK' ? 3 : 5);
+                                positions[pos].sort((a, b) => ((b.overall_rating || 0) + (b.potential || 0)) - ((a.overall_rating || 0) + (a.potential || 0)));
+                            });
+
+                            const squad = {};
+                            const selected = new Set();
+                            
+                            // First, guarantee 2 best per position
+                            Object.keys(positions).forEach(pos => {
+                                squad[pos] = [];
+                                const minPerPos = pos === 'GK' ? 2 : 2;
+                                positions[pos].slice(0, minPerPos).forEach(p => {
+                                    squad[pos].push(p);
+                                    selected.add(p.id);
+                                });
+                            });
+
+                            // Fill remaining spots (22 - 8 = 14) with best available players, prioritizing positions
+                            const currentTotal = Object.values(squad).flat().length;
+                            const remaining = 22 - currentTotal;
+                            const maxPerPosition = { GK: 3, DEF: 8, MID: 7, FWD: 5 };
+                            
+                            const allRemaining = [];
+                            Object.entries(positions).forEach(([pos, players]) => {
+                                players.forEach(p => {
+                                    if (!selected.has(p.id) && squad[pos].length < maxPerPosition[pos]) {
+                                        allRemaining.push({ ...p, pos });
+                                    }
+                                });
+                            });
+                            
+                            allRemaining.sort((a, b) => ((b.overall_rating || 0) + (b.potential || 0)) - ((a.overall_rating || 0) + (a.potential || 0)));
+                            allRemaining.slice(0, remaining).forEach(p => {
+                                squad[p.pos].push(p);
+                                selected.add(p.id);
                             });
 
                             const totalPlayers = Object.values(squad).flat().length;
