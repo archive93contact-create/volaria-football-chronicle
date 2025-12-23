@@ -21,12 +21,14 @@ export default function AILocationImagery({ location, locationType, nation, onIm
             const cultureContext = location.culture_description || nation?.culture || '';
             const economicContext = location.industries || '';
             
-            const prompt = `Photorealistic image of a ${capitalText} ${sizeDesc} called ${location.name} in ${nation?.name || 'a fictional nation'}. 
+            const prompt = `Ultra-realistic modern photograph of a contemporary ${capitalText} ${sizeDesc} called ${location.name}. 
+MODERN DAY SETTING - NOT FANTASY, NOT MEDIEVAL. Show real-world contemporary architecture, modern buildings, paved streets, cars, buses, street signs, traffic lights.
 ${geoContext}. ${cultureContext}. 
-${economicContext ? `Known for: ${economicContext}.` : ''}
-Show authentic architecture, streets with people, vehicles, local character. 
-Hyper-realistic, 4K quality, cinematic lighting, professional photography style.
-${location.landmarks ? `Notable landmarks visible: ${location.landmarks}` : ''}`;
+${economicContext ? `Economic activity: ${economicContext}.` : ''}
+Realistic urban/suburban environment with: modern storefronts, contemporary street furniture, normal everyday people in modern clothing, regular vehicles.
+Professional photography, natural lighting, looks like a real place you could visit today.
+${location.landmarks ? `Include: ${location.landmarks}` : ''}
+Reference: Google Street View aesthetic, National Geographic photography, real city photography - NOT fantasy art, NOT medieval, NOT historical reenactment.`;
 
             const result = await base44.integrations.Core.GenerateImage({
                 prompt: prompt.trim()
