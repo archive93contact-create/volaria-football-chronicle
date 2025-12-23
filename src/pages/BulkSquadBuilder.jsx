@@ -277,8 +277,8 @@ Return a JSON array with this exact structure:
 
         const createdPlayers = await base44.entities.Player.bulkCreate(players);
 
-        // Generate photos asynchronously
-        for (const player of createdPlayers) {
+        // Generate photos in parallel (non-blocking)
+        const photoPromises = createdPlayers.map(async (player) => {
             try {
                 const playerNation = allNations.find(n => n.name === player.nationality);
                 const namingStyles = playerNation?.naming_styles?.join(', ') || 'diverse';
@@ -290,7 +290,10 @@ Return a JSON array with this exact structure:
             } catch (err) {
                 console.error(`Failed to generate photo for ${player.full_name}`);
             }
-        }
+        });
+        
+        // Don't wait for photos - return immediately
+        Promise.all(photoPromises).catch(() => {});
 
         return createdPlayers.length;
     };

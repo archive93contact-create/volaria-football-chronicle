@@ -313,7 +313,8 @@ ${prompt}`,
                 const createdPlayers = await base44.entities.Player.bulkCreate(playersWithDetails);
                 
                 // Generate player images in background (don't await)
-                createdPlayers.forEach(async (player, idx) => {
+                // Generate images in parallel
+                const imagePromises = createdPlayers.map(async (player) => {
                     try {
                         const playerNation = allNations.find(n => n.name === player.nationality);
                         const namingStyles = playerNation?.naming_styles?.join(', ') || 'diverse';
@@ -328,6 +329,9 @@ ${prompt}`,
                         console.log(`Failed to generate image for ${player.full_name}`);
                     }
                 });
+                
+                // Don't wait for images - continue immediately
+                Promise.all(imagePromises).catch(() => {});
                 
                 toast.dismiss('gen-status');
                 toast.success(`${overwriteExisting ? 'Replaced squad with' : 'Generated'} ${players.length} players! Generating portraits...`);

@@ -32,6 +32,7 @@ import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
 import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 import PlayerProfile from '@/components/players/PlayerProfile';
+import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1112,10 +1113,17 @@ export default function ClubDetail() {
                                             />
                                         </div>
                                     </AdminOnly>
-                                </div>
-                            );
-                        })()}
-                    </TabsContent>
+                                    </div>
+                                    <AdminOnly>
+                                    <UpdatePlayerImages 
+                                        clubId={clubId} 
+                                        onComplete={() => queryClient.invalidateQueries(['players'])} 
+                                    />
+                                    </AdminOnly>
+                                    </div>
+                                    );
+                                    })()}
+                                    </TabsContent>
 
                     <TabsContent value="youth">
                     {(() => {
