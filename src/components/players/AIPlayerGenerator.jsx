@@ -109,25 +109,36 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
             let foreignCount = 0;
             
             if (isVCC && tier === 1) {
-                // Top VCC clubs: still mostly domestic, some international
-                domesticCount = Math.floor(count * 0.78); // 78% domestic minimum
+                // Top VCC clubs: mostly domestic, foreign from VCC only with rare CCC exception
+                domesticCount = Math.floor(count * 0.80); // 80% domestic minimum
+                foreignCount = count - domesticCount;
+                const maxCCC = Math.min(2, Math.floor(foreignCount * 0.15)); // Max 2 CCC players, or 15% of foreign slots
+                const vccOptions = vccNations.filter(n => n !== nation?.name).slice(0, 5).join(', ');
+                nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
+STEP 1: Generate EXACTLY ${domesticCount} players from ${nation?.name}
+STEP 2: Generate ${foreignCount - maxCCC} players from VCC nations ONLY: ${vccOptions}
+STEP 3: Generate ${maxCCC} CCC players MAXIMUM (elite quality 75+ only, extremely rare)
+ABSOLUTELY FORBIDDEN: Do NOT add more than ${maxCCC} CCC players under any circumstance
+VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount - maxCCC} VCC + ${maxCCC} CCC = ${count} total`;
+            } else if (isVCC && tier <= 3) {
+                // Mid-tier VCC clubs: overwhelmingly domestic, rare VCC foreign
+                domesticCount = Math.floor(count * 0.92); // 92% domestic
                 foreignCount = count - domesticCount;
                 const vccOptions = vccNations.filter(n => n !== nation?.name).slice(0, 3).join(', ');
-                nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
-YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
-MAXIMUM ${Math.floor(foreignCount * 0.80)} players from VCC nations: ${vccOptions}
-MAXIMUM ${Math.floor(foreignCount * 0.20)} elite CCC players (rating 75+, extremely rare)
-ABSOLUTELY NO other CCC players
-VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
-            } else if (isVCC && tier <= 3) {
-                // Mid-tier VCC clubs: overwhelmingly domestic
-                domesticCount = Math.floor(count * 0.88); // 88% domestic
+                nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
+STEP 1: Generate EXACTLY ${domesticCount} players from ${nation?.name}
+STEP 2: Generate MAXIMUM ${foreignCount} players from nearby VCC nations: ${vccOptions}
+ABSOLUTELY FORBIDDEN: ZERO CCC players allowed at this tier
+VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount} VCC = ${count} total`;
+            } else if (isVCC) {
+                // Lower tier VCC clubs: almost entirely domestic
+                domesticCount = Math.floor(count * 0.96); // 96% domestic
                 foreignCount = count - domesticCount;
-                nationalityRules = `STRICT NATIONALITY RULES - VERIFY YOUR COUNTS:
-YOU MUST GENERATE EXACTLY ${domesticCount} players from ${nation?.name}
-MAXIMUM ${foreignCount} players from VCC nations (neighboring countries only)
-ABSOLUTELY ZERO CCC players
-VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
+                nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
+STEP 1: Generate EXACTLY ${domesticCount} players from ${nation?.name}
+STEP 2: Generate MAXIMUM ${foreignCount} players from nearby VCC nations (rare cases only)
+ABSOLUTELY FORBIDDEN: ZERO CCC players allowed at this tier
+VERIFY YOUR OUTPUT: ${domesticCount} from ${nation?.name} + ${foreignCount} VCC = ${count} total`;
             } else if (isCCC && tier === 1) {
                 // Top CCC clubs: almost entirely domestic
                 domesticCount = Math.floor(count * 0.94); // 94% domestic
