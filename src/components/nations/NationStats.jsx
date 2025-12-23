@@ -371,6 +371,5 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
                 </div>
             </CardContent>
         </Card>
-        </>
     );
 }
