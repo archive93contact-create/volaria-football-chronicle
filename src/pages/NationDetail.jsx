@@ -100,6 +100,20 @@ export default function NationDetail() {
         enabled: !!nation?.name,
     });
 
+    // Calculate national team strength based on top 22 players
+    const nationalTeamStrength = React.useMemo(() => {
+        if (!nationalPlayers.length) return null;
+        
+        const top22 = [...nationalPlayers]
+            .sort((a, b) => ((b.overall_rating || 0) + (b.potential || 0)) - ((a.overall_rating || 0) + (a.potential || 0)))
+            .slice(0, 22);
+        
+        if (top22.length === 0) return null;
+        
+        const avgRating = top22.reduce((sum, p) => sum + (p.overall_rating || 0), 0) / top22.length;
+        return Math.round(avgRating);
+    }, [nationalPlayers]);
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Nation.update(nationId, data),
         onSuccess: () => {
