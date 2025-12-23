@@ -128,6 +128,53 @@ export default function BulkSquadBuilder() {
             amateur: `amateur level ratings 25-55, grassroots tier ${tier} club`
         };
 
+        // Get all nations and categorize by membership
+        const allNations = await base44.entities.Nation.list();
+        const vccNations = allNations.filter(n => n.membership === 'VCC').map(n => n.name);
+        const cccNations = allNations.filter(n => n.membership === 'CCC').map(n => n.name);
+        const isVCC = clubNation?.membership === 'VCC';
+        const requestedCount = parseInt(config.playerCount);
+
+        let nationalityRules = '';
+        let domesticCount = 0;
+        
+        if (isVCC && tier === 1) {
+            domesticCount = Math.floor(requestedCount * 0.80);
+            const foreignCount = requestedCount - domesticCount;
+            const maxCCC = Math.min(2, Math.floor(foreignCount * 0.15));
+            const vccOptions = vccNations.filter(n => n !== clubNation?.name).slice(0, 5).join(', ');
+            nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
+STEP 1: Generate EXACTLY ${domesticCount} players from ${clubNation?.name}
+STEP 2: Generate ${foreignCount - maxCCC} players from VCC nations ONLY: ${vccOptions}
+STEP 3: Generate ${maxCCC} CCC players MAXIMUM (elite quality 75+ only, extremely rare)
+ABSOLUTELY FORBIDDEN: Do NOT add more than ${maxCCC} CCC players
+VERIFY: ${domesticCount} ${clubNation?.name} + ${foreignCount - maxCCC} VCC + ${maxCCC} CCC = ${requestedCount} total`;
+        } else if (isVCC && tier <= 3) {
+            domesticCount = Math.floor(requestedCount * 0.92);
+            const foreignCount = requestedCount - domesticCount;
+            const vccOptions = vccNations.filter(n => n !== clubNation?.name).slice(0, 3).join(', ');
+            nationalityRules = `CRITICAL NATIONALITY RULES - COUNT AND VERIFY:
+STEP 1: Generate EXACTLY ${domesticCount} players from ${clubNation?.name}
+STEP 2: Generate MAXIMUM ${foreignCount} players from nearby VCC nations: ${vccOptions}
+ABSOLUTELY FORBIDDEN: ZERO CCC players allowed
+VERIFY: ${domesticCount} ${clubNation?.name} + ${foreignCount} VCC = ${requestedCount} total`;
+        } else if (isVCC) {
+            domesticCount = Math.floor(requestedCount * 0.96);
+            const foreignCount = requestedCount - domesticCount;
+            nationalityRules = `CRITICAL NATIONALITY RULES:
+Generate EXACTLY ${domesticCount} players from ${clubNation?.name}
+MAXIMUM ${foreignCount} foreign players (VCC nations only, rare)
+ABSOLUTELY FORBIDDEN: ZERO CCC players`;
+        } else {
+            // CCC nations - almost entirely domestic
+            domesticCount = Math.floor(requestedCount * 0.94);
+            const foreignCount = Math.max(1, requestedCount - domesticCount);
+            nationalityRules = `CRITICAL NATIONALITY RULES:
+Generate EXACTLY ${domesticCount} players from ${clubNation?.name}
+MAXIMUM ${foreignCount} foreign player (extremely rare, VCC only if any)
+ABSOLUTELY FORBIDDEN: ZERO other CCC players`;
+        }
+
         const prompt = `Generate ${config.playerCount} realistic football players for ${club.name}, a club in ${clubNation?.name || 'Volaria'}.
 
 SQUAD REQUIREMENTS:
@@ -137,11 +184,9 @@ SQUAD REQUIREMENTS:
 - Quality: ${qualityLevels[config.quality]}
 - League tier: ${tier} (${tier === 1 ? 'top flight' : `tier ${tier}`})
 
-NATIONALITY RULES:
-- Primary nationality: ${clubNation?.name || 'Unknown'}
-${clubNation?.naming_styles ? `- Use naming styles: ${clubNation.naming_styles.join(', ')}` : ''}
-- Diversify: Include 20-40% players from other Volarian nations
-- If no naming styles, use realistic European/international names
+${nationalityRules}
+
+${clubNation?.naming_styles ? `NAMING STYLES for ${clubNation.name}: ${clubNation.naming_styles.join(', ')}` : ''}
 
 BIRTHPLACES:
 ${clubLocations.length > 0 ? `- Prioritize: ${clubLocations.map(l => l.name).join(', ')}` : ''}
