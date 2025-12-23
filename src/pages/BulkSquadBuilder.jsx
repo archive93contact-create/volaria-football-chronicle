@@ -287,6 +287,7 @@ Return a JSON array with this exact structure:
             return;
         }
 
+        toast.warning('⚠️ DO NOT leave this page or refresh! Generation takes 2-5 minutes.', { duration: 10000 });
         setGenerating(true);
         setProgress({});
 
@@ -538,9 +539,13 @@ Return a JSON array with this exact structure:
 
                         {/* Progress Bar */}
                         {generating && selectedCount > 0 && (
-                            <Card className="border-0 shadow-sm mb-6">
+                            <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
                                 <CardContent className="pt-6">
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2 text-blue-800 font-semibold">
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Generating squads... DO NOT leave this page!
+                                        </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="font-medium">Overall Progress</span>
                                             <span className="text-slate-600">
@@ -551,6 +556,9 @@ Return a JSON array with this exact structure:
                                             value={(Object.values(progress).filter(p => p === 'success').length / selectedCount) * 100} 
                                             className="h-2"
                                         />
+                                        <p className="text-xs text-slate-600">
+                                            Estimated time: {Math.ceil((selectedCount - Object.values(progress).filter(p => p === 'success').length) * 30 / 3)} seconds remaining
+                                        </p>
                                     </div>
                                 </CardContent>
                             </Card>
