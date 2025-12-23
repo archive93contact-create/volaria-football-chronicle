@@ -69,10 +69,9 @@ export default function BulkSquadBuilder() {
             setClubConfigs(prev => ({
                 ...prev,
                 [clubId]: {
-                    playerCount: 22,
-                    minAge: 18,
-                    maxAge: 35,
-                    quality: 'balanced',
+                    playerCount: '25',
+                    ageProfile: 'balanced',
+                    quality: 'realistic',
                     overwriteExisting: false
                 }
             }));
@@ -112,33 +111,28 @@ export default function BulkSquadBuilder() {
         );
         const clubSeasons = seasons.filter(s => s.club_id === club.id);
 
-        const qualityMap = {
-            'elite': { minOVR: 75, maxOVR: 90, minPOT: 80, maxPOT: 95 },
-            'strong': { minOVR: 65, maxOVR: 82, minPOT: 70, maxPOT: 88 },
-            'balanced': { minOVR: 55, maxOVR: 75, minPOT: 60, maxPOT: 82 },
-            'developing': { minOVR: 45, maxOVR: 68, minPOT: 50, maxPOT: 75 },
-            'weak': { minOVR: 35, maxOVR: 60, minPOT: 40, maxPOT: 68 }
+        const tier = selectedLeagueData?.tier || 1;
+
+        const ageProfiles = {
+            young: 'mostly young players ages 17-23, some experienced 24-28',
+            balanced: 'mix of youth (17-20), prime (21-28), and experienced (29-34)',
+            experienced: 'mostly experienced players ages 26-34, some young prospects'
         };
 
-        const quality = qualityMap[config.quality];
-        const tier = selectedLeagueData?.tier || 1;
-        const tierPenalty = (tier - 1) * 5;
-        
-        const adjustedQuality = {
-            minOVR: Math.max(35, quality.minOVR - tierPenalty),
-            maxOVR: Math.max(50, quality.maxOVR - tierPenalty),
-            minPOT: Math.max(40, quality.minPOT - tierPenalty),
-            maxPOT: Math.max(60, quality.maxPOT - tierPenalty)
+        const qualityLevels = {
+            top: `elite quality ratings 75-90, world-class potential for top tier ${tier} club`,
+            good: `strong quality ratings 65-80, competitive for tier ${tier}`,
+            realistic: `realistic ratings 55-75 suitable for tier ${tier} club`,
+            lower: `modest ratings 45-65, developing tier ${tier} squad`
         };
 
         const prompt = `Generate ${config.playerCount} realistic football players for ${club.name}, a club in ${clubNation?.name || 'Volaria'}.
 
 SQUAD REQUIREMENTS:
 - ${config.playerCount} total players
-- Position distribution: 2 GK, rest split between defenders (6-8), midfielders (6-8), forwards (4-6)
-- Age range: ${config.minAge}-${config.maxAge} years
-- Overall ratings: ${adjustedQuality.minOVR}-${adjustedQuality.maxOVR}
-- Potential ratings: ${adjustedQuality.minPOT}-${adjustedQuality.maxPOT}
+- Position distribution: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST)
+- Squad composition: ${ageProfiles[config.ageProfile]}
+- Quality: ${qualityLevels[config.quality]}
 - League tier: ${tier} (${tier === 1 ? 'top flight' : `tier ${tier}`})
 
 NATIONALITY RULES:
@@ -356,36 +350,46 @@ Return a JSON array with this exact structure:
                                     {/* Apply to All */}
                                     <div className="p-4 bg-blue-50 rounded-lg mb-4">
                                         <h3 className="font-semibold mb-3 text-blue-900">Apply to All Selected Clubs</h3>
-                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                             <div>
-                                                <Label className="text-xs">Player Count</Label>
-                                                <Input type="number" defaultValue={22} onChange={(e) => applyToAll('playerCount', parseInt(e.target.value))} className="mt-1" />
-                                            </div>
-                                            <div>
-                                                <Label className="text-xs">Min Age</Label>
-                                                <Input type="number" defaultValue={18} onChange={(e) => applyToAll('minAge', parseInt(e.target.value))} className="mt-1" />
-                                            </div>
-                                            <div>
-                                                <Label className="text-xs">Max Age</Label>
-                                                <Input type="number" defaultValue={35} onChange={(e) => applyToAll('maxAge', parseInt(e.target.value))} className="mt-1" />
-                                            </div>
-                                            <div>
-                                                <Label className="text-xs">Quality</Label>
-                                                <Select onValueChange={(v) => applyToAll('quality', v)} defaultValue="balanced">
+                                                <Label className="text-xs">Number of Players</Label>
+                                                <Select onValueChange={(v) => applyToAll('playerCount', v)} defaultValue="25">
                                                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="elite">Elite</SelectItem>
-                                                        <SelectItem value="strong">Strong</SelectItem>
-                                                        <SelectItem value="balanced">Balanced</SelectItem>
-                                                        <SelectItem value="developing">Developing</SelectItem>
-                                                        <SelectItem value="weak">Weak</SelectItem>
+                                                        <SelectItem value="15">15 players</SelectItem>
+                                                        <SelectItem value="20">20 players</SelectItem>
+                                                        <SelectItem value="25">25 players</SelectItem>
+                                                        <SelectItem value="30">30 players</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs">Age Profile</Label>
+                                                <Select onValueChange={(v) => applyToAll('ageProfile', v)} defaultValue="balanced">
+                                                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="young">Young Squad (17-23)</SelectItem>
+                                                        <SelectItem value="balanced">Balanced (17-34)</SelectItem>
+                                                        <SelectItem value="experienced">Experienced (26-34)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs">Quality Level</Label>
+                                                <Select onValueChange={(v) => applyToAll('quality', v)} defaultValue="realistic">
+                                                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="top">Top Quality (75-90)</SelectItem>
+                                                        <SelectItem value="good">Good Quality (65-80)</SelectItem>
+                                                        <SelectItem value="realistic">Realistic (55-75)</SelectItem>
+                                                        <SelectItem value="lower">Developing (45-65)</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                             <div className="flex items-end">
                                                 <label className="flex items-center gap-2 text-xs">
                                                     <Checkbox onCheckedChange={(v) => applyToAll('overwriteExisting', v)} />
-                                                    Overwrite
+                                                    Overwrite Existing
                                                 </label>
                                             </div>
                                         </div>
@@ -402,29 +406,39 @@ Return a JSON array with this exact structure:
                                                         {club.logo_url && <img src={club.logo_url} alt={club.name} className="w-5 h-5 object-contain" />}
                                                         <span className="font-semibold text-sm">{club.name}</span>
                                                     </div>
-                                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                                                         <div>
                                                             <Label className="text-xs">Players</Label>
-                                                            <Input type="number" value={config.playerCount || 22} onChange={(e) => updateClubConfig(clubId, 'playerCount', parseInt(e.target.value))} className="mt-1 h-8" />
+                                                            <Select value={config.playerCount || '25'} onValueChange={(v) => updateClubConfig(clubId, 'playerCount', v)}>
+                                                                <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="15">15</SelectItem>
+                                                                    <SelectItem value="20">20</SelectItem>
+                                                                    <SelectItem value="25">25</SelectItem>
+                                                                    <SelectItem value="30">30</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
                                                         </div>
                                                         <div>
-                                                            <Label className="text-xs">Min Age</Label>
-                                                            <Input type="number" value={config.minAge || 18} onChange={(e) => updateClubConfig(clubId, 'minAge', parseInt(e.target.value))} className="mt-1 h-8" />
-                                                        </div>
-                                                        <div>
-                                                            <Label className="text-xs">Max Age</Label>
-                                                            <Input type="number" value={config.maxAge || 35} onChange={(e) => updateClubConfig(clubId, 'maxAge', parseInt(e.target.value))} className="mt-1 h-8" />
+                                                            <Label className="text-xs">Age Profile</Label>
+                                                            <Select value={config.ageProfile || 'balanced'} onValueChange={(v) => updateClubConfig(clubId, 'ageProfile', v)}>
+                                                                <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="young">Young</SelectItem>
+                                                                    <SelectItem value="balanced">Balanced</SelectItem>
+                                                                    <SelectItem value="experienced">Experienced</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
                                                         </div>
                                                         <div>
                                                             <Label className="text-xs">Quality</Label>
-                                                            <Select value={config.quality || 'balanced'} onValueChange={(v) => updateClubConfig(clubId, 'quality', v)}>
+                                                            <Select value={config.quality || 'realistic'} onValueChange={(v) => updateClubConfig(clubId, 'quality', v)}>
                                                                 <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue /></SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem value="elite">Elite</SelectItem>
-                                                                    <SelectItem value="strong">Strong</SelectItem>
-                                                                    <SelectItem value="balanced">Balanced</SelectItem>
-                                                                    <SelectItem value="developing">Developing</SelectItem>
-                                                                    <SelectItem value="weak">Weak</SelectItem>
+                                                                    <SelectItem value="top">Top</SelectItem>
+                                                                    <SelectItem value="good">Good</SelectItem>
+                                                                    <SelectItem value="realistic">Realistic</SelectItem>
+                                                                    <SelectItem value="lower">Lower</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
                                                         </div>
