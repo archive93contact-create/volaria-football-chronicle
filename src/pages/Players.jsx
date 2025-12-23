@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Filter, Shield } from 'lucide-react';
+import { Users, Search, Filter, Shield, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,6 +18,8 @@ export default function Players() {
     const [minAge, setMinAge] = useState('');
     const [maxAge, setMaxAge] = useState('');
     const [minRating, setMinRating] = useState('');
+    const [sortField, setSortField] = useState('overall_rating');
+    const [sortDirection, setSortDirection] = useState('desc');
 
     const { data: players = [] } = useQuery({
         queryKey: ['allPlayers'],
@@ -52,16 +54,32 @@ export default function Players() {
         
         return matchesSearch && matchesNationality && matchesPosition && matchesClub && 
                matchesMinAge && matchesMaxAge && matchesMinRating;
+    }).sort((a, b) => {
+        let aVal = a[sortField];
+        let bVal = b[sortField];
+        
+        if (sortField === 'nationality') {
+            aVal = a.nationality || '';
+            bVal = b.nationality || '';
+        }
+        
+        if (typeof aVal === 'string') {
+            return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+        
+        return sortDirection === 'asc' ? (aVal || 0) - (bVal || 0) : (bVal || 0) - (aVal || 0);
     });
 
-    const getClubName = (clubId) => {
-        const club = clubs.find(c => c.id === clubId);
-        return club?.name || 'Free Agent';
-    };
+    const getClub = (clubId) => clubs.find(c => c.id === clubId);
+    const getNation = (nationality) => nations.find(n => n.name === nationality);
 
-    const getNationFlag = (nationality) => {
-        const nation = nations.find(n => n.name === nationality);
-        return nation?.flag_url;
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('desc');
+        }
     };
 
     return (
@@ -165,12 +183,52 @@ export default function Players() {
                             <TableHeader>
                                 <TableRow className="bg-slate-100">
                                     <TableHead>Player</TableHead>
-                                    <TableHead>Nationality</TableHead>
+                                    <TableHead 
+                                        className="cursor-pointer hover:bg-slate-200 transition-colors"
+                                        onClick={() => handleSort('nationality')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Nationality
+                                            {sortField === 'nationality' ? (
+                                                sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                                            ) : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                                        </div>
+                                    </TableHead>
                                     <TableHead>Club</TableHead>
                                     <TableHead className="text-center">Pos</TableHead>
-                                    <TableHead className="text-center">Age</TableHead>
-                                    <TableHead className="text-center">OVR</TableHead>
-                                    <TableHead className="text-center">POT</TableHead>
+                                    <TableHead 
+                                        className="text-center cursor-pointer hover:bg-slate-200 transition-colors"
+                                        onClick={() => handleSort('age')}
+                                    >
+                                        <div className="flex items-center justify-center gap-1">
+                                            Age
+                                            {sortField === 'age' ? (
+                                                sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                                            ) : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                                        </div>
+                                    </TableHead>
+                                    <TableHead 
+                                        className="text-center cursor-pointer hover:bg-slate-200 transition-colors"
+                                        onClick={() => handleSort('overall_rating')}
+                                    >
+                                        <div className="flex items-center justify-center gap-1">
+                                            OVR
+                                            {sortField === 'overall_rating' ? (
+                                                sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                                            ) : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                                        </div>
+                                    </TableHead>
+                                    <TableHead 
+                                        className="text-center cursor-pointer hover:bg-slate-200 transition-colors"
+                                        onClick={() => handleSort('potential')}
+                                    >
+                                        <div className="flex items-center justify-center gap-1">
+                                            POT
+                                            {sortField === 'potential' ? (
+                                                sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                                            ) : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                                        </div>
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -204,13 +262,14 @@ export default function Players() {
                                             <TableCell>
                                                 {player.nationality ? (
                                                     <Link 
-                                                        to={createPageUrl(`NationDetail?id=${nations.find(n => n.name === player.nationality)?.id}`)}
+                                                        to={createPageUrl(`NationDetail?id=${getNation(player.nationality)?.id}`)}
                                                         className="flex items-center gap-2 hover:text-emerald-600"
                                                     >
-                                                        {getNationFlag(player.nationality) && (
-                                                            <img src={getNationFlag(player.nationality)} alt={player.nationality} className="w-6 h-4 object-cover rounded shadow-sm" />
+                                                        {getNation(player.nationality)?.flag_url && (
+                                                            <img src={getNation(player.nationality).flag_url} alt={player.nationality} className="w-6 h-4 object-cover rounded shadow-sm" />
                                                         )}
                                                         <span>{player.nationality}</span>
+                                                        {player.is_national_team && <Shield className="w-3 h-3 text-amber-600" />}
                                                     </Link>
                                                 ) : (
                                                     <span className="text-slate-400">Unknown</span>
@@ -222,8 +281,12 @@ export default function Players() {
                                                         to={createPageUrl(`ClubDetail?id=${player.club_id}`)}
                                                         className="flex items-center gap-2 hover:text-emerald-600"
                                                     >
-                                                        <Shield className="w-4 h-4 text-slate-400" />
-                                                        {getClubName(player.club_id)}
+                                                        {getClub(player.club_id)?.logo_url ? (
+                                                            <img src={getClub(player.club_id).logo_url} alt={getClub(player.club_id).name} className="w-5 h-5 object-contain bg-white rounded" />
+                                                        ) : (
+                                                            <Shield className="w-4 h-4 text-slate-400" />
+                                                        )}
+                                                        {getClub(player.club_id)?.name}
                                                     </Link>
                                                 ) : (
                                                     <span className="text-slate-400">Free Agent</span>

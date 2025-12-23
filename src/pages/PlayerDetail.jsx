@@ -129,7 +129,11 @@ export default function PlayerDetail() {
     const age = player.age || new Date().getFullYear() - (player.date_of_birth ? new Date(player.date_of_birth).getFullYear() : 2000);
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50" style={{ 
+            background: club?.primary_color 
+                ? `linear-gradient(to bottom, ${club.primary_color}08 0%, #f8fafc 300px)` 
+                : undefined 
+        }}>
             <PageHeader
                 title={displayName}
                 subtitle={`${player.position} • ${club?.name || 'Free Agent'}`}
@@ -138,6 +142,8 @@ export default function PlayerDetail() {
                     ...(club ? [{ label: club.name, url: createPageUrl(`ClubDetail?id=${club.id}`) }] : []),
                     { label: displayName }
                 ]}
+                primaryColor={club?.primary_color}
+                secondaryColor={club?.secondary_color}
             >
                 <AdminOnly>
                     <div className="flex gap-2">
@@ -305,6 +311,39 @@ export default function PlayerDetail() {
                             </CardContent>
                         </Card>
 
+                        {/* International Career */}
+                        {(player.is_national_team || player.national_team_caps > 0) && (
+                            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Shield className="w-5 h-5 text-amber-600" />
+                                        International Career
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex items-center gap-4 p-3 bg-white/50 rounded-lg">
+                                        {birthNation?.flag_url && (
+                                            <img src={birthNation.flag_url} alt={player.nationality} className="w-16 h-10 object-cover rounded shadow-md" />
+                                        )}
+                                        <div className="flex-1">
+                                            <div className="font-bold text-lg">{player.nationality} National Team</div>
+                                            {player.is_national_team && (
+                                                <Badge className="bg-amber-600 text-white mt-1">Current Squad</Badge>
+                                            )}
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-bold text-amber-600">{player.national_team_caps || 0}</div>
+                                            <div className="text-xs text-slate-500">Caps</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-bold text-amber-600">{player.national_team_goals || 0}</div>
+                                            <div className="text-xs text-slate-500">Goals</div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Club History */}
                         {clubHistory.length > 0 && (
                             <Card className="border-0 shadow-sm">
@@ -318,10 +357,14 @@ export default function PlayerDetail() {
                                                         to={createPageUrl(`ClubDetail?id=${entry.club.id}`)}
                                                         className="flex items-center gap-3 flex-1"
                                                     >
-                                                        {entry.nation?.flag_url && (
-                                                            <img src={entry.nation.flag_url} alt={entry.nation.name} className="w-8 h-5 object-contain rounded shadow-sm" />
+                                                        {entry.club.logo_url ? (
+                                                            <img src={entry.club.logo_url} alt={entry.clubName} className="w-8 h-8 object-contain bg-white rounded p-1" />
+                                                        ) : (
+                                                            <Shield className="w-5 h-5 text-slate-400" />
                                                         )}
-                                                        <Shield className="w-5 h-5 text-slate-400" />
+                                                        {entry.nation?.flag_url && (
+                                                            <img src={entry.nation.flag_url} alt={entry.nation.name} className="w-6 h-4 object-contain rounded shadow-sm" />
+                                                        )}
                                                         <div>
                                                             <div className="font-semibold text-slate-900 hover:text-emerald-600">{entry.clubName}</div>
                                                             <div className="text-xs text-slate-500">{entry.years}</div>
