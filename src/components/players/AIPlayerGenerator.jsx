@@ -28,9 +28,16 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                 }
             }
 
-            // Fetch all Volaria nations
+            // Fetch all Volaria nations and clubs
             const allNations = await base44.entities.Nation.list();
+            const allClubs = await base44.entities.Club.list();
+            
             const nationNames = allNations.map(n => n.name).join(', ');
+            const clubNames = allClubs.map(c => c.name).slice(0, 100).join(', '); // Sample of club names for history
+            
+            // Categorize nations by membership
+            const vccNations = allNations.filter(n => n.membership === 'VCC').map(n => n.name);
+            const cccNations = allNations.filter(n => n.membership === 'CCC').map(n => n.name);
 
             // Get latest season year for this nation
             const latestSeasons = await base44.entities.Season.filter({ league_id: club.league_id }, '-year', 1);
@@ -60,18 +67,51 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                 ? `Use these naming styles: ${namingStyles.join(', ')}. Mix them realistically.`
                 : `Use ${nation?.language || 'diverse'} naming conventions.`;
 
-            // Adjust foreign player percentage based on tier
-            const foreignPlayerPercent = tier === 1 ? '25-35%' : tier === 2 ? '15-25%' : tier === 3 ? '10-15%' : tier === 4 ? '5-10%' : '0-5%';
-            const nationalityText = `IMPORTANT: All players MUST be from nations in Volaria. Available nations: ${nationNames}. 
-${100 - parseInt(foreignPlayerPercent)}% players from ${nation?.name || 'home nation'}, ${foreignPlayerPercent} from other Volaria nations only.`;
+            // Build realistic squad composition rules based on continental membership
+            const isVCC = nation?.membership === 'VCC';
+            const isCCC = nation?.membership === 'CCC';
+            
+            let nationalityRules = '';
+            if (isVCC && tier === 1) {
+                // Top VCC clubs: diverse, attract talent from other VCC nations
+                nationalityRules = `Squad composition (realistic for top VCC club):
+- 60-70% from ${nation?.name}
+- 20-30% from other VCC nations (${vccNations.filter(n => n !== nation?.name).slice(0, 5).join(', ')})
+- 0-10% top quality players from CCC nations (only the best, ratings 70+)
+- Foreign players should be high quality signings`;
+            } else if (isVCC && tier <= 3) {
+                // Mid-tier VCC clubs: mostly domestic, some VCC neighbors
+                nationalityRules = `Squad composition (realistic for mid-tier VCC club):
+- 75-85% from ${nation?.name}
+- 10-20% from neighboring VCC nations
+- 0-5% from CCC (very rare)`;
+            } else if (isCCC && tier === 1) {
+                // Top CCC clubs: mostly domestic, occasional VCC player
+                nationalityRules = `Squad composition (realistic for top CCC club):
+- 85-90% from ${nation?.name}
+- 5-10% from VCC nations (rare, expensive signings, high quality)
+- 0-5% from other CCC nations (very rare, CCC players don't travel between CCC nations often)`;
+            } else if (isCCC) {
+                // Lower CCC clubs: almost entirely domestic
+                nationalityRules = `Squad composition (realistic for CCC club):
+- 95-100% from ${nation?.name}
+- 0-5% from other nations (extremely rare, maybe 1 player)
+- CCC clubs rarely attract foreign players`;
+            } else {
+                // Default fallback
+                nationalityRules = `Squad composition: 80-90% from ${nation?.name}, rest from neighboring nations`;
+            }
 
-            const prompt = `Generate ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name || 'a fictional nation'}. Current year: ${currentYear}.
+            const prompt = `Generate ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
+
+${nationalityRules}
+
+IMPORTANT: All nationalities MUST be from Volaria nations only: ${nationNames}
 
 Squad composition: ${ageProfiles[ageRange]}.
 Quality: ${qualityLevels[qualityLevel]}.
 Positions needed: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST).
 ${namingStylesText}
-${nationalityText}
 
 For each player provide:
 - first_name, last_name
@@ -81,7 +121,7 @@ For each player provide:
 - preferred_foot (Left/Right/Both)
 - nationality (MUST be one of: ${nationNames})
 - birth_place (city matching nationality)
-- club_history (for players aged 22+, list 1-3 previous clubs with years, e.g., "FC Example (2018-2020), Another FC (2020-${parseInt(currentYear)-1})". Use clubs from Volaria nations. Leave empty for younger players.)`;
+- club_history (for players aged 22+, list 1-3 previous clubs from this list: ${clubNames}. Format: "ClubName (2018-2020), ClubName (2020-${parseInt(currentYear)-1})". Match nationality realistically. Leave empty for younger players.)`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
