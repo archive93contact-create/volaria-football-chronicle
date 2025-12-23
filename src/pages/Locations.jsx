@@ -13,8 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from '@/components/common/PageHeader';
 
-import { estimateLocationPopulation as calcLocationPop } from '@/components/common/populationUtils';
-
 export default function Locations() {
     const urlParams = new URLSearchParams(window.location.search);
     const nationId = urlParams.get('nation_id');
