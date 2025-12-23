@@ -27,6 +27,8 @@ import ClubInfrastructure from '@/components/clubs/ClubInfrastructure';
 import ProfessionalStatusBadge from '@/components/clubs/ProfessionalStatusBadge';
 import AIKitGenerator from '@/components/clubs/AIKitGenerator';
 import ColorExtractor from '@/components/common/ColorExtractor';
+import ImmersiveHeader from '@/components/common/ImmersiveHeader';
+import StatsCard from '@/components/common/StatsCard';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
