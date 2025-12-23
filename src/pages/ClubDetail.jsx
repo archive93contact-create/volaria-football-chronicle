@@ -1105,25 +1105,22 @@ export default function ClubDetail() {
                                         );
                                     })}
                                     <AdminOnly>
-                                        <div className="flex gap-2">
+                                        <div className="space-y-4">
                                             <AIPlayerGenerator 
                                                 club={club} 
                                                 nation={nation}
                                                 onPlayersGenerated={() => queryClient.invalidateQueries(['players'])}
                                             />
+                                            <UpdatePlayerImages 
+                                                clubId={clubId} 
+                                                onComplete={() => queryClient.invalidateQueries(['players'])} 
+                                            />
                                         </div>
                                     </AdminOnly>
-                                    </div>
-                                    <AdminOnly>
-                                    <UpdatePlayerImages 
-                                        clubId={clubId} 
-                                        onComplete={() => queryClient.invalidateQueries(['players'])} 
-                                    />
-                                    </AdminOnly>
-                                    </div>
-                                    );
-                                    })()}
-                                    </TabsContent>
+                                </div>
+                            );
+                        })()}
+                    </TabsContent>
 
                     <TabsContent value="youth">
                     {(() => {
