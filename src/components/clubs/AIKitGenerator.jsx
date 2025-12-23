@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-export default function AIKitGenerator({ club, onKitsGenerated, compact = false }) {
+export default function AIKitGenerator({ club, onKitsGenerated, compact = false, nation = null }) {
     const [generating, setGenerating] = useState(false);
     const [generatingType, setGeneratingType] = useState(null);
     const [showCustomParams, setShowCustomParams] = useState(false);
@@ -20,7 +20,7 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
         accentColor: club.accent_color || ''
     });
 
-    const generateKit = async (type, useCustomParams = false, nationContext = null) => {
+    const generateKit = async (type, useCustomParams = false, nation = null) => {
         const params = useCustomParams ? customParams : {
             pattern: club.pattern_preference || 'solid',
             primaryColor: club.primary_color,
@@ -42,11 +42,28 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
             const secondary = params.secondaryColor || primary;
             const accent = params.accentColor;
             
-            // Generate consistent sponsor/manufacturer context for the club
-            const sponsorSeed = club.id ? club.id.slice(0, 8) : 'default';
-            const kitContext = nationContext ? `, ${nationContext} style branding` : '';
+            // Generate contextual sponsor based on club/nation
+            const generateSponsor = () => {
+                const nationName = nation?.name || 'Generic';
+                const language = nation?.language || 'English';
+                const clubWords = club.name.split(' ');
+                const cityName = club.settlement || club.city || club.region || '';
+                
+                // Create sponsor suggestions based on context
+                const sponsorTypes = [
+                    `${cityName} Bank`, `${nationName} Airways`, `${clubWords[0]} Industries`,
+                    `${cityName} Telecom`, `${nationName} Energy`, `${clubWords[0]} Group`,
+                    `${cityName} Motors`, `${nationName} Financial`, `${clubWords[0]} Corporation`
+                ];
+                const randomSponsor = sponsorTypes[Math.abs(club.id?.charCodeAt(0) || 0) % sponsorTypes.length];
+                return randomSponsor;
+            };
+            
+            const sponsorContext = generateSponsor();
+            const manufacturerStyle = nation?.region ? `${nation.region}-inspired athletic brand` : 'modern athletic manufacturer';
             
             let prompt = '';
+            let colorInstruction = '';
             
             if (type === 'home') {
                 const patternDesc = pattern === 'vertical_stripes' ? 'with bold vertical stripes' : 
@@ -55,12 +72,18 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                                    pattern === 'diagonal_stripe' ? 'with diagonal stripe' : 
                                    pattern === 'halves' ? 'with half and half split design' : 
                                    pattern === 'quarters' ? 'with quartered design' : 'solid color';
-                prompt = `Professional football soccer jersey, short sleeve, ${patternDesc}, main color ${primary}, accent color ${secondary}, consistent sponsor logo placement, modern athletic manufacturer branding${kitContext}, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
+                colorInstruction = `main color ${primary}, accent color ${secondary}`;
+                prompt = `Professional football soccer jersey, short sleeve, ${patternDesc}, ${colorInstruction}, sponsor text "${sponsorContext}", ${manufacturerStyle} logo, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             } else if (type === 'away') {
-                prompt = `Professional football soccer jersey, short sleeve, solid or minimal design, main color ${secondary || '#ffffff'}, accent trim ${primary}, same sponsor and manufacturer as home kit${kitContext}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
+                // Ensure away kit is clearly different - use inverted colors or white if home is dark
+                const awayColor = secondary && secondary !== primary ? secondary : '#ffffff';
+                colorInstruction = `MUST be distinctly different from home kit, main color ${awayColor}, contrasting accent trim`;
+                prompt = `Professional football soccer jersey, short sleeve, away kit design clearly different from home, ${colorInstruction}, same "${sponsorContext}" sponsor, same ${manufacturerStyle} logo, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             } else {
-                const thirdColor = accent || '#1a1a1a';
-                prompt = `Professional football soccer jersey, short sleeve, clean modern design, main color ${thirdColor}, same sponsor and manufacturer as home kit${kitContext}, modern athletic cut, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
+                // Third kit should be unique - use accent or completely different color
+                const thirdColor = accent && accent !== primary && accent !== secondary ? accent : '#1a1a1a';
+                colorInstruction = `MUST be completely different from home and away kits, unique bold color ${thirdColor}, striking alternative design`;
+                prompt = `Professional football soccer jersey, short sleeve, third kit with unique alternative design, ${colorInstruction}, same "${sponsorContext}" sponsor, same ${manufacturerStyle} logo, modern bold design, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
             }
 
             // Include home kit as reference for consistency if generating away/third
@@ -99,7 +122,7 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
 
     const generateAllKits = async () => {
         for (const type of ['home', 'away', 'third']) {
-            await generateKit(type, false);
+            await generateKit(type, false, nation);
         }
     };
 
@@ -127,15 +150,15 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                                 size="sm"
                                 variant="ghost"
                                 className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/60 text-white hover:bg-black/70 transition-opacity"
-                                onClick={() => generateKit(type)}
+                                onClick={() => generateKit(type, false, nation)}
                                 disabled={generating}
-                            >
+                                >
                                 {generating && generatingType === type ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
                                     <Sparkles className="w-4 h-4" />
                                 )}
-                            </Button>
+                                </Button>
                         </div>
                     );
                 })}
@@ -234,7 +257,7 @@ export default function AIKitGenerator({ club, onKitsGenerated, compact = false 
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => generateKit(type, false)}
+                                    onClick={() => generateKit(type, false, nation)}
                                     disabled={generating}
                                     className="flex-1"
                                 >

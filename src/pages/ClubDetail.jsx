@@ -331,6 +331,7 @@ export default function ClubDetail() {
                                 club={club} 
                                 onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
                                 compact={true}
+                                nation={nation}
                             />
                         </AdminOnly>
                     )}
@@ -1110,6 +1111,7 @@ export default function ClubDetail() {
                                                                           <AIKitGenerator 
                                                                               club={club} 
                                                                               onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
+                                                                              nation={nation}
                                                                           />
                                                                       </CardContent>
                                                                   </Card>
