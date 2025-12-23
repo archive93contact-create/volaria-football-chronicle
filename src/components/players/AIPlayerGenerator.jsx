@@ -169,7 +169,9 @@ VERIFY: Count all ${nation?.name} players = ${domesticCount} minimum`;
 
             const prompt = `YOU MUST OUTPUT EXACTLY ${requestedCount} PLAYERS - NO MORE, NO LESS!
 
-Generate EXACTLY ${requestedCount} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
+Generate EXACTLY ${requestedCount} MALE football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
+
+CRITICAL GENDER REQUIREMENT: ALL players MUST be MALE with MALE names appropriate to their nationality. NO female names under any circumstance.
 
 CRITICAL: Your response MUST contain EXACTLY ${requestedCount} player objects in the array. Count them before responding!
 
@@ -196,8 +198,8 @@ Quality: ${qualityLevels[qualityLevel]}.
 Positions needed: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST).
 ${namingStylesText}
 
-OUTPUT EXACTLY ${count} PLAYERS WITH:
-- first_name, last_name (CRITICAL: names MUST match the player's nationality's naming style from the list above, NOT ${nation?.name}'s style)
+OUTPUT EXACTLY ${count} MALE PLAYERS WITH:
+- first_name, last_name (CRITICAL: MALE names ONLY that MUST match the player's nationality's naming style from the list above, NOT ${nation?.name}'s style)
 - age (between 17-34)
 - position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST)
 - overall_rating (30-99), potential (overall+0 to +15)
