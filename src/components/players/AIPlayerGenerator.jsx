@@ -28,12 +28,33 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
                 }
             }
 
-            // Fetch all Volaria nations and clubs
+            // Fetch all Volaria nations, clubs, and locations
             const allNations = await base44.entities.Nation.list();
             const allClubs = await base44.entities.Club.list();
+            const allLocations = await base44.entities.Location.filter({ nation_id: nation.id, type: 'settlement' });
             
             const nationNames = allNations.map(n => n.name).join(', ');
-            const clubNames = allClubs.map(c => c.name).slice(0, 100).join(', '); // Sample of club names for history
+            
+            // Build map of clubs per nation for club history
+            const clubsByNation = {};
+            allClubs.forEach(c => {
+                const cNation = allNations.find(n => n.id === c.nation_id);
+                if (cNation) {
+                    if (!clubsByNation[cNation.name]) clubsByNation[cNation.name] = [];
+                    clubsByNation[cNation.name].push(c.name);
+                }
+            });
+            
+            // Get settlements from this nation - prioritize club's own settlement
+            const settlementNames = allLocations.map(l => l.name);
+            if (club.settlement && !settlementNames.includes(club.settlement)) {
+                settlementNames.unshift(club.settlement);
+            }
+            
+            // Build realistic birth place options emphasizing club's settlement
+            const birthPlaceGuidance = club.settlement 
+                ? `CRITICAL: 60% of players from ${nation.name} should be born in ${club.settlement} (the club's home city). Other 40% from: ${settlementNames.slice(0, 10).join(', ')}`
+                : `Birth places for ${nation.name} players: ${settlementNames.slice(0, 10).join(', ')}`;
             
             // Categorize nations by membership
             const vccNations = allNations.filter(n => n.membership === 'VCC').map(n => n.name);
@@ -85,49 +106,63 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
             
             if (isVCC && tier === 1) {
                 // Top VCC clubs: diverse, attract talent from other VCC nations
-                domesticCount = Math.floor(count * 0.65); // 65% domestic
+                domesticCount = Math.floor(count * 0.70); // 70% domestic minimum
                 foreignCount = count - domesticCount;
-                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
-- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (65% of squad)
-- Up to ${Math.floor(foreignCount * 0.8)} players from other VCC nations: ${vccNations.filter(n => n !== nation?.name).slice(0, 5).join(', ')}
-- Maximum ${Math.floor(foreignCount * 0.2)} elite players from CCC nations (only if rating 70+)
-- MAJORITY MUST BE FROM ${nation?.name}`;
+                const vccOptions = vccNations.filter(n => n !== nation?.name).slice(0, 4).join(', ');
+                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
+MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
+MAXIMUM ${Math.floor(foreignCount * 0.75)} players from VCC nations ONLY: ${vccOptions}
+MAXIMUM ${Math.floor(foreignCount * 0.25)} elite CCC players (rating 72+, very rare signings)
+NO other CCC nations beyond this limit
+COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
             } else if (isVCC && tier <= 3) {
                 // Mid-tier VCC clubs: mostly domestic, some VCC neighbors
-                domesticCount = Math.floor(count * 0.80); // 80% domestic
+                domesticCount = Math.floor(count * 0.83); // 83% domestic
                 foreignCount = count - domesticCount;
-                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
-- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (80% of squad)
-- Maximum ${foreignCount} players from other VCC nations
-- NO players from CCC nations
-- MAJORITY MUST BE FROM ${nation?.name}`;
+                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
+MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
+MAXIMUM ${foreignCount} players from neighboring VCC nations
+ZERO CCC players (CCC players too expensive for tier ${tier})
+COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
             } else if (isCCC && tier === 1) {
                 // Top CCC clubs: mostly domestic, occasional VCC player
-                domesticCount = Math.floor(count * 0.87); // 87% domestic
+                domesticCount = Math.floor(count * 0.90); // 90% domestic
                 foreignCount = count - domesticCount;
-                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
-- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (87% of squad)
-- Maximum ${foreignCount} players from VCC nations (expensive signings, high quality only)
-- ZERO players from other CCC nations (CCC players DON'T travel between CCC nations)
-- MAJORITY MUST BE FROM ${nation?.name}`;
+                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
+MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
+MAXIMUM ${foreignCount} VCC players (very expensive, elite quality 70+ ratings)
+ZERO players from other CCC nations (CCC-to-CCC transfers are EXTREMELY RARE, basically never happen)
+COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
             } else if (isCCC) {
                 // Lower CCC clubs: almost entirely domestic
-                domesticCount = Math.floor(count * 0.96); // 96% domestic
+                domesticCount = Math.floor(count * 0.97); // 97% domestic
                 foreignCount = Math.max(1, count - domesticCount);
-                nationalityRules = `CRITICAL NATIONALITY RULES - YOU MUST FOLLOW THESE EXACTLY:
-- EXACTLY ${domesticCount} players MUST be from ${nation?.name} (96% of squad)
-- Maximum ${foreignCount} player from other nations (extremely rare)
-- ZERO players from other CCC nations
-- MAJORITY MUST BE FROM ${nation?.name}`;
+                nationalityRules = `ABSOLUTE NATIONALITY REQUIREMENTS - COUNT EVERY PLAYER:
+MINIMUM ${domesticCount} players MUST be from ${nation?.name} - this is NON-NEGOTIABLE
+MAXIMUM ${foreignCount} foreign player total (extremely rare)
+ZERO players from other CCC nations
+COUNT YOUR OUTPUT - verify ${nation?.name} has AT LEAST ${domesticCount} players`;
             } else {
                 // Default fallback
                 domesticCount = Math.floor(count * 0.85);
-                nationalityRules = `CRITICAL: ${domesticCount} players from ${nation?.name}, rest from neighboring nations`;
+                nationalityRules = `ABSOLUTE REQUIREMENT: MINIMUM ${domesticCount} players from ${nation?.name}`;
             }
 
-            const prompt = `Generate ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
+            const prompt = `Generate EXACTLY ${count} football players for ${club.name} (tier ${tier} club) in ${nation?.name} (${nation?.membership || 'unknown'} member). Current year: ${currentYear}.
 
 ${nationalityRules}
+
+BIRTH PLACES - USE REAL LOCATIONS:
+${birthPlaceGuidance}
+For foreign players, use major cities from their nation.
+DO NOT INVENT CITY NAMES - use only real settlements provided above.
+
+CLUB HISTORY RULES:
+- For players aged 22+, list 1-3 previous clubs from THEIR NATION ONLY
+- Match clubs to player nationality using this data: ${Object.entries(clubsByNation).map(([nat, clubs]) => `${nat}: ${clubs.slice(0, 15).join(', ')}`).join(' | ')}
+- Format: "ClubName (2018-2020), ClubName (2020-${parseInt(currentYear)-1})"
+- Young players (under 22): leave club_history empty
+- Foreign players MUST have history from THEIR nation, not ${nation.name}
 
 IMPORTANT: All nationalities MUST be from Volaria nations only: ${nationNames}
 
@@ -136,15 +171,15 @@ Quality: ${qualityLevels[qualityLevel]}.
 Positions needed: 2-3 GK, 7-9 defenders (CB, LB, RB), 8-10 midfielders (CDM, CM, CAM), 6-8 forwards (LW, RW, ST).
 ${namingStylesText}
 
-For each player provide:
-- first_name, last_name
+OUTPUT EXACTLY ${count} PLAYERS WITH:
+- first_name, last_name (matching naming style of nationality)
 - age (between 17-34)
 - position (GK/CB/LB/RB/CDM/CM/CAM/LW/RW/ST)
 - overall_rating (30-99), potential (overall+0 to +15)
 - preferred_foot (Left/Right/Both)
-- nationality (MUST be one of: ${nationNames})
-- birth_place (city matching nationality)
-- club_history (for players aged 22+, list 1-3 previous clubs from THEIR OWN NATION ONLY. Use clubs from: ${clubNames}. Format: "ClubName (2018-2020), ClubName (2020-${parseInt(currentYear)-1})". Match the player's nationality - player history clubs MUST be from same nation as player. Leave empty for younger players.)`;
+- nationality (MUST be from: ${nationNames})
+- birth_place (MUST be from real settlements provided above, matching nationality)
+- club_history (empty for age <22, otherwise 1-3 clubs from PLAYER'S NATION matching format above)`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
@@ -190,8 +225,9 @@ For each player provide:
                 // Generate player images in background (don't await)
                 createdPlayers.forEach(async (player, idx) => {
                     try {
-                        const ethnicityHint = allNations.find(n => n.name === player.nationality)?.culture || 'diverse';
-                        const imagePrompt = `Professional headshot portrait of a male football/soccer player, age ${player.age}, ${ethnicityHint} appearance, athletic build, neutral expression, sports photography style, clean background, high quality, realistic`;
+                        const playerNation = allNations.find(n => n.name === player.nationality);
+                        const namingStyles = playerNation?.naming_styles?.join(', ') || 'diverse';
+                        const imagePrompt = `Professional headshot portrait of a male football/soccer player, age ${player.age}, ${namingStyles} cultural appearance and ethnic features, athletic build, neutral expression, modern sports photography style, clean background, high quality, photorealistic. Appearance should authentically reflect ${namingStyles} heritage.`;
                         
                         const imageResult = await base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
                         if (imageResult?.url) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -65,6 +65,11 @@ export default function PlayerDetail() {
         queryFn: () => base44.entities.Nation.list(),
     });
 
+    const { data: allClubs = [] } = useQuery({
+        queryKey: ['allClubs'],
+        queryFn: () => base44.entities.Club.list(),
+    });
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Player.update(playerId, data),
         onSuccess: () => {
@@ -98,6 +103,30 @@ export default function PlayerDetail() {
 
     const displayName = player.full_name || `${player.first_name} ${player.last_name}`;
     const age = player.age || new Date().getFullYear() - (player.date_of_birth ? new Date(player.date_of_birth).getFullYear() : 2000);
+
+    // Parse club history and match with actual clubs
+    const clubHistory = useMemo(() => {
+        if (!player.club_history) return [];
+        
+        // Parse format: "ClubName (2018-2020), ClubName (2020-2023)"
+        const historyEntries = player.club_history.split(',').map(entry => {
+            const match = entry.trim().match(/^(.+?)\s*\((\d{4})-(\d{4})\)$/);
+            if (!match) return null;
+            
+            const [, clubName, startYear, endYear] = match;
+            const club = allClubs.find(c => c.name.toLowerCase() === clubName.trim().toLowerCase());
+            const clubNation = club ? nations.find(n => n.id === club.nation_id) : null;
+            
+            return {
+                clubName: clubName.trim(),
+                club,
+                nation: clubNation,
+                years: `${startYear}-${endYear}`
+            };
+        }).filter(Boolean);
+        
+        return historyEntries;
+    }, [player.club_history, allClubs, nations]);
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -277,15 +306,36 @@ export default function PlayerDetail() {
                         </Card>
 
                         {/* Club History */}
-                        {player.club_history && (
+                        {clubHistory.length > 0 && (
                             <Card className="border-0 shadow-sm">
                                 <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
                                 <CardContent>
                                     <div className="space-y-2">
-                                        {player.club_history.split(',').map((entry, idx) => (
-                                            <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                                <Shield className="w-5 h-5 text-slate-400" />
-                                                <span className="font-medium">{entry.trim()}</span>
+                                        {clubHistory.map((entry, idx) => (
+                                            <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                                {entry.club ? (
+                                                    <Link 
+                                                        to={createPageUrl(`ClubDetail?id=${entry.club.id}`)}
+                                                        className="flex items-center gap-3 flex-1"
+                                                    >
+                                                        {entry.nation?.flag_url && (
+                                                            <img src={entry.nation.flag_url} alt={entry.nation.name} className="w-8 h-5 object-contain rounded shadow-sm" />
+                                                        )}
+                                                        <Shield className="w-5 h-5 text-slate-400" />
+                                                        <div>
+                                                            <div className="font-semibold text-slate-900 hover:text-emerald-600">{entry.clubName}</div>
+                                                            <div className="text-xs text-slate-500">{entry.years}</div>
+                                                        </div>
+                                                    </Link>
+                                                ) : (
+                                                    <>
+                                                        <Shield className="w-5 h-5 text-slate-400" />
+                                                        <div>
+                                                            <div className="font-medium text-slate-700">{entry.clubName}</div>
+                                                            <div className="text-xs text-slate-500">{entry.years}</div>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
