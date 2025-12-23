@@ -274,7 +274,7 @@ export default function LeagueDetail() {
                     {/* Crests Grid */}
                     {currentSeasonTable.length > 0 && (
                         <div className="hidden lg:flex flex-wrap gap-1.5 max-w-xs justify-center">
-                            {currentSeasonTable.slice(0, 12).map((team) => {
+                            {currentSeasonTable.map((team) => {
                                 const club = clubs.find(c => c.id === team.club_id);
                                 const isChampion = team.position === 1;
                                 return club?.logo_url && (

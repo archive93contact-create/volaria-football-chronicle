@@ -9,6 +9,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import PageTransition from '@/components/common/PageTransition';
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -169,7 +170,11 @@ export default function Layout({ children, currentPageName }) {
             </nav>
 
             {/* Page Content */}
-            <main>{children}</main>
+            <main>
+                <PageTransition>
+                    {children}
+                </PageTransition>
+            </main>
         </div>
     );
 }

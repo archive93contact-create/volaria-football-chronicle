@@ -17,6 +17,10 @@ export default function ImmersiveHeader({
     atmosphere
 }) {
     // Typography based on text style
+    const fontFamily = textStyle === 'classic' ? 'Georgia, serif' : 
+                       textStyle === 'bold' ? 'Impact, "Arial Black", sans-serif' : 
+                       'system-ui, -apple-system, sans-serif';
+    
     const fontClass = textStyle === 'classic' ? 'font-serif' : 
                      textStyle === 'bold' ? 'font-black tracking-tight' : 
                      'font-sans';
@@ -82,7 +86,7 @@ export default function ImmersiveHeader({
                                 {atmosphereText}
                             </div>
                         )}
-                        <h1 className={`text-3xl md:text-5xl font-bold text-white tracking-tight ${fontClass}`}>
+                        <h1 className={`text-3xl md:text-5xl font-bold text-white tracking-tight ${fontClass}`} style={{ fontFamily }}>
                             {title}
                         </h1>
                         {subtitle && (
