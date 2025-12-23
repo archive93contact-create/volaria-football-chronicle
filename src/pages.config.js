@@ -39,6 +39,7 @@ import StabilityManager from './pages/StabilityManager';
 import Support from './pages/Support';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import Players from './pages/Players';
+import BulkSquadBuilder from './pages/BulkSquadBuilder';
 import __Layout from './Layout.jsx';
 
 
@@ -84,6 +85,7 @@ export const PAGES = {
     "Support": Support,
     "UpdateContinentalStats": UpdateContinentalStats,
     "Players": Players,
+    "BulkSquadBuilder": BulkSquadBuilder,
 }
 
 export const pagesConfig = {

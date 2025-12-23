@@ -30,6 +30,7 @@ export default function Layout({ children, currentPageName }) {
                                     ];
 
             const toolsDropdown = [
+                { name: 'Bulk Squad Builder', icon: Users, page: 'BulkSquadBuilder' },
                 { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
                 { name: 'Stability Manager', icon: BarChart3, page: 'StabilityManager' },
                 { name: 'Nation Generator', icon: Sparkles, page: 'NationGenerator' },
