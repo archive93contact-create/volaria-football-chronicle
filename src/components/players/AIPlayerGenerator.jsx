@@ -20,6 +20,12 @@ export default function AIPlayerGenerator({ club, nation, onPlayersGenerated }) 
     const generatePlayers = async () => {
         setGenerating(true);
         try {
+            // Delete existing squad first
+            const existingPlayers = await base44.entities.Player.filter({ club_id: club.id });
+            if (existingPlayers.length > 0) {
+                await Promise.all(existingPlayers.map(p => base44.entities.Player.delete(p.id)));
+            }
+
             // Build prompt for AI to generate player data
             const tier = await (async () => {
                 if (!club.league_id) return 5;
@@ -73,7 +79,8 @@ For each player provide: first_name, last_name, age, position (GK/CB/LB/RB/CDM/C
                                     overall_rating: { type: "number" },
                                     potential: { type: "number" },
                                     preferred_foot: { type: "string" },
-                                    nationality: { type: "string" }
+                                    nationality: { type: "string" },
+                                    birth_place: { type: "string" }
                                 }
                             }
                         }
