@@ -1028,11 +1028,6 @@ export default function ClubDetail() {
 
                     <TabsContent value="squad">
                         {(() => {
-                            const { data: players = [] } = useQuery({
-                                queryKey: ['players', clubId],
-                                queryFn: () => base44.entities.Player.filter({ club_id: clubId }),
-                            });
-
                             const byPosition = {
                                 GK: players.filter(p => p.position === 'GK'),
                                 DEF: players.filter(p => ['CB', 'LB', 'RB'].includes(p.position)),
