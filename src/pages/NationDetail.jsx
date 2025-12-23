@@ -815,9 +815,10 @@ export default function NationDetail() {
                             <Label>Naming Convention Styles (select up to 4)</Label>
                             <div className="grid grid-cols-2 gap-2 mt-2 p-3 bg-slate-50 rounded-lg max-h-64 overflow-y-auto">
                                 {[
-                                    'English/British', 'Spanish', 'Italian', 'German', 'French', 'Portuguese',
+                                    'English/British', 'American', 'Spanish', 'Italian', 'German', 'French', 'Portuguese',
                                     'Dutch', 'Scandinavian', 'Eastern European', 'Balkan', 'Turkish',
-                                    'Arabic', 'North African', 'East African', 'South African', 'Brazilian', 
+                                    'Arabic', 'North African', 'West African', 'East African', 'South African', 
+                                    'Brazilian', 'Central American', 'Caribbean',
                                     'Central Asian', 'South East Asian', 'East Asian', 'Celtic', 'Nordic'
                                 ].map(style => {
                                     const currentStyles = editData.naming_styles || [];
