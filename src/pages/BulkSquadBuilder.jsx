@@ -184,7 +184,28 @@ Return a JSON array with this exact structure:
             }
         });
 
-        const players = response.players || [];
+        let players = response.players || [];
+        const requestedCount = parseInt(config.playerCount);
+        
+        // Retry once if significantly undercounting
+        if (players.length < requestedCount * 0.7) {
+            console.warn(`Only got ${players.length}/${requestedCount}, retrying ${club.name}...`);
+            const retryResponse = await base44.integrations.Core.InvokeLLM({
+                prompt: `CRITICAL: Generate EXACTLY ${requestedCount} players, not ${players.length}. ${prompt}`,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        players: {
+                            type: "array",
+                            items: { type: "object" }
+                        }
+                    }
+                }
+            });
+            if (retryResponse?.players && retryResponse.players.length > players.length) {
+                players = retryResponse.players;
+            }
+        }
         
         if (config.overwriteExisting) {
             const existingPlayers = await base44.entities.Player.filter({ club_id: club.id });
@@ -220,20 +241,26 @@ Return a JSON array with this exact structure:
         setGenerating(true);
         setProgress({});
 
-        for (const clubId of selected) {
-            const club = clubs.find(c => c.id === clubId);
-            const config = clubConfigs[clubId];
+        // Process in batches of 3 for parallel speed
+        const batchSize = 3;
+        for (let i = 0; i < selected.length; i += batchSize) {
+            const batch = selected.slice(i, i + batchSize);
+            
+            await Promise.all(batch.map(async (clubId) => {
+                const club = clubs.find(c => c.id === clubId);
+                const config = clubConfigs[clubId];
 
-            setProgress(prev => ({ ...prev, [clubId]: 'generating' }));
+                setProgress(prev => ({ ...prev, [clubId]: 'generating' }));
 
-            try {
-                const count = await generateSquad(club, config);
-                setProgress(prev => ({ ...prev, [clubId]: 'success' }));
-                toast.success(`${club.name}: ${count} players created`);
-            } catch (error) {
-                setProgress(prev => ({ ...prev, [clubId]: 'error' }));
-                toast.error(`${club.name}: Failed - ${error.message}`);
-            }
+                try {
+                    const count = await generateSquad(club, config);
+                    setProgress(prev => ({ ...prev, [clubId]: 'success' }));
+                    toast.success(`${club.name}: ${count} players created`);
+                } catch (error) {
+                    setProgress(prev => ({ ...prev, [clubId]: 'error' }));
+                    toast.error(`${club.name}: Failed - ${error.message}`);
+                }
+            }));
         }
 
         setGenerating(false);
