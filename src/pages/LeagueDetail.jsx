@@ -340,6 +340,22 @@ export default function LeagueDetail() {
             </ImmersiveHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* League Name Change Notice */}
+                {league.former_name && league.renamed_year && (
+                    <Card className="border-0 shadow-sm mb-6 bg-blue-50 border-l-4 border-l-blue-500">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <Trophy className="w-6 h-6 text-blue-600" />
+                            <div>
+                                <span className="text-blue-800 font-semibold">League renamed in {league.renamed_year}</span>
+                                <div className="text-blue-700 text-sm mt-1">
+                                    Formerly known as <span className="font-semibold">{league.former_name}</span>
+                                    {league.rename_reason && <span> • {league.rename_reason}</span>}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Quick Navigation Cards - Themed */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                     <a href="#league-table" className="block" style={{
@@ -887,6 +903,49 @@ export default function LeagueDetail() {
                         </div>
                         <div><Label>Description</Label><Textarea value={editData.description || ''} onChange={(e) => setEditData({...editData, description: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={4} className="mt-1" /></div>
+                        
+                        {/* League Name Change Section */}
+                        <div className="border-t pt-4 mt-4">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                <Trophy className="w-4 h-4" /> League Name Change
+                            </h4>
+                            <div className="space-y-3 p-3 bg-blue-50 rounded-lg">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Label className="text-xs">Former Name</Label>
+                                        <Input 
+                                            value={editData.former_name || ''} 
+                                            onChange={(e) => setEditData({...editData, former_name: e.target.value})} 
+                                            placeholder="Previous league name" 
+                                            className="mt-1" 
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">Renamed Year</Label>
+                                        <Input 
+                                            type="number" 
+                                            value={editData.renamed_year || ''} 
+                                            onChange={(e) => setEditData({...editData, renamed_year: parseInt(e.target.value) || null})} 
+                                            placeholder="e.g., 1992" 
+                                            className="mt-1" 
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Reason for Rename</Label>
+                                    <Input 
+                                        value={editData.rename_reason || ''} 
+                                        onChange={(e) => setEditData({...editData, rename_reason: e.target.value})} 
+                                        placeholder="e.g., Sponsorship deal, political restructuring" 
+                                        className="mt-1" 
+                                    />
+                                </div>
+                                <p className="text-xs text-blue-600">
+                                    This will display a notice showing the league's former name and when it changed
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}><X className="w-4 h-4 mr-2" /> Cancel</Button>
                             <Button onClick={handleSave} disabled={updateMutation.isPending} className="bg-emerald-600"><Save className="w-4 h-4 mr-2" /> Save</Button>
