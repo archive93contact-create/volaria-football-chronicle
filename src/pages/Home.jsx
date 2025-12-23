@@ -305,38 +305,55 @@ export default function Home() {
                             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                             Complete Football Systems ({categorizedNations.complete.length})
                         </p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {categorizedNations.complete.map((nation) => (
                                 <Link 
                                     key={nation.id} 
                                     to={createPageUrl(`NationDetail?id=${nation.id}`)}
                                     className="group"
                                 >
-                                    <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white group-hover:-translate-y-1">
-                                        <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
+                                    <Card className="overflow-hidden border-0 shadow-sm hover:shadow-2xl transition-all duration-500 bg-white group-hover:-translate-y-2 h-full">
+                                        <div className="aspect-[3/2] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-8 relative overflow-hidden">
                                             {nation.flag_url ? (
                                                 <img 
                                                     src={nation.flag_url} 
                                                     alt={nation.name}
-                                                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                                                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700"
                                                 />
                                             ) : (
-                                                <MapPin className="w-8 h-8 text-slate-400" />
+                                                <div className="w-24 h-16 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center">
+                                                    <MapPin className="w-10 h-10 text-slate-400" />
+                                                </div>
                                             )}
                                             {nation.rank < 999 && (
-                                                <div className="absolute top-1 right-1 bg-white/90 px-1.5 py-0.5 rounded text-xs font-bold text-slate-600">
+                                                <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full text-xs font-bold text-slate-700">
                                                     #{nation.rank}
                                                 </div>
                                             )}
+                                            {nation.membership && (
+                                                <div className="absolute top-2 left-2">
+                                                    <Badge className={nation.membership === 'VCC' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'}>
+                                                        {nation.membership}
+                                                    </Badge>
+                                                </div>
+                                            )}
                                         </div>
-                                        <CardContent className="p-3">
-                                            <h3 className="font-semibold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors truncate">
+                                        <CardContent className="p-5">
+                                            <h3 className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
                                                 {nation.name}
                                             </h3>
-                                            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                                                <span>{nation.leagueCount} leagues</span>
-                                                <span>•</span>
-                                                <span>{nation.clubCount} clubs</span>
+                                            {nation.region && (
+                                                <p className="text-sm text-slate-500 mt-1">{nation.region}</p>
+                                            )}
+                                            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
+                                                <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                    <Trophy className="w-4 h-4 text-amber-500" />
+                                                    <span className="font-medium">{nation.leagueCount}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                    <Shield className="w-4 h-4 text-blue-500" />
+                                                    <span className="font-medium">{nation.clubCount}</span>
+                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
