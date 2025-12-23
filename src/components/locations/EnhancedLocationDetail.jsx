@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
+import AILocationEnhancer from '@/components/locations/AILocationEnhancer';
 import AdminOnly from '@/components/common/AdminOnly';
 import { estimateLocationPopulation } from '@/components/common/populationUtils';
 
@@ -194,6 +195,60 @@ export default function EnhancedLocationDetail({
                 )}
             </div>
 
+            {/* Enhanced Content Display */}
+            {existingLocation && (existingLocation.culture_description || existingLocation.geography || existingLocation.local_media) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {existingLocation.culture_description && (
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
+                            <CardHeader className="pb-2"><CardTitle className="text-lg">Culture & Community</CardTitle></CardHeader>
+                            <CardContent>
+                                <p className="text-slate-700 text-sm whitespace-pre-line">{existingLocation.culture_description}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {existingLocation.geography && (
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 border-l-4 border-l-emerald-500">
+                            <CardHeader className="pb-2"><CardTitle className="text-lg">Geography</CardTitle></CardHeader>
+                            <CardContent>
+                                <p className="text-slate-700 text-sm whitespace-pre-line">{existingLocation.geography}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {existingLocation.local_media && (
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-l-blue-500">
+                            <CardHeader className="pb-2"><CardTitle className="text-lg">Local Media</CardTitle></CardHeader>
+                            <CardContent>
+                                <p className="text-slate-700 text-sm whitespace-pre-line">{existingLocation.local_media}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {existingLocation.major_companies && (
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 border-l-4 border-l-amber-500">
+                            <CardHeader className="pb-2"><CardTitle className="text-lg">Major Employers</CardTitle></CardHeader>
+                            <CardContent>
+                                <p className="text-slate-700 text-sm whitespace-pre-line">{existingLocation.major_companies}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {existingLocation.landmarks && (
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-rose-50 to-pink-50 border-l-4 border-l-rose-500">
+                            <CardHeader className="pb-2"><CardTitle className="text-lg">Landmarks</CardTitle></CardHeader>
+                            <CardContent>
+                                <p className="text-slate-700 text-sm whitespace-pre-line">{existingLocation.landmarks}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {existingLocation.industries && (
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-slate-50 to-gray-50 border-l-4 border-l-slate-500">
+                            <CardHeader className="pb-2"><CardTitle className="text-lg">Industries</CardTitle></CardHeader>
+                            <CardContent>
+                                <p className="text-slate-700 text-sm whitespace-pre-line">{existingLocation.industries}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            )}
+
             {/* Description if exists */}
             {existingLocation?.description && (
                 <Card className="border-0 shadow-sm mb-6 bg-blue-50 border-l-4 border-l-blue-500">
@@ -259,9 +314,18 @@ export default function EnhancedLocationDetail({
                                 Football Clubs in {locationName}
                             </CardTitle>
                             <AdminOnly>
-                                <Button variant="outline" size="sm" onClick={handleEdit}>
-                                    <Edit2 className="w-4 h-4 mr-2" /> Manage Location
-                                </Button>
+                                <div className="flex gap-2">
+                                    {existingLocation && (
+                                        <AILocationEnhancer 
+                                            location={existingLocation} 
+                                            nation={nation}
+                                            onUpdate={() => queryClient.invalidateQueries(['location'])}
+                                        />
+                                    )}
+                                    <Button variant="outline" size="sm" onClick={handleEdit}>
+                                        <Edit2 className="w-4 h-4 mr-2" /> Manage
+                                    </Button>
+                                </div>
                             </AdminOnly>
                         </CardHeader>
                         <CardContent className="p-0">

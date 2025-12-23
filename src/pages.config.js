@@ -22,6 +22,7 @@ import DomesticCups from './pages/DomesticCups';
 import EditSeason from './pages/EditSeason';
 import EditSeasonTable from './pages/EditSeasonTable';
 import Home from './pages/Home';
+import KitGenerator from './pages/KitGenerator';
 import LeagueComparison from './pages/LeagueComparison';
 import LeagueDetail from './pages/LeagueDetail';
 import LocationDetail from './pages/LocationDetail';
@@ -35,7 +36,6 @@ import Seasons from './pages/Seasons';
 import StabilityManager from './pages/StabilityManager';
 import Support from './pages/Support';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
-import KitGenerator from './pages/KitGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +64,7 @@ export const PAGES = {
     "EditSeason": EditSeason,
     "EditSeasonTable": EditSeasonTable,
     "Home": Home,
+    "KitGenerator": KitGenerator,
     "LeagueComparison": LeagueComparison,
     "LeagueDetail": LeagueDetail,
     "LocationDetail": LocationDetail,
@@ -77,7 +78,6 @@ export const PAGES = {
     "StabilityManager": StabilityManager,
     "Support": Support,
     "UpdateContinentalStats": UpdateContinentalStats,
-    "KitGenerator": KitGenerator,
 }
 
 export const pagesConfig = {

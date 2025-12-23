@@ -20,6 +20,7 @@ import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors
 import NationNarratives from '@/components/nations/NationNarratives';
 import GoldenEras from '@/components/nations/GoldenEras';
 import AdminOnly from '@/components/common/AdminOnly';
+import AINationEnhancer from '@/components/nations/AINationEnhancer';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
