@@ -379,9 +379,11 @@ export default function WorldMap() {
                                                     </div>
                                                 </AdminOnly>
                                             </div>
-                                        </Popup>
-                                    </Polygon>
-                                ))}
+                                            </Popup>
+                                            </Polygon>
+                                            </React.Fragment>
+                                            );
+                                            })}
 
                                 {/* Nation Centers (for nations without borders) */}
                                 {nations.filter(n => n.latitude && n.longitude && !n.map_bounds).map(nation => (
