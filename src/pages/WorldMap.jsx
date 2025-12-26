@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import AdminOnly from '@/components/common/AdminOnly';
 import PageHeader from '@/components/common/PageHeader';
 import GeographyGenerator from '@/components/map/GeographyGenerator';
+import TerrainGenerator from '@/components/map/TerrainGenerator';
 import MapEditor from '@/components/map/MapEditor';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -168,13 +169,48 @@ export default function WorldMap() {
     const getClubIcon = (club) => {
         const league = leagues.find(l => l.id === club.league_id);
         const tier = league?.tier || 5;
-        const size = tier === 1 ? 30 : tier === 2 ? 25 : 20;
+        const size = tier === 1 ? 32 : tier === 2 ? 26 : 20;
         const color = club.primary_color || '#3b82f6';
         
         return L.divIcon({
             className: 'custom-club-icon',
-            html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-                ${club.logo_url ? `<img src="${club.logo_url}" style="width: ${size-8}px; height: ${size-8}px; object-fit: contain; border-radius: 50%;" />` : ''}
+            html: `<div style="
+                background: radial-gradient(circle at center, ${color} 0%, ${color}dd 100%);
+                width: ${size}px; 
+                height: ${size}px; 
+                border-radius: 50%; 
+                border: 3px solid white; 
+                box-shadow: 0 3px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.1); 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                position: relative;
+            ">
+                ${club.logo_url ? `<img src="${club.logo_url}" style="width: ${size-10}px; height: ${size-10}px; object-fit: contain; border-radius: 50%;" />` : `<div style="color: white; font-size: ${size/3}px; font-weight: bold;">⚽</div>`}
+            </div>`,
+            iconSize: [size, size],
+            iconAnchor: [size/2, size/2],
+        });
+    };
+    
+    // Create custom icons for settlements
+    const getLocationIcon = (location) => {
+        const isCapital = location.is_capital;
+        const size = isCapital ? 20 : location.type === 'settlement' ? 14 : 10;
+        const color = isCapital ? '#f59e0b' : location.type === 'settlement' ? '#374151' : '#94a3b8';
+        
+        return L.divIcon({
+            className: 'custom-location-icon',
+            html: `<div style="
+                background: ${color}; 
+                width: ${size}px; 
+                height: ${size}px; 
+                border-radius: 50%; 
+                border: 2px solid white; 
+                box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                ${isCapital ? 'position: relative;' : ''}
+            ">
+                ${isCapital ? `<div style="position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 10px;">⭐</div>` : ''}
             </div>`,
             iconSize: [size, size],
             iconAnchor: [size/2, size/2],
@@ -192,11 +228,15 @@ export default function WorldMap() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Admin Actions */}
                 <AdminOnly>
-                    <div className="mb-4 flex justify-end">
+                    <div className="mb-4 flex justify-end gap-2">
                         <GeographyGenerator 
                             nations={nations}
                             clubs={clubs}
                             locations={locations}
+                            onComplete={handleGeographyGenerated}
+                        />
+                        <TerrainGenerator 
+                            nations={nations}
                             onComplete={handleGeographyGenerated}
                         />
                     </div>
@@ -262,36 +302,54 @@ export default function WorldMap() {
                 {/* Map */}
                 <Card className="overflow-hidden">
                     <CardContent className="p-0">
-                        <div style={{ height: '600px', backgroundColor: '#e8f4f8' }}>
+                        <div style={{ height: '600px', backgroundColor: '#c7dfe8' }}>
                             <MapContainer
                                 center={mapCenter}
                                 zoom={mapZoom}
-                                style={{ height: '100%', width: '100%' }}
+                                style={{ height: '100%', width: '100%', backgroundColor: '#c7dfe8' }}
                                 crs={VolariaCRS}
                                 minZoom={2}
                                 maxZoom={7}
+                                zoomControl={true}
                             >
                                 <RecenterMap center={mapCenter} zoom={mapZoom} />
                                 <MapClickHandler onMapClick={handleMapClick} isEditing={!!editMode} />
                                 
-                                {/* Nation Borders */}
-                                {showNationBorders && nations.filter(n => n.map_bounds).map(nation => (
-                                    <Polygon
-                                        key={nation.id}
-                                        positions={[
-                                            [nation.map_bounds.north, nation.map_bounds.west],
-                                            [nation.map_bounds.north, nation.map_bounds.east],
-                                            [nation.map_bounds.south, nation.map_bounds.east],
-                                            [nation.map_bounds.south, nation.map_bounds.west],
-                                        ]}
-                                        pathOptions={{
-                                            color: nation.primary_color || '#64748b',
-                                            fillColor: nation.primary_color || '#64748b',
-                                            fillOpacity: 0.1,
-                                            weight: 2,
-                                        }}
-                                    >
-                                        <Popup>
+                                {/* Nation Borders with Terrain Overlay */}
+                                {showNationBorders && nations.filter(n => n.map_bounds).map(nation => {
+                                    const bounds = [
+                                        [nation.map_bounds.north, nation.map_bounds.west],
+                                        [nation.map_bounds.south, nation.map_bounds.east]
+                                    ];
+                                    
+                                    return (
+                                        <React.Fragment key={nation.id}>
+                                            {/* Terrain Image Overlay */}
+                                            {nation.map_url && (
+                                                <L.ImageOverlay
+                                                    url={nation.map_url}
+                                                    bounds={bounds}
+                                                    opacity={0.85}
+                                                />
+                                            )}
+                                            
+                                            {/* Nation Border */}
+                                            <Polygon
+                                                positions={[
+                                                    [nation.map_bounds.north, nation.map_bounds.west],
+                                                    [nation.map_bounds.north, nation.map_bounds.east],
+                                                    [nation.map_bounds.south, nation.map_bounds.east],
+                                                    [nation.map_bounds.south, nation.map_bounds.west],
+                                                ]}
+                                                pathOptions={{
+                                                    color: '#1e293b',
+                                                    fillColor: nation.map_url ? 'transparent' : (nation.primary_color || '#94a3b8'),
+                                                    fillOpacity: nation.map_url ? 0 : 0.15,
+                                                    weight: 3,
+                                                    dashArray: '10, 5',
+                                                }}
+                                            >
+                                                <Popup>
                                             <div className="p-2">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     {nation.flag_url && <img src={nation.flag_url} alt={nation.name} className="w-8 h-6 object-cover rounded" />}
@@ -437,12 +495,7 @@ export default function WorldMap() {
                                         <Marker
                                             key={`location-${location.id}`}
                                             position={[location.latitude, location.longitude]}
-                                            icon={L.divIcon({
-                                                className: 'custom-location-icon',
-                                                html: `<div style="background-color: ${location.is_capital ? '#fbbf24' : '#64748b'}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3);"></div>`,
-                                                iconSize: [12, 12],
-                                                iconAnchor: [6, 6],
-                                            })}
+                                            icon={getLocationIcon(location)}
                                         >
                                             <Popup>
                                                 <div className="p-2">
@@ -490,22 +543,28 @@ export default function WorldMap() {
                         <h3 className="font-semibold mb-3 flex items-center gap-2">
                             <Layers className="w-5 h-5" /> Map Legend
                         </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                             <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#3b82f6' }}></div>
-                                <span>Tier 1 Club</span>
+                                <div className="w-7 h-7 rounded-full border-3 border-white shadow-lg" style={{ background: 'radial-gradient(circle, #3b82f6 0%, #2563eb 100%)' }}></div>
+                                <span>Top Club</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-5 h-5 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#64748b' }}></div>
-                                <span>Lower Tier Club</span>
+                                <span>Lower Club</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#fbbf24' }}></div>
-                                <span>Capital City</span>
+                                <div className="relative w-5 h-5 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#f59e0b' }}>
+                                    <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-xs">⭐</div>
+                                </div>
+                                <span>Capital</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#64748b' }}></div>
+                                <div className="w-3 h-3 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#374151' }}></div>
                                 <span>Settlement</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-12 h-3 border-2 border-slate-800" style={{ backgroundColor: '#86a873', backgroundImage: 'linear-gradient(to right, #7a9868 0%, #b5a679 50%, #e8e8e8 100%)' }}></div>
+                                <span>Terrain</span>
                             </div>
                         </div>
                     </CardContent>
