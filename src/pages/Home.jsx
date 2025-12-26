@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Globe, Trophy, Shield, ChevronRight, Plus, MapPin, Star, Sparkles, Crown, Heart, Coffee, BookOpen, ArrowRight, Flame, Award } from 'lucide-react';
 import AdminOnly from '@/components/common/AdminOnly';
+import GlobalSearch from '@/components/common/GlobalSearch';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -122,9 +123,14 @@ export default function Home() {
                         <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-4">
                             A fictional football universe spanning {nations.length} nations, {clubs.length.toLocaleString()} clubs, and over {seasons.length} seasons of rich history.
                         </p>
-                        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
+                        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
                             Every club has a story. Every season tells a tale. Discover rivalries, dynasties, and the beautiful game reimagined.
                         </p>
+                        
+                        {/* Global Search */}
+                        <div className="mb-8 flex justify-center">
+                            <GlobalSearch />
+                        </div>
                         
                         <div className="flex flex-wrap justify-center gap-4">
                             <Link to={createPageUrl('Nations')}>
