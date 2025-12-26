@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -44,7 +44,7 @@ function MapClickHandler({ onMapClick, isEditing }) {
 // Component to recenter map
 function RecenterMap({ center, zoom }) {
     const map = useMap();
-    React.useEffect(() => {
+    useEffect(() => {
         if (center) {
             map.setView(center, zoom);
         }
