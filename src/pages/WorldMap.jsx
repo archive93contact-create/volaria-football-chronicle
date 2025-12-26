@@ -62,17 +62,17 @@ export default function WorldMap() {
     const [mapCenter, setMapCenter] = useState([500, 500]);
     const [mapZoom, setMapZoom] = useState(3);
 
-    const { data: nations = [] } = useQuery({
+    const { data: nations = [], refetch: refetchNations } = useQuery({
         queryKey: ['nations'],
         queryFn: () => base44.entities.Nation.list(),
     });
 
-    const { data: clubs = [] } = useQuery({
+    const { data: clubs = [], refetch: refetchClubs } = useQuery({
         queryKey: ['clubs'],
         queryFn: () => base44.entities.Club.list(),
     });
 
-    const { data: locations = [] } = useQuery({
+    const { data: locations = [], refetch: refetchLocations } = useQuery({
         queryKey: ['locations'],
         queryFn: () => base44.entities.Location.list(),
     });
@@ -81,6 +81,12 @@ export default function WorldMap() {
         queryKey: ['leagues'],
         queryFn: () => base44.entities.League.list(),
     });
+
+    const handleGeographyGenerated = () => {
+        refetchNations();
+        refetchClubs();
+        refetchLocations();
+    };
 
     const updateNationMutation = useMutation({
         mutationFn: ({ id, data }) => base44.entities.Nation.update(id, data),
