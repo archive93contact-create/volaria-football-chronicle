@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import AdminOnly from '@/components/common/AdminOnly';
 import PageHeader from '@/components/common/PageHeader';
 import GeographyGenerator from '@/components/map/GeographyGenerator';
+import MapEditor from '@/components/map/MapEditor';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -56,6 +57,7 @@ function RecenterMap({ center, zoom }) {
 export default function WorldMap() {
     const queryClient = useQueryClient();
     const [editMode, setEditMode] = useState(null); // { type: 'nation'|'club'|'location', id: string }
+    const [editingEntity, setEditingEntity] = useState(null);
     const [showClubs, setShowClubs] = useState(true);
     const [showLocations, setShowLocations] = useState(true);
     const [showNationBorders, setShowNationBorders] = useState(true);
@@ -87,6 +89,13 @@ export default function WorldMap() {
         refetchNations();
         refetchClubs();
         refetchLocations();
+    };
+
+    const handleEntityUpdate = () => {
+        queryClient.invalidateQueries(['nations']);
+        queryClient.invalidateQueries(['clubs']);
+        queryClient.invalidateQueries(['locations']);
+        setEditingEntity(null);
     };
 
     const updateNationMutation = useMutation({
@@ -292,14 +301,24 @@ export default function WorldMap() {
                                                     View Details →
                                                 </Link>
                                                 <AdminOnly>
-                                                    <Button 
-                                                        size="sm" 
-                                                        variant="outline" 
-                                                        className="mt-2 w-full"
-                                                        onClick={() => setEditMode({ type: 'nation', id: nation.id })}
-                                                    >
-                                                        <Edit2 className="w-3 h-3 mr-1" /> Move Nation
-                                                    </Button>
+                                                    <div className="flex gap-2 mt-2">
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="outline" 
+                                                            className="flex-1"
+                                                            onClick={() => setEditMode({ type: 'nation', id: nation.id })}
+                                                        >
+                                                            Move
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="outline" 
+                                                            className="flex-1"
+                                                            onClick={() => setEditingEntity({ entity: nation, type: 'nation' })}
+                                                        >
+                                                            <Edit2 className="w-3 h-3 mr-1" /> Edit
+                                                        </Button>
+                                                    </div>
                                                 </AdminOnly>
                                             </div>
                                         </Popup>
@@ -328,14 +347,24 @@ export default function WorldMap() {
                                                     View Details →
                                                 </Link>
                                                 <AdminOnly>
-                                                    <Button 
-                                                        size="sm" 
-                                                        variant="outline" 
-                                                        className="mt-2 w-full"
-                                                        onClick={() => setEditMode({ type: 'nation', id: nation.id })}
-                                                    >
-                                                        <Edit2 className="w-3 h-3 mr-1" /> Move
-                                                    </Button>
+                                                    <div className="flex gap-2 mt-2">
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="outline" 
+                                                            className="flex-1"
+                                                            onClick={() => setEditMode({ type: 'nation', id: nation.id })}
+                                                        >
+                                                            Move
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="outline" 
+                                                            className="flex-1"
+                                                            onClick={() => setEditingEntity({ entity: nation, type: 'nation' })}
+                                                        >
+                                                            <Edit2 className="w-3 h-3 mr-1" /> Edit
+                                                        </Button>
+                                                    </div>
                                                 </AdminOnly>
                                             </div>
                                         </Popup>
@@ -376,14 +405,24 @@ export default function WorldMap() {
                                                         View Club →
                                                     </Link>
                                                     <AdminOnly>
-                                                        <Button 
-                                                            size="sm" 
-                                                            variant="outline" 
-                                                            className="mt-2 w-full"
-                                                            onClick={() => setEditMode({ type: 'club', id: club.id })}
-                                                        >
-                                                            <Edit2 className="w-3 h-3 mr-1" /> Move
-                                                        </Button>
+                                                        <div className="flex gap-2 mt-2">
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant="outline" 
+                                                                className="flex-1"
+                                                                onClick={() => setEditMode({ type: 'club', id: club.id })}
+                                                            >
+                                                                Move
+                                                            </Button>
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant="outline" 
+                                                                className="flex-1"
+                                                                onClick={() => setEditingEntity({ entity: club, type: 'club' })}
+                                                            >
+                                                                <Edit2 className="w-3 h-3 mr-1" /> Edit
+                                                            </Button>
+                                                        </div>
                                                     </AdminOnly>
                                                 </div>
                                             </Popup>
@@ -416,14 +455,24 @@ export default function WorldMap() {
                                                         View Details →
                                                     </Link>
                                                     <AdminOnly>
-                                                        <Button 
-                                                            size="sm" 
-                                                            variant="outline" 
-                                                            className="mt-2 w-full"
-                                                            onClick={() => setEditMode({ type: 'location', id: location.id })}
-                                                        >
-                                                            <Edit2 className="w-3 h-3 mr-1" /> Move
-                                                        </Button>
+                                                        <div className="flex gap-2 mt-2">
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant="outline" 
+                                                                className="flex-1"
+                                                                onClick={() => setEditMode({ type: 'location', id: location.id })}
+                                                            >
+                                                                Move
+                                                            </Button>
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant="outline" 
+                                                                className="flex-1"
+                                                                onClick={() => setEditingEntity({ entity: location, type: 'location' })}
+                                                            >
+                                                                <Edit2 className="w-3 h-3 mr-1" /> Edit
+                                                            </Button>
+                                                        </div>
                                                     </AdminOnly>
                                                 </div>
                                             </Popup>
@@ -462,6 +511,16 @@ export default function WorldMap() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Edit Dialog */}
+            {editingEntity && (
+                <MapEditor 
+                    entity={editingEntity.entity}
+                    type={editingEntity.type}
+                    onClose={() => setEditingEntity(null)}
+                    onUpdate={handleEntityUpdate}
+                />
+            )}
         </div>
     );
 }
