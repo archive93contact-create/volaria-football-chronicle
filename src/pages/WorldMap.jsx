@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, ImageOverlay, useMapEvents, useMap } from 'react-leaflet';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
@@ -326,7 +326,7 @@ export default function WorldMap() {
                                         <React.Fragment key={nation.id}>
                                             {/* Terrain Image Overlay */}
                                             {nation.map_url && (
-                                                <L.ImageOverlay
+                                                <ImageOverlay
                                                     url={nation.map_url}
                                                     bounds={bounds}
                                                     opacity={0.85}
