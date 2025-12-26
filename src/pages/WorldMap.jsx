@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import AdminOnly from '@/components/common/AdminOnly';
 import PageHeader from '@/components/common/PageHeader';
+import GeographyGenerator from '@/components/map/GeographyGenerator';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -180,6 +181,18 @@ export default function WorldMap() {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Admin Actions */}
+                <AdminOnly>
+                    <div className="mb-4 flex justify-end">
+                        <GeographyGenerator 
+                            nations={nations}
+                            clubs={clubs}
+                            locations={locations}
+                            onComplete={handleGeographyGenerated}
+                        />
+                    </div>
+                </AdminOnly>
+
                 {/* Controls */}
                 <Card className="mb-4">
                     <CardContent className="p-4">
