@@ -44,6 +44,7 @@ export default function Layout({ children, currentPageName }) {
             ];
 
             const moreDropdown = [
+                { name: 'World Map', icon: Globe, page: 'WorldMap' },
                 { name: 'About', icon: Info, page: 'About' },
                 { name: 'Contact', icon: Mail, page: 'Contact' },
                 { name: 'Support', icon: Heart, page: 'Support' },
