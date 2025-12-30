@@ -281,7 +281,7 @@ export default function ContinentalCompetitions() {
                         </h1>
                         <p className="text-xl text-slate-300 max-w-3xl mx-auto">
                             Where the greatest clubs from across Volaria compete for continental glory. 
-                            Two prestigious tournaments that crown the best in European-style knockout football.
+                            The premier VCC showcases full member nations, while the CCC provides a pathway for developing nations.
                         </p>
                     </div>
 
@@ -320,12 +320,13 @@ export default function ContinentalCompetitions() {
                                 <div>
                                     <p className="text-slate-600 mb-4">
                                         Continental club competition in Volaria represents the highest level of club football. 
-                                        Born from a desire to pit the best clubs from each nation against one another, 
-                                        these tournaments have become the ultimate test of footballing excellence.
+                                        The <strong>Volarian Champions Cup (VCC)</strong> is the premier competition, featuring clubs from full member nations 
+                                        and considered the most prestigious trophy in continental football.
                                     </p>
                                     <p className="text-slate-600">
-                                        The competitions bring together champions and top finishers from domestic leagues, 
-                                        creating dream matchups and legendary moments that define generations of football history.
+                                        The <strong>Continental Challenge Cup (CCC)</strong> provides developing and associate member nations with their own 
+                                        continental platform, though it carries less prestige than the VCC. Both competitions create legendary moments 
+                                        that define generations of Volarian football history.
                                     </p>
                                 </div>
                                 <div className="space-y-4">
