@@ -1419,8 +1419,9 @@ export default function ClubDetail() {
                                 />
                             )}
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <div><Label>Club Name</Label><Input value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
+                            <div><Label>Shortened Name</Label><Input value={editData.shortened_name || ''} onChange={(e) => setEditData({...editData, shortened_name: e.target.value})} placeholder="For tables" className="mt-1" /></div>
                             <div><Label>Nickname</Label><Input value={editData.nickname || ''} onChange={(e) => setEditData({...editData, nickname: e.target.value})} className="mt-1" /></div>
                         </div>
                         <div className="grid grid-cols-3 gap-4">

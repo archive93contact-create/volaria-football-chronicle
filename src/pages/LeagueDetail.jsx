@@ -72,7 +72,10 @@ export default function LeagueDetail() {
 
     const { data: clubs = [] } = useQuery({
         queryKey: ['leagueClubs', leagueId],
-        queryFn: () => base44.entities.Club.filter({ league_id: leagueId }, 'name'),
+        queryFn: async () => {
+            const allClubs = await base44.entities.Club.filter({ league_id: leagueId }, 'name');
+            return allClubs.filter(c => !c.is_defunct);
+        },
     });
 
     const { data: seasons = [] } = useQuery({
@@ -475,13 +478,15 @@ export default function LeagueDetail() {
                                                         <TableCell className="font-medium">
                                                             {(() => {
                                                                 const indicators = getClubIndicators(row.club_name);
+                                                                const club = clubs.find(c => c.id === row.club_id);
+                                                                const displayName = club?.shortened_name || row.club_name;
                                                                 return (
                                                                     <span className="flex items-center gap-1">
                                                                         {row.club_id ? (
                                                                             <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
-                                                                                {row.club_name}
+                                                                                {displayName}
                                                                             </Link>
-                                                                        ) : row.club_name}
+                                                                        ) : displayName}
                                                                         {indicators.isChampion && (
                                                                             <span className="text-xs font-bold text-amber-600 ml-1" title="Defending Champions">(C)</span>
                                                                         )}
