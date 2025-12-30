@@ -70,13 +70,14 @@ export default function LeagueDetail() {
         enabled: !!league?.nation_id,
     });
 
-    const { data: clubs = [] } = useQuery({
+    const { data: allLeagueClubs = [] } = useQuery({
         queryKey: ['leagueClubs', leagueId],
-        queryFn: async () => {
-            const allClubs = await base44.entities.Club.filter({ league_id: leagueId }, 'name');
-            return allClubs.filter(c => !c.is_defunct);
-        },
+        queryFn: () => base44.entities.Club.filter({ league_id: leagueId }, 'name'),
+        enabled: !!leagueId,
     });
+
+    // Filter out defunct clubs
+    const clubs = React.useMemo(() => allLeagueClubs.filter(c => !c.is_defunct), [allLeagueClubs]);
 
     const { data: seasons = [] } = useQuery({
         queryKey: ['leagueSeasons', leagueId],
