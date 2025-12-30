@@ -656,10 +656,11 @@ export default function ClubDetail() {
                                 {/* VCC Section */}
                                 {(combinedStats?.vcc_titles > 0 || combinedStats?.vcc_appearances > 0 || combinedStats?.vcc_best_finish) && (
                                     <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Badge className="bg-amber-500 text-white">VCC</Badge>
-                                            <span className="font-semibold text-amber-800">Volarian Champions Cup</span>
-                                        </div>
+                                       <div className="flex items-center gap-2 mb-3">
+                                           <Badge className="bg-amber-500 text-white">VCC</Badge>
+                                           <span className="font-semibold text-amber-800">Volarian Champions Cup</span>
+                                       </div>
+                                       <p className="text-xs text-amber-600 mb-3 italic">Premier competition - Full member nations only</p>
                                         <div className="space-y-2">
                                             {combinedStats?.vcc_titles > 0 && (
                                                 <div className="flex items-center gap-2">
@@ -693,10 +694,11 @@ export default function ClubDetail() {
                                 {/* CCC Section */}
                                 {(combinedStats?.ccc_titles > 0 || combinedStats?.ccc_appearances > 0 || combinedStats?.ccc_best_finish) && (
                                     <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Badge className="bg-blue-500 text-white">CCC</Badge>
-                                            <span className="font-semibold text-blue-800">Continental Challenge Cup</span>
-                                        </div>
+                                       <div className="flex items-center gap-2 mb-3">
+                                           <Badge className="bg-blue-500 text-white">CCC</Badge>
+                                           <span className="font-semibold text-blue-800">Continental Challenge Cup</span>
+                                       </div>
+                                       <p className="text-xs text-blue-600 mb-3 italic">Developing nations pathway</p>
                                         <div className="space-y-2">
                                             {combinedStats?.ccc_titles > 0 && (
                                                 <div className="flex items-center gap-2">
@@ -1188,10 +1190,13 @@ export default function ClubDetail() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     {/* VCC Stats */}
                                     <div>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <Badge className="bg-amber-500 text-white">VCC</Badge>
-                                            <h3 className="font-semibold">Volarian Champions Cup</h3>
-                                        </div>
+                                       <div className="mb-4">
+                                           <div className="flex items-center gap-2 mb-1">
+                                               <Badge className="bg-amber-500 text-white">VCC</Badge>
+                                               <h3 className="font-semibold">Volarian Champions Cup</h3>
+                                           </div>
+                                           <p className="text-xs text-amber-700 italic">The premier continental competition</p>
+                                       </div>
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
                                                 <span className="text-slate-600">Appearances</span>
@@ -1222,10 +1227,13 @@ export default function ClubDetail() {
 
                                     {/* CCC Stats */}
                                     <div>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <Badge className="bg-blue-500 text-white">CCC</Badge>
-                                            <h3 className="font-semibold">Continental Challenge Cup</h3>
-                                        </div>
+                                       <div className="mb-4">
+                                           <div className="flex items-center gap-2 mb-1">
+                                               <Badge className="bg-blue-500 text-white">CCC</Badge>
+                                               <h3 className="font-semibold">Continental Challenge Cup</h3>
+                                           </div>
+                                           <p className="text-xs text-blue-700 italic">For associate member nations</p>
+                                       </div>
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
                                                 <span className="text-slate-600">Appearances</span>
@@ -1732,7 +1740,7 @@ export default function ClubDetail() {
                             <h4 className="font-semibold mb-3 flex items-center gap-2"><Star className="w-4 h-4" /> Continental Honours</h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-3 p-3 bg-amber-50 rounded-lg">
-                                    <Label className="text-amber-800">VCC (Champions Cup)</Label>
+                                   <Label className="text-amber-800 font-bold">VCC - Premier Competition</Label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div><Label className="text-xs">Titles</Label><Input type="number" value={editData.vcc_titles || ''} onChange={(e) => setEditData({...editData, vcc_titles: parseInt(e.target.value) || 0})} className="mt-1" /></div>
                                         <div><Label className="text-xs">Runner-up</Label><Input type="number" value={editData.vcc_runner_up || ''} onChange={(e) => setEditData({...editData, vcc_runner_up: parseInt(e.target.value) || 0})} className="mt-1" /></div>
@@ -1745,7 +1753,7 @@ export default function ClubDetail() {
                                     <div><Label className="text-xs">Appearances</Label><Input type="number" value={editData.vcc_appearances || ''} onChange={(e) => setEditData({...editData, vcc_appearances: parseInt(e.target.value) || 0})} className="mt-1" /></div>
                                 </div>
                                 <div className="space-y-3 p-3 bg-blue-50 rounded-lg">
-                                    <Label className="text-blue-800">CCC (Challenge Cup)</Label>
+                                   <Label className="text-blue-800">CCC - Developing Nations</Label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div><Label className="text-xs">Titles</Label><Input type="number" value={editData.ccc_titles || ''} onChange={(e) => setEditData({...editData, ccc_titles: parseInt(e.target.value) || 0})} className="mt-1" /></div>
                                         <div><Label className="text-xs">Runner-up</Label><Input type="number" value={editData.ccc_runner_up || ''} onChange={(e) => setEditData({...editData, ccc_runner_up: parseInt(e.target.value) || 0})} className="mt-1" /></div>
