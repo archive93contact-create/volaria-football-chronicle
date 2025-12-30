@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Edit2, Trash2, Globe, Star, Calendar, Award, ChevronRight, Crown, Shield, Sparkles } from 'lucide-react';
+import { Plus, Trophy, Edit2, Trash2, Globe, Star, Calendar, Award, ChevronRight, Crown, Shield, Sparkles, BookOpen } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import AdminOnly from '@/components/common/AdminOnly';
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
@@ -308,63 +309,339 @@ export default function ContinentalCompetitions() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* About the Competitions */}
-                <div className="mb-12">
-                    <Card className="border-0 shadow-lg overflow-hidden">
-                        <CardContent className="p-8">
-                            <div className="flex items-center gap-3 mb-6">
-                                <Sparkles className="w-6 h-6 text-amber-500" />
-                                <h2 className="text-2xl font-bold text-slate-900">The Story of Continental Football</h2>
-                            </div>
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div>
-                                    <p className="text-slate-600 mb-4">
-                                        Continental club competition in Volaria represents the highest level of club football. 
-                                        The <strong>Volarian Champions Cup (VCC)</strong> is the premier competition, featuring clubs from full member nations 
-                                        and considered the most prestigious trophy in continental football.
-                                    </p>
-                                    <p className="text-slate-600">
-                                        The <strong>Continental Challenge Cup (CCC)</strong> provides developing and associate member nations with their own 
-                                        continental platform, though it carries less prestige than the VCC. Both competitions create legendary moments 
-                                        that define generations of Volarian football history.
-                                    </p>
-                                </div>
-                                <div className="space-y-4">
-                                    {stats.topClub && (() => {
-                                        const clubObj = clubs.find(c => c.name === stats.topClub[0]);
-                                        return (
-                                            <Link to={clubObj ? createPageUrl(`ClubDetail?id=${clubObj.id}`) : '#'} className="flex items-center gap-4 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors">
-                                                <Trophy className="w-10 h-10 text-amber-500" />
-                                                <div>
-                                                    <div className="text-sm text-amber-600 font-medium">Most Successful Club</div>
-                                                    <div className="font-bold text-slate-900 hover:text-amber-700">{stats.topClub[0]}</div>
-                                                    <div className="text-sm text-slate-500">{stats.topClub[1]} continental titles</div>
-                                                </div>
-                                            </Link>
-                                        );
-                                    })()}
-                                    {stats.topNation && (() => {
-                                        const nationObj = nations.find(n => n.name === stats.topNation[0]);
-                                        return (
-                                            <Link to={nationObj ? createPageUrl(`NationDetail?id=${nationObj.id}`) : '#'} className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
-                                                <Globe className="w-10 h-10 text-blue-500" />
-                                                <div>
-                                                    <div className="text-sm text-blue-600 font-medium">Most Successful Nation</div>
-                                                    <div className="font-bold text-slate-900 hover:text-blue-700">{stats.topNation[0]}</div>
-                                                    <div className="text-sm text-slate-500">{stats.topNation[1]} continental titles</div>
-                                                </div>
-                                            </Link>
-                                        );
-                                    })()}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                {/* Tabs for History & Competitions */}
+                <Tabs defaultValue="competitions" className="mb-12">
+                    <TabsList className="mb-8">
+                        <TabsTrigger value="competitions" className="flex items-center gap-2">
+                            <Trophy className="w-4 h-4" />
+                            Competitions
+                        </TabsTrigger>
+                        <TabsTrigger value="history" className="flex items-center gap-2">
+                            <BookOpen className="w-4 h-4" />
+                            History & Legacy
+                        </TabsTrigger>
+                        <TabsTrigger value="most-successful" className="flex items-center gap-2">
+                            <Crown className="w-4 h-4" />
+                            Most Successful
+                        </TabsTrigger>
+                    </TabsList>
 
-                {/* Competitions */}
+                    <TabsContent value="history">
+                        <Card className="border-0 shadow-lg overflow-hidden">
+                            <CardContent className="p-8">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Sparkles className="w-6 h-6 text-amber-500" />
+                                    <h2 className="text-2xl font-bold text-slate-900">The Story of Continental Football</h2>
+                                </div>
+                                
+                                <div className="space-y-8">
+                                    {/* VCC Section */}
+                                    <div className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <Crown className="w-8 h-8 text-amber-600" />
+                                            <div>
+                                                <h3 className="text-xl font-bold text-amber-900">Volarian Champions Cup</h3>
+                                                <p className="text-sm text-amber-600">The Pinnacle of Club Football</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4 text-slate-700">
+                                            <p>
+                                                The <strong>VCC</strong> represents the absolute pinnacle of club football in Volaria. Founded to unite the continent's 
+                                                strongest footballing nations, it features only clubs from <strong>full member nations</strong>—those with established 
+                                                league systems, professional infrastructure, and proven track records on the continental stage.
+                                            </p>
+                                            <p>
+                                                To lift the VCC trophy is to achieve immortality in Volarian football. The competition showcases the highest tactical 
+                                                sophistication, the most talented players, and the wealthiest clubs. VCC nights are when legends are born and dynasties 
+                                                are forged. The pressure, prestige, and spotlight far exceed any domestic competition.
+                                            </p>
+                                            <p className="font-semibold text-amber-800">
+                                                A VCC title is universally recognized as the greatest achievement in club football—worth more than any domestic league 
+                                                championship and considered the ultimate test of a club's greatness.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* CCC Section */}
+                                    <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <Shield className="w-8 h-8 text-blue-600" />
+                                            <div>
+                                                <h3 className="text-xl font-bold text-blue-900">Continental Challenge Cup</h3>
+                                                <p className="text-sm text-blue-600">The Pathway for Developing Nations</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4 text-slate-700">
+                                            <p>
+                                                The <strong>CCC</strong> serves as a vital stepping stone for <strong>associate member nations</strong>—developing 
+                                                footballing countries working to strengthen their domestic leagues and continental competitiveness. While it provides 
+                                                crucial international experience and generates important revenue for participating clubs, the CCC operates in the shadow 
+                                                of the VCC.
+                                            </p>
+                                            <p>
+                                                CCC clubs face lower-quality opposition, receive less media coverage, and generate significantly smaller commercial revenues. 
+                                                The competition serves its purpose as a development platform, but <strong>CCC success does not carry the same weight</strong> 
+                                                as VCC achievement in footballing prestige or historical significance.
+                                            </p>
+                                            <p className="text-sm italic text-blue-700">
+                                                Many clubs that excel in the CCC dream of one day seeing their nation promoted to full VCC membership, where they can 
+                                                compete against the continent's true elite.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* The Origins */}
+                                    <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
+                                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                            <BookOpen className="w-5 h-5 text-slate-600" />
+                                            The Origins
+                                        </h3>
+                                        <div className="space-y-3 text-slate-700">
+                                            <p>
+                                                Continental competition emerged from a desire to determine the ultimate club champion across Volaria. As domestic leagues 
+                                                matured, the question arose: which nation truly produced the best football? The VCC was created to answer that question, 
+                                                bringing together the continent's most established footballing powers.
+                                            </p>
+                                            <p>
+                                                The two-tier system was established to balance competitive integrity with inclusivity. Full member nations earned their 
+                                                VCC status through years of consistent performance, infrastructure investment, and proven ability to compete at the highest level. 
+                                                Associate members were given their own platform to develop, with the long-term goal of eventual VCC promotion as their leagues mature.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* The Future */}
+                                    <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                                        <h3 className="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                                            <Sparkles className="w-5 h-5 text-emerald-600" />
+                                            The Future of Continental Football
+                                        </h3>
+                                        <div className="space-y-3 text-slate-700">
+                                            <p>
+                                                As Volarian football continues to evolve, the pathway from CCC to VCC membership remains the ultimate ambition for 
+                                                developing nations. Several associate members are building professional infrastructure, investing in youth development, 
+                                                and strengthening their domestic competitions with the goal of earning full VCC status.
+                                            </p>
+                                            <p>
+                                                The VCC itself continues to raise standards, with broadcast deals, sponsorships, and global viewership cementing its status 
+                                                as one of sport's premier competitions. The gap between VCC and CCC quality shows no signs of narrowing—if anything, the 
+                                                financial advantages enjoyed by VCC nations continue to grow.
+                                            </p>
+                                            <p className="font-semibold text-emerald-800">
+                                                The dual-competition structure ensures that while the VCC maintains its elite status and prestige, developing nations 
+                                                have a pathway to continental competition—and perhaps, one day, a chance to join the elite.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="most-successful">
+                        <Card className="border-0 shadow-lg overflow-hidden">
+                            <CardContent className="p-8">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Crown className="w-6 h-6 text-amber-500" />
+                                    <h2 className="text-2xl font-bold text-slate-900">Continental Royalty</h2>
+                                </div>
+                                
+                                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                                    {/* VCC Winners */}
+                                    <div className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-300">
+                                        <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
+                                            <Trophy className="w-5 h-5" />
+                                            VCC Champions - Elite Status
+                                        </h3>
+                                        {(() => {
+                                            const vccSeasons = seasons.filter(s => {
+                                                const comp = competitions.find(c => c.id === s.competition_id);
+                                                return comp?.tier === 1;
+                                            });
+                                            const vccClubWins = {};
+                                            vccSeasons.forEach(s => {
+                                                if (s.champion_name) vccClubWins[s.champion_name] = (vccClubWins[s.champion_name] || 0) + 1;
+                                            });
+                                            const topVCCClubs = Object.entries(vccClubWins).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                                            
+                                            return topVCCClubs.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {topVCCClubs.map(([clubName, count], idx) => {
+                                                        const clubObj = clubs.find(c => c.name === clubName);
+                                                        const nationObj = nations.find(n => n.id === clubObj?.nation_id);
+                                                        return (
+                                                            <Link 
+                                                                key={clubName}
+                                                                to={clubObj ? createPageUrl(`ClubDetail?id=${clubObj.id}`) : '#'}
+                                                                className="flex items-center justify-between p-3 rounded-lg bg-white hover:bg-amber-100 transition-colors border border-amber-200"
+                                                            >
+                                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                                                                        idx === 0 ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-700'
+                                                                    }`}>
+                                                                        {idx + 1}
+                                                                    </span>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="font-semibold text-slate-900 truncate">{clubName}</div>
+                                                                        {nationObj && <div className="text-xs text-slate-500">{nationObj.name}</div>}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Trophy className="w-4 h-4 text-amber-600" />
+                                                                    <span className="font-bold text-amber-700 text-lg">{count}</span>
+                                                                </div>
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <p className="text-slate-500 text-sm">No VCC champions yet</p>
+                                            );
+                                        })()}
+                                    </div>
+
+                                    {/* CCC Winners */}
+                                    <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
+                                        <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                            <Shield className="w-5 h-5" />
+                                            CCC Champions - Developing Nations
+                                        </h3>
+                                        {(() => {
+                                            const cccSeasons = seasons.filter(s => {
+                                                const comp = competitions.find(c => c.id === s.competition_id);
+                                                return comp?.tier === 2;
+                                            });
+                                            const cccClubWins = {};
+                                            cccSeasons.forEach(s => {
+                                                if (s.champion_name) cccClubWins[s.champion_name] = (cccClubWins[s.champion_name] || 0) + 1;
+                                            });
+                                            const topCCCClubs = Object.entries(cccClubWins).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                                            
+                                            return topCCCClubs.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {topCCCClubs.map(([clubName, count], idx) => {
+                                                        const clubObj = clubs.find(c => c.name === clubName);
+                                                        const nationObj = nations.find(n => n.id === clubObj?.nation_id);
+                                                        return (
+                                                            <Link 
+                                                                key={clubName}
+                                                                to={clubObj ? createPageUrl(`ClubDetail?id=${clubObj.id}`) : '#'}
+                                                                className="flex items-center justify-between p-3 rounded-lg bg-white hover:bg-blue-100 transition-colors border border-blue-200"
+                                                            >
+                                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                                    <span className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
+                                                                        {idx + 1}
+                                                                    </span>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="font-medium text-slate-900 truncate">{clubName}</div>
+                                                                        {nationObj && <div className="text-xs text-slate-500">{nationObj.name}</div>}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Shield className="w-4 h-4 text-blue-600" />
+                                                                    <span className="font-bold text-blue-700">{count}</span>
+                                                                </div>
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <p className="text-slate-500 text-sm">No CCC champions yet</p>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+
+                                {/* Nations comparison */}
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-900 mb-4">VCC Nations</h3>
+                                        {(() => {
+                                            const vccSeasons = seasons.filter(s => {
+                                                const comp = competitions.find(c => c.id === s.competition_id);
+                                                return comp?.tier === 1;
+                                            });
+                                            const vccNationWins = {};
+                                            vccSeasons.forEach(s => {
+                                                if (s.champion_nation) vccNationWins[s.champion_nation] = (vccNationWins[s.champion_nation] || 0) + 1;
+                                            });
+                                            const topVCCNations = Object.entries(vccNationWins).sort((a, b) => b[1] - a[1]).slice(0, 8);
+                                            
+                                            return topVCCNations.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {topVCCNations.map(([nationName, count]) => {
+                                                        const nationObj = nations.find(n => n.name === nationName);
+                                                        return (
+                                                            <Link 
+                                                                key={nationName}
+                                                                to={nationObj ? createPageUrl(`NationDetail?id=${nationObj.id}`) : '#'}
+                                                                className="flex items-center justify-between p-3 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors"
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    {nationObj?.flag_url && (
+                                                                        <img src={nationObj.flag_url} alt={nationName} className="w-8 h-6 object-cover rounded" />
+                                                                    )}
+                                                                    <span className="font-medium text-slate-900">{nationName}</span>
+                                                                </div>
+                                                                <span className="font-bold text-amber-700">{count}</span>
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <p className="text-slate-500 text-sm">No data yet</p>
+                                            );
+                                        })()}
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-900 mb-4">CCC Nations</h3>
+                                        {(() => {
+                                            const cccSeasons = seasons.filter(s => {
+                                                const comp = competitions.find(c => c.id === s.competition_id);
+                                                return comp?.tier === 2;
+                                            });
+                                            const cccNationWins = {};
+                                            cccSeasons.forEach(s => {
+                                                if (s.champion_nation) cccNationWins[s.champion_nation] = (cccNationWins[s.champion_nation] || 0) + 1;
+                                            });
+                                            const topCCCNations = Object.entries(cccNationWins).sort((a, b) => b[1] - a[1]).slice(0, 8);
+                                            
+                                            return topCCCNations.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {topCCCNations.map(([nationName, count]) => {
+                                                        const nationObj = nations.find(n => n.name === nationName);
+                                                        return (
+                                                            <Link 
+                                                                key={nationName}
+                                                                to={nationObj ? createPageUrl(`NationDetail?id=${nationObj.id}`) : '#'}
+                                                                className="flex items-center justify-between p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    {nationObj?.flag_url && (
+                                                                        <img src={nationObj.flag_url} alt={nationName} className="w-8 h-6 object-cover rounded" />
+                                                                    )}
+                                                                    <span className="font-medium text-slate-900">{nationName}</span>
+                                                                </div>
+                                                                <span className="font-bold text-blue-700">{count}</span>
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <p className="text-slate-500 text-sm">No data yet</p>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="competitions">
+
                 <div className="mb-8 flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-slate-900">The Competitions</h2>
+                    <h2 className="text-2xl font-bold text-slate-900">Active Competitions</h2>
                     <AdminOnly>
                         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                             <DialogTrigger asChild>
@@ -591,6 +868,8 @@ export default function ContinentalCompetitions() {
                         })}
                     </div>
                 )}
+                    </TabsContent>
+                </Tabs>
             </div>
 
             {/* Edit Dialog */}
