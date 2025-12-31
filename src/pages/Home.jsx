@@ -44,7 +44,7 @@ export default function Home() {
         const planned = [];
 
         nations.forEach(nation => {
-            const nationLeagues = leagues.filter(l => l.nation_id === nation.id);
+            const nationLeagues = leagues.filter(l => l.nation_id === nation.id && l.is_active !== false);
             const nationLeagueIds = nationLeagues.map(l => l.id);
             const nationClubs = clubs.filter(c => c.nation_id === nation.id);
             const coeff = coefficients.find(c => c.nation_id === nation.id);
