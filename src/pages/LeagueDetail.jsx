@@ -77,7 +77,10 @@ export default function LeagueDetail() {
     });
 
     // Filter out defunct clubs
-    const clubs = useMemo(() => allLeagueClubs.filter(c => !c.is_defunct), [allLeagueClubs]);
+    const clubs = useMemo(() => {
+        if (!allLeagueClubs || allLeagueClubs.length === 0) return [];
+        return allLeagueClubs.filter(c => !c.is_defunct);
+    }, [allLeagueClubs]);
 
     const { data: seasons = [] } = useQuery({
         queryKey: ['leagueSeasons', leagueId],
