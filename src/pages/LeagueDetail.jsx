@@ -914,6 +914,20 @@ export default function LeagueDetail() {
                         <div><Label>Description</Label><Textarea value={editData.description || ''} onChange={(e) => setEditData({...editData, description: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={4} className="mt-1" /></div>
                         
+                        {/* Active Status */}
+                        <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                            <input 
+                                type="checkbox" 
+                                id="is_active"
+                                checked={editData.is_active !== false}
+                                onChange={(e) => setEditData({...editData, is_active: e.target.checked})}
+                                className="rounded"
+                            />
+                            <Label htmlFor="is_active" className="cursor-pointer">
+                                League is currently active (uncheck for defunct/discontinued leagues)
+                            </Label>
+                        </div>
+                        
                         {/* League Name Change Section */}
                         <div className="border-t pt-4 mt-4">
                             <h4 className="font-semibold mb-3 flex items-center gap-2">

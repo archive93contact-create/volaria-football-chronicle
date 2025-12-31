@@ -8,6 +8,9 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
     const pyramidData = useMemo(() => {
         if (!leagues || leagues.length === 0) return { tiers: [], mostRecentYear: null };
 
+        // Filter to only active leagues (is_active is true or undefined for backwards compatibility)
+        const activeLeagues = leagues.filter(l => l.is_active !== false);
+
         // Find most recent season year overall
         const mostRecentYear = seasons.length > 0 
             ? [...seasons].sort((a, b) => b.year.localeCompare(a.year))[0]?.year 
@@ -51,7 +54,7 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
         // Build pyramid structure
         const pyramidByTier = {};
         
-        leagues.forEach(league => {
+        activeLeagues.forEach(league => {
             const currentTier = getLeagueCurrentTier(league);
             const seasonInfo = getLeagueSeasonInfo(league);
             const promoReleg = getPromotionRelegationData(league, seasonInfo);
