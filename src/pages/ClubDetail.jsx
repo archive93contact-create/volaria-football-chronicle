@@ -324,31 +324,30 @@ export default function ClubDetail() {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Immersive Hero with Larger Crest */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            <div 
+                className="relative overflow-hidden"
+                style={{
+                    background: club.primary_color 
+                        ? `linear-gradient(135deg, ${club.primary_color}e6, ${club.secondary_color || club.primary_color}b3, ${club.accent_color || club.primary_color}80)`
+                        : 'linear-gradient(to br, rgb(15 23 42), rgb(30 41 59), rgb(15 23 42))'
+                }}
+            >
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div 
                         className="w-full h-full"
                         style={{
                             backgroundImage: club.pattern_preference === 'vertical_stripes' 
-                                ? `repeating-linear-gradient(90deg, ${club.primary_color}20 0px, ${club.primary_color}20 20px, transparent 20px, transparent 40px)`
+                                ? `repeating-linear-gradient(90deg, ${club.primary_color || '#ffffff'}30 0px, ${club.primary_color || '#ffffff'}30 20px, transparent 20px, transparent 40px)`
                                 : club.pattern_preference === 'horizontal_hoops'
-                                ? `repeating-linear-gradient(0deg, ${club.primary_color}20 0px, ${club.primary_color}20 20px, transparent 20px, transparent 40px)`
+                                ? `repeating-linear-gradient(0deg, ${club.primary_color || '#ffffff'}30 0px, ${club.primary_color || '#ffffff'}30 20px, transparent 20px, transparent 40px)`
                                 : undefined
                         }}
                     />
                 </div>
                 
-                {/* Gradient Overlays */}
-                <div 
-                    className="absolute inset-0 bg-gradient-to-br opacity-60"
-                    style={{
-                        background: club.primary_color 
-                            ? `linear-gradient(135deg, ${club.primary_color}40, ${club.accent_color || club.secondary_color || club.primary_color}20)`
-                            : undefined
-                    }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent" />
+                {/* Dark overlay for readability */}
+                <div className="absolute inset-0 bg-black/30" />
                 
                 {/* Content */}
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -374,7 +373,7 @@ export default function ClubDetail() {
                     {/* Main Header Content */}
                     <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
                         {/* Large Club Crest */}
-                        <div className="relative">
+                        <div className="relative flex flex-col items-center">
                             <div 
                                 className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-3xl shadow-2xl p-6 flex items-center justify-center"
                                 style={{
@@ -389,6 +388,26 @@ export default function ClubDetail() {
                                     <Shield className="w-32 h-32 text-slate-300" />
                                 )}
                             </div>
+                            
+                            {/* Nation Flag & Name */}
+                            {nation && (
+                                <Link 
+                                    to={createPageUrl(`NationDetail?id=${nation.id}`)}
+                                    className="flex flex-col items-center gap-2 mt-4 group"
+                                >
+                                    {nation.flag_url && (
+                                        <img 
+                                            src={nation.flag_url} 
+                                            alt={nation.name} 
+                                            className="w-16 h-10 object-contain rounded-lg shadow-lg border-2 border-white/50 group-hover:border-white transition-all"
+                                        />
+                                    )}
+                                    <span className="text-white/90 font-medium text-sm group-hover:text-white transition-colors">
+                                        {nation.name}
+                                    </span>
+                                </Link>
+                            )}
+                            
                             {/* Kit Thumbnails */}
                             {(club.home_kit_url || club.away_kit_url || club.third_kit_url) && (
                                 <div className="flex gap-2 justify-center mt-3">
