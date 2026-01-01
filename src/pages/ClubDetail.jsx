@@ -407,15 +407,6 @@ export default function ClubDetail() {
                                     </span>
                                 </Link>
                             )}
-                            
-                            {/* Kit Thumbnails */}
-                            {(club.home_kit_url || club.away_kit_url || club.third_kit_url) && (
-                                <div className="flex gap-2 justify-center mt-3">
-                                    {club.home_kit_url && <img src={club.home_kit_url} alt="Home" className="w-8 h-10 object-contain bg-white rounded shadow-sm" />}
-                                    {club.away_kit_url && <img src={club.away_kit_url} alt="Away" className="w-8 h-10 object-contain bg-white rounded shadow-sm" />}
-                                    {club.third_kit_url && <img src={club.third_kit_url} alt="Third" className="w-8 h-10 object-contain bg-white rounded shadow-sm" />}
-                                </div>
-                            )}
                         </div>
 
                         {/* Club Info */}
