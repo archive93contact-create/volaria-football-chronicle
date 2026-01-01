@@ -46,7 +46,7 @@ export default function LeagueDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
     const [selectedSeason, setSelectedSeason] = useState('');
-    const [selectedTab, setSelectedTab] = useState('clubs');
+    const [selectedTab, setSelectedTab] = useState('table');
     const [editingSeason, setEditingSeason] = useState(null);
     const [seasonEditData, setSeasonEditData] = useState({});
     const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
