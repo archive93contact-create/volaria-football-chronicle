@@ -364,63 +364,23 @@ export default function LeagueDetail() {
                     </Card>
                 )}
 
-                {/* Quick Navigation Cards - Themed */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                    <a href="#league-table" className="block" style={{
-                        background: league.accent_color 
-                            ? `linear-gradient(135deg, ${league.primary_color}15, ${league.accent_color}15)` 
-                            : undefined
-                    }}>
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer group" style={{
-                            backgroundColor: league.primary_color ? `${league.primary_color}10` : undefined
-                        }}>
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Trophy className="w-8 h-8" style={{ color: league.primary_color || '#f59e0b' }} />
-                                <div>
-                                    <div className="font-semibold text-slate-800">League Table</div>
-                                    <div className="text-xs text-slate-500">{currentYear} Season</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                    <a href="#league-story" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Calendar className="w-8 h-8 text-blue-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-blue-700">League History</div>
-                                    <div className="text-xs text-slate-500">Champions & Storylines</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                    <a href="#season-story" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Shield className="w-8 h-8 text-purple-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-purple-700">Season Story</div>
-                                    <div className="text-xs text-slate-500">Drama & Insights</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                    <a href="#stats-records" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-emerald-50 to-teal-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Users className="w-8 h-8 text-emerald-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-emerald-700">Stats & Records</div>
-                                    <div className="text-xs text-slate-500">All-Time Data</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                </div>
+                <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="table" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="table">League Table</TabsTrigger>
+                        <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
+                        <TabsTrigger value="story">League Story</TabsTrigger>
+                        <TabsTrigger value="crests">Club Crests ({clubs.length})</TabsTrigger>
+                        <TabsTrigger value="clubs">Clubs List</TabsTrigger>
+                        <TabsTrigger value="titles">Most Titles</TabsTrigger>
+                        <TabsTrigger value="seasons">Season History</TabsTrigger>
+                        <TabsTrigger value="records">All-Time Records</TabsTrigger>
+                        <TabsTrigger value="predictions">Predictions</TabsTrigger>
+                    </TabsList>
 
-                {/* LEAGUE TABLE */}
+                    {/* LEAGUE TABLE TAB */}
+                    <TabsContent value="table">
                 {currentSeasonTable.length > 0 && (
-                    <div id="league-table">
+                    <div>
                     <ThemedCard
                         title={
                             <span className="flex items-center gap-2 justify-between w-full">
@@ -521,32 +481,8 @@ export default function LeagueDetail() {
                             </div>
                         </CardContent>
                     </ThemedCard>
-                    </div>
-                )}
 
-                {/* League Story Section */}
-                <div id="league-story">
-                    {/* League Narratives - Most Prominent */}
-                    <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
-
-                    {/* Competitiveness & Flow */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        <LeagueCompetitiveness seasons={seasons} leagueTables={leagueTables} />
-                        <PromotionRelegationFlow seasons={seasons} clubs={clubs} leagues={[league]} />
-                    </div>
-
-                    {/* Visual League History */}
-                    <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
-
-                    {/* League History Timeline */}
-                    <LeagueHistory league={league} seasons={seasons} nation={nation} />
-
-                    {/* Player Statistics */}
-                    <LeaguePlayerStats league={league} clubs={clubs} nation={nation} />
-                </div>
-
-                {/* Season Storylines */}
-                <div id="season-story">
+                    {/* Season Storylines */}
                     {(selectedSeason || uniqueYears[0]) && (
                         <SeasonStorylines 
                             season={seasons.find(s => s.year === (selectedSeason || uniqueYears[0]))}
@@ -557,38 +493,43 @@ export default function LeagueDetail() {
                             clubs={allNationClubs}
                         />
                     )}
-                </div>
+                )}
+                    </TabsContent>
 
-                {/* Geographic & Head-to-Head */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <LeagueClubsMap clubs={clubs} nation={nation} />
-                    <HeadToHeadMatrix clubs={clubs} leagueTables={leagueTables} />
-                </div>
+                    {/* HISTORY & STATS TAB */}
+                    <TabsContent value="history-stats">
+                        {/* League History Timeline */}
+                        <LeagueHistory league={league} seasons={seasons} nation={nation} />
 
-                {/* Fierce Rivalries */}
-                <LeagueRivalries clubs={clubs} leagueTables={leagueTables} />
+                        {/* Visual League History */}
+                        <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
 
-                {/* AI Predictions */}
-                <div className="mb-8">
-                    <LeaguePredictions 
-                        league={league}
-                        seasons={seasons}
-                        leagueTables={leagueTables}
-                        clubs={allNationClubs}
-                    />
-                </div>
+                        {/* Player Statistics */}
+                        <LeaguePlayerStats league={league} clubs={clubs} nation={nation} />
 
-                {/* Stats & Records Section */}
-                <div id="stats-records">
-                    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-                    <TabsList>
-                        <TabsTrigger value="crests">Club Crests ({clubs.length})</TabsTrigger>
-                        <TabsTrigger value="clubs">Clubs List</TabsTrigger>
-                        <TabsTrigger value="titles">Most Titles</TabsTrigger>
-                        <TabsTrigger value="history">Season History</TabsTrigger>
-                        <TabsTrigger value="records">All-Time Records</TabsTrigger>
-                    </TabsList>
+                        {/* Geographic & Head-to-Head */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                            <LeagueClubsMap clubs={clubs} nation={nation} />
+                            <HeadToHeadMatrix clubs={clubs} leagueTables={leagueTables} />
+                        </div>
+                    </TabsContent>
 
+                    {/* LEAGUE STORY TAB */}
+                    <TabsContent value="story">
+                        {/* League Narratives */}
+                        <LeagueNarratives league={league} seasons={seasons} clubs={clubs} leagueTables={leagueTables} />
+
+                        {/* Competitiveness & Flow */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                            <LeagueCompetitiveness seasons={seasons} leagueTables={leagueTables} />
+                            <PromotionRelegationFlow seasons={seasons} clubs={clubs} leagues={[league]} />
+                        </div>
+
+                        {/* Fierce Rivalries */}
+                        <LeagueRivalries clubs={clubs} leagueTables={leagueTables} />
+                    </TabsContent>
+
+                    {/* CLUB CRESTS TAB */}
                     <TabsContent value="crests">
                         <ThemedCard 
                             title="Current Competing Clubs"
@@ -691,6 +632,7 @@ export default function LeagueDetail() {
                         </ThemedCard>
                     </TabsContent>
 
+                    {/* MOST TITLES TAB */}
                     <TabsContent value="titles">
                         <ThemedCard 
                             title="All-Time Title Winners"
@@ -757,7 +699,8 @@ export default function LeagueDetail() {
                         </ThemedCard>
                     </TabsContent>
 
-                    <TabsContent value="history">
+                    {/* SEASON HISTORY TAB */}
+                    <TabsContent value="seasons">
                         <ThemedCard 
                             title="Season History"
                             icon={Calendar}
@@ -873,15 +816,25 @@ export default function LeagueDetail() {
                                         </ThemedCard>
                                     </TabsContent>
 
-                                    <TabsContent value="records">
+                    {/* ALL-TIME RECORDS TAB */}
+                    <TabsContent value="records">
                                         <LeagueRecords 
                                             leagueTables={leagueTables}
                                             clubs={allNationClubs}
                                             seasons={seasons}
                                         />
                     </TabsContent>
+
+                    {/* PREDICTIONS TAB */}
+                    <TabsContent value="predictions">
+                        <LeaguePredictions 
+                            league={league}
+                            seasons={seasons}
+                            leagueTables={leagueTables}
+                            clubs={allNationClubs}
+                        />
+                    </TabsContent>
                 </Tabs>
-                </div>
             </div>
 
             {/* Edit League Dialog */}

@@ -501,54 +501,19 @@ export default function ClubDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Quick Navigation Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                    <a href="#honours" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-yellow-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Trophy className="w-8 h-8 text-amber-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-amber-700">Honours</div>
-                                    <div className="text-xs text-slate-500">Trophies & Titles</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                    <a href="#club-story" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Calendar className="w-8 h-8 text-blue-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-blue-700">Club Story</div>
-                                    <div className="text-xs text-slate-500">History & Narratives</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                    <a href="#all-time-stats" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-emerald-50 to-teal-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Target className="w-8 h-8 text-emerald-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-emerald-700">Statistics</div>
-                                    <div className="text-xs text-slate-500">All-Time Record</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                    <a href="#season-history" className="block">
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 group">
-                            <CardContent className="p-4 flex items-center gap-3">
-                                <Users className="w-8 h-8 text-purple-500" />
-                                <div>
-                                    <div className="font-semibold text-slate-800 group-hover:text-purple-700">Seasons</div>
-                                    <div className="text-xs text-slate-500">Year by Year</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </a>
-                </div>
+                <Tabs defaultValue="overview" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="overview">Club Story & Honours</TabsTrigger>
+                        <TabsTrigger value="statistics">Season History</TabsTrigger>
+                        <TabsTrigger value="rivalries">Rivalries & Dynasty</TabsTrigger>
+                        <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
+                        <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
+                        <TabsTrigger value="continental">Continental</TabsTrigger>
+                        <TabsTrigger value="info">Club Info</TabsTrigger>
+                    </TabsList>
 
+                    {/* OVERVIEW TAB - Club Story, History & Honours */}
+                    <TabsContent value="overview">
                 {/* Stats - with subtle club theming */}
                 <div 
                     id="honours" 
@@ -1038,9 +1003,7 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
-                {/* Club Story Section */}
-                <div id="club-story">
-                    {/* Club History Timeline */}
+                {/* Club History Timeline */}
                     <ClubHistory 
                         club={{...club, ...combinedStats}}
                         nation={nation}
@@ -1051,38 +1014,16 @@ export default function ClubDetail() {
 
                     {/* Club Narratives */}
                     <ClubNarratives 
-                    club={{...club, ...combinedStats}} 
-                    seasons={combinedSeasons} 
-                    leagues={allLeagues} 
-                    allClubs={allClubs}
-                    allLeagueTables={allNationLeagueTables}
-                />
+                        club={{...club, ...combinedStats}} 
+                        seasons={combinedSeasons} 
+                        leagues={allLeagues} 
+                        allClubs={allClubs}
+                        allLeagueTables={allNationLeagueTables}
+                    />
+                    </TabsContent>
 
-                {/* Dynasty & Rivalry - Side by Side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    <DynastyTracker club={club} combinedStats={combinedStats} />
-                    <RivalryTracker club={club} allClubs={allClubs} allLeagueTables={allNationLeagueTables} />
-                </div>
-
-                {/* League History Chart */}
-                {combinedSeasons.length >= 2 && (
-                    <div className="mt-8">
-                        <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} nationName={nation?.name} />
-                    </div>
-                )}
-                </div>
-
-                <div id="season-history">
-                                <Tabs defaultValue="seasons" className="space-y-6">
-                                <TabsList>
-                                    <TabsTrigger value="seasons">Season History ({clubSeasons.length})</TabsTrigger>
-                                    <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
-                                    <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
-                                    <TabsTrigger value="continental">Continental</TabsTrigger>
-                                    <TabsTrigger value="info">Club Info</TabsTrigger>
-                                </TabsList>
-
-                    <TabsContent value="seasons">
+                    {/* STATISTICS TAB - Season History & Graph */}
+                    <TabsContent value="statistics">
                         <Card className="border-0 shadow-sm">
                             <CardHeader><CardTitle>Season by Season</CardTitle></CardHeader>
                             <CardContent>
@@ -1153,8 +1094,24 @@ export default function ClubDetail() {
                                 )}
                             </CardContent>
                         </Card>
+
+                        {/* League History Chart */}
+                        {combinedSeasons.length >= 2 && (
+                            <div className="mt-8">
+                                <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} nationName={nation?.name} />
+                            </div>
+                        )}
                     </TabsContent>
 
+                    {/* RIVALRIES & DYNASTY TAB */}
+                    <TabsContent value="rivalries">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <DynastyTracker club={club} combinedStats={combinedStats} />
+                            <RivalryTracker club={club} allClubs={allClubs} allLeagueTables={allNationLeagueTables} />
+                        </div>
+                    </TabsContent>
+
+                    {/* SQUAD TAB */}
                     <TabsContent value="squad">
                         {(() => {
                             const seniorPlayers = players.filter(p => !p.is_youth_player);
@@ -1229,6 +1186,7 @@ export default function ClubDetail() {
                         })()}
                     </TabsContent>
 
+                    {/* YOUTH TAB */}
                     <TabsContent value="youth">
                     {(() => {
                         const youthPlayers = players.filter(p => p.is_youth_player);
@@ -1284,6 +1242,7 @@ export default function ClubDetail() {
                     })()}
                     </TabsContent>
 
+                    {/* CONTINENTAL TAB */}
                     <TabsContent value="continental">
                         <ThemedCard 
                             title="Continental Competition Record"
@@ -1371,6 +1330,7 @@ export default function ClubDetail() {
                                 </ThemedCard>
                                 </TabsContent>
 
+                    {/* CLUB INFO TAB */}
                     <TabsContent value="info">
                                                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                       <div className="lg:col-span-2 space-y-6">
