@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, ChevronRight, Star, Edit2, Trash2, Loader2, RefreshCw, Settings } from 'lucide-react';
+import { Plus, Trophy, ChevronRight, Star, Edit2, Trash2, Loader2, RefreshCw, Settings, Shield } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -279,6 +279,7 @@ export default function ContinentalSeasonDetail() {
                     <div className="flex items-center justify-between">
                         <TabsList>
                             <TabsTrigger value="bracket">Tournament Bracket</TabsTrigger>
+                            <TabsTrigger value="crests">Club Crests</TabsTrigger>
                             <TabsTrigger value="participants">Participants</TabsTrigger>
                             <TabsTrigger value="stats">Stats & Records</TabsTrigger>
                             <TabsTrigger value="rounds">By Round</TabsTrigger>
@@ -309,6 +310,93 @@ export default function ContinentalSeasonDetail() {
                             competition={competition}
                             onEditMatch={setEditingMatch}
                         />
+                    </TabsContent>
+
+                    <TabsContent value="crests">
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Shield className="w-5 h-5" />
+                                    Competing Clubs
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {(() => {
+                                    // Collect all unique clubs from matches
+                                    const participantClubs = new Map();
+                                    matches.forEach(m => {
+                                        if (m.home_club_name && m.home_club_name !== 'TBD') {
+                                            const club = clubs.find(c => c.name === m.home_club_name);
+                                            if (club) {
+                                                participantClubs.set(club.id, { 
+                                                    ...club, 
+                                                    nation: m.home_club_nation,
+                                                    isChampion: m.home_club_name === season.champion_name 
+                                                });
+                                            }
+                                        }
+                                        if (m.away_club_name && m.away_club_name !== 'TBD') {
+                                            const club = clubs.find(c => c.name === m.away_club_name);
+                                            if (club) {
+                                                participantClubs.set(club.id, { 
+                                                    ...club, 
+                                                    nation: m.away_club_nation,
+                                                    isChampion: m.away_club_name === season.champion_name 
+                                                });
+                                            }
+                                        }
+                                    });
+
+                                    const participantArray = Array.from(participantClubs.values())
+                                        .sort((a, b) => {
+                                            if (a.isChampion) return -1;
+                                            if (b.isChampion) return 1;
+                                            return a.name.localeCompare(b.name);
+                                        });
+
+                                    if (participantArray.length === 0) {
+                                        return <p className="text-center py-8 text-slate-500">No participating clubs yet</p>;
+                                    }
+
+                                    return (
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+                                            {participantArray.map(club => (
+                                                <Link 
+                                                    key={club.id} 
+                                                    to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                    className="group flex flex-col items-center gap-2"
+                                                >
+                                                    <div className="w-full aspect-square bg-white rounded-xl p-4 shadow-md hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border border-slate-200 flex items-center justify-center relative">
+                                                        {club.logo_url ? (
+                                                            <img 
+                                                                src={club.logo_url} 
+                                                                alt={club.name} 
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        ) : (
+                                                            <Shield className="w-12 h-12 text-slate-300" />
+                                                        )}
+                                                        {club.isChampion && (
+                                                            <Trophy className="absolute -top-2 -right-2 w-6 h-6 text-amber-500 bg-white rounded-full p-1 shadow-lg" />
+                                                        )}
+                                                    </div>
+                                                    {getNationFlag(club.nation) && (
+                                                        <img 
+                                                            src={getNationFlag(club.nation)} 
+                                                            alt={club.nation} 
+                                                            className="w-8 h-5 object-contain rounded shadow-sm"
+                                                        />
+                                                    )}
+                                                    <span className="text-xs text-center text-slate-700 group-hover:text-emerald-600 font-medium transition-colors line-clamp-2">
+                                                        {club.name}
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+                            </CardContent>
+                        </Card>
                     </TabsContent>
 
                     <TabsContent value="participants">
