@@ -50,10 +50,15 @@ export default function NationDetail() {
         queryFn: () => base44.entities.League.filter({ nation_id: nationId }, 'tier'),
     });
 
-    const { data: clubs = [] } = useQuery({
+    const { data: allNationClubs = [] } = useQuery({
         queryKey: ['clubs', nationId],
         queryFn: () => base44.entities.Club.filter({ nation_id: nationId }, 'name'),
     });
+
+    // Filter out defunct clubs for display
+    const clubs = React.useMemo(() => {
+        return allNationClubs.filter(c => !c.is_defunct);
+    }, [allNationClubs]);
 
     const { data: allClubs = [] } = useQuery({
         queryKey: ['allClubs'],

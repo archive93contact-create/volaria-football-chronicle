@@ -369,7 +369,7 @@ export default function LeagueDetail() {
                         <TabsTrigger value="table">League Table</TabsTrigger>
                         <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
                         <TabsTrigger value="story">League Story</TabsTrigger>
-                        <TabsTrigger value="crests">Club Crests ({clubs.length})</TabsTrigger>
+                        <TabsTrigger value="crests">Club Crests ({currentSeasonTable.length > 0 ? currentSeasonTable.filter(t => t.club_id && clubs.find(c => c.id === t.club_id)).length : clubs.length})</TabsTrigger>
                         <TabsTrigger value="clubs">Clubs List</TabsTrigger>
                         <TabsTrigger value="titles">Most Titles</TabsTrigger>
                         <TabsTrigger value="seasons">Season History</TabsTrigger>
