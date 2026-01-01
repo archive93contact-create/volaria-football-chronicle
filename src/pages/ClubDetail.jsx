@@ -1332,8 +1332,8 @@ export default function ClubDetail() {
 
                     {/* CLUB INFO TAB */}
                     <TabsContent value="info">
-                                                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                                      <div className="lg:col-span-2 space-y-6">
+                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                           <div className="lg:col-span-2 space-y-6">
                                                           {/* AI Kit Generator */}
                                                           <AdminOnly>
                                                               {club.primary_color && (
@@ -1355,9 +1355,9 @@ export default function ClubDetail() {
 
                                                           {/* Location & Basic Info Card */}
                                                           <Card className="border-0 shadow-sm">
-                                    <CardHeader><CardTitle>Club Information</CardTitle></CardHeader>
-                                    <CardContent>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <CardHeader><CardTitle>Club Information</CardTitle></CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                             {club.founded_year && (
                                                 <div className="p-3 bg-slate-50 rounded-lg">
                                                     <div className="text-xs text-slate-500 mb-1">Founded</div>
@@ -1396,63 +1396,63 @@ export default function ClubDetail() {
                                                         {club.secondary_color && (
                                                             <div className="w-5 h-5 rounded-full border border-slate-300" style={{ backgroundColor: club.secondary_color }} />
                                                         )}
-                                                    </div>
                                                 </div>
-                                            )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Stadium Card */}
+                            {club.stadium && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardContent className="p-4 flex items-center gap-4">
+                                        <MapPin className="w-8 h-8 text-blue-500" />
+                                        <div>
+                                            <div className="text-sm text-slate-500">Stadium</div>
+                                            <div className="text-xl font-bold">{club.stadium}</div>
+                                            {club.stadium_capacity && <div className="text-sm text-slate-500">Capacity: {club.stadium_capacity.toLocaleString()}</div>}
                                         </div>
                                     </CardContent>
                                 </Card>
-
-                                {/* Stadium Card */}
-                                {club.stadium && (
-                                    <Card className="border-0 shadow-sm">
-                                        <CardContent className="p-4 flex items-center gap-4">
-                                            <MapPin className="w-8 h-8 text-blue-500" />
-                                            <div>
-                                                <div className="text-sm text-slate-500">Stadium</div>
-                                                <div className="text-xl font-bold">{club.stadium}</div>
-                                                {club.stadium_capacity && <div className="text-sm text-slate-500">Capacity: {club.stadium_capacity.toLocaleString()}</div>}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                                {club.history && (
-                                    <Card className="border-0 shadow-sm">
-                                        <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
-                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.history}</p></CardContent>
-                                    </Card>
-                                )}
-                                {club.honours && (
-                                    <Card className="border-0 shadow-sm">
-                                        <CardHeader><CardTitle>Honours</CardTitle></CardHeader>
-                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.honours}</p></CardContent>
-                                    </Card>
-                                )}
-                            </div>
-                            <div className="space-y-6">
-                                {club.manager && (
-                                    <Card className="border-0 shadow-sm">
-                                        <CardHeader><CardTitle>Manager</CardTitle></CardHeader>
-                                        <CardContent><p className="font-semibold">{club.manager}</p></CardContent>
-                                    </Card>
-                                )}
-                                {club.notable_players && (
-                                    <Card className="border-0 shadow-sm">
-                                        <CardHeader><CardTitle>Notable Players</CardTitle></CardHeader>
-                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.notable_players}</p></CardContent>
-                                    </Card>
-                                )}
-                                {club.rivals && (
-                                    <Card className="border-0 shadow-sm">
-                                        <CardHeader><CardTitle>Rivals</CardTitle></CardHeader>
-                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.rivals}</p></CardContent>
-                                    </Card>
-                                )}
-                            </div>
+                            )}
+                            {club.history && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
+                                    <CardContent><p className="text-slate-600 whitespace-pre-line">{club.history}</p></CardContent>
+                                </Card>
+                            )}
+                            {club.honours && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle>Honours</CardTitle></CardHeader>
+                                    <CardContent><p className="text-slate-600 whitespace-pre-line">{club.honours}</p></CardContent>
+                                </Card>
+                            )}
                         </div>
+                        <div className="space-y-6">
+                            {club.manager && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle>Manager</CardTitle></CardHeader>
+                                    <CardContent><p className="font-semibold">{club.manager}</p></CardContent>
+                                </Card>
+                            )}
+                            {club.notable_players && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle>Notable Players</CardTitle></CardHeader>
+                                    <CardContent><p className="text-slate-600 whitespace-pre-line">{club.notable_players}</p></CardContent>
+                                </Card>
+                            )}
+                            {club.rivals && (
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle>Rivals</CardTitle></CardHeader>
+                                    <CardContent><p className="text-slate-600 whitespace-pre-line">{club.rivals}</p></CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    </div>
                     </TabsContent>
                 </Tabs>
-                </div>
+            </div>
             </div>
 
             {/* Edit Dialog */}
