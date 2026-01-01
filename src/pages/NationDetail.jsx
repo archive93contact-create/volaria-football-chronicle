@@ -748,7 +748,7 @@ export default function NationDetail() {
                                     </h3>
                                     <div className="space-y-3">
                                         {tierLeagues.map(league => {
-                                            const leagueClubs = clubs.filter(c => c.league_id === league.id);
+                                            const leagueClubs = clubs.filter(c => c.league_id === league.id && !c.is_defunct);
                                             return (
                                                 <Link 
                                                     key={league.id} 
