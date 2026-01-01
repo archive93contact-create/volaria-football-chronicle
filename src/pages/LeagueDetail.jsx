@@ -369,15 +369,10 @@ export default function LeagueDetail() {
                         <TabsTrigger value="table">League Table</TabsTrigger>
                         <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
                         <TabsTrigger value="story">League Story</TabsTrigger>
-                        <TabsTrigger value="crests">
-                            Club Crests ({(() => {
-                                if (currentSeasonTable.length > 0) {
-                                    const activeClubIds = currentSeasonTable.map(t => t.club_id).filter(Boolean);
-                                    return clubs.filter(c => activeClubIds.includes(c.id)).length;
-                                }
-                                return clubs.length;
-                            })()})
-                        </TabsTrigger>
+                        <TabsTrigger value="crests">Club Crests ({(() => {
+                            const currentSeasonClubIds = currentSeasonTable.map(t => t.club_id).filter(Boolean);
+                            return clubs.filter(c => currentSeasonClubIds.includes(c.id)).length;
+                        })()})</TabsTrigger>
                         <TabsTrigger value="clubs">Clubs List</TabsTrigger>
                         <TabsTrigger value="titles">Most Titles</TabsTrigger>
                         <TabsTrigger value="seasons">Season History</TabsTrigger>
