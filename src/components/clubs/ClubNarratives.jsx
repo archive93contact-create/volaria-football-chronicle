@@ -988,58 +988,96 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         }
     }
 
-    // Long absence from top flight (non-fallen giant version)
+    // Long absence from top flight narratives
     const topFlightSeasonsList = sortedSeasons.filter(s => getLeagueTier(s.league_id) === 1);
     const currentLeague = leagues.find(l => l.id === club.league_id);
     const currentTier = currentLeague?.tier || 1;
     
     if (topFlightSeasonsList.length > 0 && currentTier > 1) {
         const lastTopFlightSeason = [...topFlightSeasonsList].sort((a, b) => b.year.localeCompare(a.year))[0];
-        const seasonsAwayFromTopFlight = sortedSeasons.filter(s => s.year > lastTopFlightSeason.year && getLeagueTier(s.league_id) > 1).length;
+        const seasonsAway = sortedSeasons.filter(s => s.year > lastTopFlightSeason.year && getLeagueTier(s.league_id) > 1).length;
         
-        // For clubs not already flagged as fallen giants
-        const totalTitles = (club.league_titles || 0);
-        const wasPowerhouse = (club.vcc_titles || 0) > 0 || totalTitles >= 3;
-        
-        if (seasonsAwayFromTopFlight >= 5 && seasonsAwayFromTopFlight < 50 && !wasPowerhouse) {
-            const memoryText = seasonsAwayFromTopFlight <= 10 
-                ? "Fans still remember those days and hunger for a return."
-                : seasonsAwayFromTopFlight <= 20
-                ? "The top flight feels like a distant memory for many supporters."
-                : "A whole generation has grown up without seeing them in the top tier.";
-            
+        if (seasonsAway >= 30) {
             narratives.push({
                 icon: Clock,
                 color: 'text-slate-600',
-                bg: 'bg-slate-50',
-                title: 'Long Absence',
-                text: `${seasonsAwayFromTopFlight} seasons away from the top flight since ${lastTopFlightSeason.year}. ${memoryText}`
+                bg: 'bg-slate-100',
+                title: 'Lost Generation',
+                text: `${seasonsAway} seasons since last gracing the top flight (${lastTopFlightSeason.year}). A whole generation has grown up without seeing them at the highest level.`
             });
-        } else if (seasonsAwayFromTopFlight >= 50) {
+        } else if (seasonsAway >= 20) {
             narratives.push({
                 icon: Clock,
                 color: 'text-slate-500',
-                bg: 'bg-slate-100',
-                title: 'Lost Era',
-                text: `Over ${seasonsAwayFromTopFlight} seasons since their last top-flight appearance in ${lastTopFlightSeason.year}. For most fans, it's ancient history.`
+                bg: 'bg-slate-50',
+                title: 'The Long Road Back',
+                text: `${seasonsAway} years away from the top flight since ${lastTopFlightSeason.year}. The memories are fading, but the dream remains.`
+            });
+        } else if (seasonsAway >= 10) {
+            narratives.push({
+                icon: Clock,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
+                title: 'Top Flight Absence',
+                text: `${seasonsAway} seasons since their last top-flight campaign (${lastTopFlightSeason.year}). Fans yearn for a return to the elite.`
+            });
+        } else if (seasonsAway >= 5) {
+            narratives.push({
+                icon: Clock,
+                color: 'text-amber-600',
+                bg: 'bg-amber-50',
+                title: 'Rebuilding Years',
+                text: `${seasonsAway} seasons away from the top flight since ${lastTopFlightSeason.year}. Working to reclaim their place among the elite.`
             });
         }
         
         // Return to top flight after long absence
-        const mostRecentSeason = sortedSeasons[sortedSeasons.length - 1];
-        if (getLeagueTier(mostRecentSeason.league_id) === 1 && seasonsAwayFromTopFlight >= 1) {
-            const prevSeason = sortedSeasons[sortedSeasons.length - 2];
-            if (prevSeason && getLeagueTier(prevSeason.league_id) > 1) {
-                const yearsText = seasonsAwayFromTopFlight >= 20 ? `over ${seasonsAwayFromTopFlight} years` : `${seasonsAwayFromTopFlight} season${seasonsAwayFromTopFlight > 1 ? 's' : ''}`;
+        if (currentTier === 1 && seasonsAway === 0) {
+            const yearsInWilderness = topFlightSeasonsList.length > 1 ? 
+                sortedSeasons.filter(s => {
+                    const year = s.year;
+                    const secondLastTopFlight = [...topFlightSeasonsList].sort((a, b) => b.year.localeCompare(a.year))[1];
+                    return secondLastTopFlight && year > secondLastTopFlight.year && year < lastTopFlightSeason.year && getLeagueTier(s.league_id) > 1;
+                }).length : 0;
+            
+            if (yearsInWilderness >= 15) {
                 narratives.push({
                     icon: Star,
-                    color: 'text-amber-500',
-                    bg: 'bg-amber-50',
-                    title: 'The Return',
-                    text: `Back in the top flight in ${mostRecentSeason.year} after ${yearsText} away - a momentous homecoming for the club and fans.`
+                    color: 'text-emerald-700',
+                    bg: 'bg-emerald-100',
+                    title: 'The Great Return',
+                    text: `Returned to the top flight in ${lastTopFlightSeason.year} after ${yearsInWilderness} seasons away. A triumphant homecoming after years in the wilderness.`
+                });
+            } else if (yearsInWilderness >= 10) {
+                narratives.push({
+                    icon: Star,
+                    color: 'text-emerald-600',
+                    bg: 'bg-emerald-100',
+                    title: 'Back Where They Belong',
+                    text: `Returned to the top flight in ${lastTopFlightSeason.year} after ${yearsInWilderness} seasons in the wilderness. The long wait is over.`
+                });
+            } else if (yearsInWilderness >= 5) {
+                narratives.push({
+                    icon: TrendingUp,
+                    color: 'text-green-600',
+                    bg: 'bg-green-50',
+                    title: 'Return to the Elite',
+                    text: `Back in the top flight as of ${lastTopFlightSeason.year} after ${yearsInWilderness} seasons away.`
                 });
             }
         }
+    }
+
+    // Brief top flight appearance (only 1-3 seasons total)
+    if (topFlightSeasonsList.length >= 1 && topFlightSeasonsList.length <= 3 && currentTier > 1 && sortedSeasons.length >= 10) {
+        const years = topFlightSeasonsList.map(s => s.year).sort().join(', ');
+        narratives.push({
+            icon: Star,
+            color: 'text-blue-500',
+            bg: 'bg-blue-50',
+            title: 'Brief Taste of Glory',
+            text: `Had ${topFlightSeasonsList.length} fleeting season${topFlightSeasonsList.length > 1 ? 's' : ''} in the top flight (${years}), a proud memory in the club's history.`
+        });
     }
 
     // TFA-specific narratives (Turuliand top 4 tiers)
@@ -1064,7 +1102,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                     color: 'text-emerald-600',
                     bg: 'bg-emerald-50',
                     title: 'Welcome to the TFA',
-                    text: `Joined the TFA Football League for the first time in ${firstTfaSeason.year}, reaching the top 4 tiers of Turuliand football.`
+                    text: `Joined the TFA Football League for the first time in ${firstTfaSeason.year}, reaching the top 4 tiers.`
                 });
             }
         }
@@ -1081,14 +1119,14 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                         color: 'text-red-600',
                         bg: 'bg-red-50',
                         title: 'Farewell to the TFA',
-                        text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}, falling into regional football.`
+                        text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}.`
                     });
                 }
             }
         }
 
-        // Currently outside TFA - enhanced with more detail
-        const mostRecentSeason = sortedSeasons[sortedSeasons.length - 1];
+        // Currently outside TFA - enhanced duration-based narratives
+        const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
         const mostRecentTier = getLeagueTier(mostRecentSeason?.league_id);
         if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
             const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
@@ -1099,96 +1137,67 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                     icon: Clock,
                     color: 'text-slate-700',
                     bg: 'bg-slate-200',
-                    title: 'TFA Forgotten',
-                    text: `${seasonsAway} seasons outside the TFA since ${lastTfaSeason.year}. The club has been in the regional leagues for a generation - the TFA seems a world away.`
+                    title: 'Deep Non-League Exile',
+                    text: `${seasonsAway} seasons banished from the TFA system since ${lastTfaSeason.year}. The organized leagues feel like a distant memory.`
                 });
             } else if (seasonsAway >= 10) {
                 narratives.push({
                     icon: Clock,
                     color: 'text-slate-600',
                     bg: 'bg-slate-100',
-                    title: 'Long TFA Exile',
-                    text: `${seasonsAway} seasons away from the TFA Football League since ${lastTfaSeason.year}. Regional football has become their reality, but memories of the national stage linger.`
+                    title: 'TFA Exile',
+                    text: `${seasonsAway} seasons in the non-league wilderness since ${lastTfaSeason.year}. The road back to the TFA seems ever longer.`
                 });
             } else if (seasonsAway >= 5) {
                 narratives.push({
                     icon: Clock,
-                    color: 'text-orange-500',
+                    color: 'text-orange-600',
                     bg: 'bg-orange-50',
-                    title: 'TFA Exile',
-                    text: `${seasonsAway} seasons away from the TFA Football League since ${lastTfaSeason.year}. The climb back to Tier 4 and beyond is the priority.`
+                    title: 'Outside the TFA',
+                    text: `${seasonsAway} seasons outside the TFA Football League since ${lastTfaSeason.year}. Striving to return to the organized tiers.`
                 });
             } else if (seasonsAway >= 2) {
                 narratives.push({
                     icon: Clock,
-                    color: 'text-blue-500',
-                    bg: 'bg-blue-50',
-                    title: 'Outside the TFA',
-                    text: `${seasonsAway} seasons since last playing in the TFA Football League (${lastTfaSeason.year}). The return to national football is still within reach.`
+                    color: 'text-amber-500',
+                    bg: 'bg-amber-50',
+                    title: 'TFA Return Needed',
+                    text: `${seasonsAway} seasons since last competing in the TFA (${lastTfaSeason.year}). Looking to regain their place.`
                 });
             }
         }
         
-        // Return to TFA after absence
-        if (mostRecentTier && mostRecentTier <= 4 && nonTfaSeasons.length > 0) {
-            const prevSeason = sortedSeasons[sortedSeasons.length - 2];
-            if (prevSeason && getLeagueTier(prevSeason.league_id) > 4) {
-                // Count how long they were away
-                const lastNonTfaSeason = [...nonTfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
-                const firstNonTfaExit = [...nonTfaSeasons].filter(s => s.year <= lastNonTfaSeason.year).sort((a, b) => a.year.localeCompare(b.year))[0];
+        // Return to TFA after exile
+        if (mostRecentTier <= 4 && tfaSeasons.length > 0 && nonTfaSeasons.length > 0) {
+            const lastNonTfaSeason = [...nonTfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+            const returnToTfaSeason = [...tfaSeasons]
+                .filter(s => s.year > lastNonTfaSeason.year)
+                .sort((a, b) => a.year.localeCompare(b.year))[0];
+            
+            if (returnToTfaSeason) {
+                const yearsAway = sortedSeasons.filter(s => 
+                    s.year >= lastNonTfaSeason.year && 
+                    s.year < returnToTfaSeason.year &&
+                    getLeagueTier(s.league_id) > 4
+                ).length;
                 
-                if (firstNonTfaExit) {
-                    const lastTfaBeforeExit = [...tfaSeasons].filter(s => s.year < firstNonTfaExit.year).sort((a, b) => b.year.localeCompare(a.year))[0];
-                    if (lastTfaBeforeExit) {
-                        const yearsAway = sortedSeasons.filter(s => s.year > lastTfaBeforeExit.year && s.year < mostRecentSeason.year).length;
-                        
-                        if (yearsAway >= 10) {
-                            narratives.push({
-                                icon: Star,
-                                color: 'text-amber-600',
-                                bg: 'bg-amber-100',
-                                title: 'TFA Resurrection',
-                                text: `Back in the TFA in ${mostRecentSeason.year} after ${yearsAway} seasons away - a triumphant return to the national stage that seemed impossible.`
-                            });
-                        } else if (yearsAway >= 3) {
-                            narratives.push({
-                                icon: Star,
-                                color: 'text-emerald-500',
-                                bg: 'bg-emerald-50',
-                                title: 'TFA Return',
-                                text: `Returned to the TFA Football League in ${mostRecentSeason.year} after ${yearsAway} season${yearsAway > 1 ? 's' : ''} in regional football.`
-                            });
-                        }
-                    }
+                if (yearsAway >= 10) {
+                    narratives.push({
+                        icon: Star,
+                        color: 'text-emerald-700',
+                        bg: 'bg-emerald-100',
+                        title: 'Back in the TFA',
+                        text: `Rejoined the TFA Football League in ${returnToTfaSeason.year} after ${yearsAway} seasons in non-league football. A remarkable comeback.`
+                    });
+                } else if (yearsAway >= 5) {
+                    narratives.push({
+                        icon: Star,
+                        color: 'text-emerald-600',
+                        bg: 'bg-emerald-50',
+                        title: 'TFA Redemption',
+                        text: `Returned to the TFA Football League in ${returnToTfaSeason.year} after ${yearsAway} seasons outside the system.`
+                    });
                 }
-            }
-        }
-        
-        // TFA regulars
-        if (tfaSeasons.length >= 10) {
-            const tfaPercentage = Math.round((tfaSeasons.length / sortedSeasons.length) * 100);
-            if (tfaPercentage >= 70) {
-                narratives.push({
-                    icon: Shield,
-                    color: 'text-blue-600',
-                    bg: 'bg-blue-50',
-                    title: 'TFA Mainstays',
-                    text: `Competed in the TFA Football League for ${tfaSeasons.length} of their ${sortedSeasons.length} recorded seasons (${tfaPercentage}%) - a fixture in national football.`
-                });
-            }
-        }
-        
-        // Never reached TFA but trying
-        if (tfaSeasons.length === 0 && sortedSeasons.length >= 5) {
-            const tier5Plus = sortedSeasons.every(s => getLeagueTier(s.league_id) >= 5);
-            if (tier5Plus) {
-                narratives.push({
-                    icon: Target,
-                    color: 'text-purple-500',
-                    bg: 'bg-purple-50',
-                    title: 'Chasing the TFA Dream',
-                    text: `${sortedSeasons.length} seasons in regional football, still striving to reach the TFA Football League for the first time.`
-                });
             }
         }
     }
@@ -1746,6 +1755,251 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             title: 'Never Relegated',
             text: `${club.seasons_played} seasons without a single relegation - remarkable stability.`
         });
+    }
+    
+    // Never reached top flight (but came close)
+    if (topFlightSeasonsList.length === 0 && sortedSeasons.length >= 5) {
+        const tier2Seasons = sortedSeasons.filter(s => getLeagueTier(s.league_id) === 2);
+        const runnerUps = tier2Seasons.filter(s => s.position === 2);
+        const top3 = tier2Seasons.filter(s => s.position && s.position <= 3);
+        
+        if (runnerUps.length >= 2) {
+            narratives.push({
+                icon: Target,
+                color: 'text-blue-600',
+                bg: 'bg-blue-50',
+                title: 'So Close, Yet So Far',
+                text: `Finished 2nd in the second tier ${runnerUps.length} times but never made it to the top flight. The dream remains alive.`
+            });
+        } else if (top3.length >= 3) {
+            narratives.push({
+                icon: TrendingUp,
+                color: 'text-blue-500',
+                bg: 'bg-blue-50',
+                title: 'Knocking on the Door',
+                text: `Finished in the top 3 of the second tier ${top3.length} times. The top flight beckons.`
+            });
+        } else if (tier2Seasons.length >= 5) {
+            narratives.push({
+                icon: Shield,
+                color: 'text-indigo-500',
+                bg: 'bg-indigo-50',
+                title: 'Second Tier Stalwarts',
+                text: `${tier2Seasons.length} seasons in the second tier. Never reached the promised land of top-flight football.`
+            });
+        }
+    }
+    
+    // Perpetual lower league club with brief top flight spell
+    if (topFlightSeasonsList.length >= 1 && topFlightSeasonsList.length <= 5) {
+        const lowestTier = Math.max(...sortedSeasons.map(s => getLeagueTier(s.league_id)));
+        const lowestTierSeasons = sortedSeasons.filter(s => getLeagueTier(s.league_id) === lowestTier);
+        
+        if (lowestTierSeasons.length >= 10 && lowestTier >= 4) {
+            const topFlightYears = topFlightSeasonsList.map(s => s.year).join(', ');
+            narratives.push({
+                icon: Star,
+                color: 'text-purple-500',
+                bg: 'bg-purple-50',
+                title: 'Unlikely Heroes',
+                text: `A lower-league club who defied the odds with ${topFlightSeasonsList.length} magical season${topFlightSeasonsList.length > 1 ? 's' : ''} in the top flight (${topFlightYears}). Most of their history has been in Tier ${lowestTier}.`
+            });
+        }
+    }
+    
+    // Wilderness years between top flight spells
+    if (topFlightSeasonsList.length >= 2) {
+        const topFlightYears = [...topFlightSeasonsList].sort((a, b) => a.year.localeCompare(b.year));
+        let longestGap = { years: 0, start: '', end: '' };
+        
+        for (let i = 1; i < topFlightYears.length; i++) {
+            const gap = sortedSeasons.filter(s => 
+                s.year > topFlightYears[i-1].year && 
+                s.year < topFlightYears[i].year &&
+                getLeagueTier(s.league_id) > 1
+            ).length;
+            
+            if (gap > longestGap.years) {
+                longestGap = { years: gap, start: topFlightYears[i-1].year, end: topFlightYears[i].year };
+            }
+        }
+        
+        if (longestGap.years >= 15) {
+            narratives.push({
+                icon: Clock,
+                color: 'text-orange-700',
+                bg: 'bg-orange-100',
+                title: 'The Wilderness Years',
+                text: `Endured ${longestGap.years} seasons outside the top flight between ${longestGap.start} and ${longestGap.end}. Dark days before their eventual return.`
+            });
+        } else if (longestGap.years >= 8) {
+            narratives.push({
+                icon: Clock,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
+                title: 'Lost Decade',
+                text: `Spent ${longestGap.years} seasons away from the top flight between ${longestGap.start} and ${longestGap.end} before returning.`
+            });
+        }
+    }
+
+    // TFA-specific narratives (Turuliand top 4 tiers)
+    if (isTuruliand) {
+        const tfaSeasons = sortedSeasons.filter(s => {
+            const tier = getLeagueTier(s.league_id);
+            return tier && tier <= 4;
+        });
+        const nonTfaSeasons = sortedSeasons.filter(s => {
+            const tier = getLeagueTier(s.league_id);
+            return tier && tier > 4;
+        });
+
+        // First time joining TFA
+        if (tfaSeasons.length > 0) {
+            const firstTfaSeason = [...tfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
+            const seasonsBeforeTfa = sortedSeasons.filter(s => s.year < firstTfaSeason.year);
+            if (seasonsBeforeTfa.length > 0 && seasonsBeforeTfa.every(s => getLeagueTier(s.league_id) > 4)) {
+                narratives.push({
+                    icon: TrendingUp,
+                    color: 'text-emerald-600',
+                    bg: 'bg-emerald-50',
+                    title: 'Welcome to the TFA',
+                    text: `Joined the TFA Football League for the first time in ${firstTfaSeason.year}, reaching the top 4 tiers of organized football.`
+                });
+            }
+        }
+
+        // Dropped out of TFA for the first time
+        if (nonTfaSeasons.length > 0 && tfaSeasons.length > 0) {
+            const firstNonTfaSeason = [...nonTfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
+            const tfaSeasonsBeforeDrop = tfaSeasons.filter(s => s.year < firstNonTfaSeason.year);
+            if (tfaSeasonsBeforeDrop.length > 0) {
+                const allSeasonsBefore = sortedSeasons.filter(s => s.year < firstNonTfaSeason.year);
+                if (allSeasonsBefore.every(s => getLeagueTier(s.league_id) <= 4)) {
+                    narratives.push({
+                        icon: TrendingDown,
+                        color: 'text-red-600',
+                        bg: 'bg-red-50',
+                        title: 'Farewell to the TFA',
+                        text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}, falling into the regional leagues.`
+                    });
+                }
+            }
+        }
+
+        // Currently outside TFA - enhanced duration-based narratives
+        const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+        const mostRecentTier = getLeagueTier(mostRecentSeason?.league_id);
+        if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
+            const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+            const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
+            
+            if (seasonsAway >= 25) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-slate-700',
+                    bg: 'bg-slate-200',
+                    title: 'Deep Non-League Exile',
+                    text: `${seasonsAway} seasons banished from the TFA system since ${lastTfaSeason.year}. The organized leagues feel like a distant memory for supporters.`
+                });
+            } else if (seasonsAway >= 15) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-slate-600',
+                    bg: 'bg-slate-100',
+                    title: 'Non-League Wanderers',
+                    text: `${seasonsAway} seasons in the non-league wilderness since ${lastTfaSeason.year}. A generation has passed without TFA football.`
+                });
+            } else if (seasonsAway >= 10) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-orange-700',
+                    bg: 'bg-orange-100',
+                    title: 'TFA Exile',
+                    text: `${seasonsAway} seasons outside the TFA since ${lastTfaSeason.year}. The path back to organized football grows steeper.`
+                });
+            } else if (seasonsAway >= 5) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-orange-600',
+                    bg: 'bg-orange-50',
+                    title: 'Outside the TFA',
+                    text: `${seasonsAway} seasons outside the TFA Football League since ${lastTfaSeason.year}. Fighting to return to the organized tiers.`
+                });
+            } else if (seasonsAway >= 2) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-amber-500',
+                    bg: 'bg-amber-50',
+                    title: 'TFA Return Quest',
+                    text: `${seasonsAway} seasons since last competing in the TFA (${lastTfaSeason.year}). Working hard to regain their place.`
+                });
+            }
+        }
+        
+        // Return to TFA after exile
+        if (mostRecentTier <= 4 && tfaSeasons.length > 0 && nonTfaSeasons.length > 0) {
+            const lastNonTfaSeason = [...nonTfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+            const returnToTfaSeason = [...tfaSeasons]
+                .filter(s => s.year > lastNonTfaSeason.year)
+                .sort((a, b) => a.year.localeCompare(b.year))[0];
+            
+            if (returnToTfaSeason) {
+                const yearsAway = sortedSeasons.filter(s => 
+                    s.year >= lastNonTfaSeason.year && 
+                    s.year < returnToTfaSeason.year &&
+                    getLeagueTier(s.league_id) > 4
+                ).length;
+                
+                if (yearsAway >= 15) {
+                    narratives.push({
+                        icon: Star,
+                        color: 'text-emerald-800',
+                        bg: 'bg-emerald-100',
+                        title: 'TFA Resurrection',
+                        text: `Rejoined the TFA Football League in ${returnToTfaSeason.year} after ${yearsAway} seasons lost in the non-league abyss. An incredible resurrection.`
+                    });
+                } else if (yearsAway >= 10) {
+                    narratives.push({
+                        icon: Star,
+                        color: 'text-emerald-700',
+                        bg: 'bg-emerald-100',
+                        title: 'Back in the TFA',
+                        text: `Rejoined the TFA Football League in ${returnToTfaSeason.year} after ${yearsAway} seasons in non-league football. A remarkable comeback.`
+                    });
+                } else if (yearsAway >= 5) {
+                    narratives.push({
+                        icon: Star,
+                        color: 'text-emerald-600',
+                        bg: 'bg-emerald-50',
+                        title: 'TFA Redemption',
+                        text: `Returned to the TFA Football League in ${returnToTfaSeason.year} after ${yearsAway} seasons outside the system.`
+                    });
+                }
+            }
+        }
+        
+        // Yo-yo between TFA and non-league
+        if (tfaSeasons.length >= 3 && nonTfaSeasons.length >= 3) {
+            const transitions = [];
+            for (let i = 1; i < sortedSeasons.length; i++) {
+                const prevTier = getLeagueTier(sortedSeasons[i-1].league_id);
+                const currTier = getLeagueTier(sortedSeasons[i].league_id);
+                if ((prevTier <= 4 && currTier > 4) || (prevTier > 4 && currTier <= 4)) {
+                    transitions.push(sortedSeasons[i].year);
+                }
+            }
+            
+            if (transitions.length >= 4) {
+                narratives.push({
+                    icon: TrendingUp,
+                    color: 'text-purple-600',
+                    bg: 'bg-purple-50',
+                    title: 'TFA Yo-Yo Club',
+                    text: `Bounced between TFA and non-league football ${transitions.length} times. A turbulent existence on the edge of organized football.`
+                });
+            }
+        }
     }
 
     // High scoring club
