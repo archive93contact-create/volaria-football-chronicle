@@ -493,6 +493,7 @@ export default function LeagueDetail() {
                             clubs={allNationClubs}
                         />
                     )}
+                    </div>
                 )}
                     </TabsContent>
 
