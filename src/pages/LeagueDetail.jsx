@@ -539,34 +539,42 @@ export default function LeagueDetail() {
                             accentColor={league.accent_color}
                         >
                             <CardContent className="p-0">
-                                {clubs.length === 0 ? (
-                                    <p className="text-center py-8 text-slate-500">No clubs in this league yet</p>
-                                ) : (
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-6 p-6">
-                                        {clubs.map(club => (
-                                            <Link 
-                                                key={club.id} 
-                                                to={createPageUrl(`ClubDetail?id=${club.id}`)}
-                                                className="group flex flex-col items-center gap-2"
-                                            >
-                                                <div className="w-full aspect-square bg-white rounded-xl p-4 shadow-md hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border border-slate-200 flex items-center justify-center">
-                                                    {club.logo_url ? (
-                                                        <img 
-                                                            src={club.logo_url} 
-                                                            alt={club.name} 
-                                                            className="w-full h-full object-contain"
-                                                        />
-                                                    ) : (
-                                                        <Shield className="w-12 h-12 text-slate-300" />
-                                                    )}
-                                                </div>
-                                                <span className="text-xs text-center text-slate-700 group-hover:text-emerald-600 font-medium transition-colors line-clamp-2">
-                                                    {club.name}
-                                                </span>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                )}
+                                {(() => {
+                                    // Get clubs that are in the current season table
+                                    const currentSeasonClubIds = currentSeasonTable.map(t => t.club_id).filter(Boolean);
+                                    const activeClubs = clubs.filter(c => currentSeasonClubIds.includes(c.id));
+                                    
+                                    if (activeClubs.length === 0) {
+                                        return <p className="text-center py-8 text-slate-500">No clubs in the current season yet</p>;
+                                    }
+                                    
+                                    return (
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-6 p-6">
+                                            {activeClubs.map(club => (
+                                                <Link 
+                                                    key={club.id} 
+                                                    to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                    className="group flex flex-col items-center gap-2"
+                                                >
+                                                    <div className="w-full aspect-square bg-white rounded-xl p-4 shadow-md hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border border-slate-200 flex items-center justify-center">
+                                                        {club.logo_url ? (
+                                                            <img 
+                                                                src={club.logo_url} 
+                                                                alt={club.name} 
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        ) : (
+                                                            <Shield className="w-12 h-12 text-slate-300" />
+                                                        )}
+                                                    </div>
+                                                    <span className="text-xs text-center text-slate-700 group-hover:text-emerald-600 font-medium transition-colors line-clamp-2">
+                                                        {club.name}
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
                             </CardContent>
                         </ThemedCard>
                     </TabsContent>
