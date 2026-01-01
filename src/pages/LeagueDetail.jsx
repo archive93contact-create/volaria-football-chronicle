@@ -582,11 +582,52 @@ export default function LeagueDetail() {
                 <div id="stats-records">
                     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
                     <TabsList>
-                        <TabsTrigger value="clubs">Clubs ({clubs.length})</TabsTrigger>
+                        <TabsTrigger value="crests">Club Crests ({clubs.length})</TabsTrigger>
+                        <TabsTrigger value="clubs">Clubs List</TabsTrigger>
                         <TabsTrigger value="titles">Most Titles</TabsTrigger>
                         <TabsTrigger value="history">Season History</TabsTrigger>
                         <TabsTrigger value="records">All-Time Records</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="crests">
+                        <ThemedCard 
+                            title="Current Competing Clubs"
+                            icon={Shield}
+                            primaryColor={league.primary_color}
+                            accentColor={league.accent_color}
+                        >
+                            <CardContent className="p-0">
+                                {clubs.length === 0 ? (
+                                    <p className="text-center py-8 text-slate-500">No clubs in this league yet</p>
+                                ) : (
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-6 p-6">
+                                        {clubs.map(club => (
+                                            <Link 
+                                                key={club.id} 
+                                                to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                className="group flex flex-col items-center gap-2"
+                                            >
+                                                <div className="w-full aspect-square bg-white rounded-xl p-4 shadow-md hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border border-slate-200 flex items-center justify-center">
+                                                    {club.logo_url ? (
+                                                        <img 
+                                                            src={club.logo_url} 
+                                                            alt={club.name} 
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    ) : (
+                                                        <Shield className="w-12 h-12 text-slate-300" />
+                                                    )}
+                                                </div>
+                                                <span className="text-xs text-center text-slate-700 group-hover:text-emerald-600 font-medium transition-colors line-clamp-2">
+                                                    {club.name}
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </ThemedCard>
+                    </TabsContent>
 
                     <TabsContent value="clubs">
                         <ThemedCard 

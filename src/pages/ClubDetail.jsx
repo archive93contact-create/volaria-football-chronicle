@@ -323,24 +323,96 @@ export default function ClubDetail() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Immersive Hero */}
-            <ImmersiveHeader
-                title={club.name}
-                subtitle={club.nickname ? `"${club.nickname}"` : undefined}
-                breadcrumbs={[
-                    { label: 'Nations', url: createPageUrl('Nations') },
-                    ...(nation ? [{ label: nation.name, url: createPageUrl(`NationDetail?id=${nation.id}`) }] : []),
-                    ...(league ? [{ label: league.name, url: createPageUrl(`LeagueDetail?id=${league.id}`) }] : []),
-                    { label: club.name }
-                ]}
-                image={club.logo_url}
-                primaryColor={club.primary_color}
-                secondaryColor={club.secondary_color}
-                accentColor={club.accent_color}
-                textStyle={club.text_style}
-                pattern={club.pattern_preference}
-                atmosphere={club.stadium_capacity > 30000 ? 'electric' : club.founded_year < 1900 ? 'historic' : 'modern'}
-            >
+            {/* Immersive Hero with Larger Crest */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                    <div 
+                        className="w-full h-full"
+                        style={{
+                            backgroundImage: club.pattern_preference === 'vertical_stripes' 
+                                ? `repeating-linear-gradient(90deg, ${club.primary_color}20 0px, ${club.primary_color}20 20px, transparent 20px, transparent 40px)`
+                                : club.pattern_preference === 'horizontal_hoops'
+                                ? `repeating-linear-gradient(0deg, ${club.primary_color}20 0px, ${club.primary_color}20 20px, transparent 20px, transparent 40px)`
+                                : undefined
+                        }}
+                    />
+                </div>
+                
+                {/* Gradient Overlays */}
+                <div 
+                    className="absolute inset-0 bg-gradient-to-br opacity-60"
+                    style={{
+                        background: club.primary_color 
+                            ? `linear-gradient(135deg, ${club.primary_color}40, ${club.accent_color || club.secondary_color || club.primary_color}20)`
+                            : undefined
+                    }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent" />
+                
+                {/* Content */}
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    {/* Breadcrumbs */}
+                    <nav className="flex items-center gap-2 text-sm text-slate-400 mb-6">
+                        <Link to={createPageUrl('Nations')} className="hover:text-white transition-colors">Nations</Link>
+                        <ChevronRight className="w-4 h-4" />
+                        {nation && (
+                            <>
+                                <Link to={createPageUrl(`NationDetail?id=${nation.id}`)} className="hover:text-white transition-colors">{nation.name}</Link>
+                                <ChevronRight className="w-4 h-4" />
+                            </>
+                        )}
+                        {league && (
+                            <>
+                                <Link to={createPageUrl(`LeagueDetail?id=${league.id}`)} className="hover:text-white transition-colors">{league.name}</Link>
+                                <ChevronRight className="w-4 h-4" />
+                            </>
+                        )}
+                        <span className="text-white">{club.name}</span>
+                    </nav>
+
+                    {/* Main Header Content */}
+                    <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
+                        {/* Large Club Crest */}
+                        <div className="relative">
+                            <div 
+                                className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-3xl shadow-2xl p-6 flex items-center justify-center"
+                                style={{
+                                    borderColor: club.accent_color || club.primary_color,
+                                    borderWidth: '4px',
+                                    borderStyle: 'solid'
+                                }}
+                            >
+                                {club.logo_url ? (
+                                    <img src={club.logo_url} alt={club.name} className="w-full h-full object-contain" />
+                                ) : (
+                                    <Shield className="w-32 h-32 text-slate-300" />
+                                )}
+                            </div>
+                            {/* Kit Thumbnails */}
+                            {(club.home_kit_url || club.away_kit_url || club.third_kit_url) && (
+                                <div className="flex gap-2 justify-center mt-3">
+                                    {club.home_kit_url && <img src={club.home_kit_url} alt="Home" className="w-8 h-10 object-contain bg-white rounded shadow-sm" />}
+                                    {club.away_kit_url && <img src={club.away_kit_url} alt="Away" className="w-8 h-10 object-contain bg-white rounded shadow-sm" />}
+                                    {club.third_kit_url && <img src={club.third_kit_url} alt="Third" className="w-8 h-10 object-contain bg-white rounded shadow-sm" />}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Club Info */}
+                        <div className="flex-1 text-center md:text-left">
+                            <h1 
+                                className="text-4xl md:text-6xl font-bold text-white mb-3 tracking-tight"
+                                style={{
+                                    fontFamily: club.text_style === 'classic' ? 'Georgia, serif' : club.text_style === 'bold' ? 'Impact, sans-serif' : undefined
+                                }}
+                            >
+                                {club.name}
+                            </h1>
+                            {club.nickname && (
+                                <p className="text-xl text-white/80 italic mb-4">"{club.nickname}"</p>
+                            )}
+                            <div className="flex flex-col items-center md:items-start gap-3">
                 <div className="flex flex-col items-center gap-3">
                     {/* Kit Display */}
                     {club.primary_color && (
@@ -373,27 +445,61 @@ export default function ClubDetail() {
                             {!club.settlement && !club.district && !club.region && club.city && <span>{club.city}</span>}
                         </div>
                     )}
-                </div>
-                <AdminOnly>
-                    <div className="flex gap-2">
-                        <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                            <Edit2 className="w-4 h-4 mr-2" /> Edit
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader><AlertDialogTitle>Delete {club.name}?</AlertDialogTitle></AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                            </div>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <AdminOnly>
+                            <div className="flex gap-2">
+                                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
+                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader><AlertDialogTitle>Delete {club.name}?</AlertDialogTitle></AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        </AdminOnly>
                     </div>
-                </AdminOnly>
-            </ImmersiveHeader>
+
+                    {/* Stadium Banner */}
+                    {club.stadium && (
+                        <div 
+                            className="mt-8 p-6 rounded-2xl border-2 border-white/20 bg-white/5 backdrop-blur-sm"
+                            style={{
+                                borderColor: club.accent_color ? `${club.accent_color}40` : undefined
+                            }}
+                        >
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <MapPin className="w-10 h-10 text-white/80" />
+                                    <div>
+                                        <div className="text-sm text-white/60">Home Ground</div>
+                                        <div className="text-2xl font-bold text-white">{club.stadium}</div>
+                                        {club.stadium_capacity && (
+                                            <div className="text-white/80">Capacity: {club.stadium_capacity.toLocaleString()}</div>
+                                        )}
+                                    </div>
+                                </div>
+                                {club.founded_year && (
+                                    <div className="text-center">
+                                        <div className="text-sm text-white/60">Established</div>
+                                        <div className="text-3xl font-bold text-white">{club.founded_year}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Quick Navigation Cards */}
