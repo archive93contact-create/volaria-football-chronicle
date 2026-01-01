@@ -413,38 +413,37 @@ export default function ClubDetail() {
                                 <p className="text-xl text-white/80 italic mb-4">"{club.nickname}"</p>
                             )}
                             <div className="flex flex-col items-center md:items-start gap-3">
-                <div className="flex flex-col items-center gap-3">
-                    {/* Kit Display */}
-                    {club.primary_color && (
-                        <AdminOnly>
-                            <AIKitGenerator 
-                                club={club} 
-                                onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
-                                compact={true}
-                                nation={nation}
-                            />
-                        </AdminOnly>
-                    )}
-                    {/* Badges */}
-                    <div className="flex items-center gap-2">
-                        {nation?.name === 'Turuliand' && league?.tier <= 4 && (
-                            <span className="px-2 py-1 bg-white/20 rounded text-xs font-bold text-white border border-white/30">TFA</span>
-                        )}
-                        {club.professional_status && <ProfessionalStatusBadge status={club.professional_status} size="small" />}
-                        {club.stability_points !== undefined && <StabilityBadge points={club.stability_points} status={club.stability_status} iconOnly={true} />}
-                    </div>
-                    {/* Location */}
-                    {(club.settlement || club.district || club.region || club.city) && (
-                        <div className="flex items-center gap-2 text-white/80 flex-wrap text-sm">
-                            <MapPin className="w-4 h-4" />
-                            {club.settlement && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.settlement)}&type=settlement&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.settlement}</Link>}
-                            {club.settlement && club.district && <span className="text-white/50">•</span>}
-                            {club.district && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.district)}&type=district&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.district}</Link>}
-                            {(club.settlement || club.district) && club.region && <span className="text-white/50">•</span>}
-                            {club.region && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.region)}&type=region&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.region}</Link>}
-                            {!club.settlement && !club.district && !club.region && club.city && <span>{club.city}</span>}
-                        </div>
-                    )}
+                                {/* Badges */}
+                                <div className="flex items-center gap-2">
+                                    {nation?.name === 'Turuliand' && league?.tier <= 4 && (
+                                        <span className="px-2 py-1 bg-white/20 rounded text-xs font-bold text-white border border-white/30">TFA</span>
+                                    )}
+                                    {club.professional_status && <ProfessionalStatusBadge status={club.professional_status} size="small" />}
+                                    {club.stability_points !== undefined && <StabilityBadge points={club.stability_points} status={club.stability_status} iconOnly={true} />}
+                                </div>
+                                {/* Location */}
+                                {(club.settlement || club.district || club.region || club.city) && (
+                                    <div className="flex items-center gap-2 text-white/80 flex-wrap text-sm">
+                                        <MapPin className="w-4 h-4" />
+                                        {club.settlement && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.settlement)}&type=settlement&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.settlement}</Link>}
+                                        {club.settlement && club.district && <span className="text-white/50">•</span>}
+                                        {club.district && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.district)}&type=district&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.district}</Link>}
+                                        {(club.settlement || club.district) && club.region && <span className="text-white/50">•</span>}
+                                        {club.region && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.region)}&type=region&nation_id=${club.nation_id}`)} className="hover:text-white hover:underline">{club.region}</Link>}
+                                        {!club.settlement && !club.district && !club.region && club.city && <span>{club.city}</span>}
+                                    </div>
+                                )}
+                                {/* Kit Display */}
+                                {club.primary_color && (
+                                    <AdminOnly>
+                                        <AIKitGenerator 
+                                            club={club} 
+                                            onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
+                                            compact={true}
+                                            nation={nation}
+                                        />
+                                    </AdminOnly>
+                                )}
                             </div>
                         </div>
                         
