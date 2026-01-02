@@ -280,6 +280,18 @@ export default function DomesticCupDrawer({
         });
     };
 
+    // Determine correct round name based on number of clubs
+    const determineCorrectRound = (numClubs) => {
+        if (numClubs === 2) return 'Final';
+        if (numClubs === 4) return 'Semi-final';
+        if (numClubs === 8) return 'Quarter-final';
+        if (numClubs === 16) return 'Round of 16';
+        if (numClubs === 32) return 'Round of 32';
+        if (numClubs === 64) return 'Round of 64';
+        if (numClubs === 128) return 'Round of 128';
+        return `Round of ${numClubs}`;
+    };
+
     // Identify ALL rounds and their draw status
     const roundsStatus = useMemo(() => {
         const matchesByRound = matches.reduce((acc, m) => {
@@ -290,82 +302,64 @@ export default function DomesticCupDrawer({
 
         const allRounds = [];
 
-        // If no matches exist at all, show first round as needing draw
+        // If no matches exist at all, determine starting round
         if (matches.length === 0) {
-            const available = getAvailableClubs(ROUND_ORDER[0]);
+            const available = getAvailableClubs(null);
             if (available.length >= 2) {
+                const correctRound = determineCorrectRound(available.length);
                 allRounds.push({
-                    round: ROUND_ORDER[0],
+                    round: correctRound,
                     status: 'ready',
                     clubCount: available.length,
-                    reason: `${available.length} clubs eligible - start tournament`
+                    reason: `${available.length} clubs eligible - draw ${correctRound}`
                 });
             }
             return allRounds;
         }
 
-        // Check each round in order
-        for (let i = 0; i < ROUND_ORDER.length; i++) {
-            const round = ROUND_ORDER[i];
-            const roundMatches = matchesByRound[round] || [];
+        // Check existing rounds
+        const existingRounds = Object.keys(matchesByRound).sort((a, b) => {
+            return ROUND_ORDER.indexOf(a) - ROUND_ORDER.indexOf(b);
+        });
+
+        existingRounds.forEach((round, idx) => {
+            const roundMatches = matchesByRound[round];
+            const allComplete = roundMatches.every(m => m.winner && m.winner !== 'TBD');
             
-            if (roundMatches.length === 0) {
-                // This round doesn't exist yet
-                if (i === 0) {
-                    // First round but has no matches
-                    const available = getAvailableClubs(round);
-                    if (available.length >= 2) {
-                        allRounds.push({
-                            round,
-                            status: 'ready',
-                            clubCount: available.length,
-                            reason: `${available.length} clubs eligible`
-                        });
-                    }
-                } else {
-                    // Check if previous round is complete
-                    const previousRound = ROUND_ORDER[i - 1];
-                    const previousMatches = matchesByRound[previousRound] || [];
-                    const allPreviousComplete = previousMatches.length > 0 && 
-                        previousMatches.every(m => m.winner && m.winner !== 'TBD');
-                    
-                    if (allPreviousComplete) {
-                        const available = getAvailableClubs(round);
-                        if (available.length >= 2) {
-                            allRounds.push({
-                                round,
-                                status: 'ready',
-                                clubCount: available.length,
-                                reason: `${available.length} clubs qualified from ${previousRound}`
-                            });
-                        } else if (available.length === 1) {
-                            allRounds.push({
-                                round,
-                                status: 'waiting',
-                                clubCount: 1,
-                                reason: 'Only 1 club - tournament complete?'
-                            });
-                        }
-                    } else if (previousMatches.length > 0) {
-                        allRounds.push({
-                            round,
-                            status: 'waiting',
-                            clubCount: 0,
-                            reason: `Waiting for ${previousRound} to complete`
-                        });
-                    }
+            allRounds.push({
+                round,
+                status: allComplete ? 'complete' : 'in_progress',
+                clubCount: roundMatches.length,
+                reason: allComplete 
+                    ? `${roundMatches.length} matches complete` 
+                    : `${roundMatches.filter(m => m.winner).length}/${roundMatches.length} matches complete`
+            });
+
+            // If this round is complete and not the final, check for next round
+            if (allComplete && round !== 'Final') {
+                // Get winners to determine next round
+                const winners = roundMatches
+                    .filter(m => m.winner && m.winner !== 'TBD' && m.winner.toLowerCase() !== 'bye')
+                    .map(m => m.winner);
+                
+                const uniqueWinners = [...new Set(winners)];
+                
+                // Check if next round exists
+                const nextRoundIdx = ROUND_ORDER.indexOf(round) + 1;
+                const nextRound = ROUND_ORDER[nextRoundIdx];
+                const nextRoundExists = matchesByRound[nextRound];
+
+                if (!nextRoundExists && uniqueWinners.length >= 2) {
+                    const correctNextRound = determineCorrectRound(uniqueWinners.length);
+                    allRounds.push({
+                        round: correctNextRound,
+                        status: 'ready',
+                        clubCount: uniqueWinners.length,
+                        reason: `${uniqueWinners.length} clubs qualified - draw ${correctNextRound}`
+                    });
                 }
-            } else {
-                // Round exists - check if complete
-                const allComplete = roundMatches.every(m => m.winner && m.winner !== 'TBD');
-                allRounds.push({
-                    round,
-                    status: allComplete ? 'complete' : 'in_progress',
-                    clubCount: roundMatches.length,
-                    reason: allComplete ? `${roundMatches.length} matches complete` : `${roundMatches.filter(m => m.winner).length}/${roundMatches.length} matches complete`
-                });
             }
-        }
+        });
 
         return allRounds;
     }, [matches, clubs, leagueTables, season]);
@@ -377,7 +371,7 @@ export default function DomesticCupDrawer({
 
     // Check if tournament is complete (Final has a winner)
     const finalMatch = matches.find(m => m.round === 'Final');
-    const isTournamentComplete = finalMatch && finalMatch.winner;
+    const isTournamentComplete = finalMatch && finalMatch.winner && finalMatch.winner !== 'TBD';
     const needsFinalization = isTournamentComplete && !season.champion_name;
 
     return (

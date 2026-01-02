@@ -337,7 +337,10 @@ export default function DomesticCupSeasonDetail() {
                                         clubs={clubs}
                                         nations={[nation]}
                                         competition={{ ...cup, tier: 1 }}
-                                        onEditMatch={isAdmin ? setEditingMatch : null}
+                                        onEditMatch={isAdmin ? (match) => {
+                                            setMatchFormData(match);
+                                            setEditingMatch(match);
+                                        } : null}
                                         isDomesticCup={true}
                                     />
                                 )}
@@ -469,11 +472,14 @@ export default function DomesticCupSeasonDetail() {
                 <DialogContent className="max-w-md">
                     <DialogHeader><DialogTitle>Edit Match</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
+                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                            💡 You can change the round name here if it was incorrectly assigned
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label>Round</Label>
+                                <Label>Round *</Label>
                                 <Select value={matchFormData.round || ''} onValueChange={(v) => setMatchFormData({...matchFormData, round: v})}>
-                                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select round" /></SelectTrigger>
                                     <SelectContent>
                                         {ROUND_ORDER.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                                     </SelectContent>
