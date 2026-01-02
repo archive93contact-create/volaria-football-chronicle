@@ -46,6 +46,7 @@ export default function AddDomesticCupSeason() {
         top_scorer: '',
         notes: ''
     });
+    const [selectedLeagues, setSelectedLeagues] = useState([]);
 
     const { data: cup } = useQuery({
         queryKey: ['domesticCup', cupId],
@@ -65,6 +66,12 @@ export default function AddDomesticCupSeason() {
         enabled: !!cup?.nation_id,
     });
 
+    const { data: leagues = [] } = useQuery({
+        queryKey: ['nationLeagues', cup?.nation_id],
+        queryFn: () => base44.entities.League.filter({ nation_id: cup.nation_id }, 'tier'),
+        enabled: !!cup?.nation_id,
+    });
+
     const { data: allLeagueTables = [] } = useQuery({
         queryKey: ['allLeagueTables'],
         queryFn: () => base44.entities.LeagueTable.list(),
@@ -76,12 +83,23 @@ export default function AddDomesticCupSeason() {
         return years.sort().reverse();
     }, [allLeagueTables]);
 
+    // Calculate total clubs from selected leagues
+    const totalClubs = useMemo(() => {
+        if (!seasonData.year || selectedLeagues.length === 0) return 0;
+        return selectedLeagues.reduce((sum, leagueId) => {
+            const count = allLeagueTables.filter(t => 
+                t.year === seasonData.year && t.league_id === leagueId
+            ).length;
+            return sum + count;
+        }, 0);
+    }, [seasonData.year, selectedLeagues, allLeagueTables]);
+
     const createSeasonMutation = useMutation({
         mutationFn: async () => {
             const season = await base44.entities.DomesticCupSeason.create({
                 cup_id: cupId,
                 year: seasonData.year,
-                number_of_teams: parseInt(seasonData.number_of_teams) || 0,
+                number_of_teams: totalClubs,
                 champion_id: null,
                 champion_name: null,
                 runner_up_id: null,
@@ -129,7 +147,7 @@ export default function AddDomesticCupSeason() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label>Year *</Label>
-                                <Select value={seasonData.year} onValueChange={(v) => setSeasonData({...seasonData, year: v})}>
+                                <Select value={seasonData.year} onValueChange={(v) => { setSeasonData({...seasonData, year: v}); setSelectedLeagues([]); }}>
                                     <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Select year" />
                                     </SelectTrigger>
@@ -140,16 +158,81 @@ export default function AddDomesticCupSeason() {
                             </div>
 
                             <div>
-                                <Label>Expected Number of Teams (optional)</Label>
+                                <Label>Expected Number of Teams</Label>
                                 <Input 
                                     type="number"
                                     value={seasonData.number_of_teams || ''} 
                                     onChange={(e) => setSeasonData({...seasonData, number_of_teams: e.target.value})} 
                                     className="mt-1"
-                                    placeholder="e.g., 64"
+                                    placeholder="Auto-calculated from leagues"
+                                    disabled
                                 />
                             </div>
                         </div>
+
+                        {/* League Selection */}
+                        {seasonData.year && leagues.length > 0 && (
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <Label className="text-sm font-semibold text-blue-900 mb-3 block">
+                                    Select Leagues to Include in {cup.name} {seasonData.year}
+                                </Label>
+                                <div className="space-y-2">
+                                    {leagues.map(league => {
+                                        const leagueTablesInYear = allLeagueTables.filter(t => 
+                                            t.year === seasonData.year && t.league_id === league.id
+                                        );
+                                        const clubCount = leagueTablesInYear.length;
+                                        const isSelected = selectedLeagues.includes(league.id);
+
+                                        if (clubCount === 0) return null;
+
+                                        return (
+                                            <div 
+                                                key={league.id}
+                                                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
+                                                    isSelected ? 'bg-emerald-100 border-emerald-300' : 'bg-white hover:bg-slate-50'
+                                                }`}
+                                                onClick={() => {
+                                                    if (isSelected) {
+                                                        setSelectedLeagues(selectedLeagues.filter(id => id !== league.id));
+                                                    } else {
+                                                        setSelectedLeagues([...selectedLeagues, league.id]);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={isSelected}
+                                                        readOnly
+                                                        className="w-4 h-4 rounded"
+                                                    />
+                                                    <div>
+                                                        <div className="font-semibold text-slate-900">{league.name}</div>
+                                                        <div className="text-xs text-slate-500">Tier {league.tier} • {clubCount} clubs in {seasonData.year}</div>
+                                                    </div>
+                                                </div>
+                                                <Badge variant={isSelected ? "default" : "outline"}>
+                                                    {clubCount} clubs
+                                                </Badge>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                {selectedLeagues.length > 0 && (
+                                    <div className="mt-3 p-2 bg-white rounded text-sm text-slate-700">
+                                        Total clubs: <strong className="text-emerald-600">
+                                            {selectedLeagues.reduce((sum, leagueId) => {
+                                                const count = allLeagueTables.filter(t => 
+                                                    t.year === seasonData.year && t.league_id === leagueId
+                                                ).length;
+                                                return sum + count;
+                                            }, 0)}
+                                        </strong>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -215,10 +298,10 @@ export default function AddDomesticCupSeason() {
                             </Link>
                             <Button 
                                 onClick={() => createSeasonMutation.mutate()}
-                                disabled={!seasonData.year || createSeasonMutation.isPending}
+                                disabled={!seasonData.year || selectedLeagues.length === 0 || createSeasonMutation.isPending}
                                 className="bg-emerald-600 hover:bg-emerald-700"
                             >
-                                {createSeasonMutation.isPending ? 'Creating...' : 'Create Season'}
+                                {createSeasonMutation.isPending ? 'Creating...' : `Create Season (${totalClubs} clubs)`}
                             </Button>
                         </div>
                     </CardContent>

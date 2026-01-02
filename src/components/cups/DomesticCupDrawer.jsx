@@ -106,41 +106,60 @@ export default function DomesticCupDrawer({
         return clubs.filter(c => winnerNames.includes(c.name));
     };
 
-    // Perform the draw
+    // Calculate next power of 2
+    const nextPowerOf2 = (n) => {
+        let power = 1;
+        while (power < n) power *= 2;
+        return power;
+    };
+
+    // Perform the draw with proper bye calculation
     const performDraw = (round) => {
         setIsDrawing(true);
         setSelectedRound(round);
 
         const availableClubs = getAvailableClubs(round);
+        const numClubs = availableClubs.length;
         
-        // Seed clubs (sort by tier, then position)
+        // Seed clubs (sort by tier, then position - best teams first)
         const seededClubs = [...availableClubs].sort((a, b) => {
             return getSeeding(a.name) - getSeeding(b.name);
         });
 
-        // Pair clubs (seeded vs unseeded)
-        const matchesCount = Math.floor(seededClubs.length / 2);
+        // Calculate bracket structure
+        const nextRoundSize = Math.floor(numClubs / 2);
+        const bracketSize = nextPowerOf2(nextRoundSize);
+        const byesNeeded = (bracketSize * 2) - numClubs;
+        const firstRoundMatches = (numClubs - byesNeeded) / 2;
+
         const pairs = [];
+        const clubsWithByes = seededClubs.slice(0, byesNeeded); // Top seeds get byes
+        const clubsInFirstRound = seededClubs.slice(byesNeeded);
 
-        if (seededClubs.length % 2 === 1) {
-            // Odd number - highest seeded club gets a bye
-            const byeClub = seededClubs[0];
-            seededClubs.shift();
-            pairs.push({ home: byeClub, away: null, isBye: true });
-        }
+        // Create byes (these clubs advance automatically)
+        clubsWithByes.forEach(club => {
+            pairs.push({ home: club, away: null, isBye: true });
+        });
 
-        // Split into seeded and unseeded halves
-        const halfSize = Math.ceil(seededClubs.length / 2);
-        const topHalf = seededClubs.slice(0, halfSize);
-        const bottomHalf = seededClubs.slice(halfSize).reverse(); // Reverse for seeding balance
+        // Shuffle clubs in first round for excitement (or keep seeded if preferred)
+        // Split into top half and bottom half for balanced matchups
+        const halfSize = Math.ceil(clubsInFirstRound.length / 2);
+        const topHalf = clubsInFirstRound.slice(0, halfSize);
+        const bottomHalf = clubsInFirstRound.slice(halfSize).reverse();
 
-        // Pair top seed with bottom unseeded, etc.
-        for (let i = 0; i < Math.min(topHalf.length, bottomHalf.length); i++) {
+        // Pair top seeds vs bottom seeds
+        for (let i = 0; i < topHalf.length && i < bottomHalf.length; i++) {
             pairs.push({
                 home: topHalf[i],
                 away: bottomHalf[i],
                 isBye: false
             });
+        }
+
+        // Handle odd number in first round (shouldn't happen with proper calculation but safety)
+        if (clubsInFirstRound.length % 2 === 1) {
+            const lastClub = clubsInFirstRound[clubsInFirstRound.length - 1];
+            pairs.push({ home: lastClub, away: null, isBye: true });
         }
 
         // Create match data
@@ -174,13 +193,56 @@ export default function DomesticCupDrawer({
             };
         });
 
-        setDrawResults({ round, matches: newMatches, pairs });
+        setDrawResults({ 
+            round, 
+            matches: newMatches, 
+            pairs,
+            stats: {
+                totalClubs: numClubs,
+                byes: byesNeeded,
+                matches: firstRoundMatches
+            }
+        });
         setIsDrawing(false);
     };
 
+    const [editableMatches, setEditableMatches] = useState([]);
+
     const confirmDraw = () => {
-        createMatchesMutation.mutate(drawResults.matches);
+        // Save the matches to state for editing before committing
+        setEditableMatches(drawResults.matches);
         setDrawResults(null);
+    };
+
+    const updateEditableMatch = (matchNumber, field, value) => {
+        setEditableMatches(prev => prev.map(m => {
+            if (m.match_number === matchNumber) {
+                const updated = { ...m, [field]: value };
+                
+                // Auto-determine winner if both scores are set
+                if ((field === 'home_score' || field === 'away_score') && m.away_club_name !== 'BYE') {
+                    const home = field === 'home_score' ? value : m.home_score;
+                    const away = field === 'away_score' ? value : m.away_score;
+                    if (home !== null && away !== null && home !== '' && away !== '') {
+                        if (parseInt(home) > parseInt(away)) {
+                            updated.winner = m.home_club_name;
+                            updated.winner_id = m.home_club_id;
+                        } else if (parseInt(away) > parseInt(home)) {
+                            updated.winner = m.away_club_name;
+                            updated.winner_id = m.away_club_id;
+                        }
+                    }
+                }
+                
+                return updated;
+            }
+            return m;
+        }));
+    };
+
+    const saveMatches = () => {
+        createMatchesMutation.mutate(editableMatches);
+        setEditableMatches([]);
     };
 
     // Identify ALL rounds and their draw status
@@ -344,34 +406,48 @@ export default function DomesticCupDrawer({
 
             {/* Draw Preview Dialog */}
             <Dialog open={!!drawResults} onOpenChange={(open) => { if (!open) setDrawResults(null); }}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>Draw Results - {drawResults?.round}</DialogTitle>
+                        <DialogTitle>Draw Complete - {drawResults?.round}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
-                        <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
-                            <span className="font-medium text-emerald-900">{drawResults?.matches.length} matches created</span>
-                            <Badge className="bg-emerald-600">{drawResults?.pairs.length} pairs</Badge>
+                        <div className="grid grid-cols-3 gap-3 p-3 bg-emerald-50 rounded-lg">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-emerald-900">{drawResults?.stats.totalClubs}</div>
+                                <div className="text-xs text-emerald-700">Total Clubs</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-amber-900">{drawResults?.stats.byes}</div>
+                                <div className="text-xs text-amber-700">Byes (Top Seeds)</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-900">{drawResults?.stats.matches}</div>
+                                <div className="text-xs text-blue-700">Matches to Play</div>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
                             {drawResults?.matches.map((match, idx) => (
-                                <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                    <span className="text-xs text-slate-500 w-8">#{match.match_number}</span>
-                                    <div className="flex-1 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className="text-xs">T{getClubTier(match.home_club_name)}</Badge>
-                                            <span className="font-medium">{match.home_club_name}</span>
-                                        </div>
-                                        <span className="text-slate-400">vs</span>
-                                        {match.away_club_name === 'BYE' ? (
-                                            <Badge className="bg-amber-500">BYE</Badge>
-                                        ) : (
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium">{match.away_club_name}</span>
-                                                <Badge variant="outline" className="text-xs">T{getClubTier(match.away_club_name)}</Badge>
+                                <div key={idx} className={`p-3 rounded-lg ${match.away_club_name === 'BYE' ? 'bg-amber-50 border border-amber-200' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs text-slate-500 w-8">#{match.match_number}</span>
+                                        <div className="flex-1 flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <Badge variant="outline" className="text-xs">T{getClubTier(match.home_club_name)}</Badge>
+                                                <span className="font-medium text-sm">{match.home_club_name}</span>
                                             </div>
-                                        )}
+                                            {match.away_club_name === 'BYE' ? (
+                                                <Badge className="bg-amber-500 text-white">AUTOMATIC BYE</Badge>
+                                            ) : (
+                                                <>
+                                                    <span className="text-slate-400 text-sm">vs</span>
+                                                    <div className="flex items-center gap-2 flex-1 justify-end">
+                                                        <span className="font-medium text-sm">{match.away_club_name}</span>
+                                                        <Badge variant="outline" className="text-xs">T{getClubTier(match.away_club_name)}</Badge>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -383,13 +459,118 @@ export default function DomesticCupDrawer({
                             </Button>
                             <Button 
                                 onClick={confirmDraw} 
-                                disabled={createMatchesMutation.isPending}
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                            >
+                                <Trophy className="w-4 h-4 mr-2" />
+                                Confirm & Enter Results
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Editable Matches Dialog (after draw confirmed) */}
+            <Dialog open={editableMatches.length > 0} onOpenChange={(open) => { if (!open) setEditableMatches([]); }}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Enter Match Results - {editableMatches[0]?.round}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm text-slate-600">
+                            Enter scores to determine winners, or leave blank if scores are unknown. You must select a winner for each match.
+                        </p>
+
+                        <div className="space-y-3">
+                            {editableMatches.map((match, idx) => (
+                                <Card key={idx} className={match.away_club_name === 'BYE' ? 'bg-amber-50' : ''}>
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs text-slate-500 font-mono w-6">#{match.match_number}</span>
+                                            
+                                            {/* Home Team */}
+                                            <div className="flex-1 flex items-center gap-2">
+                                                <Badge variant="outline" className="text-xs">T{getClubTier(match.home_club_name)}</Badge>
+                                                <span className="font-medium text-sm flex-1">{match.home_club_name}</span>
+                                                <Input 
+                                                    type="number"
+                                                    placeholder="—"
+                                                    className="w-16 h-9 text-center"
+                                                    value={match.home_score ?? ''}
+                                                    onChange={(e) => updateEditableMatch(match.match_number, 'home_score', e.target.value ? parseInt(e.target.value) : null)}
+                                                    disabled={match.away_club_name === 'BYE'}
+                                                />
+                                            </div>
+
+                                            {match.away_club_name === 'BYE' ? (
+                                                <Badge className="bg-amber-500 text-white px-4">BYE - Auto Win</Badge>
+                                            ) : (
+                                                <>
+                                                    {/* Away Team */}
+                                                    <div className="flex-1 flex items-center gap-2">
+                                                        <Input 
+                                                            type="number"
+                                                            placeholder="—"
+                                                            className="w-16 h-9 text-center"
+                                                            value={match.away_score ?? ''}
+                                                            onChange={(e) => updateEditableMatch(match.match_number, 'away_score', e.target.value ? parseInt(e.target.value) : null)}
+                                                        />
+                                                        <span className="font-medium text-sm flex-1 text-right">{match.away_club_name}</span>
+                                                        <Badge variant="outline" className="text-xs">T{getClubTier(match.away_club_name)}</Badge>
+                                                    </div>
+
+                                                    {/* Winner Selection */}
+                                                    <div className="flex gap-1">
+                                                        <Button
+                                                            size="sm"
+                                                            variant={match.winner === match.home_club_name ? "default" : "outline"}
+                                                            onClick={() => {
+                                                                updateEditableMatch(match.match_number, 'winner', match.home_club_name);
+                                                                updateEditableMatch(match.match_number, 'winner_id', match.home_club_id);
+                                                            }}
+                                                            className={match.winner === match.home_club_name ? 'bg-emerald-600' : ''}
+                                                        >
+                                                            H
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant={match.winner === match.away_club_name ? "default" : "outline"}
+                                                            onClick={() => {
+                                                                updateEditableMatch(match.match_number, 'winner', match.away_club_name);
+                                                                updateEditableMatch(match.match_number, 'winner_id', match.away_club_id);
+                                                            }}
+                                                            className={match.winner === match.away_club_name ? 'bg-emerald-600' : ''}
+                                                        >
+                                                            A
+                                                        </Button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+
+                        {/* Validation Warning */}
+                        {editableMatches.some(m => !m.winner) && (
+                            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                                ⚠️ Some matches don't have winners selected. You must select a winner for each match before saving.
+                            </div>
+                        )}
+
+                        <div className="flex justify-end gap-2 pt-4 border-t">
+                            <Button variant="outline" onClick={() => setEditableMatches([])}>
+                                Cancel
+                            </Button>
+                            <Button 
+                                onClick={saveMatches}
+                                disabled={createMatchesMutation.isPending || editableMatches.some(m => !m.winner)}
                                 className="bg-emerald-600 hover:bg-emerald-700"
                             >
                                 {createMatchesMutation.isPending ? (
-                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</>
+                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</>
                                 ) : (
-                                    <><Trophy className="w-4 h-4 mr-2" /> Confirm Draw</>
+                                    <>Save {editableMatches.length} Matches</>
                                 )}
                             </Button>
                         </div>
