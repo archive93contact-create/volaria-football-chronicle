@@ -10,8 +10,9 @@ import MatchLineupEditor from '@/components/continental/MatchLineupEditor';
 import MatchDetailView from '@/components/continental/MatchDetailView';
 
 const ROUND_ORDER = ['Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
+const DOMESTIC_CUP_ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
-export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition, onEditMatch }) {
+export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition, onEditMatch, isDomesticCup = false }) {
     const [lineupEditMatch, setLineupEditMatch] = useState(null);
     const [detailViewMatch, setDetailViewMatch] = useState(null);
     
@@ -31,8 +32,11 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         }, {});
     }, [matches]);
 
+    // Use appropriate round order based on competition type
+    const roundOrder = isDomesticCup ? DOMESTIC_CUP_ROUND_ORDER : ROUND_ORDER;
+
     // Reverse order - Final first
-    const sortedRounds = ROUND_ORDER.filter(r => matchesByRound[r]).reverse();
+    const sortedRounds = roundOrder.filter(r => matchesByRound[r]).reverse();
 
     // Helper to find club
     const getClubByName = (name) => {
@@ -67,7 +71,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         // Sort each club's path by round order
         Object.keys(paths).forEach(clubName => {
             paths[clubName].sort((a, b) => 
-                ROUND_ORDER.indexOf(a.round) - ROUND_ORDER.indexOf(b.round)
+                roundOrder.indexOf(a.round) - roundOrder.indexOf(b.round)
             );
         });
         
@@ -92,8 +96,9 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         const homeIsWinner = match.winner === match.home_club_name;
         const awayIsWinner = match.winner === match.away_club_name;
         
-        const homeScore = match.is_single_leg ? match.home_score_leg1 : match.home_aggregate;
-        const awayScore = match.is_single_leg ? match.away_score_leg1 : match.away_aggregate;
+        // For domestic cups, use home_score/away_score directly (single leg)
+        const homeScore = isDomesticCup ? match.home_score : (match.is_single_leg ? match.home_score_leg1 : match.home_aggregate);
+        const awayScore = isDomesticCup ? match.away_score : (match.is_single_leg ? match.away_score_leg1 : match.away_aggregate);
 
         const ClubRow = ({ name, nation, club, isWinner, score, isHome }) => {
             const flag = getNationFlag(nation);
@@ -208,12 +213,14 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         );
     };
 
-    // Get the final match
+    // Get matches for all rounds dynamically
     const finalMatch = matchesByRound['Final']?.[0];
     const semiMatches = matchesByRound['Semi-final'] || [];
     const quarterMatches = matchesByRound['Quarter-final'] || [];
     const r16Matches = matchesByRound['Round of 16'] || [];
     const r32Matches = matchesByRound['Round of 32'] || [];
+    const r64Matches = matchesByRound['Round of 64'] || [];
+    const r128Matches = matchesByRound['Round of 128'] || [];
 
     return (
         <div className="space-y-8">
@@ -274,6 +281,34 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         {r32Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
+                            <MatchCard key={match.id} match={match} />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Round of 64 */}
+            {r64Matches.length > 0 && (
+                <div>
+                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+                        {getRoundDisplayName('Round of 64')}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2">
+                        {r64Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
+                            <MatchCard key={match.id} match={match} />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Round of 128 */}
+            {r128Matches.length > 0 && (
+                <div>
+                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+                        {getRoundDisplayName('Round of 128')}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2">
+                        {r128Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
                             <MatchCard key={match.id} match={match} />
                         ))}
                     </div>
