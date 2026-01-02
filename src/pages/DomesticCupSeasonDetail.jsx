@@ -14,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import AdminOnly, { useIsAdmin } from '@/components/common/AdminOnly';
+import DomesticCupDrawer from '@/components/cups/DomesticCupDrawer';
+import SyncDomesticCupStats from '@/components/cups/SyncDomesticCupStats';
+import EnhancedBracketView from '@/components/continental/EnhancedBracketView';
 
 const ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -253,6 +256,21 @@ export default function DomesticCupSeasonDetail() {
                     </Card>
                 )}
 
+                {/* Draw System */}
+                <AdminOnly>
+                    <div className="mb-8">
+                        <DomesticCupDrawer
+                            seasonId={seasonId}
+                            season={season}
+                            cup={cup}
+                            clubs={clubs}
+                            leagues={leagues}
+                            leagueTables={leagueTables}
+                            matches={matches}
+                        />
+                    </div>
+                </AdminOnly>
+
                 {/* Giant Killings */}
                 {giantKillings.length > 0 && (
                     <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-purple-50 to-pink-50">
@@ -286,93 +304,136 @@ export default function DomesticCupSeasonDetail() {
                 )}
 
                 {/* Bracket */}
-                <Card className="border-0 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Tournament Bracket</CardTitle>
+                <Tabs defaultValue="bracket" className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <TabsList>
+                            <TabsTrigger value="bracket">Tournament Bracket</TabsTrigger>
+                            <TabsTrigger value="participants">Participants ({clubs.length})</TabsTrigger>
+                            <TabsTrigger value="rounds">By Round</TabsTrigger>
+                        </TabsList>
                         <AdminOnly>
-                            <Button onClick={() => { setMatchFormData({ round: 'Quarter-final', match_number: 1 }); setIsAddMatchOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
-                                <Plus className="w-4 h-4 mr-2" /> Add Match
-                            </Button>
-                        </AdminOnly>
-                    </CardHeader>
-                    <CardContent>
-                        {matches.length === 0 ? (
-                            <div className="text-center py-12 text-slate-500">
-                                <Trophy className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                <p>No matches recorded yet. Add matches to build the bracket.</p>
+                            <div className="flex gap-2">
+                                <SyncDomesticCupStats season={season} cup={cup} clubs={clubs} />
+                                <Button onClick={() => { setMatchFormData({ round: 'Quarter-final', match_number: 1 }); setIsAddMatchOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
+                                    <Plus className="w-4 h-4 mr-2" /> Add Match
+                                </Button>
                             </div>
-                        ) : (
-                            <Tabs defaultValue="bracket">
-                                <TabsList className="mb-4">
-                                    <TabsTrigger value="bracket">Bracket View</TabsTrigger>
-                                    <TabsTrigger value="rounds">By Round</TabsTrigger>
-                                </TabsList>
+                        </AdminOnly>
+                    </div>
 
-                                <TabsContent value="bracket">
-                                    <div className="overflow-x-auto pb-4">
-                                        <div className="flex gap-8 min-w-max p-4">
-                                            {sortedRounds.map((round, roundIdx) => {
-                                                const roundMatches = matchesByRound[round]?.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)) || [];
-                                                const isFinal = round === 'Final';
-                                                const spacingMultiplier = Math.pow(2, roundIdx);
+                    <TabsContent value="bracket">
+                        <Card className="border-0 shadow-sm">
+                            <CardContent className="pt-6">
+                                {matches.length === 0 ? (
+                                    <div className="text-center py-12 text-slate-500">
+                                        <Trophy className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                                        <p>No matches recorded yet. Use the draw button above to start the tournament.</p>
+                                    </div>
+                                ) : (
+                                    <EnhancedBracketView
+                                        matches={matches}
+                                        getNationFlag={() => null}
+                                        clubs={clubs}
+                                        nations={[nation]}
+                                        competition={{ ...cup, tier: 1 }}
+                                        onEditMatch={isAdmin ? setEditingMatch : null}
+                                        isDomesticCup={true}
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                                                return (
-                                                    <div key={round} className="flex flex-col" style={{ minWidth: '220px' }}>
-                                                        <h3 className={`text-sm font-semibold text-center mb-4 px-4 py-2 rounded-full ${
-                                                            isFinal ? 'bg-amber-100 text-amber-800' : 'bg-slate-100'
-                                                        }`}>
-                                                            {round}
-                                                        </h3>
-                                                        <div 
-                                                            className="flex flex-col justify-around flex-1"
-                                                            style={{ 
-                                                                gap: `${spacingMultiplier * 16}px`,
-                                                                paddingTop: `${(spacingMultiplier - 1) * 40}px`,
-                                                                paddingBottom: `${(spacingMultiplier - 1) * 40}px`
-                                                            }}
-                                                        >
-                                                            {roundMatches.map((match) => (
-                                                                <MatchCard key={match.id} match={match} isFinal={isFinal} />
-                                                            ))}
+                    <TabsContent value="participants">
+                        <Card className="border-0 shadow-sm">
+                            <CardHeader>
+                                <CardTitle>Eligible Clubs</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {(() => {
+                                    const eligibleTiers = cup.eligible_tiers?.split('-').map(t => parseInt(t.trim())) || [1, 2, 3, 4];
+                                    const minTier = Math.min(...eligibleTiers);
+                                    const maxTier = Math.max(...eligibleTiers);
+                                    
+                                    const eligibleClubs = clubs.filter(club => {
+                                        const table = leagueTables.find(t => t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim());
+                                        if (!table) return false;
+                                        const league = leagues.find(l => l.id === table.league_id);
+                                        const tier = league?.tier || 999;
+                                        return tier >= minTier && tier <= maxTier;
+                                    });
+
+                                    return (
+                                        <div className="space-y-4">
+                                            <p className="text-sm text-slate-600">
+                                                Clubs from tiers {minTier} to {maxTier} • {eligibleClubs.length} eligible clubs
+                                            </p>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                {eligibleClubs.map(club => {
+                                                    const table = leagueTables.find(t => t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim());
+                                                    const league = leagues.find(l => l.id === table?.league_id);
+                                                    const isParticipating = matches.some(m => 
+                                                        m.home_club_name === club.name || m.away_club_name === club.name
+                                                    );
+
+                                                    return (
+                                                        <div key={club.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                                                            {club.logo_url && (
+                                                                <img src={club.logo_url} alt="" className="w-6 h-6 object-contain" />
+                                                            )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="text-sm font-medium truncate">{club.name}</div>
+                                                                <div className="flex items-center gap-1 text-xs text-slate-500">
+                                                                    <Badge variant="outline" className="text-xs px-1 py-0">
+                                                                        T{league?.tier}
+                                                                    </Badge>
+                                                                    {isParticipating && (
+                                                                        <Check className="w-3 h-3 text-emerald-600" />
+                                                                    )}
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                <TabsContent value="rounds">
-                                    <div className="space-y-8">
-                                        {sortedRounds.map(round => (
-                                            <div key={round}>
-                                                <h3 className={`text-lg font-semibold mb-4 px-4 py-2 rounded-lg inline-block ${
-                                                    round === 'Final' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100'
-                                                }`}>
-                                                    {round === 'Final' && <Trophy className="w-4 h-4 inline mr-2" />}
-                                                    {round}
-                                                </h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                                    {matchesByRound[round]?.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
-                                                        <MatchCard key={match.id} match={match} isFinal={round === 'Final'} />
-                                                    ))}
-                                                </div>
+                                                    );
+                                                })}
                                             </div>
-                                        ))}
-                                    </div>
-                                </TabsContent>
-                            </Tabs>
-                        )}
+                                        </div>
+                                    );
+                                })()}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                        <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                                <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded" />
-                                Winner
-                            </span>
-                            {isAdmin && <span>Click match to edit</span>}
+                    <TabsContent value="rounds">
+                        <div className="space-y-6">
+                            {sortedRounds.length === 0 ? (
+                                <Card className="border-dashed border-2">
+                                    <CardContent className="text-center py-12 text-slate-500">
+                                        <Trophy className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                                        <p>No rounds yet</p>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                sortedRounds.map(round => (
+                                    <Card key={round} className="border-0 shadow-sm">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className={`text-lg ${round === 'Final' ? 'text-amber-700' : ''}`}>
+                                                {round === 'Final' && <Trophy className="w-4 h-4 inline mr-2" />}
+                                                {round}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {matchesByRound[round]?.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
+                                                    <MatchCard key={match.id} match={match} isFinal={round === 'Final'} />
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
                         </div>
-                    </CardContent>
-                </Card>
+                    </TabsContent>
+                </Tabs>
             </div>
 
             {/* Edit Match Dialog */}
