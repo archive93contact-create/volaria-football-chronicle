@@ -25,6 +25,7 @@ export default function DomesticCupDrawer({
     const [drawResults, setDrawResults] = useState(null);
     const [selectedRound, setSelectedRound] = useState(null);
     const [showPoolDetails, setShowPoolDetails] = useState(false);
+    const [isSavingFinals, setIsSavingFinals] = useState(false);
 
     const createMatchesMutation = useMutation({
         mutationFn: async (matchesToCreate) => {
@@ -246,6 +247,39 @@ export default function DomesticCupDrawer({
         setEditableMatches([]);
     };
 
+    // Update season with champion and runner-up from Final
+    const updateSeasonMutation = useMutation({
+        mutationFn: async (data) => {
+            return await base44.entities.DomesticCupSeason.update(seasonId, data);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['cupSeason', seasonId]);
+            setIsSavingFinals(false);
+        },
+    });
+
+    const finalizeCup = async () => {
+        setIsSavingFinals(true);
+        const finalMatch = matches.find(m => m.round === 'Final');
+        if (!finalMatch || !finalMatch.winner) {
+            alert('Cannot finalize: Final match has no winner');
+            setIsSavingFinals(false);
+            return;
+        }
+
+        const champion = finalMatch.winner;
+        const runnerUp = finalMatch.winner === finalMatch.home_club_name ? finalMatch.away_club_name : finalMatch.home_club_name;
+        const championClub = clubs.find(c => c.name === champion);
+        const runnerUpClub = clubs.find(c => c.name === runnerUp);
+
+        await updateSeasonMutation.mutateAsync({
+            champion_name: champion,
+            champion_id: championClub?.id || null,
+            runner_up: runnerUp,
+            runner_up_id: runnerUpClub?.id || null
+        });
+    };
+
     // Identify ALL rounds and their draw status
     const roundsStatus = useMemo(() => {
         const matchesByRound = matches.reduce((acc, m) => {
@@ -341,8 +375,36 @@ export default function DomesticCupDrawer({
 
     const availableForDraw = getAvailableClubs(selectedRound);
 
+    // Check if tournament is complete (Final has a winner)
+    const finalMatch = matches.find(m => m.round === 'Final');
+    const isTournamentComplete = finalMatch && finalMatch.winner;
+    const needsFinalization = isTournamentComplete && !season.champion_name;
+
     return (
         <>
+            {/* Finalize Tournament Button */}
+            {needsFinalization && (
+                <Card className="border-2 border-amber-500 bg-amber-50/50 mb-4">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <div className="font-semibold text-amber-900">Tournament Complete!</div>
+                            <div className="text-sm text-amber-700">Click to finalize and record the champion</div>
+                        </div>
+                        <Button 
+                            onClick={finalizeCup}
+                            disabled={isSavingFinals}
+                            className="bg-amber-600 hover:bg-amber-700"
+                        >
+                            {isSavingFinals ? (
+                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</>
+                            ) : (
+                                <><Trophy className="w-4 h-4 mr-2" /> Finalize Cup</>
+                            )}
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Tournament Progress Overview */}
             {roundsStatus.length > 0 && (
                 <Card className="border-0 shadow-sm">

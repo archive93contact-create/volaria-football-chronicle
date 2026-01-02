@@ -256,7 +256,7 @@ export default function DomesticCupSeasonDetail() {
                     </Card>
                 )}
 
-                {/* Draw System */}
+                {/* Draw System & Finals */}
                 <AdminOnly>
                     <div className="mb-8">
                         <DomesticCupDrawer
@@ -267,6 +267,7 @@ export default function DomesticCupSeasonDetail() {
                             leagues={leagues}
                             leagueTables={leagueTables}
                             matches={matches}
+                            onDrawComplete={() => queryClient.invalidateQueries(['cupMatches', seasonId])}
                         />
                     </div>
                 </AdminOnly>
