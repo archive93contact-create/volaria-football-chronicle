@@ -74,8 +74,8 @@ export default function DomesticCupDrawer({
             return acc;
         }, {});
 
-        // For first round, get clubs from league tables for the season year
-        if (matches.length === 0 || round === ROUND_ORDER[0]) {
+        // For first round or no matches, get clubs from league tables for the season year
+        if (matches.length === 0) {
             // Filter clubs by eligible tiers from cup config
             const eligibleTiers = cup.eligible_tiers?.split('-').map(t => parseInt(t.trim())) || [1, 2, 3, 4, 5, 6, 7, 8];
             const minTier = Math.min(...eligibleTiers);
@@ -97,15 +97,19 @@ export default function DomesticCupDrawer({
             return clubs.filter(club => eligibleClubNames.has(club.name));
         }
 
-        // For subsequent rounds, get winners from previous round
-        const previousRound = ROUND_ORDER[ROUND_ORDER.indexOf(round) - 1];
-        if (!previousRound || !matchesByRound[previousRound]) return [];
+        // For subsequent rounds, get ALL winners from ALL existing completed rounds
+        // This handles custom round names properly
+        const allWinners = new Set();
+        
+        Object.keys(matchesByRound).forEach(existingRound => {
+            matchesByRound[existingRound].forEach(match => {
+                if (match.winner && match.winner !== 'TBD' && match.winner.toLowerCase() !== 'bye') {
+                    allWinners.add(match.winner);
+                }
+            });
+        });
 
-        const winnerNames = matchesByRound[previousRound]
-            .filter(m => m.winner && m.winner !== 'TBD' && m.winner.toLowerCase() !== 'bye')
-            .map(m => m.winner);
-
-        return clubs.filter(c => winnerNames.includes(c.name));
+        return clubs.filter(c => allWinners.has(c.name));
     };
 
     // Calculate next power of 2
