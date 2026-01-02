@@ -72,17 +72,27 @@ export default function DomesticCupDrawer({
             return acc;
         }, {});
 
-        // For first round, all clubs are available
-        if (round === 'Round of 128' || round === 'Round of 64' || !round) {
+        // For first round, get clubs from league tables for the season year
+        if (matches.length === 0 || round === ROUND_ORDER[0]) {
             // Filter clubs by eligible tiers from cup config
             const eligibleTiers = cup.eligible_tiers?.split('-').map(t => parseInt(t.trim())) || [1, 2, 3, 4, 5, 6, 7, 8];
             const minTier = Math.min(...eligibleTiers);
             const maxTier = Math.max(...eligibleTiers);
             
-            return clubs.filter(club => {
-                const tier = getClubTier(club.name);
-                return tier >= minTier && tier <= maxTier;
+            // Get clubs that played in this season's year
+            const seasonYear = season.year;
+            const yearTables = leagueTables.filter(t => t.year === seasonYear);
+            const eligibleClubNames = new Set();
+            
+            yearTables.forEach(table => {
+                const league = leagues.find(l => l.id === table.league_id);
+                const tier = league?.tier || 999;
+                if (tier >= minTier && tier <= maxTier && table.club_name) {
+                    eligibleClubNames.add(table.club_name);
+                }
             });
+            
+            return clubs.filter(club => eligibleClubNames.has(club.name));
         }
 
         // For subsequent rounds, get winners from previous round
@@ -173,39 +183,51 @@ export default function DomesticCupDrawer({
         setDrawResults(null);
     };
 
-    // Identify which rounds need a draw
-    const roundsNeedingDraw = useMemo(() => {
+    // Identify ALL rounds and their draw status
+    const roundsStatus = useMemo(() => {
         const matchesByRound = matches.reduce((acc, m) => {
             if (!acc[m.round]) acc[m.round] = [];
             acc[m.round].push(m);
             return acc;
         }, {});
 
-        const needsDraw = [];
+        const allRounds = [];
 
-        // Start with first round if no matches exist
+        // If no matches exist at all, show first round as needing draw
         if (matches.length === 0) {
-            const firstRound = ROUND_ORDER[0];
-            const available = getAvailableClubs(firstRound);
+            const available = getAvailableClubs(ROUND_ORDER[0]);
             if (available.length >= 2) {
-                needsDraw.push({
-                    round: firstRound,
+                allRounds.push({
+                    round: ROUND_ORDER[0],
+                    status: 'ready',
                     clubCount: available.length,
-                    reason: 'No matches yet - start the tournament'
+                    reason: `${available.length} clubs eligible - start tournament`
                 });
             }
-            return needsDraw;
+            return allRounds;
         }
 
-        // Check each round
-        for (const round of ROUND_ORDER) {
+        // Check each round in order
+        for (let i = 0; i < ROUND_ORDER.length; i++) {
+            const round = ROUND_ORDER[i];
             const roundMatches = matchesByRound[round] || [];
             
-            // If this round has no matches but previous round is complete
             if (roundMatches.length === 0) {
-                const previousRoundIdx = ROUND_ORDER.indexOf(round) - 1;
-                if (previousRoundIdx >= 0) {
-                    const previousRound = ROUND_ORDER[previousRoundIdx];
+                // This round doesn't exist yet
+                if (i === 0) {
+                    // First round but has no matches
+                    const available = getAvailableClubs(round);
+                    if (available.length >= 2) {
+                        allRounds.push({
+                            round,
+                            status: 'ready',
+                            clubCount: available.length,
+                            reason: `${available.length} clubs eligible`
+                        });
+                    }
+                } else {
+                    // Check if previous round is complete
+                    const previousRound = ROUND_ORDER[i - 1];
                     const previousMatches = matchesByRound[previousRound] || [];
                     const allPreviousComplete = previousMatches.length > 0 && 
                         previousMatches.every(m => m.winner && m.winner !== 'TBD');
@@ -213,54 +235,107 @@ export default function DomesticCupDrawer({
                     if (allPreviousComplete) {
                         const available = getAvailableClubs(round);
                         if (available.length >= 2) {
-                            needsDraw.push({
+                            allRounds.push({
                                 round,
+                                status: 'ready',
                                 clubCount: available.length,
-                                reason: `${previousRound} complete - ${available.length} clubs advancing`
+                                reason: `${available.length} clubs qualified from ${previousRound}`
                             });
-                        } else if (available.length === 1 && round === 'Final') {
-                            // Special case: one club made it to final (shouldn't happen but handle it)
-                            needsDraw.push({
+                        } else if (available.length === 1) {
+                            allRounds.push({
                                 round,
+                                status: 'waiting',
                                 clubCount: 1,
-                                reason: 'Only one finalist - needs opponent'
+                                reason: 'Only 1 club - tournament complete?'
                             });
                         }
+                    } else if (previousMatches.length > 0) {
+                        allRounds.push({
+                            round,
+                            status: 'waiting',
+                            clubCount: 0,
+                            reason: `Waiting for ${previousRound} to complete`
+                        });
                     }
                 }
-                break; // Only show the next round that needs a draw
+            } else {
+                // Round exists - check if complete
+                const allComplete = roundMatches.every(m => m.winner && m.winner !== 'TBD');
+                allRounds.push({
+                    round,
+                    status: allComplete ? 'complete' : 'in_progress',
+                    clubCount: roundMatches.length,
+                    reason: allComplete ? `${roundMatches.length} matches complete` : `${roundMatches.filter(m => m.winner).length}/${roundMatches.length} matches complete`
+                });
             }
         }
 
-        return needsDraw;
-    }, [matches, clubs, leagueTables]);
+        return allRounds;
+    }, [matches, clubs, leagueTables, season]);
+
+    // Extract rounds that are ready for drawing
+    const roundsNeedingDraw = roundsStatus.filter(r => r.status === 'ready');
 
     const availableForDraw = getAvailableClubs(selectedRound);
 
     return (
         <>
-            {roundsNeedingDraw.length > 0 && (
-                <Card className="border-2 border-emerald-500 bg-emerald-50/50">
+            {/* Tournament Progress Overview */}
+            {roundsStatus.length > 0 && (
+                <Card className="border-0 shadow-sm">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-emerald-700">
-                            <Shuffle className="w-5 h-5" />
-                            Draw Required
+                        <CardTitle className="flex items-center gap-2">
+                            <Trophy className="w-5 h-5" />
+                            Tournament Progress
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                        {roundsNeedingDraw.map(({ round, clubCount, reason }) => (
-                            <div key={round} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <CardContent className="space-y-2">
+                        {roundsStatus.map(({ round, status, clubCount, reason }) => (
+                            <div 
+                                key={round} 
+                                className={`flex items-center justify-between p-3 rounded-lg ${
+                                    status === 'ready' ? 'bg-emerald-50 border-2 border-emerald-500' :
+                                    status === 'complete' ? 'bg-slate-50 border border-slate-200' :
+                                    status === 'in_progress' ? 'bg-blue-50 border border-blue-200' :
+                                    'bg-slate-50 border border-slate-200 opacity-60'
+                                }`}
+                            >
                                 <div>
-                                    <div className="font-semibold text-slate-900">{round}</div>
-                                    <div className="text-sm text-slate-600">{reason}</div>
+                                    <div className={`font-semibold ${
+                                        status === 'ready' ? 'text-emerald-900' :
+                                        status === 'complete' ? 'text-slate-600' :
+                                        status === 'in_progress' ? 'text-blue-900' :
+                                        'text-slate-500'
+                                    }`}>
+                                        {round}
+                                    </div>
+                                    <div className={`text-sm ${
+                                        status === 'ready' ? 'text-emerald-700' :
+                                        status === 'complete' ? 'text-slate-500' :
+                                        status === 'in_progress' ? 'text-blue-700' :
+                                        'text-slate-400'
+                                    }`}>
+                                        {reason}
+                                    </div>
                                 </div>
-                                <Button 
-                                    onClick={() => performDraw(round)}
-                                    className="bg-emerald-600 hover:bg-emerald-700"
-                                >
-                                    <Shuffle className="w-4 h-4 mr-2" />
-                                    Draw {round}
-                                </Button>
+                                {status === 'ready' && (
+                                    <Button 
+                                        onClick={() => performDraw(round)}
+                                        className="bg-emerald-600 hover:bg-emerald-700"
+                                    >
+                                        <Shuffle className="w-4 h-4 mr-2" />
+                                        Draw Round
+                                    </Button>
+                                )}
+                                {status === 'complete' && (
+                                    <Badge className="bg-slate-600">✓ Complete</Badge>
+                                )}
+                                {status === 'in_progress' && (
+                                    <Badge className="bg-blue-600">In Progress</Badge>
+                                )}
+                                {status === 'waiting' && (
+                                    <Badge variant="outline">Waiting</Badge>
+                                )}
                             </div>
                         ))}
                     </CardContent>

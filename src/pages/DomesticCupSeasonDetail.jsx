@@ -347,54 +347,81 @@ export default function DomesticCupSeasonDetail() {
                     <TabsContent value="participants">
                         <Card className="border-0 shadow-sm">
                             <CardHeader>
-                                <CardTitle>Eligible Clubs</CardTitle>
+                                <CardTitle>Participating Clubs</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 {(() => {
-                                    const eligibleTiers = cup.eligible_tiers?.split('-').map(t => parseInt(t.trim())) || [1, 2, 3, 4];
-                                    const minTier = Math.min(...eligibleTiers);
-                                    const maxTier = Math.max(...eligibleTiers);
-                                    
-                                    const eligibleClubs = clubs.filter(club => {
-                                        const table = leagueTables.find(t => t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim());
-                                        if (!table) return false;
-                                        const league = leagues.find(l => l.id === table.league_id);
-                                        const tier = league?.tier || 999;
-                                        return tier >= minTier && tier <= maxTier;
+                                    // Get unique clubs that actually participated (from matches)
+                                    const participatingClubs = new Map();
+                                    matches.forEach(m => {
+                                        if (m.home_club_name && m.home_club_name !== 'TBD' && m.home_club_name !== 'BYE') {
+                                            const club = clubs.find(c => c.name === m.home_club_name);
+                                            if (club && !participatingClubs.has(club.id)) {
+                                                const table = leagueTables.find(t => t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim());
+                                                const league = leagues.find(l => l.id === table?.league_id);
+                                                participatingClubs.set(club.id, {
+                                                    ...club,
+                                                    tier: league?.tier,
+                                                    position: table?.position
+                                                });
+                                            }
+                                        }
+                                        if (m.away_club_name && m.away_club_name !== 'TBD' && m.away_club_name !== 'BYE') {
+                                            const club = clubs.find(c => c.name === m.away_club_name);
+                                            if (club && !participatingClubs.has(club.id)) {
+                                                const table = leagueTables.find(t => t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim());
+                                                const league = leagues.find(l => l.id === table?.league_id);
+                                                participatingClubs.set(club.id, {
+                                                    ...club,
+                                                    tier: league?.tier,
+                                                    position: table?.position
+                                                });
+                                            }
+                                        }
                                     });
+
+                                    const participantArray = Array.from(participatingClubs.values())
+                                        .sort((a, b) => {
+                                            if (a.tier !== b.tier) return a.tier - b.tier;
+                                            return (a.position || 0) - (b.position || 0);
+                                        });
+
+                                    if (participantArray.length === 0) {
+                                        return (
+                                            <div className="text-center py-12 text-slate-500">
+                                                <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                                                <p>No participating clubs yet. Use the draw system to add matches.</p>
+                                            </div>
+                                        );
+                                    }
 
                                     return (
                                         <div className="space-y-4">
                                             <p className="text-sm text-slate-600">
-                                                Clubs from tiers {minTier} to {maxTier} • {eligibleClubs.length} eligible clubs
+                                                {participantArray.length} clubs participated in this edition
                                             </p>
                                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                                {eligibleClubs.map(club => {
-                                                    const table = leagueTables.find(t => t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim());
-                                                    const league = leagues.find(l => l.id === table?.league_id);
-                                                    const isParticipating = matches.some(m => 
-                                                        m.home_club_name === club.name || m.away_club_name === club.name
-                                                    );
-
-                                                    return (
-                                                        <div key={club.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
-                                                            {club.logo_url && (
-                                                                <img src={club.logo_url} alt="" className="w-6 h-6 object-contain" />
-                                                            )}
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="text-sm font-medium truncate">{club.name}</div>
-                                                                <div className="flex items-center gap-1 text-xs text-slate-500">
-                                                                    <Badge variant="outline" className="text-xs px-1 py-0">
-                                                                        T{league?.tier}
-                                                                    </Badge>
-                                                                    {isParticipating && (
-                                                                        <Check className="w-3 h-3 text-emerald-600" />
-                                                                    )}
+                                                {participantArray.map(club => (
+                                                    <Link
+                                                        key={club.id}
+                                                        to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                        className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        {club.logo_url && (
+                                                            <img src={club.logo_url} alt="" className="w-8 h-8 object-contain" />
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-sm font-medium truncate">{club.name}</div>
+                                                            {club.tier && (
+                                                                <div className="text-xs text-slate-500">
+                                                                    Tier {club.tier}
+                                                                    {club.name === season.champion_name && ' • Champion 🏆'}
+                                                                    {club.name === season.runner_up && ' • Runner-up'}
                                                                 </div>
-                                                            </div>
+                                                            )}
                                                         </div>
-                                                    );
-                                                })}
+                                                    </Link>
+                                                ))}
                                             </div>
                                         </div>
                                     );
