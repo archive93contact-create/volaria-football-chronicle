@@ -118,6 +118,15 @@ export default function AllClubs() {
             
             return matchesSearch && matchesNation && matchesRegion && matchesTier && matchesMembership && matchesStatus;
         });
+        
+        // Sort inactive clubs to the end
+        result.sort((a, b) => {
+            const aInactive = a.is_active === false;
+            const bInactive = b.is_active === false;
+            if (aInactive && !bInactive) return 1;
+            if (!aInactive && bInactive) return -1;
+            return 0;
+        });
 
         // Sort
         result.sort((a, b) => {
@@ -384,36 +393,41 @@ export default function AllClubs() {
                                 </TableHeader>
                                 <TableBody>
                                     {filteredClubs.map((club, idx) => {
-                                        const nation = nationMap[club.nation_id];
-                                        const league = leagueMap[club.league_id];
-                                        return (
-                                            <TableRow key={club.id} className="hover:bg-slate-50">
-                                                <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
-                                                <TableCell>
-                                                    <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-3 hover:text-emerald-600">
-                                                        {club.logo_url ? (
-                                                            <img src={club.logo_url} alt="" className="w-8 h-8 object-contain" />
-                                                        ) : (
-                                                            <div className="w-8 h-8 rounded bg-slate-200 flex items-center justify-center">
-                                                                <Shield className="w-4 h-4 text-slate-400" />
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <div className="font-medium flex items-center gap-1.5">
-                                                                {club.name}
-                                                                <span className={`text-xs px-1 py-0.5 rounded ${
-                                                                    club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
-                                                                    club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
-                                                                    'bg-slate-100 text-slate-500'
-                                                                }`}>
-                                                                    {club.professional_status === 'professional' ? 'PRO' : 
-                                                                     club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
-                                                                </span>
-                                                            </div>
-                                                            {club.nickname && <div className="text-xs text-slate-500">{club.nickname}</div>}
-                                                        </div>
-                                                    </Link>
-                                                </TableCell>
+                                       const nation = nationMap[club.nation_id];
+                                       const league = leagueMap[club.league_id];
+                                       const isInactive = club.is_active === false;
+                                       return (
+                                           <TableRow key={club.id} className={`hover:bg-slate-50 ${isInactive ? 'opacity-50 bg-slate-50' : ''}`}>
+                                               <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
+                                               <TableCell>
+                                                   <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className={`flex items-center gap-3 hover:text-emerald-600 ${isInactive ? 'italic' : ''}`}>
+                                                       {club.logo_url ? (
+                                                           <img src={club.logo_url} alt="" className={`w-8 h-8 object-contain ${isInactive ? 'grayscale' : ''}`} />
+                                                       ) : (
+                                                           <div className="w-8 h-8 rounded bg-slate-200 flex items-center justify-center">
+                                                               <Shield className="w-4 h-4 text-slate-400" />
+                                                           </div>
+                                                       )}
+                                                       <div>
+                                                           <div className="font-medium flex items-center gap-1.5">
+                                                               {club.name}
+                                                               {isInactive ? (
+                                                                   <Badge variant="outline" className="text-xs bg-slate-100 text-slate-500 border-slate-300">Inactive</Badge>
+                                                               ) : (
+                                                                   <span className={`text-xs px-1 py-0.5 rounded ${
+                                                                       club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
+                                                                       club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
+                                                                       'bg-slate-100 text-slate-500'
+                                                                   }`}>
+                                                                       {club.professional_status === 'professional' ? 'PRO' : 
+                                                                        club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
+                                                                   </span>
+                                                               )}
+                                                           </div>
+                                                           {club.nickname && <div className="text-xs text-slate-500">{club.nickname}</div>}
+                                                       </div>
+                                                   </Link>
+                                               </TableCell>
                                                 <TableCell>
                                                     {nation ? (
                                                         <Link to={createPageUrl(`NationDetail?id=${nation.id}`)} className="flex items-center gap-2 hover:text-emerald-600">

@@ -157,6 +157,15 @@ export default function NationClubs() {
             
             return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier && matchesStatus;
         });
+        
+        // Sort inactive clubs to the end
+        result.sort((a, b) => {
+            const aInactive = a.is_active === false;
+            const bInactive = b.is_active === false;
+            if (aInactive && !bInactive) return 1;
+            if (!aInactive && bInactive) return -1;
+            return 0;
+        });
 
         // Sort
         result.sort((a, b) => {
@@ -395,23 +404,25 @@ export default function NationClubs() {
                                     {filteredClubs.map((club, idx) => {
                                         const league = getLeagueInfo(club.league_id);
                                         const inactive = isClubInactive(club.id);
+                                        const isManuallyInactive = club.is_active === false;
+                                        const isAnyInactive = inactive || isManuallyInactive;
                                         const lastSeason = getLastSeasonYear(club.id);
                                         return (
-                                            <TableRow key={club.id} className={`hover:bg-slate-50 ${inactive ? 'bg-slate-50' : ''}`}>
+                                            <TableRow key={club.id} className={`hover:bg-slate-50 ${isAnyInactive ? 'opacity-50 bg-slate-50' : ''}`}>
                                                 <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
                                                 <TableCell>
-                                                    <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className={`flex items-center gap-3 hover:text-emerald-600 ${inactive ? 'italic' : ''}`}>
+                                                    <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className={`flex items-center gap-3 hover:text-emerald-600 ${isAnyInactive ? 'italic' : ''}`}>
                                                         {club.logo_url ? (
-                                                            <img src={club.logo_url} alt="" className={`w-8 h-8 object-contain ${inactive ? 'opacity-50' : ''}`} />
+                                                            <img src={club.logo_url} alt="" className={`w-8 h-8 object-contain ${isAnyInactive ? 'grayscale' : ''}`} />
                                                         ) : (
-                                                            <div className={`w-8 h-8 rounded bg-slate-200 flex items-center justify-center ${inactive ? 'opacity-50' : ''}`}>
+                                                            <div className={`w-8 h-8 rounded bg-slate-200 flex items-center justify-center`}>
                                                                 <Shield className="w-4 h-4 text-slate-400" />
                                                             </div>
                                                         )}
                                                         <div>
-                                                            <div className={`font-medium flex items-center gap-2 ${inactive ? 'text-slate-500' : ''}`}>
+                                                            <div className={`font-medium flex items-center gap-2 ${isAnyInactive ? 'text-slate-500' : ''}`}>
                                                                 {club.name}
-                                                                {!inactive && (
+                                                                {!isAnyInactive && (
                                                                     <span className={`text-xs px-1 py-0.5 rounded ${
                                                                         club.professional_status === 'professional' ? 'bg-blue-100 text-blue-700' :
                                                                         club.professional_status === 'semi-professional' ? 'bg-purple-100 text-purple-700' :
@@ -421,10 +432,10 @@ export default function NationClubs() {
                                                                          club.professional_status === 'semi-professional' ? 'SEMI' : 'AM'}
                                                                     </span>
                                                                 )}
-                                                                {isTuruliand && league?.tier && league.tier <= 4 && !inactive && (
+                                                                {isTuruliand && league?.tier && league.tier <= 4 && !isAnyInactive && (
                                                                     <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">TFA</Badge>
                                                                 )}
-                                                                {inactive && (
+                                                                {isAnyInactive && (
                                                                     <Badge variant="outline" className="text-xs bg-slate-100 text-slate-500 border-slate-300">Inactive</Badge>
                                                                 )}
                                                             </div>
