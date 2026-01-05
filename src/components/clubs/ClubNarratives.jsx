@@ -694,6 +694,70 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         });
     }
 
+    // Former cup winner now in lower leagues
+    if (club.domestic_cup_titles > 0 && currentTier >= 3) {
+        const yearsSinceCupWin = club.domestic_cup_title_years ? 
+            (new Date().getFullYear() - Math.max(...club.domestic_cup_title_years.split(',').map(y => parseInt(y.trim())))) : null;
+        
+        if (currentTier >= 5) {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-orange-700',
+                bg: 'bg-orange-100',
+                title: 'Fallen Cup Champions',
+                text: `Won ${club.domestic_cup_titles} domestic cup${club.domestic_cup_titles > 1 ? 's' : ''} but now languish in Tier ${currentTier}${yearsSinceCupWin && yearsSinceCupWin >= 15 ? ` - ${yearsSinceCupWin} years since their last triumph` : ''}. A shocking decline for former cup heroes.`
+            });
+        } else if (currentTier === 4) {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
+                title: 'Cup Winners in Decline',
+                text: `${club.domestic_cup_titles}-time domestic cup winner${club.domestic_cup_titles > 1 ? 's' : ''} now competing in Tier 4. Fighting to restore former glories.`
+            });
+        } else {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-amber-600',
+                bg: 'bg-amber-50',
+                title: 'Cup Pedigree',
+                text: `Won ${club.domestic_cup_titles} domestic cup${club.domestic_cup_titles > 1 ? 's' : ''} - a reminder of past glories as they rebuild in Tier ${currentTier}.`
+            });
+        }
+    }
+
+    // Former league champion now in lower leagues
+    if (club.league_titles > 0 && currentTier >= 3) {
+        const yearsSinceTitle = club.title_years ? 
+            (new Date().getFullYear() - Math.max(...club.title_years.split(',').map(y => parseInt(y.trim())))) : null;
+        
+        if (currentTier >= 5) {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-red-700',
+                bg: 'bg-red-100',
+                title: 'Former Champions in Exile',
+                text: `Won ${club.league_titles} league title${club.league_titles > 1 ? 's' : ''} but now play in Tier ${currentTier}${yearsSinceTitle && yearsSinceTitle >= 20 ? ` - ${yearsSinceTitle} years since they lifted the trophy` : ''}. One of football's great falls from grace.`
+            });
+        } else if (currentTier === 4) {
+            narratives.push({
+                icon: Trophy,
+                color: 'text-red-600',
+                bg: 'bg-red-50',
+                title: 'Champions Fallen',
+                text: `${club.league_titles}-time league champion${club.league_titles > 1 ? 's' : ''} now in Tier 4. A painful fall for a club that once ruled the top flight.`
+            });
+        } else {
+            narratives.push({
+                icon: Star,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
+                title: 'Former Glory',
+                text: `Won ${club.league_titles} league title${club.league_titles > 1 ? 's' : ''} but now in Tier ${currentTier}. The glory days feel distant.`
+            });
+        }
+    }
+
     // Multiple VCC appearances
     if (club.vcc_appearances >= 5) {
         narratives.push({
@@ -1175,32 +1239,91 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             }
         }
 
-        // Dropped out of TFA for the first time
+        // Dropped out of TFA for the first time - with context if they were successful
         if (nonTfaSeasons.length > 0 && tfaSeasons.length > 0) {
             const firstNonTfaSeason = [...nonTfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
             const tfaSeasonsBeforeDrop = tfaSeasons.filter(s => s.year < firstNonTfaSeason.year);
             if (tfaSeasonsBeforeDrop.length > 0) {
                 const allSeasonsBefore = sortedSeasons.filter(s => s.year < firstNonTfaSeason.year);
                 if (allSeasonsBefore.every(s => getLeagueTier(s.league_id) <= 4)) {
-                    narratives.push({
-                        icon: TrendingDown,
-                        color: 'text-red-600',
-                        bg: 'bg-red-50',
-                        title: 'Farewell to the TFA',
-                        text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}.`
-                    });
+                    const wasChampion = club.league_titles > 0;
+                    const wasCupWinner = club.domestic_cup_titles > 0;
+                    const hadTopFlight = topFlightSeasonsList.some(s => s.year < firstNonTfaSeason.year);
+                    
+                    if (wasChampion) {
+                        narratives.push({
+                            icon: TrendingDown,
+                            color: 'text-red-700',
+                            bg: 'bg-red-100',
+                            title: 'Champions Expelled',
+                            text: `Former league champion${club.league_titles > 1 ? 's' : ''} dropped out of the TFA Football League in ${firstNonTfaSeason.year}. An unthinkable fate for a club that once ruled the roost.`
+                        });
+                    } else if (wasCupWinner) {
+                        narratives.push({
+                            icon: Trophy,
+                            color: 'text-red-700',
+                            bg: 'bg-red-50',
+                            title: 'Cup Winners Cast Out',
+                            text: `Domestic cup winner${club.domestic_cup_titles > 1 ? 's' : ''} exited the TFA in ${firstNonTfaSeason.year}. Former glory means nothing in non-league football.`
+                        });
+                    } else if (hadTopFlight) {
+                        narratives.push({
+                            icon: Star,
+                            color: 'text-orange-700',
+                            bg: 'bg-orange-50',
+                            title: 'Top Flight Alumni Expelled',
+                            text: `Former top-flight club dropped from the TFA in ${firstNonTfaSeason.year}. A humbling fall into the regional leagues.`
+                        });
+                    } else {
+                        narratives.push({
+                            icon: TrendingDown,
+                            color: 'text-red-600',
+                            bg: 'bg-red-50',
+                            title: 'Farewell to the TFA',
+                            text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}.`
+                        });
+                    }
                 }
             }
         }
 
-        // Currently outside TFA - enhanced duration-based narratives
+        // Currently outside TFA - enhanced duration-based narratives with context for former champions
         const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
         const mostRecentTier = getLeagueTier(mostRecentSeason?.league_id);
         if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
             const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
             const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
             
-            if (seasonsAway >= 20) {
+            // Check if they're a former top-flight club or champion
+            const wasTopFlightChampion = club.league_titles > 0;
+            const wasCupWinner = club.domestic_cup_titles > 0;
+            const hadTopFlightSeasons = topFlightSeasonsList.length > 0;
+            
+            if (wasTopFlightChampion && seasonsAway >= 15) {
+                narratives.push({
+                    icon: TrendingDown,
+                    color: 'text-red-800',
+                    bg: 'bg-red-200',
+                    title: 'Champions Cast Out',
+                    text: `Former ${club.league_titles}-time league champion${club.league_titles > 1 ? 's' : ''} expelled from the TFA system ${seasonsAway} seasons ago (${lastTfaSeason.year}). A once-proud club now playing regional football - an unthinkable fall.`
+                });
+            } else if (wasCupWinner && seasonsAway >= 15) {
+                narratives.push({
+                    icon: Trophy,
+                    color: 'text-red-700',
+                    bg: 'bg-red-100',
+                    title: 'Cup Winners Banished',
+                    text: `${club.domestic_cup_titles}-time cup winner${club.domestic_cup_titles > 1 ? 's' : ''} cast out of the TFA ${seasonsAway} seasons ago. Cup heroes now toiling in the non-league wilderness.`
+                });
+            } else if (hadTopFlightSeasons && seasonsAway >= 15) {
+                narratives.push({
+                    icon: Star,
+                    color: 'text-orange-700',
+                    bg: 'bg-orange-100',
+                    title: 'Former Elite Cast Down',
+                    text: `A club that played ${topFlightSeasonsList.length} season${topFlightSeasonsList.length > 1 ? 's' : ''} in the top flight, now ${seasonsAway} seasons removed from the TFA. The elite days are long gone.`
+                });
+            } else if (seasonsAway >= 20) {
                 narratives.push({
                     icon: Clock,
                     color: 'text-slate-700',
