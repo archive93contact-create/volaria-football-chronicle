@@ -58,6 +58,11 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
 
         const rivalryScores = {};
         const clubTables = workingLeagueTables.filter(t => t.club_id === club.id);
+        
+        // Determine recent vs historic (for fading rivalries)
+        const allYears = clubTables.map(t => parseInt(t.year?.split('-')[0] || '0')).filter(y => y > 0).sort((a, b) => b - a);
+        const mostRecentYear = allYears[0] || new Date().getFullYear();
+        const recentCutoff = mostRecentYear - 10; // Last 10 years = "recent"
 
         // Find nation name for this club
         const clubNation = nations.find(n => n.id === club.nation_id);
@@ -96,45 +101,135 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             const reasons = [];
             let isContinentalRival = false;
             let continentalDetails = null;
+            let recentScore = 0; // Track recent activity for fading detection
+            let historicScore = 0; // Track historic activity
 
             // 1. Explicit rivals (from rival_club_ids)
             if (club.rival_club_ids?.includes(otherClub.id)) {
                 score += 50;
+                recentScore += 25;
+                historicScore += 25;
                 reasons.push('Official rivalry');
             }
 
             // 2. Geographic proximity (same settlement/district/region)
             if (club.settlement && club.settlement === otherClub.settlement) {
                 score += 40;
+                recentScore += 20;
+                historicScore += 20;
                 reasons.push('Same city');
             } else if (club.district && club.district === otherClub.district) {
                 score += 25;
+                recentScore += 12;
+                historicScore += 13;
                 reasons.push('Same district');
             } else if (club.region && club.region === otherClub.region) {
                 score += 15;
+                recentScore += 7;
+                historicScore += 8;
                 reasons.push('Same region');
             }
 
-            // 3. Shared league seasons
+            // 3. Shared league seasons (split recent vs historic)
             const otherClubTables = workingLeagueTables.filter(t => t.club_id === otherClub.id);
             const sharedSeasons = clubTables.filter(ct => 
                 otherClubTables.some(ot => ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year))
             );
+            const recentShared = sharedSeasons.filter(s => parseInt(s.year?.split('-')[0] || '0') >= recentCutoff);
+            const historicShared = sharedSeasons.filter(s => parseInt(s.year?.split('-')[0] || '0') < recentCutoff);
+            
             if (sharedSeasons.length > 0) {
-                score += Math.min(sharedSeasons.length * 2, 30);
+                const sharedScore = Math.min(sharedSeasons.length * 2, 30);
+                score += sharedScore;
+                recentScore += Math.min(recentShared.length * 3, 20);
+                historicScore += Math.min(historicShared.length * 2, 15);
                 reasons.push(`${sharedSeasons.length} shared seasons`);
             }
 
-            // 4. Close finishes (both in top 3 same season)
-            const closeFinishes = clubTables.filter(ct => {
+            // 4. ENHANCED rivalry dynamics - title races, promotions, close finishes, relegation battles
+            
+            // Title battles (both top 3 in same season)
+            const titleBattles = clubTables.filter(ct => {
                 const otherInSeason = otherClubTables.find(ot => 
                     (ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year))
                 );
                 return otherInSeason && ct.position <= 3 && otherInSeason.position <= 3;
-            }).length;
-            if (closeFinishes > 0) {
-                score += closeFinishes * 5;
-                reasons.push(`${closeFinishes} title battles`);
+            });
+            const recentTitleBattles = titleBattles.filter(s => parseInt(s.year?.split('-')[0] || '0') >= recentCutoff);
+            
+            if (titleBattles.length > 0) {
+                score += titleBattles.length * 8;
+                recentScore += recentTitleBattles.length * 10;
+                historicScore += (titleBattles.length - recentTitleBattles.length) * 5;
+                reasons.push(`${titleBattles.length} title battle${titleBattles.length > 1 ? 's' : ''}`);
+            }
+            
+            // Promoted together (both promoted same year)
+            const promotedTogether = clubTables.filter(ct => {
+                if (ct.status !== 'promoted') return false;
+                const otherInSeason = otherClubTables.find(ot => 
+                    (ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year)) &&
+                    ot.status === 'promoted'
+                );
+                return !!otherInSeason;
+            });
+            const recentPromotions = promotedTogether.filter(s => parseInt(s.year?.split('-')[0] || '0') >= recentCutoff);
+            
+            if (promotedTogether.length > 0) {
+                score += promotedTogether.length * 12;
+                recentScore += recentPromotions.length * 15;
+                historicScore += (promotedTogether.length - recentPromotions.length) * 8;
+                reasons.push(`Promoted together ${promotedTogether.length}x`);
+            }
+            
+            // Relegated together (shared misery)
+            const relegatedTogether = clubTables.filter(ct => {
+                if (ct.status !== 'relegated') return false;
+                const otherInSeason = otherClubTables.find(ot => 
+                    (ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year)) &&
+                    ot.status === 'relegated'
+                );
+                return !!otherInSeason;
+            });
+            
+            if (relegatedTogether.length >= 2) {
+                score += relegatedTogether.length * 8;
+                recentScore += relegatedTogether.filter(s => parseInt(s.year?.split('-')[0] || '0') >= recentCutoff).length * 10;
+                reasons.push(`Relegated together ${relegatedTogether.length}x`);
+            }
+            
+            // Finished within 2 positions frequently (consistently close)
+            const closeFinishes = clubTables.filter(ct => {
+                const otherInSeason = otherClubTables.find(ot => 
+                    (ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year))
+                );
+                if (!otherInSeason) return false;
+                const posDiff = Math.abs(ct.position - otherInSeason.position);
+                return posDiff <= 2 && posDiff > 0;
+            });
+            const recentCloseFinishes = closeFinishes.filter(s => parseInt(s.year?.split('-')[0] || '0') >= recentCutoff);
+            
+            if (closeFinishes.length >= 5) {
+                score += closeFinishes.length * 4;
+                recentScore += recentCloseFinishes.length * 6;
+                historicScore += (closeFinishes.length - recentCloseFinishes.length) * 3;
+                reasons.push(`Finished within 2 places ${closeFinishes.length}x`);
+            }
+            
+            // Champions in same tier, same season (direct title fight)
+            const directTitleFights = clubTables.filter(ct => {
+                if (ct.status !== 'champion') return false;
+                const otherInSeason = otherClubTables.find(ot => 
+                    (ot.season_id === ct.season_id || (ot.league_id === ct.league_id && ot.year === ct.year)) &&
+                    ot.position === 2 // They were runner-up when we won
+                );
+                return !!otherInSeason;
+            });
+            
+            if (directTitleFights.length > 0) {
+                score += directTitleFights.length * 15;
+                recentScore += directTitleFights.filter(s => parseInt(s.year?.split('-')[0] || '0') >= recentCutoff).length * 20;
+                reasons.push(`Direct title deciders ${directTitleFights.length}x`);
             }
 
             // 5. Similar trophy count (competitive equals)
@@ -142,6 +237,8 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             const otherTrophies = (otherClub.league_titles || 0) + (otherClub.domestic_cup_titles || 0);
             if (Math.abs(clubTrophies - otherTrophies) <= 3 && clubTrophies > 0) {
                 score += 10;
+                recentScore += 5;
+                historicScore += 5;
                 reasons.push('Similar success');
             }
 
@@ -197,29 +294,77 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
 
             if (score > 0) {
                 const otherNation = nations.find(n => n.id === otherClub.nation_id);
+                
+                // Determine rivalry status
+                let rivalryStatus = 'active';
+                let statusNote = null;
+                
+                // Fading rivalry detection
+                if (historicScore > 30 && recentScore < 10 && sharedSeasons.length >= 5) {
+                    const lastSharedYear = sharedSeasons.sort((a, b) => b.year.localeCompare(a.year))[0]?.year;
+                    const yearsSinceShared = lastSharedYear ? mostRecentYear - parseInt(lastSharedYear.split('-')[0]) : 0;
+                    
+                    if (yearsSinceShared >= 10) {
+                        rivalryStatus = 'fading';
+                        statusNote = `Once fierce rivals, haven't met since ${lastSharedYear}`;
+                        score = score * 0.6; // Reduce score for sorting
+                    } else if (yearsSinceShared >= 5 && recentScore < 5) {
+                        rivalryStatus = 'cooling';
+                        statusNote = `Rivalry cooling - last met ${lastSharedYear}`;
+                        score = score * 0.8;
+                    }
+                }
+                
+                // Emerging rivalry (new but heating up)
+                if (recentScore >= 20 && historicScore < 10) {
+                    rivalryStatus = 'emerging';
+                    statusNote = 'Rivalry heating up in recent years';
+                }
+                
                 rivalryScores[otherClub.id] = {
                     club: otherClub,
                     score,
+                    recentScore,
+                    historicScore,
                     reasons,
                     sharedSeasons: sharedSeasons.length,
                     closeFinishes,
                     isContinentalRival,
                     continentalDetails,
                     nationName: otherNation?.name,
-                    nationFlag: otherNation?.flag_url
+                    nationFlag: otherNation?.flag_url,
+                    rivalryStatus,
+                    statusNote
                 };
             }
         });
 
         return Object.values(rivalryScores)
-            .filter(r => r.score >= 40) // Only show Strong or higher rivalries
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 8);
+            .filter(r => r.score >= 30) // Lower threshold to include emerging/fading
+            .sort((a, b) => {
+                // Sort by status priority: active > emerging > cooling > fading
+                const statusPriority = { active: 4, emerging: 3, cooling: 2, fading: 1 };
+                if (statusPriority[a.rivalryStatus] !== statusPriority[b.rivalryStatus]) {
+                    return statusPriority[b.rivalryStatus] - statusPriority[a.rivalryStatus];
+                }
+                return b.score - a.score;
+            })
+            .slice(0, 12); // Increased to show more rivalries including fading ones
     }, [club, domesticClubs, fetchedNationClubs, allClubsData, leagueTables, fetchedLeagueTables, continentalMatches, nations]);
 
     if (rivalries.length === 0) return null;
 
-    const getIntensityLabel = (score, isContinental) => {
+    const getIntensityLabel = (score, isContinental, rivalryStatus) => {
+        if (rivalryStatus === 'fading') {
+            return { label: 'Fading', color: 'text-slate-500', bg: 'bg-slate-100' };
+        }
+        if (rivalryStatus === 'cooling') {
+            return { label: 'Cooling', color: 'text-slate-600', bg: 'bg-slate-50' };
+        }
+        if (rivalryStatus === 'emerging') {
+            return { label: 'Emerging', color: 'text-cyan-600', bg: 'bg-cyan-50' };
+        }
+        
         if (score >= 150) return { label: 'Legendary', color: 'text-purple-600', bg: 'bg-purple-50' };
         if (score >= 100) return { label: 'Fierce', color: 'text-red-600', bg: 'bg-red-50' };
         if (score >= 60) return { label: 'Intense', color: 'text-orange-600', bg: 'bg-orange-50' };
@@ -238,11 +383,11 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
             <CardContent>
                 <div className="space-y-3">
                     {rivalries.map(rivalry => {
-                        const intensity = getIntensityLabel(rivalry.score, rivalry.isContinentalRival);
+                        const intensity = getIntensityLabel(rivalry.score, rivalry.isContinentalRival, rivalry.rivalryStatus);
                         return (
                             <div 
                                 key={rivalry.club.id} 
-                                className={`p-3 rounded-lg ${intensity.bg} border border-slate-200`}
+                                className={`p-3 rounded-lg ${intensity.bg} border ${rivalry.rivalryStatus === 'fading' ? 'border-dashed border-slate-300' : 'border-slate-200'}`}
                             >
                                 <div className="flex items-center gap-3 mb-2">
                                     {rivalry.nationFlag && (
@@ -263,6 +408,11 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
                                         {rivalry.nationName && (
                                             <div className="text-xs text-slate-500">{rivalry.nationName}</div>
                                         )}
+                                        {rivalry.statusNote && (
+                                            <div className={`text-xs italic mt-1 ${rivalry.rivalryStatus === 'fading' ? 'text-slate-400' : rivalry.rivalryStatus === 'emerging' ? 'text-cyan-600' : 'text-slate-500'}`}>
+                                                {rivalry.statusNote}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {rivalry.isContinentalRival && (
@@ -275,7 +425,7 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
                                 </div>
                                 <div className="flex flex-wrap gap-1.5 text-xs text-slate-600">
                                     {rivalry.reasons.map((reason, i) => (
-                                        <span key={i} className="bg-white/50 px-2 py-0.5 rounded">
+                                        <span key={i} className={`${rivalry.rivalryStatus === 'fading' ? 'bg-slate-100 text-slate-400' : 'bg-white/50'} px-2 py-0.5 rounded`}>
                                             {reason}
                                         </span>
                                     ))}
@@ -283,6 +433,26 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
                             </div>
                         );
                     })}
+                </div>
+                
+                {/* Legend */}
+                <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded bg-red-50 border-2 border-red-500" />
+                        <span className="text-slate-600">Active rivalry</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded bg-cyan-50 border-2 border-cyan-500" />
+                        <span className="text-slate-600">Emerging rivalry</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded bg-slate-100 border-2 border-slate-400" />
+                        <span className="text-slate-600">Cooling down</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded bg-slate-100 border-2 border-dashed border-slate-300" />
+                        <span className="text-slate-600">Fading rivalry</span>
+                    </div>
                 </div>
             </CardContent>
         </Card>
