@@ -1616,29 +1616,42 @@ export default function ClubDetail() {
                                         </Select>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1">
-                                        <Label className="text-xs flex items-center gap-2">
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg">
+                                        <Label className="text-xs flex items-center gap-2 flex-1">
                                             <input 
                                                 type="checkbox" 
-                                                checked={editData.is_defunct || false}
-                                                onChange={(e) => setEditData({...editData, is_defunct: e.target.checked})}
+                                                checked={editData.is_active !== false}
+                                                onChange={(e) => setEditData({...editData, is_active: e.target.checked})}
                                                 className="rounded"
                                             />
-                                            This club is defunct/disbanded
+                                            Club is currently active
                                         </Label>
                                     </div>
-                                    {editData.is_defunct && (
-                                        <div className="w-32">
-                                            <Label className="text-xs">Defunct Year</Label>
-                                            <Input 
-                                                type="number" 
-                                                value={editData.defunct_year || ''} 
-                                                onChange={(e) => setEditData({...editData, defunct_year: parseInt(e.target.value) || null})} 
-                                                className="mt-1" 
-                                            />
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex-1">
+                                            <Label className="text-xs flex items-center gap-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={editData.is_defunct || false}
+                                                    onChange={(e) => setEditData({...editData, is_defunct: e.target.checked})}
+                                                    className="rounded"
+                                                />
+                                                This club is defunct/disbanded
+                                            </Label>
                                         </div>
-                                    )}
+                                        {editData.is_defunct && (
+                                            <div className="w-32">
+                                                <Label className="text-xs">Defunct Year</Label>
+                                                <Input 
+                                                    type="number" 
+                                                    value={editData.defunct_year || ''} 
+                                                    onChange={(e) => setEditData({...editData, defunct_year: parseInt(e.target.value) || null})} 
+                                                    className="mt-1" 
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 {editData.is_defunct && (
                                     <div>
