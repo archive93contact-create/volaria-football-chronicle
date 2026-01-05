@@ -33,6 +33,7 @@ import ThemedCard from '@/components/common/ThemedCard';
 import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
+import ClubAnalytics from '@/components/clubs/ClubAnalytics';
 import ClubAnalyticsDashboard from '@/components/clubs/ClubAnalyticsDashboard';
 
 export default function ClubDetail() {
@@ -1123,6 +1124,17 @@ export default function ClubDetail() {
                             leagues={allLeagues}
                             allLeagueTables={[...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2, ...formerNameSeasons, ...formerNameSeasons2]}
                             rivals={allClubs.filter(c => (club.rival_club_ids || []).includes(c.id))}
+                        />
+                    </TabsContent>
+
+                    {/* ANALYTICS TAB */}
+                    <TabsContent value="analytics">
+                        <ClubAnalytics 
+                            club={club}
+                            seasons={combinedSeasons}
+                            leagues={allLeagues}
+                            allClubs={allClubs}
+                            players={players}
                         />
                     </TabsContent>
 
