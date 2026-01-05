@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
     BookOpen, Trophy, Star, TrendingUp, TrendingDown, Flame, 
-    Target, Shield, Zap, Award, Crown, Swords, MapPin, History
+    Target, Shield, Zap, Award, Crown, Swords, MapPin, History,
+    Users, Gauge, TrendingDownIcon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -32,6 +33,129 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
         
         // Get club data for enriching narratives
         const getClub = (name) => clubs.find(c => c.name === name);
+        
+        // NEW: Rivalry Title Battle
+        if (champion && runnerUp) {
+            const champClub = getClub(champion.club_name);
+            const runnerClub = getClub(runnerUp.club_name);
+            const margin = (champion.points || 0) - (runnerUp.points || 0);
+            
+            // Check if they're rivals
+            const areRivals = champClub && runnerClub && (
+                (champClub.rival_club_ids || []).includes(runnerClub.id) ||
+                (runnerClub.rival_club_ids || []).includes(champClub.id)
+            );
+            
+            if (areRivals && margin <= 5) {
+                results.push({
+                    icon: Swords,
+                    color: 'text-red-600',
+                    bg: 'bg-gradient-to-r from-red-50 to-orange-50',
+                    title: '🔥 Rivalry Decides Title',
+                    text: `The bitter rivalry between ${champion.club_name} and ${runnerUp.club_name} came to a head as they battled for the championship, with ${champion.club_name} prevailing by just ${margin} point${margin !== 1 ? 's' : ''} to claim bragging rights.`,
+                    clubId: champClub?.id
+                });
+            }
+        }
+        
+        // NEW: Regional Dominance
+        const regionCounts = {};
+        sortedTable.forEach(t => {
+            const club = getClub(t.club_name);
+            if (club?.region) {
+                regionCounts[club.region] = (regionCounts[club.region] || 0) + 1;
+            }
+        });
+        const dominantRegion = Object.entries(regionCounts).sort((a, b) => b[1] - a[1])[0];
+        if (dominantRegion && dominantRegion[1] >= Math.ceil(sortedTable.length * 0.3)) {
+            const regionClubs = sortedTable.filter(t => getClub(t.club_name)?.region === dominantRegion[0]);
+            const topRegionalClub = regionClubs[0];
+            results.push({
+                icon: MapPin,
+                color: 'text-indigo-500',
+                bg: 'bg-gradient-to-r from-indigo-50 to-blue-50',
+                title: 'Regional Power',
+                text: `${dominantRegion[0]} dominated the division with ${dominantRegion[1]} clubs, led by ${topRegionalClub.club_name} in ${topRegionalClub.position}${topRegionalClub.position === 1 ? 'st' : topRegionalClub.position === 2 ? 'nd' : topRegionalClub.position === 3 ? 'rd' : 'th'} place.`,
+            });
+        }
+        
+        // NEW: Fallen Giants (historically successful clubs struggling)
+        for (const entry of sortedTable) {
+            const club = getClub(entry.club_name);
+            if (!club) continue;
+            
+            const hasMultipleTitles = (club.league_titles || 0) >= 3;
+            const hasRecentTopFlightHistory = (club.seasons_top_flight || 0) >= 10;
+            const isInLowerTier = (season.tier || league.tier || 1) >= 3;
+            
+            if (hasMultipleTitles && isInLowerTier && entry.position >= sortedTable.length - 5) {
+                results.push({
+                    icon: TrendingDownIcon,
+                    color: 'text-slate-600',
+                    bg: 'bg-gradient-to-r from-slate-100 to-slate-50',
+                    title: 'Fallen Giants',
+                    text: `${club.name}, ${club.league_titles}-time champions, are languishing in Tier ${season.tier || league.tier}, finishing ${entry.position}${entry.position === 2 ? 'nd' : entry.position === 3 ? 'rd' : 'th'} - a far cry from their glory days.`,
+                    clubId: club.id
+                });
+                break; // Only show one fallen giant story
+            } else if (hasMultipleTitles && isInLowerTier && entry.position <= 3) {
+                results.push({
+                    icon: TrendingUp,
+                    color: 'text-emerald-600',
+                    bg: 'bg-gradient-to-r from-emerald-50 to-green-50',
+                    title: 'Giants Awakening',
+                    text: `Former champions ${club.name} (${club.league_titles} league titles) are showing signs of a revival, finishing ${entry.position}${entry.position === 1 ? 'st' : entry.position === 2 ? 'nd' : 'rd'} in Tier ${season.tier || league.tier}.`,
+                    clubId: club.id
+                });
+                break;
+            }
+        }
+        
+        // NEW: Record-Breaking Points Total
+        if (champion && champion.points >= 90 && champion.played >= 30) {
+            const club = getClub(champion.club_name);
+            const avgPoints = (champion.points / champion.played).toFixed(2);
+            results.push({
+                icon: Gauge,
+                color: 'text-purple-600',
+                bg: 'bg-gradient-to-r from-purple-50 to-fuchsia-50',
+                title: 'Record-Breaking Season',
+                text: `${champion.club_name} shattered expectations with ${champion.points} points from ${champion.played} games (${avgPoints} per game), one of the highest totals in league history.`,
+                clubId: club?.id
+            });
+        }
+        
+        // NEW: Rivalry in Top 4 (multiple rivals finishing close)
+        const top4 = sortedTable.slice(0, 4);
+        let rivalPairs = [];
+        for (let i = 0; i < top4.length; i++) {
+            for (let j = i + 1; j < top4.length; j++) {
+                const club1 = getClub(top4[i].club_name);
+                const club2 = getClub(top4[j].club_name);
+                if (club1 && club2) {
+                    const areRivals = (club1.rival_club_ids || []).includes(club2.id) ||
+                                     (club2.rival_club_ids || []).includes(club1.id);
+                    if (areRivals) {
+                        rivalPairs.push({ 
+                            club1: top4[i], 
+                            club2: top4[j],
+                            club1Data: club1,
+                            club2Data: club2
+                        });
+                    }
+                }
+            }
+        }
+        if (rivalPairs.length > 0 && !results.some(r => r.title.includes('Rivalry'))) {
+            const pair = rivalPairs[0];
+            results.push({
+                icon: Swords,
+                color: 'text-orange-600',
+                bg: 'bg-gradient-to-r from-orange-50 to-amber-50',
+                title: 'Rivalry in the Spotlight',
+                text: `Fierce rivals ${pair.club1.club_name} and ${pair.club2.club_name} both secured top-4 finishes, finishing ${pair.club1.position}${pair.club1.position === 1 ? 'st' : pair.club1.position === 2 ? 'nd' : pair.club1.position === 3 ? 'rd' : 'th'} and ${pair.club2.position}${pair.club2.position === 1 ? 'st' : pair.club2.position === 2 ? 'nd' : pair.club2.position === 3 ? 'rd' : 'th'} respectively in a season where local pride was at stake.`,
+            });
+        }
         
         // 1. Title Race Analysis
         if (champion && runnerUp) {
@@ -569,6 +693,28 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             }
         }
         
+        // NEW: Small club overperforming (no major titles, small town, top 6 finish)
+        for (const entry of sortedTable.slice(0, 6)) {
+            const club = getClub(entry.club_name);
+            if (!club) continue;
+            
+            const hasNoMajorTitles = (club.league_titles || 0) === 0 && (club.vcc_titles || 0) === 0;
+            const isSmallTown = club.settlement && !['city'].includes(club.settlement_size);
+            const topPosition = entry.position;
+            
+            if (hasNoMajorTitles && topPosition <= 3 && topPosition !== 1) {
+                results.push({
+                    icon: Star,
+                    color: 'text-cyan-500',
+                    bg: 'bg-gradient-to-r from-cyan-50 to-blue-50',
+                    title: 'Underdogs Shine',
+                    text: `${club.name}${isSmallTown ? ` from ${club.settlement}` : ''} defied expectations to finish ${topPosition}${topPosition === 2 ? 'nd' : 'rd'}, punching well above their weight in a remarkable campaign.`,
+                    clubId: club.id
+                });
+                break;
+            }
+        }
+        
         // 15. Season notes if provided
         if (season.notes) {
             results.push({
@@ -580,7 +726,7 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             });
         }
         
-        return results.slice(0, 8);
+        return results.slice(0, 10);
     }, [season, league, leagueTable, allSeasons, allLeagueTables, clubs]);
 
     if (storylines.length === 0) return null;
