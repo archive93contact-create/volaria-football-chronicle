@@ -1,388 +1,373 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
-import { Trophy, TrendingUp, Target, Users, Flame, Award, Shield, MapPin, Percent, Crown } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter } from 'recharts';
+import { Trophy, TrendingUp, MapPin, Activity, Target, Users, BarChart3, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-export default function LeagueAnalytics({ league, seasons, leagueTables, clubs }) {
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+export default function LeagueAnalytics({ league, seasons = [], leagueTables = [], clubs = [] }) {
     const analytics = useMemo(() => {
-        if (!seasons || seasons.length === 0) return null;
+        if (!league || seasons.length === 0) return null;
 
-        const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
-
-        // Competitive balance - title concentration
-        const titleCounts = {};
+        // Competitive Balance (Gini coefficient approximation)
+        const titleWinners = {};
         seasons.forEach(s => {
             if (s.champion_name) {
-                titleCounts[s.champion_name] = (titleCounts[s.champion_name] || 0) + 1;
+                titleWinners[s.champion_name] = (titleWinners[s.champion_name] || 0) + 1;
             }
         });
-        const uniqueChampions = Object.keys(titleCounts).length;
-        const mostTitles = Math.max(...Object.values(titleCounts));
-        const titleConcentration = (mostTitles / seasons.length * 100).toFixed(1);
+        const titleCounts = Object.values(titleWinners);
+        const uniqueChampions = Object.keys(titleWinners).length;
+        const totalSeasons = seasons.length;
+        const concentrationRatio = uniqueChampions > 0 ? (totalSeasons / uniqueChampions) : 0;
 
-        // Points gap trends
-        const pointsGapTrends = sortedSeasons.map(s => {
-            const table = leagueTables.filter(t => t.year === s.year).sort((a, b) => a.position - b.position);
-            if (table.length < 2) return null;
-            return {
-                year: s.year,
-                gap: (table[0]?.points || 0) - (table[1]?.points || 0),
-                championPoints: table[0]?.points || 0
-            };
-        }).filter(Boolean);
+        // Title dynasties map
+        const dynasties = Object.entries(titleWinners)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 8)
+            .map(([name, count]) => ({
+                club: name,
+                titles: count,
+                percentage: ((count / totalSeasons) * 100).toFixed(1)
+            }));
 
-        // Goal economy by decade
-        const goalsByDecade = {};
-        seasons.forEach(s => {
-            const year = parseInt(s.year.split('-')[0]);
-            const decade = Math.floor(year / 10) * 10;
-            const table = leagueTables.filter(t => t.year === s.year);
-            const totalGoals = table.reduce((sum, t) => sum + (t.goals_for || 0), 0);
-            const matches = table.reduce((sum, t) => sum + (t.played || 0), 0);
-            
-            if (!goalsByDecade[decade]) goalsByDecade[decade] = { goals: 0, matches: 0 };
-            goalsByDecade[decade].goals += totalGoals;
-            goalsByDecade[decade].matches += matches;
-        });
-
-        const goalEconomy = Object.entries(goalsByDecade).map(([decade, data]) => ({
-            decade: `${decade}s`,
-            avgGoals: data.matches > 0 ? (data.goals / data.matches * 2).toFixed(2) : 0 // *2 because each match counted twice
-        })).sort((a, b) => a.decade.localeCompare(b.decade));
-
-        // Promotion success rate
-        let promotedClubCount = 0;
-        let survivedCount = 0;
-        
-        sortedSeasons.forEach((s, idx) => {
-            if (idx === sortedSeasons.length - 1) return; // Skip last season (can't check survival)
-            const nextSeason = sortedSeasons[idx + 1];
-            if (!s.promoted_teams) return;
-            
-            const promoted = s.promoted_teams.split(',').map(t => t.trim()).filter(Boolean);
-            promotedClubCount += promoted.length;
-            
-            const nextTable = leagueTables.filter(t => t.year === nextSeason.year);
-            const relegated = nextSeason.relegated_teams?.split(',').map(t => t.trim()) || [];
-            
-            promoted.forEach(club => {
-                const survived = !relegated.some(r => r === club || club.includes(r) || r.includes(club));
-                if (survived) survivedCount++;
-            });
-        });
-
-        const promotionSurvivalRate = promotedClubCount > 0 
-            ? ((survivedCount / promotedClubCount) * 100).toFixed(1)
-            : null;
-
-        // Geographic champions
+        // Geographic distribution
+        const regionCounts = {};
         const championsByRegion = {};
-        seasons.forEach(s => {
-            if (!s.champion_name) return;
-            const club = clubs.find(c => c.name === s.champion_name);
+        leagueTables.forEach(t => {
+            const club = clubs.find(c => c.id === t.club_id || c.name === t.club_name);
             if (club?.region) {
-                championsByRegion[club.region] = (championsByRegion[club.region] || 0) + 1;
+                regionCounts[club.region] = (regionCounts[club.region] || 0) + 1;
+                if (t.status === 'champion') {
+                    championsByRegion[club.region] = (championsByRegion[club.region] || 0) + 1;
+                }
             }
         });
-        const topRegion = Object.entries(championsByRegion).sort((a, b) => b[1] - a[1])[0];
+        const geographicData = Object.entries(regionCounts).map(([region, count]) => ({
+            region,
+            clubs: count,
+            titles: championsByRegion[region] || 0
+        })).sort((a, b) => b.clubs - a.clubs);
 
-        // Volatility - position changes season to season
-        let totalPositionChanges = 0;
-        let comparisons = 0;
-        
-        sortedSeasons.forEach((s, idx) => {
-            if (idx === 0) return;
-            const prevSeason = sortedSeasons[idx - 1];
-            const thisTable = leagueTables.filter(t => t.year === s.year);
-            const prevTable = leagueTables.filter(t => t.year === prevSeason.year);
+        // Volatility index (position changes season-to-season)
+        const volatility = [];
+        for (let i = 1; i < seasons.length; i++) {
+            const prevSeason = seasons[i - 1];
+            const currSeason = seasons[i];
+            const prevTable = leagueTables.filter(t => t.season_id === prevSeason.id || (t.league_id === prevSeason.league_id && t.year === prevSeason.year));
+            const currTable = leagueTables.filter(t => t.season_id === currSeason.id || (t.league_id === currSeason.league_id && t.year === currSeason.year));
             
-            thisTable.forEach(team => {
-                const prevEntry = prevTable.find(p => p.club_name === team.club_name);
-                if (prevEntry) {
-                    totalPositionChanges += Math.abs(team.position - prevEntry.position);
-                    comparisons++;
+            let totalMovement = 0;
+            let clubsTracked = 0;
+            currTable.forEach(curr => {
+                const prev = prevTable.find(p => p.club_name === curr.club_name);
+                if (prev) {
+                    totalMovement += Math.abs(curr.position - prev.position);
+                    clubsTracked++;
                 }
             });
-        });
-
-        const avgVolatility = comparisons > 0 ? (totalPositionChanges / comparisons).toFixed(1) : 0;
-
-        // Dynasty detection - clubs with 3+ consecutive titles
-        const dynasties = [];
-        let currentDynasty = null;
-        
-        sortedSeasons.forEach(s => {
-            if (!s.champion_name) return;
             
-            if (!currentDynasty || currentDynasty.club !== s.champion_name) {
-                if (currentDynasty && currentDynasty.years.length >= 3) {
-                    dynasties.push(currentDynasty);
-                }
-                currentDynasty = { club: s.champion_name, years: [s.year] };
-            } else {
-                currentDynasty.years.push(s.year);
+            if (clubsTracked > 0) {
+                volatility.push({
+                    year: currSeason.year,
+                    avgMovement: (totalMovement / clubsTracked).toFixed(1)
+                });
             }
-        });
-        if (currentDynasty && currentDynasty.years.length >= 3) {
-            dynasties.push(currentDynasty);
         }
 
+        // Goal economy trends
+        const goalTrends = seasons.map(s => {
+            const seasonTables = leagueTables.filter(t => t.season_id === s.id || (t.league_id === s.league_id && t.year === s.year));
+            const totalGoals = seasonTables.reduce((sum, t) => sum + (t.goals_for || 0), 0);
+            const totalGames = seasonTables.reduce((sum, t) => sum + (t.played || 0), 0);
+            const avgGoalsPerGame = totalGames > 0 ? (totalGoals / totalGames).toFixed(2) : 0;
+            return {
+                year: s.year,
+                goalsPerGame: parseFloat(avgGoalsPerGame),
+                totalGoals
+            };
+        }).sort((a, b) => a.year.localeCompare(b.year));
+
+        // Promotion success rate
+        const promotionAnalysis = { survived: 0, relegated: 0, total: 0 };
+        seasons.forEach((s, idx) => {
+            if (s.promoted_teams && idx < seasons.length - 1) {
+                const promoted = s.promoted_teams.split(',').map(t => t.trim());
+                const nextSeason = seasons[idx + 1];
+                const nextTable = leagueTables.filter(t => t.season_id === nextSeason.id || (t.league_id === nextSeason.league_id && t.year === nextSeason.year));
+                
+                promoted.forEach(clubName => {
+                    const found = nextTable.find(t => t.club_name === clubName);
+                    if (found) {
+                        promotionAnalysis.total++;
+                        if (nextSeason.relegated_teams?.split(',').map(t => t.trim()).includes(clubName)) {
+                            promotionAnalysis.relegated++;
+                        } else {
+                            promotionAnalysis.survived++;
+                        }
+                    }
+                });
+            }
+        });
+        const survivalRate = promotionAnalysis.total > 0 ? ((promotionAnalysis.survived / promotionAnalysis.total) * 100).toFixed(1) : 0;
+
+        // Title margins (how close races are)
+        const titleMargins = seasons.map(s => {
+            const table = leagueTables.filter(t => t.season_id === s.id || (t.league_id === s.league_id && t.year === s.year))
+                .sort((a, b) => a.position - b.position);
+            if (table.length >= 2) {
+                return {
+                    year: s.year,
+                    margin: (table[0].points || 0) - (table[1].points || 0)
+                };
+            }
+            return null;
+        }).filter(Boolean);
+
+        const avgTitleMargin = titleMargins.length > 0 
+            ? (titleMargins.reduce((sum, m) => sum + m.margin, 0) / titleMargins.length).toFixed(1)
+            : 0;
+
         return {
+            concentrationRatio,
             uniqueChampions,
-            titleConcentration,
-            pointsGapTrends,
-            goalEconomy,
-            promotionSurvivalRate,
-            topRegion,
-            avgVolatility,
+            totalSeasons,
             dynasties,
-            tierPerformance: analytics?.tierPerformance || []
+            geographicData,
+            volatility,
+            goalTrends,
+            promotionAnalysis,
+            survivalRate,
+            titleMargins,
+            avgTitleMargin
         };
     }, [league, seasons, leagueTables, clubs]);
 
-    if (!analytics) return <p className="text-center py-8 text-slate-500">Not enough data for analytics</p>;
+    if (!analytics) {
+        return (
+            <Card className="border-0 shadow-sm">
+                <CardContent className="p-8 text-center text-slate-500">
+                    No season data available for analytics
+                </CardContent>
+            </Card>
+        );
+    }
+
+    const { dynasties, geographicData, volatility, goalTrends, promotionAnalysis, survivalRate, titleMargins, avgTitleMargin, concentrationRatio, uniqueChampions, totalSeasons } = analytics;
 
     return (
         <div className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="border-0 shadow-sm">
-                    <CardContent className="p-4 text-center">
-                        <Users className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-                        <div className="text-2xl font-bold">{analytics.uniqueChampions}</div>
-                        <div className="text-xs text-slate-500">Different Champions</div>
+            {/* Competitive Balance */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-blue-800">
+                            <BarChart3 className="w-5 h-5" />
+                            Competition Level
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold text-blue-900">{concentrationRatio.toFixed(1)}</div>
+                        <div className="text-sm text-blue-700 mt-1">Seasons per unique champion</div>
+                        <div className="mt-3 text-xs text-blue-600">
+                            {uniqueChampions} different champions in {totalSeasons} seasons
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="border-0 shadow-sm">
-                    <CardContent className="p-4 text-center">
-                        <Percent className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-                        <div className="text-2xl font-bold">{analytics.titleConcentration}%</div>
-                        <div className="text-xs text-slate-500">Top Club Dominance</div>
+
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-amber-800">
+                            <Trophy className="w-5 h-5" />
+                            Avg Title Margin
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold text-amber-900">{avgTitleMargin} pts</div>
+                        <div className="text-sm text-amber-700 mt-1">
+                            {parseFloat(avgTitleMargin) <= 3 ? 'Tight races' : parseFloat(avgTitleMargin) >= 10 ? 'Often one-sided' : 'Balanced competition'}
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="border-0 shadow-sm">
-                    <CardContent className="p-4 text-center">
-                        <Target className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                        <div className="text-2xl font-bold">{analytics.avgVolatility}</div>
-                        <div className="text-xs text-slate-500">Avg Position Change</div>
+
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-emerald-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-green-800">
+                            <TrendingUp className="w-5 h-5" />
+                            Promotion Survival
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold text-green-900">{survivalRate}%</div>
+                        <div className="text-sm text-green-700 mt-1">
+                            {promotionAnalysis.survived}/{promotionAnalysis.total} stayed up
+                        </div>
                     </CardContent>
                 </Card>
-                {analytics.promotionSurvivalRate && (
-                    <Card className="border-0 shadow-sm">
-                        <CardContent className="p-4 text-center">
-                            <TrendingUp className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
-                            <div className="text-2xl font-bold">{analytics.promotionSurvivalRate}%</div>
-                            <div className="text-xs text-slate-500">Promotion Survival</div>
-                        </CardContent>
-                    </Card>
-                )}
             </div>
 
-            {/* Competitive Balance Insight */}
-            <Card className="border-0 shadow-sm bg-gradient-to-r from-purple-50 to-pink-50">
-                <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                        <Shield className="w-8 h-8 text-purple-600 mt-1" />
-                        <div>
-                            <h3 className="font-bold text-lg text-purple-900 mb-2">Competitive Balance</h3>
-                            <p className="text-slate-700">
-                                {analytics.uniqueChampions === 1 
-                                    ? `Complete dominance - only 1 club has ever won the title.`
-                                    : analytics.titleConcentration >= 50
-                                    ? `Moderately competitive - ${analytics.uniqueChampions} different champions, but one club has won ${analytics.titleConcentration}% of titles.`
-                                    : analytics.titleConcentration >= 30
-                                    ? `Balanced competition - ${analytics.uniqueChampions} different champions with relatively even distribution.`
-                                    : `Highly competitive - ${analytics.uniqueChampions} different champions with no single dominant force.`
-                                }
-                            </p>
-                            <p className="text-sm text-purple-700 mt-2">
-                                {analytics.avgVolatility >= 5
-                                    ? `High volatility (${analytics.avgVolatility} avg position change) suggests an unpredictable league with frequent shake-ups.`
-                                    : analytics.avgVolatility >= 3
-                                    ? `Moderate volatility (${analytics.avgVolatility} avg position change) - a healthy mix of stability and movement.`
-                                    : `Low volatility (${analytics.avgVolatility} avg position change) - established pecking order with limited movement.`
-                                }
-                            </p>
-                        </div>
+            {/* Title Dynasties */}
+            <Card className="border-0 shadow-sm">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-500" />
+                        Title Dynasties
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={dynasties} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" />
+                            <YAxis type="category" dataKey="club" width={120} />
+                            <Tooltip />
+                            <Bar dataKey="titles" fill="#f59e0b" label={{ position: 'right' }} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {dynasties.slice(0, 4).map((d, idx) => (
+                            <div key={idx} className="p-3 bg-slate-50 rounded-lg text-center">
+                                <div className="text-xs text-slate-500">{d.club}</div>
+                                <div className="text-lg font-bold text-amber-600">{d.titles}</div>
+                                <div className="text-xs text-slate-400">{d.percentage}%</div>
+                            </div>
+                        ))}
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Title Race Margins Over Time */}
-            {analytics.pointsGapTrends.length >= 3 && (
+            {/* Geographic Distribution */}
+            {geographicData.length > 0 && (
                 <Card className="border-0 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Flame className="w-5 h-5 text-orange-500" />
-                            Title Race Competitiveness
+                            <MapPin className="w-5 h-5 text-indigo-500" />
+                            Geographic Distribution
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={250}>
-                            <AreaChart data={analytics.pointsGapTrends}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-                                <YAxis tick={{ fontSize: 12 }} label={{ value: 'Points Gap', angle: -90, position: 'insideLeft', fontSize: 12 }} />
-                                <Tooltip />
-                                <Legend />
-                                <Area type="monotone" dataKey="gap" stroke="#f59e0b" fill="#f59e0b20" name="1st to 2nd Gap" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                        <p className="text-xs text-slate-500 mt-2 italic">Lower gaps = tighter title races</p>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Goal Economy Trends */}
-            {analytics.goalEconomy.length > 0 && (
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Target className="w-5 h-5 text-blue-500" />
-                            Scoring Trends by Decade
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={analytics.goalEconomy}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis dataKey="decade" tick={{ fontSize: 12 }} />
-                                <YAxis tick={{ fontSize: 12 }} label={{ value: 'Goals per Match', angle: -90, position: 'insideLeft', fontSize: 12 }} />
-                                <Tooltip />
-                                <Bar dataKey="avgGoals" fill="#3b82f6" name="Avg Goals/Match" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                        <p className="text-xs text-slate-500 mt-2 italic">Shows offensive vs defensive eras</p>
-                    </CardContent>
-                </Card>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Regional Success */}
-                {analytics.topRegion && (
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <MapPin className="w-5 h-5 text-indigo-500" />
-                                Geographic Dominance
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="p-4 bg-indigo-50 rounded-lg">
-                                <div className="text-2xl font-bold text-indigo-700 mb-1">{analytics.topRegion[0]}</div>
-                                <div className="text-sm text-slate-600">{analytics.topRegion[1]} championship{analytics.topRegion[1] > 1 ? 's' : ''}</div>
-                                <p className="text-xs text-indigo-600 mt-2">
-                                    Most successful region - {((analytics.topRegion[1] / seasons.length) * 100).toFixed(1)}% of all titles
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Dynasties */}
-                {analytics.dynasties.length > 0 && (
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Crown className="w-5 h-5 text-amber-500" />
-                                Dynasties (3+ Consecutive)
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        data={geographicData}
+                                        dataKey="clubs"
+                                        nameKey="region"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={80}
+                                        label
+                                    >
+                                        {geographicData.map((entry, idx) => (
+                                            <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
                             <div className="space-y-2">
-                                {analytics.dynasties.map((dynasty, idx) => {
-                                    const club = clubs.find(c => c.name === dynasty.club);
-                                    return (
-                                        <div key={idx} className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                {club?.logo_url && <img src={club.logo_url} alt="" className="w-6 h-6 object-contain" />}
-                                                <span className="font-bold text-amber-800">{dynasty.club}</span>
-                                            </div>
-                                            <div className="text-sm text-amber-700">
-                                                {dynasty.years.length} consecutive titles ({dynasty.years[0]} - {dynasty.years[dynasty.years.length - 1]})
-                                            </div>
+                                {geographicData.map((d, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                        <span className="text-sm font-medium flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                                            {d.region}
+                                        </span>
+                                        <div className="text-xs text-slate-600">
+                                            {d.clubs} clubs • {d.titles} titles
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
-
-            {/* Promotion/Relegation Analysis */}
-            {analytics.promotionSurvivalRate && (
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-emerald-500" />
-                            Promotion Success Analysis
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-3 gap-6 text-center">
-                            <div>
-                                <div className="text-3xl font-bold text-emerald-600">{analytics.promotionSurvivalRate}%</div>
-                                <div className="text-sm text-slate-500">Survival Rate</div>
-                            </div>
-                            <div>
-                                <div className="text-3xl font-bold text-slate-600">{survivedCount}</div>
-                                <div className="text-sm text-slate-500">Survived</div>
-                            </div>
-                            <div>
-                                <div className="text-3xl font-bold text-red-600">{promotedClubCount - survivedCount}</div>
-                                <div className="text-sm text-slate-500">Relegated Back</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-4 italic text-center">
-                            {analytics.promotionSurvivalRate >= 60 
-                                ? 'Promoted clubs typically adapt well to this division'
-                                : analytics.promotionSurvivalRate >= 40
-                                ? 'Mixed results for promoted sides - tough but achievable'
-                                : 'Extremely challenging for promoted clubs to survive'
-                            }
-                        </p>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Title Race Summary */}
-            {analytics.pointsGapTrends.length > 0 && (
+            {/* League Volatility */}
+            {volatility.length > 0 && (
                 <Card className="border-0 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Trophy className="w-5 h-5 text-amber-500" />
-                            Title Race Characteristics
+                            <Activity className="w-5 h-5 text-purple-500" />
+                            League Volatility (Position Changes)
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-3">
-                            {(() => {
-                                const avgGap = analytics.pointsGapTrends.reduce((sum, t) => sum + t.gap, 0) / analytics.pointsGapTrends.length;
-                                const closestRace = analytics.pointsGapTrends.reduce((min, t) => t.gap < min.gap ? t : min);
-                                const biggestMargin = analytics.pointsGapTrends.reduce((max, t) => t.gap > max.gap ? t : max);
-                                
-                                return (
-                                    <>
-                                        <div className="flex justify-between p-3 bg-slate-50 rounded-lg">
-                                            <span className="text-slate-600">Average Title Margin</span>
-                                            <span className="font-bold">{avgGap.toFixed(1)} points</span>
-                                        </div>
-                                        <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
-                                            <span className="text-slate-600">Closest Title Race</span>
-                                            <span className="font-bold text-orange-600">{closestRace.gap} pts ({closestRace.year})</span>
-                                        </div>
-                                        <div className="flex justify-between p-3 bg-amber-50 rounded-lg">
-                                            <span className="text-slate-600">Biggest Margin</span>
-                                            <span className="font-bold text-amber-600">{biggestMargin.gap} pts ({biggestMargin.year})</span>
-                                        </div>
-                                    </>
-                                );
-                            })()}
+                        <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={volatility}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line type="monotone" dataKey="avgMovement" stroke="#8b5cf6" strokeWidth={2} name="Avg Position Change" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                        <div className="mt-2 text-sm text-slate-600">
+                            Higher values indicate more unpredictable seasons with major table movements
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Goal Economy */}
+            <Card className="border-0 shadow-sm">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Target className="w-5 h-5 text-blue-500" />
+                        Goal Economy Trends
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <LineChart data={goalTrends}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="year" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="goalsPerGame" stroke="#3b82f6" strokeWidth={2} name="Goals Per Game" />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+
+            {/* Title Race Margins */}
+            {titleMargins.length > 0 && (
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Award className="w-5 h-5 text-orange-500" />
+                            Title Race Margins
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={250}>
+                            <BarChart data={titleMargins}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Bar dataKey="margin" fill="#f97316" name="Points Margin" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                        <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
+                            <div className="p-3 bg-red-50 rounded-lg">
+                                <div className="font-bold text-red-600">{titleMargins.filter(m => m.margin <= 3).length}</div>
+                                <div className="text-xs text-slate-600">Tight (≤3 pts)</div>
+                            </div>
+                            <div className="p-3 bg-amber-50 rounded-lg">
+                                <div className="font-bold text-amber-600">{titleMargins.filter(m => m.margin > 3 && m.margin <= 10).length}</div>
+                                <div className="text-xs text-slate-600">Moderate (4-10 pts)</div>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-lg">
+                                <div className="font-bold text-slate-600">{titleMargins.filter(m => m.margin > 10).length}</div>
+                                <div className="text-xs text-slate-600">Dominant (>10 pts)</div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
