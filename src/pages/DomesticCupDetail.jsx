@@ -18,8 +18,6 @@ import CupHistory from '@/components/cups/CupHistory';
 import AdminOnly from '@/components/common/AdminOnly';
 import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DomesticCupDetail() {
     const urlParams = new URLSearchParams(window.location.search);
