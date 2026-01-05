@@ -155,28 +155,13 @@ export default function NationDetail() {
         updateMutation.mutate(submitData);
     };
 
-    if (isLoading) {
+    if (isLoading || !nation) {
         return (
             <div className="min-h-screen bg-slate-50">
                 <Skeleton className="h-64 w-full" />
                 <div className="max-w-7xl mx-auto px-4 py-8">
                     <Skeleton className="h-48 mb-8" />
                 </div>
-            </div>
-        );
-    }
-
-    if (!nation) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <Card className="max-w-md">
-                    <CardContent className="text-center py-8">
-                        <h2 className="text-xl font-bold mb-4">Nation Not Found</h2>
-                        <Link to={createPageUrl('Nations')}>
-                            <Button>Back to Nations</Button>
-                        </Link>
-                    </CardContent>
-                </Card>
             </div>
         );
     }
