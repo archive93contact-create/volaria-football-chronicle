@@ -5,7 +5,9 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Plus, Trophy, Edit2, Trash2, ChevronRight, Star, Calendar } from 'lucide-react';
 import ContinentalNarratives from '@/components/continental/ContinentalNarratives';
+import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -278,6 +280,15 @@ export default function CompetitionDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <Tabs defaultValue="overview" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
+                        <TabsTrigger value="winners">All Winners</TabsTrigger>
+                    </TabsList>
+
+                    {/* OVERVIEW TAB */}
+                    <TabsContent value="overview">
                 {/* Most Recent Final */}
                 {seasons.length > 0 && (() => {
                     const latestSeason = seasons[0];
@@ -422,7 +433,19 @@ export default function CompetitionDetail() {
                         <CardContent><p className="text-slate-600 whitespace-pre-line">{competition.history}</p></CardContent>
                     </Card>
                 )}
+                    </TabsContent>
 
+                    {/* HISTORY & STATS TAB */}
+                    <TabsContent value="history-stats">
+                        <CupHistoricalStats 
+                            seasons={seasons}
+                            clubs={clubs}
+                            isNational={false}
+                        />
+                    </TabsContent>
+
+                    {/* ALL WINNERS TAB */}
+                    <TabsContent value="winners">
                 {/* Winners Table */}
                 <Card className="border-0 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -526,6 +549,8 @@ export default function CompetitionDetail() {
                         )}
                     </CardContent>
                 </Card>
+                    </TabsContent>
+                </Tabs>
             </div>
 
             {/* Edit Season Dialog */}

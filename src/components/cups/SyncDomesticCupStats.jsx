@@ -41,12 +41,18 @@ export default function SyncDomesticCupStats({ season, cup, clubs, onComplete })
                     
                     if (!yearsArray.includes(season.year)) {
                         yearsArray.push(season.year);
+                        const updateData = {
+                            domestic_cup_titles: currentTitles + 1,
+                            domestic_cup_title_years: yearsArray.sort().join(', ')
+                        };
+                        // Only update best finish if this is their first title or better than existing
+                        if (!championClub.domestic_cup_best_finish || championClub.domestic_cup_best_finish !== 'Winner') {
+                            updateData.domestic_cup_best_finish = 'Winner';
+                            updateData.domestic_cup_best_finish_year = season.year;
+                        }
                         await updateClubMutation.mutateAsync({
                             id: championClub.id,
-                            data: {
-                                domestic_cup_titles: currentTitles + 1,
-                                domestic_cup_title_years: yearsArray.sort().join(', ')
-                            }
+                            data: updateData
                         });
                         updates.championUpdated = true;
                     }
@@ -60,11 +66,19 @@ export default function SyncDomesticCupStats({ season, cup, clubs, onComplete })
                 const runnerUpClub = clubs.find(c => c.name?.toLowerCase().trim() === season.runner_up?.toLowerCase().trim());
                 if (runnerUpClub) {
                     const currentRunnerUps = runnerUpClub.domestic_cup_runner_up || 0;
+                    const updateData = {
+                        domestic_cup_runner_up: currentRunnerUps + 1
+                    };
+                    // Update best finish if Final is better than current or not set
+                    const finishOrder = ['Winner', 'Final', 'Semi-final', 'Quarter-final'];
+                    const currentBest = runnerUpClub.domestic_cup_best_finish;
+                    if (!currentBest || finishOrder.indexOf('Final') < finishOrder.indexOf(currentBest)) {
+                        updateData.domestic_cup_best_finish = 'Final';
+                        updateData.domestic_cup_best_finish_year = season.year;
+                    }
                     await updateClubMutation.mutateAsync({
                         id: runnerUpClub.id,
-                        data: {
-                            domestic_cup_runner_up: currentRunnerUps + 1
-                        }
+                        data: updateData
                     });
                     updates.runnerUpUpdated = true;
                 } else {

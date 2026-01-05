@@ -16,6 +16,8 @@ import DomesticCupNarratives from '@/components/cups/DomesticCupNarratives';
 import SyncCupStatsButton from '@/components/common/SyncCupStats';
 import CupHistory from '@/components/cups/CupHistory';
 import AdminOnly from '@/components/common/AdminOnly';
+import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DomesticCupDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -140,6 +142,15 @@ export default function DomesticCupDetail() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <Tabs defaultValue="overview" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
+                        <TabsTrigger value="winners">All Winners</TabsTrigger>
+                    </TabsList>
+
+                    {/* OVERVIEW TAB */}
+                    <TabsContent value="overview">
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     {cup.founded_year && (
@@ -190,7 +201,19 @@ export default function DomesticCupDetail() {
                         <CardContent><p className="text-slate-600 whitespace-pre-line">{cup.history}</p></CardContent>
                     </Card>
                 )}
+                    </TabsContent>
 
+                    {/* HISTORY & STATS TAB */}
+                    <TabsContent value="history-stats">
+                        <CupHistoricalStats 
+                            seasons={seasons}
+                            clubs={clubs}
+                            isNational={true}
+                        />
+                    </TabsContent>
+
+                    {/* ALL WINNERS TAB */}
+                    <TabsContent value="winners">
                 {/* Roll of Honour */}
                 <Card className="border-0 shadow-sm mb-8">
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -301,9 +324,9 @@ export default function DomesticCupDetail() {
                     </CardContent>
                 </Card>
 
-                {/* Most Titles */}
+                {/* All-Time Winners */}
                 {sortedByTitles.length > 0 && (
-                    <Card className="border-0 shadow-sm">
+                    <Card className="border-0 shadow-sm mt-6">
                         <CardHeader><CardTitle>All-Time Winners</CardTitle></CardHeader>
                         <CardContent>
                             <Table>
@@ -345,6 +368,8 @@ export default function DomesticCupDetail() {
                         </CardContent>
                     </Card>
                 )}
+                    </TabsContent>
+                </Tabs>
             </div>
 
             {/* Edit Season Dialog */}
