@@ -18,7 +18,6 @@ import Contact from './pages/Contact';
 import ContinentalCompetitions from './pages/ContinentalCompetitions';
 import ContinentalSeasonDetail from './pages/ContinentalSeasonDetail';
 import CountryRankings from './pages/CountryRankings';
-import DomesticCupDetail from './pages/DomesticCupDetail';
 import DomesticCupSeasonDetail from './pages/DomesticCupSeasonDetail';
 import DomesticCups from './pages/DomesticCups';
 import EditSeason from './pages/EditSeason';
@@ -43,6 +42,7 @@ import Support from './pages/Support';
 import UpdateAllPlayerImages from './pages/UpdateAllPlayerImages';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import WorldMap from './pages/WorldMap';
+import DomesticCupDetail from './pages/DomesticCupDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -67,7 +67,6 @@ export const PAGES = {
     "ContinentalCompetitions": ContinentalCompetitions,
     "ContinentalSeasonDetail": ContinentalSeasonDetail,
     "CountryRankings": CountryRankings,
-    "DomesticCupDetail": DomesticCupDetail,
     "DomesticCupSeasonDetail": DomesticCupSeasonDetail,
     "DomesticCups": DomesticCups,
     "EditSeason": EditSeason,
@@ -92,6 +91,7 @@ export const PAGES = {
     "UpdateAllPlayerImages": UpdateAllPlayerImages,
     "UpdateContinentalStats": UpdateContinentalStats,
     "WorldMap": WorldMap,
+    "DomesticCupDetail": DomesticCupDetail,
 }
 
 export const pagesConfig = {

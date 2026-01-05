@@ -369,7 +369,6 @@ export default function LeagueDetail() {
                     <TabsList>
                         <TabsTrigger value="table">League Table</TabsTrigger>
                         <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="story">League Story</TabsTrigger>
                         <TabsTrigger value="crests">Club Crests ({(() => {
                             const currentSeasonClubIds = currentSeasonTable.map(t => t.club_id).filter(Boolean);
@@ -528,16 +527,6 @@ export default function LeagueDetail() {
                             <LeagueClubsMap clubs={clubs} nation={nation} />
                             <HeadToHeadMatrix clubs={clubs} leagueTables={leagueTables} />
                         </div>
-                    </TabsContent>
-
-                    {/* ANALYTICS TAB */}
-                    <TabsContent value="analytics">
-                        <LeagueAnalytics 
-                            league={league}
-                            seasons={seasons}
-                            leagueTables={leagueTables}
-                            clubs={allNationClubs}
-                        />
                     </TabsContent>
 
                     {/* LEAGUE STORY TAB */}
