@@ -31,6 +31,7 @@ import LocationDetail from './pages/LocationDetail';
 import Locations from './pages/Locations';
 import NationClubs from './pages/NationClubs';
 import NationComparison from './pages/NationComparison';
+import NationDetail from './pages/NationDetail';
 import NationGenerator from './pages/NationGenerator';
 import Nations from './pages/Nations';
 import PlayerDetail from './pages/PlayerDetail';
@@ -42,7 +43,6 @@ import Support from './pages/Support';
 import UpdateAllPlayerImages from './pages/UpdateAllPlayerImages';
 import UpdateContinentalStats from './pages/UpdateContinentalStats';
 import WorldMap from './pages/WorldMap';
-import NationDetail from './pages/NationDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +80,7 @@ export const PAGES = {
     "Locations": Locations,
     "NationClubs": NationClubs,
     "NationComparison": NationComparison,
+    "NationDetail": NationDetail,
     "NationGenerator": NationGenerator,
     "Nations": Nations,
     "PlayerDetail": PlayerDetail,
@@ -91,7 +92,6 @@ export const PAGES = {
     "UpdateAllPlayerImages": UpdateAllPlayerImages,
     "UpdateContinentalStats": UpdateContinentalStats,
     "WorldMap": WorldMap,
-    "NationDetail": NationDetail,
 }
 
 export const pagesConfig = {

@@ -36,6 +36,7 @@ import ColorExtractor from '@/components/common/ColorExtractor';
 import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
 import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
+import LeagueHistoricalStats from '@/components/leagues/LeagueHistoricalStats';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -502,8 +503,18 @@ export default function LeagueDetail() {
 
                     {/* HISTORY & STATS TAB */}
                     <TabsContent value="history-stats">
+                        {/* Historical Stats - Decades, Longest Serving, etc */}
+                        <LeagueHistoricalStats 
+                            seasons={seasons}
+                            leagueTables={leagueTables}
+                            clubs={allNationClubs}
+                            league={league}
+                        />
+
                         {/* League History Timeline */}
-                        <LeagueHistory league={league} seasons={seasons} nation={nation} />
+                        <div className="mt-8">
+                            <LeagueHistory league={league} seasons={seasons} nation={nation} />
+                        </div>
 
                         {/* Visual League History */}
                         <VisualLeagueHistory league={league} seasons={seasons} clubs={allNationClubs} />
