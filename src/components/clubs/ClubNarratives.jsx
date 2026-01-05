@@ -696,8 +696,13 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
 
     // Former cup winner now in lower leagues
     if (club.domestic_cup_titles > 0 && currentTier >= 3) {
-        const yearsSinceCupWin = club.domestic_cup_title_years ? 
-            (new Date().getFullYear() - Math.max(...club.domestic_cup_title_years.split(',').map(y => parseInt(y.trim())))) : null;
+        let yearsSinceCupWin = null;
+        if (club.domestic_cup_title_years) {
+            const years = club.domestic_cup_title_years.split(',').map(y => parseInt(y.trim())).filter(y => !isNaN(y));
+            if (years.length > 0) {
+                yearsSinceCupWin = new Date().getFullYear() - Math.max(...years);
+            }
+        }
         
         if (currentTier >= 5) {
             narratives.push({
@@ -728,8 +733,13 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
 
     // Former league champion now in lower leagues
     if (club.league_titles > 0 && currentTier >= 3) {
-        const yearsSinceTitle = club.title_years ? 
-            (new Date().getFullYear() - Math.max(...club.title_years.split(',').map(y => parseInt(y.trim())))) : null;
+        let yearsSinceTitle = null;
+        if (club.title_years) {
+            const years = club.title_years.split(',').map(y => parseInt(y.trim())).filter(y => !isNaN(y));
+            if (years.length > 0) {
+                yearsSinceTitle = new Date().getFullYear() - Math.max(...years);
+            }
+        }
         
         if (currentTier >= 5) {
             narratives.push({
