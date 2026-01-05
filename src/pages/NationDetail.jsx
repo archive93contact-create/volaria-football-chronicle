@@ -36,13 +36,15 @@ export default function NationDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
 
-    const { data: nation, isLoading } = useQuery({
+    const { data: nation, isLoading, error } = useQuery({
         queryKey: ['nation', nationId],
         queryFn: async () => {
+            if (!nationId) return null;
             const nations = await base44.entities.Nation.filter({ id: nationId });
-            return nations[0];
+            return nations[0] || null;
         },
         enabled: !!nationId,
+        retry: false,
     });
 
     const { data: leagues = [] } = useQuery({
