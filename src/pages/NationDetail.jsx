@@ -36,36 +36,29 @@ export default function NationDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
 
-    const { data: nation, isLoading, error } = useQuery({
+    const { data: nation, isLoading } = useQuery({
         queryKey: ['nation', nationId],
         queryFn: async () => {
-            if (!nationId) {
-                console.error('No nation ID provided');
-                return null;
-            }
-            console.log('Fetching nation with ID:', nationId);
             const nations = await base44.entities.Nation.filter({ id: nationId });
-            console.log('Nations found:', nations);
-            return nations[0] || null;
+            return nations[0];
         },
         enabled: !!nationId,
-        retry: false,
+        staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+        gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     });
-
-    // Log for debugging
-    React.useEffect(() => {
-        if (error) console.error('Nation fetch error:', error);
-        if (!isLoading && !nation && nationId) console.error('Nation not found for ID:', nationId);
-    }, [error, isLoading, nation, nationId]);
 
     const { data: leagues = [] } = useQuery({
         queryKey: ['leagues', nationId],
         queryFn: () => base44.entities.League.filter({ nation_id: nationId }, 'tier'),
+        enabled: !!nationId,
+        staleTime: 5 * 60 * 1000,
     });
 
     const { data: allNationClubs = [] } = useQuery({
         queryKey: ['clubs', nationId],
         queryFn: () => base44.entities.Club.filter({ nation_id: nationId }, 'name'),
+        enabled: !!nationId,
+        staleTime: 5 * 60 * 1000,
     });
 
     // Filter out defunct clubs for display
