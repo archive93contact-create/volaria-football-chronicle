@@ -36,7 +36,7 @@ export default function NationDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
 
-    const { data: nation, isLoading, isFetching } = useQuery({
+    const { data: nation, isLoading } = useQuery({
         queryKey: ['nation', nationId],
         queryFn: async () => {
             const nations = await base44.entities.Nation.filter({ id: nationId });
@@ -48,13 +48,11 @@ export default function NationDetail() {
     const { data: leagues = [] } = useQuery({
         queryKey: ['leagues', nationId],
         queryFn: () => base44.entities.League.filter({ nation_id: nationId }, 'tier'),
-        enabled: !!nationId && !!nation,
     });
 
     const { data: allNationClubs = [] } = useQuery({
         queryKey: ['clubs', nationId],
         queryFn: () => base44.entities.Club.filter({ nation_id: nationId }, 'name'),
-        enabled: !!nationId && !!nation,
     });
 
     // Filter out defunct clubs for display
@@ -151,8 +149,7 @@ export default function NationDetail() {
         updateMutation.mutate(submitData);
     };
 
-    // Only show loading on initial load, not on refetches
-    if (isLoading && !nation) {
+    if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-50">
                 <Skeleton className="h-64 w-full" />
@@ -163,8 +160,7 @@ export default function NationDetail() {
         );
     }
 
-    // If we've finished loading but have no nation, redirect
-    if (!isLoading && !nation) {
+    if (!nation) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <Card className="max-w-md">
@@ -178,8 +174,6 @@ export default function NationDetail() {
             </div>
         );
     }
-
-    if (!nation) return null;
 
     // Group leagues by tier
     const leaguesByTier = leagues.reduce((acc, league) => {
