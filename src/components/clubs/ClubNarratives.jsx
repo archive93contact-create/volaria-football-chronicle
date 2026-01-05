@@ -193,21 +193,89 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             };
         }
         
-        // RISING CLUB - tasted top flight or long history
-        if (topFlightSeasons >= 1 || totalSeasons >= 10) {
+        // RISING CLUB - actually tasted top flight (tier 1 or 2)
+        if (topFlightSeasons >= 1) {
+            const tier2Seasons = seasons.filter(s => {
+                const league = leagues.find(l => l.id === s.league_id);
+                return league?.tier === 2;
+            }).length;
+            
+            if (topFlightSeasons >= 3) {
+                return {
+                    tier: 'Rising Club',
+                    description: `${club.name} has tasted top-flight football with ${topFlightSeasons} season${topFlightSeasons > 1 ? 's' : ''} at the highest level. Building towards becoming an established force.`,
+                    color: 'text-cyan-500',
+                    bg: 'bg-cyan-50'
+                };
+            } else {
+                return {
+                    tier: 'Rising Club',
+                    description: `${club.name} had a brief spell in the top flight (${topFlightSeasons} season${topFlightSeasons > 1 ? 's' : ''})${tier2Seasons > 0 ? ` and competes regularly in the second tier` : ''}. Hoping to return to the elite.`,
+                    color: 'text-cyan-500',
+                    bg: 'bg-cyan-50'
+                };
+            }
+        }
+        
+        // SECOND TIER CONTENDERS - never reached top flight but established in tier 2
+        const tier2Seasons = seasons.filter(s => {
+            const league = leagues.find(l => l.id === s.league_id);
+            return league?.tier === 2;
+        }).length;
+        
+        if (tier2Seasons >= 5 && currentTier === 2) {
             return {
-                tier: 'Rising Club',
-                description: `${club.name} has tasted top-flight football and is building towards becoming an established force. Well-known locally and growing their reputation.`,
-                color: 'text-cyan-500',
-                bg: 'bg-cyan-50'
+                tier: 'Second Tier Regulars',
+                description: `${club.name} has spent ${tier2Seasons} seasons in the second tier. A well-established club knocking on the door of the top flight.`,
+                color: 'text-indigo-500',
+                bg: 'bg-indigo-50'
             };
         }
         
-        // LOCAL CLUB
+        // LOWER LEAGUE STALWARTS - tier 3-4 regulars (or TFA tiers 3-4)
+        const tier3_4Seasons = seasons.filter(s => {
+            const league = leagues.find(l => l.id === s.league_id);
+            return league?.tier >= 3 && league?.tier <= 4;
+        }).length;
+        
+        if (tier3_4Seasons >= 5 && currentTier >= 3 && currentTier <= 4) {
+            return {
+                tier: 'Lower League Regulars',
+                description: `${club.name} is a mainstay of Tier ${currentTier} football with ${tier3_4Seasons} seasons at this level. Known regionally, they dream of climbing higher.`,
+                color: 'text-blue-500',
+                bg: 'bg-blue-50'
+            };
+        }
+        
+        // NON-LEAGUE CLUB - tier 5+
+        if (currentTier >= 5 && totalSeasons >= 5) {
+            const tfaSeasons = seasons.filter(s => {
+                const league = leagues.find(l => l.id === s.league_id);
+                return league?.tier && league.tier <= 4;
+            }).length;
+            
+            if (tfaSeasons > 0) {
+                return {
+                    tier: 'Non-League Club',
+                    description: `${club.name} currently plays in the regional leagues (Tier ${currentTier}). They had ${tfaSeasons} season${tfaSeasons > 1 ? 's' : ''} in the organized tiers and aspire to return.`,
+                    color: 'text-slate-600',
+                    bg: 'bg-slate-100'
+                };
+            } else {
+                return {
+                    tier: 'Regional Football',
+                    description: `${club.name} represents regional football at Tier ${currentTier}. Never reached the organized leagues, they are a true grassroots club serving their local community.`,
+                    color: 'text-slate-500',
+                    bg: 'bg-slate-50'
+                };
+            }
+        }
+        
+        // LOCAL CLUB - some history but lower tiers
         if (totalSeasons >= 5) {
             return {
                 tier: 'Local Club',
-                description: `A community club with loyal support, ${club.name} represents grassroots football. The pride of ${club.settlement || club.district || club.region || 'their town'}.`,
+                description: `A community club with ${totalSeasons} seasons of history, ${club.name} represents grassroots football. The pride of ${club.settlement || club.district || club.region || 'their community'}.`,
                 color: 'text-slate-500',
                 bg: 'bg-slate-50'
             };
@@ -216,7 +284,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         // NEWCOMER
         return {
             tier: 'Newcomer',
-            description: `${club.name} is a newer addition to organized football, still building their history. Every legendary club started somewhere.`,
+            description: `${club.name} is a newer addition to football${currentTier ? ` competing in Tier ${currentTier}` : ''}, still building their history. Every legendary club started somewhere.`,
             color: 'text-green-500',
             bg: 'bg-green-50'
         };
