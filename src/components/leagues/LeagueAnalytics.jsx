@@ -91,27 +91,51 @@ export default function LeagueAnalytics({ league, seasons = [], leagueTables = [
             };
         }).sort((a, b) => a.year.localeCompare(b.year));
 
-        // Promotion success rate
-        const promotionAnalysis = { survived: 0, relegated: 0, total: 0 };
-        seasons.forEach((s, idx) => {
-            if (s.promoted_teams && idx < seasons.length - 1) {
-                const promoted = s.promoted_teams.split(',').map(t => t.trim());
-                const nextSeason = seasons[idx + 1];
-                const nextTable = leagueTables.filter(t => t.season_id === nextSeason.id || (t.league_id === nextSeason.league_id && t.year === nextSeason.year));
+        // Promotion success rate with detailed tracking
+        const promotionAnalysis = { 
+            survived: 0, 
+            relegated: 0, 
+            total: 0,
+            positions: [],
+            avgPosition: 0,
+            details: []
+        };
+        
+        const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
+        
+        sortedSeasons.forEach((s, idx) => {
+            if (s.promoted_teams && idx < sortedSeasons.length - 1) {
+                const promoted = s.promoted_teams.split(',').map(t => t.trim()).filter(Boolean);
+                const nextSeason = sortedSeasons[idx + 1];
+                const nextTable = leagueTables.filter(t => t.year === nextSeason.year).sort((a, b) => a.position - b.position);
                 
                 promoted.forEach(clubName => {
-                    const found = nextTable.find(t => t.club_name === clubName);
+                    const found = nextTable.find(t => 
+                        t.club_name?.toLowerCase().trim() === clubName.toLowerCase() ||
+                        t.club_name?.toLowerCase().includes(clubName.toLowerCase()) ||
+                        clubName.toLowerCase().includes(t.club_name?.toLowerCase().trim())
+                    );
                     if (found) {
                         promotionAnalysis.total++;
-                        if (nextSeason.relegated_teams?.split(',').map(t => t.trim()).includes(clubName)) {
+                        promotionAnalysis.positions.push(found.position);
+                        const wasRelegated = nextSeason.relegated_teams?.split(',').map(t => t.trim().toLowerCase()).some(rel => 
+                            rel === clubName.toLowerCase() || rel.includes(clubName.toLowerCase()) || clubName.toLowerCase().includes(rel)
+                        );
+                        if (wasRelegated) {
                             promotionAnalysis.relegated++;
+                            promotionAnalysis.details.push({ club: clubName, year: nextSeason.year, position: found.position, relegated: true });
                         } else {
                             promotionAnalysis.survived++;
+                            promotionAnalysis.details.push({ club: clubName, year: nextSeason.year, position: found.position, relegated: false });
                         }
                     }
                 });
             }
         });
+        
+        promotionAnalysis.avgPosition = promotionAnalysis.positions.length > 0 
+            ? (promotionAnalysis.positions.reduce((sum, p) => sum + p, 0) / promotionAnalysis.positions.length).toFixed(1)
+            : 0;
         const survivalRate = promotionAnalysis.total > 0 ? ((promotionAnalysis.survived / promotionAnalysis.total) * 100).toFixed(1) : 0;
 
         // Title margins (how close races are)
@@ -131,6 +155,107 @@ export default function LeagueAnalytics({ league, seasons = [], leagueTables = [
             ? (titleMargins.reduce((sum, m) => sum + m.margin, 0) / titleMargins.length).toFixed(1)
             : 0;
 
+        // Champions Analysis (Tier 1 only)
+        const championsAnalysis = league.tier === 1 ? {
+            backToBack: [],
+            relegatedAfterTitle: [],
+            avgPositionAfterTitle: 0,
+            promotedThenWon: [],
+            positions: []
+        } : null;
+
+        if (championsAnalysis) {
+            sortedSeasons.forEach((s, idx) => {
+                if (s.champion_name && idx < sortedSeasons.length - 1) {
+                    const champion = s.champion_name.trim();
+                    const nextSeason = sortedSeasons[idx + 1];
+                    const nextTable = leagueTables.filter(t => t.year === nextSeason.year);
+                    
+                    // Check if they won again (back-to-back)
+                    if (nextSeason.champion_name?.trim().toLowerCase() === champion.toLowerCase()) {
+                        championsAnalysis.backToBack.push({ club: champion, years: `${s.year}-${nextSeason.year}` });
+                    }
+                    
+                    // Find their next season position
+                    const nextPos = nextTable.find(t => 
+                        t.club_name?.toLowerCase().trim() === champion.toLowerCase() ||
+                        t.club_name?.toLowerCase().includes(champion.toLowerCase())
+                    );
+                    if (nextPos) {
+                        championsAnalysis.positions.push(nextPos.position);
+                        
+                        // Check if relegated
+                        const wasRelegated = nextSeason.relegated_teams?.split(',').map(t => t.trim().toLowerCase()).some(rel =>
+                            rel === champion.toLowerCase() || rel.includes(champion.toLowerCase())
+                        );
+                        if (wasRelegated) {
+                            championsAnalysis.relegatedAfterTitle.push({ club: champion, wonYear: s.year, relegatedYear: nextSeason.year });
+                        }
+                    }
+                    
+                    // Check if this champion was promoted previous season
+                    if (idx > 0) {
+                        const prevSeason = sortedSeasons[idx - 1];
+                        const wasPromoted = prevSeason.promoted_teams?.split(',').map(t => t.trim().toLowerCase()).some(prom =>
+                            prom === champion.toLowerCase() || prom.includes(champion.toLowerCase())
+                        );
+                        if (wasPromoted) {
+                            championsAnalysis.promotedThenWon.push({ club: champion, year: s.year });
+                        }
+                    }
+                }
+            });
+            
+            championsAnalysis.avgPositionAfterTitle = championsAnalysis.positions.length > 0
+                ? (championsAnalysis.positions.reduce((sum, p) => sum + p, 0) / championsAnalysis.positions.length).toFixed(1)
+                : 0;
+        }
+
+        // Relegation Analysis (Tiers below 1 only)
+        const relegationAnalysis = league.tier > 1 ? {
+            avgPosition: 0,
+            positions: [],
+            promoted: 0,
+            total: 0,
+            details: []
+        } : null;
+
+        if (relegationAnalysis) {
+            sortedSeasons.forEach((s, idx) => {
+                if (s.relegated_teams && idx < sortedSeasons.length - 1) {
+                    const relegated = s.relegated_teams.split(',').map(t => t.trim()).filter(Boolean);
+                    const nextSeason = sortedSeasons[idx + 1];
+                    const nextTable = leagueTables.filter(t => t.year === nextSeason.year);
+                    
+                    relegated.forEach(clubName => {
+                        const currentPos = leagueTables.filter(t => t.year === s.year).find(t =>
+                            t.club_name?.toLowerCase().trim() === clubName.toLowerCase() ||
+                            t.club_name?.toLowerCase().includes(clubName.toLowerCase())
+                        );
+                        if (currentPos) {
+                            relegationAnalysis.total++;
+                            relegationAnalysis.positions.push(currentPos.position);
+                            
+                            // Check if they bounced back
+                            const wasPromoted = nextSeason.promoted_teams?.split(',').map(t => t.trim().toLowerCase()).some(prom =>
+                                prom === clubName.toLowerCase() || prom.includes(clubName.toLowerCase())
+                            );
+                            if (wasPromoted) {
+                                relegationAnalysis.promoted++;
+                                relegationAnalysis.details.push({ club: clubName, relegatedYear: s.year, bouncedBack: true });
+                            } else {
+                                relegationAnalysis.details.push({ club: clubName, relegatedYear: s.year, bouncedBack: false });
+                            }
+                        }
+                    });
+                }
+            });
+            
+            relegationAnalysis.avgPosition = relegationAnalysis.positions.length > 0
+                ? (relegationAnalysis.positions.reduce((sum, p) => sum + p, 0) / relegationAnalysis.positions.length).toFixed(1)
+                : 0;
+        }
+
         return {
             concentrationRatio,
             uniqueChampions,
@@ -142,7 +267,9 @@ export default function LeagueAnalytics({ league, seasons = [], leagueTables = [
             promotionAnalysis,
             survivalRate,
             titleMargins,
-            avgTitleMargin
+            avgTitleMargin,
+            championsAnalysis,
+            relegationAnalysis
         };
     }, [league, seasons, leagueTables, clubs]);
 
@@ -156,7 +283,7 @@ export default function LeagueAnalytics({ league, seasons = [], leagueTables = [
         );
     }
 
-    const { dynasties, geographicData, volatility, goalTrends, promotionAnalysis, survivalRate, titleMargins, avgTitleMargin, concentrationRatio, uniqueChampions, totalSeasons } = analytics;
+    const { dynasties, geographicData, volatility, goalTrends, promotionAnalysis, survivalRate, titleMargins, avgTitleMargin, concentrationRatio, uniqueChampions, totalSeasons, championsAnalysis, relegationAnalysis } = analytics;
 
     return (
         <div className="space-y-6">
@@ -205,9 +332,123 @@ export default function LeagueAnalytics({ league, seasons = [], leagueTables = [
                         <div className="text-sm text-green-700 mt-1">
                             {promotionAnalysis.survived}/{promotionAnalysis.total} stayed up
                         </div>
+                        {promotionAnalysis.avgPosition > 0 && (
+                            <div className="text-xs text-green-600 mt-2">
+                                Avg finish: {promotionAnalysis.avgPosition}th place
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Champions Analysis (Tier 1 only) */}
+            {championsAnalysis && (
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-yellow-50 border-l-4 border-l-amber-500">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-amber-800">
+                            <Trophy className="w-5 h-5" />
+                            Champions Analysis
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <div className="text-sm font-semibold text-amber-700 mb-2">After Winning Title</div>
+                                <div className="space-y-2">
+                                    <div className="p-3 bg-white rounded-lg">
+                                        <div className="text-2xl font-bold text-amber-600">{championsAnalysis.avgPositionAfterTitle}</div>
+                                        <div className="text-xs text-slate-600">Average position next season</div>
+                                    </div>
+                                    {championsAnalysis.backToBack.length > 0 && (
+                                        <div className="p-3 bg-white rounded-lg">
+                                            <div className="text-lg font-bold text-emerald-600">{championsAnalysis.backToBack.length}</div>
+                                            <div className="text-xs text-slate-600 mb-2">Back-to-back titles</div>
+                                            <div className="text-xs text-slate-500 space-y-1">
+                                                {championsAnalysis.backToBack.slice(0, 5).map((b, idx) => (
+                                                    <div key={idx}>• {b.club} ({b.years})</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {championsAnalysis.relegatedAfterTitle.length > 0 && (
+                                        <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                                            <div className="text-lg font-bold text-red-600">{championsAnalysis.relegatedAfterTitle.length}</div>
+                                            <div className="text-xs text-red-700 mb-2">Relegated after title</div>
+                                            <div className="text-xs text-red-600 space-y-1">
+                                                {championsAnalysis.relegatedAfterTitle.map((r, idx) => (
+                                                    <div key={idx}>• {r.club} (won {r.wonYear}, relegated {r.relegatedYear})</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div>
+                                {championsAnalysis.promotedThenWon.length > 0 && (
+                                    <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                                        <div className="text-lg font-bold text-emerald-600">{championsAnalysis.promotedThenWon.length}</div>
+                                        <div className="text-xs text-emerald-700 mb-2">Promoted & Won Title</div>
+                                        <div className="text-xs text-emerald-600 space-y-1">
+                                            {championsAnalysis.promotedThenWon.map((p, idx) => (
+                                                <div key={idx}>• {p.club} ({p.year})</div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Relegation Analysis (Below Tier 1 only) */}
+            {relegationAnalysis && relegationAnalysis.total > 0 && (
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-red-50 to-rose-50 border-l-4 border-l-red-500">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-red-800">
+                            <TrendingUp className="w-5 h-5 rotate-180" />
+                            Relegation Analysis
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-4 bg-white rounded-lg">
+                                <div className="text-3xl font-bold text-red-600">{relegationAnalysis.avgPosition}</div>
+                                <div className="text-sm text-red-700">Average relegation position</div>
+                            </div>
+                            <div className="p-4 bg-white rounded-lg">
+                                <div className="text-3xl font-bold text-emerald-600">
+                                    {relegationAnalysis.total > 0 ? ((relegationAnalysis.promoted / relegationAnalysis.total) * 100).toFixed(0) : 0}%
+                                </div>
+                                <div className="text-sm text-emerald-700">Bounced back immediately</div>
+                                <div className="text-xs text-slate-500 mt-1">{relegationAnalysis.promoted}/{relegationAnalysis.total} clubs</div>
+                            </div>
+                            <div className="p-4 bg-white rounded-lg">
+                                <div className="text-3xl font-bold text-slate-700">{relegationAnalysis.total}</div>
+                                <div className="text-sm text-slate-600">Total relegations tracked</div>
+                            </div>
+                        </div>
+                        {relegationAnalysis.details.length > 0 && (
+                            <div className="mt-4 max-h-48 overflow-y-auto">
+                                <div className="text-xs font-semibold text-slate-600 mb-2">Recent Relegations</div>
+                                <div className="space-y-1">
+                                    {relegationAnalysis.details.slice(-10).reverse().map((d, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-2 bg-white rounded text-xs">
+                                            <span className="text-slate-700">{d.club}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-slate-500">{d.relegatedYear}</span>
+                                                {d.bouncedBack && (
+                                                    <Badge className="bg-emerald-500 text-white text-[10px] px-1">Bounced Back</Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Title Dynasties */}
             <Card className="border-0 shadow-sm">
