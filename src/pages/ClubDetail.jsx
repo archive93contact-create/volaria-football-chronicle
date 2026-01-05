@@ -1118,11 +1118,11 @@ export default function ClubDetail() {
                     {/* ANALYTICS TAB */}
                     <TabsContent value="analytics">
                         <ClubAnalytics 
-                            club={club}
-                            seasons={combinedSeasons}
-                            leagues={allLeagues}
+                            club={club} 
+                            seasons={combinedSeasons} 
+                            allLeagues={allLeagues}
                             allClubs={allClubs}
-                            players={players}
+                            allLeagueTables={allNationLeagueTables}
                         />
                     </TabsContent>
 
