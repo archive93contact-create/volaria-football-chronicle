@@ -37,8 +37,6 @@ import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
 import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
 import LeagueHistoricalStats from '@/components/leagues/LeagueHistoricalStats';
-import LeagueAnalytics from '@/components/leagues/LeagueAnalytics';
-import LeagueAnalyticsDashboard from '@/components/leagues/LeagueAnalyticsDashboard';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -530,16 +528,6 @@ export default function LeagueDetail() {
                             <LeagueClubsMap clubs={clubs} nation={nation} />
                             <HeadToHeadMatrix clubs={clubs} leagueTables={leagueTables} />
                         </div>
-                    </TabsContent>
-
-                    {/* ANALYTICS TAB */}
-                    <TabsContent value="analytics">
-                        <LeagueAnalyticsDashboard 
-                            league={league}
-                            seasons={seasons}
-                            leagueTables={leagueTables}
-                            clubs={allNationClubs}
-                        />
                     </TabsContent>
 
                     {/* ANALYTICS TAB */}
