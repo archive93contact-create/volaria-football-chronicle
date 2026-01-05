@@ -34,7 +34,6 @@ import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 import ClubAnalytics from '@/components/clubs/ClubAnalytics';
-import ClubAnalyticsDashboard from '@/components/clubs/ClubAnalyticsDashboard';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1114,17 +1113,6 @@ export default function ClubDetail() {
                                 <LeagueHistoryChart seasons={combinedSeasons} leagues={allLeagues} nationName={nation?.name} />
                             </div>
                         )}
-                    </TabsContent>
-
-                    {/* ANALYTICS TAB */}
-                    <TabsContent value="analytics">
-                        <ClubAnalyticsDashboard 
-                            club={{...club, ...combinedStats}}
-                            seasons={combinedSeasons}
-                            leagues={allLeagues}
-                            allLeagueTables={[...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2, ...formerNameSeasons, ...formerNameSeasons2]}
-                            rivals={allClubs.filter(c => (club.rival_club_ids || []).includes(c.id))}
-                        />
                     </TabsContent>
 
                     {/* ANALYTICS TAB */}
