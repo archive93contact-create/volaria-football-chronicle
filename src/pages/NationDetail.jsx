@@ -39,13 +39,24 @@ export default function NationDetail() {
     const { data: nation, isLoading, error } = useQuery({
         queryKey: ['nation', nationId],
         queryFn: async () => {
-            if (!nationId) return null;
+            if (!nationId) {
+                console.error('No nation ID provided');
+                return null;
+            }
+            console.log('Fetching nation with ID:', nationId);
             const nations = await base44.entities.Nation.filter({ id: nationId });
+            console.log('Nations found:', nations);
             return nations[0] || null;
         },
         enabled: !!nationId,
         retry: false,
     });
+
+    // Log for debugging
+    React.useEffect(() => {
+        if (error) console.error('Nation fetch error:', error);
+        if (!isLoading && !nation && nationId) console.error('Nation not found for ID:', nationId);
+    }, [error, isLoading, nation, nationId]);
 
     const { data: leagues = [] } = useQuery({
         queryKey: ['leagues', nationId],
