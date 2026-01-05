@@ -193,89 +193,21 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             };
         }
         
-        // RISING CLUB - actually tasted top flight (tier 1 or 2)
-        if (topFlightSeasons >= 1) {
-            const tier2Seasons = seasons.filter(s => {
-                const league = leagues.find(l => l.id === s.league_id);
-                return league?.tier === 2;
-            }).length;
-            
-            if (topFlightSeasons >= 3) {
-                return {
-                    tier: 'Rising Club',
-                    description: `${club.name} has tasted top-flight football with ${topFlightSeasons} season${topFlightSeasons > 1 ? 's' : ''} at the highest level. Building towards becoming an established force.`,
-                    color: 'text-cyan-500',
-                    bg: 'bg-cyan-50'
-                };
-            } else {
-                return {
-                    tier: 'Rising Club',
-                    description: `${club.name} had a brief spell in the top flight (${topFlightSeasons} season${topFlightSeasons > 1 ? 's' : ''})${tier2Seasons > 0 ? ` and competes regularly in the second tier` : ''}. Hoping to return to the elite.`,
-                    color: 'text-cyan-500',
-                    bg: 'bg-cyan-50'
-                };
-            }
-        }
-        
-        // SECOND TIER CONTENDERS - never reached top flight but established in tier 2
-        const tier2Seasons = seasons.filter(s => {
-            const league = leagues.find(l => l.id === s.league_id);
-            return league?.tier === 2;
-        }).length;
-        
-        if (tier2Seasons >= 5 && currentTier === 2) {
+        // RISING CLUB - tasted top flight or long history
+        if (topFlightSeasons >= 1 || totalSeasons >= 10) {
             return {
-                tier: 'Second Tier Regulars',
-                description: `${club.name} has spent ${tier2Seasons} seasons in the second tier. A well-established club knocking on the door of the top flight.`,
-                color: 'text-indigo-500',
-                bg: 'bg-indigo-50'
+                tier: 'Rising Club',
+                description: `${club.name} has tasted top-flight football and is building towards becoming an established force. Well-known locally and growing their reputation.`,
+                color: 'text-cyan-500',
+                bg: 'bg-cyan-50'
             };
         }
         
-        // LOWER LEAGUE STALWARTS - tier 3-4 regulars (or TFA tiers 3-4)
-        const tier3_4Seasons = seasons.filter(s => {
-            const league = leagues.find(l => l.id === s.league_id);
-            return league?.tier >= 3 && league?.tier <= 4;
-        }).length;
-        
-        if (tier3_4Seasons >= 5 && currentTier >= 3 && currentTier <= 4) {
-            return {
-                tier: 'Lower League Regulars',
-                description: `${club.name} is a mainstay of Tier ${currentTier} football with ${tier3_4Seasons} seasons at this level. Known regionally, they dream of climbing higher.`,
-                color: 'text-blue-500',
-                bg: 'bg-blue-50'
-            };
-        }
-        
-        // NON-LEAGUE CLUB - tier 5+
-        if (currentTier >= 5 && totalSeasons >= 5) {
-            const tfaSeasons = seasons.filter(s => {
-                const league = leagues.find(l => l.id === s.league_id);
-                return league?.tier && league.tier <= 4;
-            }).length;
-            
-            if (tfaSeasons > 0) {
-                return {
-                    tier: 'Non-League Club',
-                    description: `${club.name} currently plays in the regional leagues (Tier ${currentTier}). They had ${tfaSeasons} season${tfaSeasons > 1 ? 's' : ''} in the organized tiers and aspire to return.`,
-                    color: 'text-slate-600',
-                    bg: 'bg-slate-100'
-                };
-            } else {
-                return {
-                    tier: 'Regional Football',
-                    description: `${club.name} represents regional football at Tier ${currentTier}. Never reached the organized leagues, they are a true grassroots club serving their local community.`,
-                    color: 'text-slate-500',
-                    bg: 'bg-slate-50'
-                };
-            }
-        }
-        
-        // LOCAL CLUB - some history but lower tiers
+        // LOCAL CLUB
         if (totalSeasons >= 5) {
             return {
                 tier: 'Local Club',
-                description: `A community club with ${totalSeasons} seasons of history, ${club.name} represents grassroots football. The pride of ${club.settlement || club.district || club.region || 'their community'}.`,
+                description: `A community club with loyal support, ${club.name} represents grassroots football. The pride of ${club.settlement || club.district || club.region || 'their town'}.`,
                 color: 'text-slate-500',
                 bg: 'bg-slate-50'
             };
@@ -284,7 +216,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         // NEWCOMER
         return {
             tier: 'Newcomer',
-            description: `${club.name} is a newer addition to football${currentTier ? ` competing in Tier ${currentTier}` : ''}, still building their history. Every legendary club started somewhere.`,
+            description: `${club.name} is a newer addition to organized football, still building their history. Every legendary club started somewhere.`,
             color: 'text-green-500',
             bg: 'bg-green-50'
         };
@@ -692,83 +624,6 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             title: 'Cup Final Veterans',
             text: `Reached ${club.domestic_cup_runner_up} cup finals without winning - the heartbreak continues.`
         });
-    }
-
-    // Former cup winner now in lower leagues
-    const currentLeague = leagues.find(l => l.id === club.league_id);
-    const currentTier = currentLeague?.tier || 1;
-    
-    if (club.domestic_cup_titles > 0 && currentTier >= 3) {
-        let yearsSinceCupWin = null;
-        if (club.domestic_cup_title_years) {
-            const years = club.domestic_cup_title_years.split(',').map(y => parseInt(y.trim())).filter(y => !isNaN(y));
-            if (years.length > 0) {
-                yearsSinceCupWin = new Date().getFullYear() - Math.max(...years);
-            }
-        }
-        
-        if (currentTier >= 5) {
-            narratives.push({
-                icon: Trophy,
-                color: 'text-orange-700',
-                bg: 'bg-orange-100',
-                title: 'Fallen Cup Champions',
-                text: `Won ${club.domestic_cup_titles} domestic cup${club.domestic_cup_titles > 1 ? 's' : ''} but now languish in Tier ${currentTier}${yearsSinceCupWin && yearsSinceCupWin >= 15 ? ` - ${yearsSinceCupWin} years since their last triumph` : ''}. A shocking decline for former cup heroes.`
-            });
-        } else if (currentTier === 4) {
-            narratives.push({
-                icon: Trophy,
-                color: 'text-orange-600',
-                bg: 'bg-orange-50',
-                title: 'Cup Winners in Decline',
-                text: `${club.domestic_cup_titles}-time domestic cup winner${club.domestic_cup_titles > 1 ? 's' : ''} now competing in Tier 4. Fighting to restore former glories.`
-            });
-        } else {
-            narratives.push({
-                icon: Trophy,
-                color: 'text-amber-600',
-                bg: 'bg-amber-50',
-                title: 'Cup Pedigree',
-                text: `Won ${club.domestic_cup_titles} domestic cup${club.domestic_cup_titles > 1 ? 's' : ''} - a reminder of past glories as they rebuild in Tier ${currentTier}.`
-            });
-        }
-    }
-
-    // Former league champion now in lower leagues
-    if (club.league_titles > 0 && currentTier >= 3) {
-        let yearsSinceTitle = null;
-        if (club.title_years) {
-            const years = club.title_years.split(',').map(y => parseInt(y.trim())).filter(y => !isNaN(y));
-            if (years.length > 0) {
-                yearsSinceTitle = new Date().getFullYear() - Math.max(...years);
-            }
-        }
-        
-        if (currentTier >= 5) {
-            narratives.push({
-                icon: Trophy,
-                color: 'text-red-700',
-                bg: 'bg-red-100',
-                title: 'Former Champions in Exile',
-                text: `Won ${club.league_titles} league title${club.league_titles > 1 ? 's' : ''} but now play in Tier ${currentTier}${yearsSinceTitle && yearsSinceTitle >= 20 ? ` - ${yearsSinceTitle} years since they lifted the trophy` : ''}. One of football's great falls from grace.`
-            });
-        } else if (currentTier === 4) {
-            narratives.push({
-                icon: Trophy,
-                color: 'text-red-600',
-                bg: 'bg-red-50',
-                title: 'Champions Fallen',
-                text: `${club.league_titles}-time league champion${club.league_titles > 1 ? 's' : ''} now in Tier 4. A painful fall for a club that once ruled the top flight.`
-            });
-        } else {
-            narratives.push({
-                icon: Star,
-                color: 'text-orange-600',
-                bg: 'bg-orange-50',
-                title: 'Former Glory',
-                text: `Won ${club.league_titles} league title${club.league_titles > 1 ? 's' : ''} but now in Tier ${currentTier}. The glory days feel distant.`
-            });
-        }
     }
 
     // Multiple VCC appearances
@@ -1252,91 +1107,32 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             }
         }
 
-        // Dropped out of TFA for the first time - with context if they were successful
+        // Dropped out of TFA for the first time
         if (nonTfaSeasons.length > 0 && tfaSeasons.length > 0) {
             const firstNonTfaSeason = [...nonTfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
             const tfaSeasonsBeforeDrop = tfaSeasons.filter(s => s.year < firstNonTfaSeason.year);
             if (tfaSeasonsBeforeDrop.length > 0) {
                 const allSeasonsBefore = sortedSeasons.filter(s => s.year < firstNonTfaSeason.year);
                 if (allSeasonsBefore.every(s => getLeagueTier(s.league_id) <= 4)) {
-                    const wasChampion = club.league_titles > 0;
-                    const wasCupWinner = club.domestic_cup_titles > 0;
-                    const hadTopFlight = topFlightSeasonsList.some(s => s.year < firstNonTfaSeason.year);
-                    
-                    if (wasChampion) {
-                        narratives.push({
-                            icon: TrendingDown,
-                            color: 'text-red-700',
-                            bg: 'bg-red-100',
-                            title: 'Champions Expelled',
-                            text: `Former league champion${club.league_titles > 1 ? 's' : ''} dropped out of the TFA Football League in ${firstNonTfaSeason.year}. An unthinkable fate for a club that once ruled the roost.`
-                        });
-                    } else if (wasCupWinner) {
-                        narratives.push({
-                            icon: Trophy,
-                            color: 'text-red-700',
-                            bg: 'bg-red-50',
-                            title: 'Cup Winners Cast Out',
-                            text: `Domestic cup winner${club.domestic_cup_titles > 1 ? 's' : ''} exited the TFA in ${firstNonTfaSeason.year}. Former glory means nothing in non-league football.`
-                        });
-                    } else if (hadTopFlight) {
-                        narratives.push({
-                            icon: Star,
-                            color: 'text-orange-700',
-                            bg: 'bg-orange-50',
-                            title: 'Top Flight Alumni Expelled',
-                            text: `Former top-flight club dropped from the TFA in ${firstNonTfaSeason.year}. A humbling fall into the regional leagues.`
-                        });
-                    } else {
-                        narratives.push({
-                            icon: TrendingDown,
-                            color: 'text-red-600',
-                            bg: 'bg-red-50',
-                            title: 'Farewell to the TFA',
-                            text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}.`
-                        });
-                    }
+                    narratives.push({
+                        icon: TrendingDown,
+                        color: 'text-red-600',
+                        bg: 'bg-red-50',
+                        title: 'Farewell to the TFA',
+                        text: `Dropped out of the TFA Football League for the first time in ${firstNonTfaSeason.year}.`
+                    });
                 }
             }
         }
 
-        // Currently outside TFA - enhanced duration-based narratives with context for former champions
+        // Currently outside TFA - enhanced duration-based narratives
         const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
         const mostRecentTier = getLeagueTier(mostRecentSeason?.league_id);
         if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
             const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
             const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
             
-            // Check if they're a former top-flight club or champion
-            const wasTopFlightChampion = club.league_titles > 0;
-            const wasCupWinner = club.domestic_cup_titles > 0;
-            const hadTopFlightSeasons = topFlightSeasonsList.length > 0;
-            
-            if (wasTopFlightChampion && seasonsAway >= 15) {
-                narratives.push({
-                    icon: TrendingDown,
-                    color: 'text-red-800',
-                    bg: 'bg-red-200',
-                    title: 'Champions Cast Out',
-                    text: `Former ${club.league_titles}-time league champion${club.league_titles > 1 ? 's' : ''} expelled from the TFA system ${seasonsAway} seasons ago (${lastTfaSeason.year}). A once-proud club now playing regional football - an unthinkable fall.`
-                });
-            } else if (wasCupWinner && seasonsAway >= 15) {
-                narratives.push({
-                    icon: Trophy,
-                    color: 'text-red-700',
-                    bg: 'bg-red-100',
-                    title: 'Cup Winners Banished',
-                    text: `${club.domestic_cup_titles}-time cup winner${club.domestic_cup_titles > 1 ? 's' : ''} cast out of the TFA ${seasonsAway} seasons ago. Cup heroes now toiling in the non-league wilderness.`
-                });
-            } else if (hadTopFlightSeasons && seasonsAway >= 15) {
-                narratives.push({
-                    icon: Star,
-                    color: 'text-orange-700',
-                    bg: 'bg-orange-100',
-                    title: 'Former Elite Cast Down',
-                    text: `A club that played ${topFlightSeasonsList.length} season${topFlightSeasonsList.length > 1 ? 's' : ''} in the top flight, now ${seasonsAway} seasons removed from the TFA. The elite days are long gone.`
-                });
-            } else if (seasonsAway >= 20) {
+            if (seasonsAway >= 20) {
                 narratives.push({
                     icon: Clock,
                     color: 'text-slate-700',
