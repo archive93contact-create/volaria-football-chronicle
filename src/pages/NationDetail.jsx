@@ -155,7 +155,8 @@ export default function NationDetail() {
         updateMutation.mutate(submitData);
     };
 
-    if (isLoading || !nation) {
+    // Only show loading on initial load, not on refetches
+    if (isLoading && !nation) {
         return (
             <div className="min-h-screen bg-slate-50">
                 <Skeleton className="h-64 w-full" />
@@ -165,6 +166,24 @@ export default function NationDetail() {
             </div>
         );
     }
+
+    // If we've finished loading but have no nation, redirect
+    if (!isLoading && !nation) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <Card className="max-w-md">
+                    <CardContent className="text-center py-8">
+                        <h2 className="text-xl font-bold mb-4">Nation Not Found</h2>
+                        <Link to={createPageUrl('Nations')}>
+                            <Button>Back to Nations</Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (!nation) return null;
 
     // Group leagues by tier
     const leaguesByTier = leagues.reduce((acc, league) => {
