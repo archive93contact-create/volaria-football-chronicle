@@ -695,6 +695,9 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
     }
 
     // Former cup winner now in lower leagues
+    const currentLeague = leagues.find(l => l.id === club.league_id);
+    const currentTier = currentLeague?.tier || 1;
+    
     if (club.domestic_cup_titles > 0 && currentTier >= 3) {
         let yearsSinceCupWin = null;
         if (club.domestic_cup_title_years) {
