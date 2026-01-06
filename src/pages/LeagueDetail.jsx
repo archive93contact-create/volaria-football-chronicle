@@ -187,10 +187,35 @@ export default function LeagueDetail() {
         setIsEditing(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        const newTier = parseInt(editData.tier) || 1;
+        const oldTier = league.tier || 1;
+        
+        // If tier has changed, preserve historical tier in all existing seasons
+        if (newTier !== oldTier && seasons.length > 0) {
+            const confirmed = window.confirm(
+                `League tier is changing from ${oldTier} to ${newTier}.\n\n` +
+                `This will automatically preserve the old tier (${oldTier}) in all ${seasons.length} existing season records, ` +
+                `so club history will show the correct tier for when they played.\n\n` +
+                `Continue?`
+            );
+            
+            if (!confirmed) return;
+            
+            // Update all existing seasons to preserve old tier
+            for (const season of seasons) {
+                if (!season.tier) { // Only set if not already overridden
+                    await base44.entities.Season.update(season.id, { tier: oldTier });
+                }
+            }
+            
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+        }
+        
         const submitData = {
             ...editData,
-            tier: parseInt(editData.tier) || 1,
+            tier: newTier,
             founded_year: editData.founded_year ? parseInt(editData.founded_year) : null,
             number_of_teams: editData.number_of_teams ? parseInt(editData.number_of_teams) : null,
         };
