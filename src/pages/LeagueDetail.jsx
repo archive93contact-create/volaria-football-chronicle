@@ -120,9 +120,34 @@ export default function LeagueDetail() {
     });
 
     const updateMutation = useMutation({
-        mutationFn: (data) => base44.entities.League.update(leagueId, data),
+        mutationFn: async (data) => {
+            const newTier = parseInt(data.tier) || 1;
+            const oldTier = league.tier || 1;
+            
+            // If tier has changed, preserve historical tier first
+            if (newTier !== oldTier && (seasons.length > 0 || leagueTables.length > 0)) {
+                // Update all existing seasons to preserve old tier
+                for (const season of seasons) {
+                    if (!season.tier) {
+                        await base44.entities.Season.update(season.id, { tier: oldTier });
+                    }
+                }
+                
+                // Update all existing league table entries to preserve old tier
+                for (const table of leagueTables) {
+                    if (!table.tier) {
+                        await base44.entities.LeagueTable.update(table.id, { tier: oldTier });
+                    }
+                }
+            }
+            
+            // Now update the league
+            return base44.entities.League.update(leagueId, data);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
             setIsEditing(false);
         },
     });
@@ -187,46 +212,10 @@ export default function LeagueDetail() {
         setIsEditing(true);
     };
 
-    const handleSave = async () => {
-        const newTier = parseInt(editData.tier) || 1;
-        const oldTier = league.tier || 1;
-        
-        // If tier has changed, preserve historical tier in all existing seasons AND league tables
-        if (newTier !== oldTier && (seasons.length > 0 || leagueTables.length > 0)) {
-            const confirmed = window.confirm(
-                `League tier is changing from ${oldTier} to ${newTier}.\n\n` +
-                `This will automatically preserve the old tier (${oldTier}) in all existing season and table records, ` +
-                `so club history will show the correct tier for when they played.\n\n` +
-                `Continue?`
-            );
-            
-            if (!confirmed) {
-                setIsEditing(false);
-                return;
-            }
-            
-            // Update all existing seasons to preserve old tier
-            for (const season of seasons) {
-                if (!season.tier) { // Only set if not already overridden
-                    await base44.entities.Season.update(season.id, { tier: oldTier });
-                }
-            }
-            
-            // Update all existing league table entries to preserve old tier
-            for (const table of leagueTables) {
-                if (!table.tier) { // Only set if not already overridden
-                    await base44.entities.LeagueTable.update(table.id, { tier: oldTier });
-                }
-            }
-            
-            // Invalidate queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
-            queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
-        }
-        
+    const handleSave = () => {
         const submitData = {
             ...editData,
-            tier: newTier,
+            tier: editData.tier ? parseInt(editData.tier) : null,
             founded_year: editData.founded_year ? parseInt(editData.founded_year) : null,
             number_of_teams: editData.number_of_teams ? parseInt(editData.number_of_teams) : null,
         };
