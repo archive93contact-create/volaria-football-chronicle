@@ -26,6 +26,7 @@ import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
 import LeagueStructureManager from '@/components/nations/LeagueStructureManager';
+import NationAnalyticsDashboard from '@/components/analytics/NationAnalyticsDashboard';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {
@@ -104,6 +105,17 @@ export default function NationDetail() {
         queryKey: ['nationalSquadPlayers', nation?.name],
         queryFn: () => base44.entities.Player.filter({ nationality: nation.name }),
         enabled: !!nation?.name,
+    });
+
+    const { data: leagueTables = [] } = useQuery({
+        queryKey: ['nationLeagueTables', nationId],
+        queryFn: async () => {
+            const leagueIds = leagues.map(l => l.id);
+            if (leagueIds.length === 0) return [];
+            const allTables = await base44.entities.LeagueTable.list();
+            return allTables.filter(t => leagueIds.includes(t.league_id));
+        },
+        enabled: leagues.length > 0,
     });
 
     // Calculate national team strength based on top 22 players
@@ -402,6 +414,10 @@ export default function NationDetail() {
                         <TabsTrigger value="clubs" className="flex items-center gap-2">
                             <Star className="w-4 h-4" />
                             Most Successful
+                        </TabsTrigger>
+                        <TabsTrigger value="analytics" className="flex items-center gap-2">
+                            <Trophy className="w-4 h-4" />
+                            Analytics
                         </TabsTrigger>
                     </TabsList>
 
@@ -809,6 +825,19 @@ export default function NationDetail() {
                         </Card>
                     </div>
                 </div>
+                    </TabsContent>
+
+                    <TabsContent value="analytics">
+                        <NationAnalyticsDashboard 
+                            nation={nation}
+                            leagues={leagues}
+                            clubs={allNationClubs}
+                            seasons={seasons}
+                            leagueTables={leagueTables}
+                            domesticCups={domesticCups}
+                            domesticCupSeasons={cupSeasons}
+                            players={nationalPlayers}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>
