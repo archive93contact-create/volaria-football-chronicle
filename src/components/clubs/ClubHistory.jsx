@@ -10,7 +10,13 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         const results = [];
         
         const getLeagueTier = (leagueId) => leagues.find(l => l.id === leagueId)?.tier || 1;
-        const getLeagueName = (leagueId) => leagues.find(l => l.id === leagueId)?.name || 'the league';
+        const getLeagueName = (leagueId, season) => {
+            const leagueName = leagues.find(l => l.id === leagueId)?.name || 'the league';
+            if (season?.division_name) {
+                return `${leagueName} - ${season.division_name}`;
+            }
+            return leagueName;
+        };
         
         const firstSeason = sortedSeasons[0];
         const foundingYear = club.founded_year || parseInt(firstSeason?.year?.split('-')[0]);
@@ -80,7 +86,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
 
         // First recorded season with context
         if (firstSeason) {
-            const leagueName = getLeagueName(firstSeason.league_id);
+            const leagueName = getLeagueName(firstSeason.league_id, firstSeason);
             const tier = getLeagueTier(firstSeason.league_id);
             const pos = ordinal(firstSeason.position);
             
@@ -106,7 +112,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         // First top flight season (only if they didn't start there)
         const firstTopFlight = sortedSeasons.find(s => getLeagueTier(s.league_id) === 1);
         if (firstTopFlight && getLeagueTier(firstSeason.league_id) !== 1) {
-            const leagueName = getLeagueName(firstTopFlight.league_id);
+            const leagueName = getLeagueName(firstTopFlight.league_id, firstTopFlight);
             results.push({
                 year: parseInt(firstTopFlight.year.split('-')[0]),
                 icon: Star,
@@ -129,7 +135,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         if (championships.length > 0) {
             const firstChamp = championships[0];
             const tier = getLeagueTier(firstChamp.league_id);
-            const leagueName = getLeagueName(firstChamp.league_id);
+            const leagueName = getLeagueName(firstChamp.league_id, firstChamp);
             const yearNum = parseInt(firstChamp.year.split('-')[0]);
             
             results.push({
@@ -146,7 +152,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         const topFlightChamps = championshipsByTier[1] || [];
         if (topFlightChamps.length > 0) {
             const firstTopFlightTitle = topFlightChamps[0];
-            const leagueName = getLeagueName(firstTopFlightTitle.league_id);
+            const leagueName = getLeagueName(firstTopFlightTitle.league_id, firstTopFlightTitle);
             const yearNum = parseInt(firstTopFlightTitle.year.split('-')[0]);
             
             // Only add if it's different from the first ever championship
@@ -165,7 +171,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
             for (let i = 1; i < tierChamps.length; i++) {
                 const prevYear = parseInt(tierChamps[i - 1].year.split('-')[0]);
                 const currYear = parseInt(tierChamps[i].year.split('-')[0]);
-                const leagueName = getLeagueName(tierChamps[i].league_id);
+                const leagueName = getLeagueName(tierChamps[i].league_id, tierChamps[i]);
                 
                 if (currYear === prevYear + 1) {
                     results.push({
@@ -273,7 +279,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         promotions.forEach((s, idx) => {
             const yearNum = parseInt(s.year.split('-')[0]);
             const nextSeason = sortedSeasons.find(ns => parseInt(ns.year.split('-')[0]) === yearNum + 1);
-            const destLeague = nextSeason ? getLeagueName(nextSeason.league_id) : null;
+            const destLeague = nextSeason ? getLeagueName(nextSeason.league_id, nextSeason) : null;
             
             if (idx === 0) {
                 results.push({
@@ -298,7 +304,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         const firstRelegation = sortedSeasons.find(s => s.status === 'relegated');
         if (firstRelegation) {
             const tier = getLeagueTier(firstRelegation.league_id);
-            const leagueName = getLeagueName(firstRelegation.league_id);
+            const leagueName = getLeagueName(firstRelegation.league_id, firstRelegation);
             results.push({
                 year: parseInt(firstRelegation.year.split('-')[0]),
                 icon: TrendingDown,

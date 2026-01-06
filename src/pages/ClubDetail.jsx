@@ -1077,6 +1077,7 @@ export default function ClubDetail() {
                                                                                                                           {seasonLeague ? (
                                                                                                                               <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className={`hover:text-emerald-600 hover:underline ${seasonLeague.tier === 1 ? 'font-bold' : ''}`}>
                                                                                                                                   {seasonLeague.name}
+                                                                                                                                  {season.division_name && <span className="text-slate-500"> - {season.division_name}</span>}
                                                                                                                                   <span className={`ml-1 text-xs ${seasonLeague.tier === 1 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
                                                                                                                                       (T{seasonLeague.tier})
                                                                                                                                   </span>

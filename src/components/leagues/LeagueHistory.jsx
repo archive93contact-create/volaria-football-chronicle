@@ -19,68 +19,99 @@ export default function LeagueHistory({ league, seasons = [], nation }) {
             });
         }
 
-        // First season
-        const firstSeason = sortedSeasons[0];
-        if (firstSeason) {
-            const yearNum = parseInt(firstSeason.year.split('-')[0]);
+        // First season - handle multiple divisions
+        const firstYear = sortedSeasons[0]?.year;
+        const firstYearSeasons = sortedSeasons.filter(s => s.year === firstYear);
+        if (firstYearSeasons.length > 0) {
+            const yearNum = parseInt(firstYear.split('-')[0]);
+            const champions = firstYearSeasons.map(s => s.champion_name).filter(Boolean);
+            
+            let championText = '';
+            if (champions.length === 1) {
+                championText = `, with ${champions[0]} crowned first champions`;
+            } else if (champions.length > 1) {
+                championText = `, with champions crowned across ${champions.length} divisions: ${champions.join(', ')}`;
+            }
+            
             results.push({
                 year: yearNum,
                 icon: BookOpen,
                 color: 'text-blue-500',
-                text: `Inaugural season${firstSeason.champion_name ? `, with ${firstSeason.champion_name} crowned first champions` : ''}.`
+                text: `Inaugural season${championText}.`
             });
         }
 
-        // Track champions and dynasties
+        // Track champions and dynasties - group by year first to handle divisions
         const championCounts = {};
-        let currentDynasty = { club: null, count: 0, startYear: null };
+        const yearlyChampions = {};
         
-        sortedSeasons.forEach((s, idx) => {
+        sortedSeasons.forEach(s => {
             if (s.champion_name) {
                 championCounts[s.champion_name] = (championCounts[s.champion_name] || 0) + 1;
-                
-                if (s.champion_name === currentDynasty.club) {
+                if (!yearlyChampions[s.year]) yearlyChampions[s.year] = [];
+                yearlyChampions[s.year].push(s.champion_name);
+            }
+        });
+        
+        // Dynasty tracking using unique years (not division count)
+        const uniqueYears = Object.keys(yearlyChampions).sort();
+        let currentDynasty = { club: null, count: 0, startYear: null };
+        
+        uniqueYears.forEach((year, idx) => {
+            const champions = yearlyChampions[year];
+            // For multi-division, check if one club won multiple divisions
+            const uniqueChamps = [...new Set(champions)];
+            
+            if (uniqueChamps.length === 1) {
+                const champ = uniqueChamps[0];
+                if (champ === currentDynasty.club) {
                     currentDynasty.count++;
                 } else {
                     // Check if previous dynasty was notable
                     if (currentDynasty.count >= 3) {
                         results.push({
-                            year: parseInt(sortedSeasons[idx - 1]?.year.split('-')[0] || s.year.split('-')[0]),
+                            year: parseInt(uniqueYears[idx - 1]?.split('-')[0] || year.split('-')[0]),
                             icon: Flame,
                             color: 'text-orange-500',
                             text: `${currentDynasty.club} completed ${currentDynasty.count} consecutive titles.`
                         });
                     }
-                    currentDynasty = { club: s.champion_name, count: 1, startYear: s.year };
+                    currentDynasty = { club: champ, count: 1, startYear: year };
                 }
             }
         });
 
         // Check final dynasty
         if (currentDynasty.count >= 3) {
-            const lastSeason = sortedSeasons[sortedSeasons.length - 1];
+            const lastYear = uniqueYears[uniqueYears.length - 1];
             results.push({
-                year: parseInt(lastSeason.year.split('-')[0]),
+                year: parseInt(lastYear.split('-')[0]),
                 icon: Flame,
                 color: 'text-orange-500',
                 text: `${currentDynasty.club} ${currentDynasty.count >= 4 ? 'dominating with' : 'secured'} ${currentDynasty.count} titles in a row.`
             });
         }
 
-        // First-time champions
+        // First-time champions - track unique champions by year (not by division)
         const seenChampions = new Set();
-        sortedSeasons.forEach(s => {
-            if (s.champion_name && !seenChampions.has(s.champion_name)) {
-                seenChampions.add(s.champion_name);
-                if (seenChampions.size > 1 && seenChampions.size <= 5) {
-                    results.push({
-                        year: parseInt(s.year.split('-')[0]),
-                        icon: Star,
-                        color: 'text-amber-500',
-                        text: `${s.champion_name} won their first ${league.name} title.`
-                    });
+        uniqueYears.forEach(year => {
+            const champions = [...new Set(yearlyChampions[year])];
+            champions.forEach(champ => {
+                if (!seenChampions.has(champ)) {
+                    seenChampions.add(champ);
+                    if (seenChampions.size > 1 && seenChampions.size <= 5) {
+                        const divisionSuffix = yearlyChampions[year].length > 1 
+                            ? ` (${sortedSeasons.find(s => s.year === year && s.champion_name === champ)?.division_name || 'division'})` 
+                            : '';
+                        results.push({
+                            year: parseInt(year.split('-')[0]),
+                            icon: Star,
+                            color: 'text-amber-500',
+                            text: `${champ} won their first ${league.name} title${divisionSuffix}.`
+                        });
+                    }
                 }
-            }
+            });
         });
 
         // Milestone seasons
