@@ -14,15 +14,18 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
         const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
         
         // Performance Over Time
-        const performanceData = sortedSeasons.map(s => ({
-            year: s.year,
-            position: s.position,
-            points: s.points || 0,
-            goalsFor: s.goals_for || 0,
-            goalsAgainst: s.goals_against || 0,
-            goalDiff: (s.goals_for || 0) - (s.goals_against || 0),
-            tier: allLeagues.find(l => l.id === s.league_id)?.tier || 1
-        }));
+        const performanceData = sortedSeasons.map(s => {
+            const league = allLeagues.find(l => l.id === s.league_id);
+            return {
+                year: s.year,
+                position: s.position,
+                points: s.points || 0,
+                goalsFor: s.goals_for || 0,
+                goalsAgainst: s.goals_against || 0,
+                goalDiff: (s.goals_for || 0) - (s.goals_against || 0),
+                tier: s.tier || league?.tier || 1
+            };
+        });
 
         // Home vs Away (estimate from total stats)
         const totalGames = seasons.reduce((sum, s) => sum + (s.played || 0), 0);
@@ -47,7 +50,7 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
         // Tier distribution
         const tierDistribution = {};
         seasons.forEach(s => {
-            const tier = allLeagues.find(l => l.id === s.league_id)?.tier || 1;
+            const tier = s.tier || allLeagues.find(l => l.id === s.league_id)?.tier || 1;
             tierDistribution[`Tier ${tier}`] = (tierDistribution[`Tier ${tier}`] || 0) + 1;
         });
         
@@ -92,7 +95,7 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
         
         // Best and worst seasons
         const topFlightSeasons = seasons.filter(s => {
-            const tier = allLeagues.find(l => l.id === s.league_id)?.tier;
+            const tier = s.tier || allLeagues.find(l => l.id === s.league_id)?.tier;
             return tier === 1;
         });
         
