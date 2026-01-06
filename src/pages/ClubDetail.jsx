@@ -860,8 +860,8 @@ export default function ClubDetail() {
                     {/* Top Flight Stats */}
                     {(() => {
                         const topFlightSeasons = combinedSeasons.filter(s => {
-                            const seasonLeague = allLeagues.find(l => l.id === s.league_id);
-                            return seasonLeague?.tier === 1;
+                            const tier = s.tier || allLeagues.find(l => l.id === s.league_id)?.tier;
+                            return tier === 1;
                         });
                         if (topFlightSeasons.length === 0) return null;
                         
@@ -1087,13 +1087,18 @@ export default function ClubDetail() {
                                                         </TableCell>
                                                         <TableCell>
                                                                                                                           {seasonLeague ? (
-                                                                                                                              <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className={`hover:text-emerald-600 hover:underline ${seasonLeague.tier === 1 ? 'font-bold' : ''}`}>
-                                                                                                                                  {seasonLeague.name}
-                                                                                                                                  {season.division_name && <span className="text-slate-500"> - {season.division_name}</span>}
-                                                                                                                                  <span className={`ml-1 text-xs ${seasonLeague.tier === 1 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
-                                                                                                                                      (T{seasonLeague.tier})
-                                                                                                                                  </span>
-                                                                                                                              </Link>
+                                                                                                                              (() => {
+                                                                                                                                  const displayTier = season.tier || seasonLeague.tier;
+                                                                                                                                  return (
+                                                                                                                                      <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className={`hover:text-emerald-600 hover:underline ${displayTier === 1 ? 'font-bold' : ''}`}>
+                                                                                                                                          {seasonLeague.name}
+                                                                                                                                          {season.division_name && <span className="text-slate-500"> - {season.division_name}</span>}
+                                                                                                                                          <span className={`ml-1 text-xs ${displayTier === 1 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                                                                                                                                              (T{displayTier})
+                                                                                                                                          </span>
+                                                                                                                                      </Link>
+                                                                                                                                  );
+                                                                                                                              })()
                                                                                                                           ) : '-'}
                                                                                                                       </TableCell>
                                                         <TableCell className="text-center">

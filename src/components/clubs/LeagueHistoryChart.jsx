@@ -8,8 +8,8 @@ export default function LeagueHistoryChart({ seasons, leagues, nationName }) {
 
     // Get max tier from the data
     const maxTier = Math.max(...seasons.map(s => {
-        const league = leagues.find(l => l.id === s.league_id);
-        return league?.tier || 1;
+        const tier = s.tier || leagues.find(l => l.id === s.league_id)?.tier;
+        return tier || 1;
     }));
 
     // Calculate a combined score: lower is better
@@ -18,7 +18,7 @@ export default function LeagueHistoryChart({ seasons, leagues, nationName }) {
     const chartData = seasons
         .map(s => {
             const league = leagues.find(l => l.id === s.league_id);
-            const tier = league?.tier || 1;
+            const tier = s.tier || league?.tier || 1;
             const teamsInLeague = league?.number_of_teams || 20;
             
             // Combined score where lower is better
