@@ -19,9 +19,12 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
         }, {});
     }, [leagues]);
 
-    // Calculate which leagues are active (have recent season data)
+    // Calculate which leagues are active (have recent season data and not defunct)
     const leagueActivity = useMemo(() => {
         const activity = {};
+        const allYears = seasons.map(s => parseInt(s.year.split('-')[0])).filter(Boolean);
+        const mostRecentYear = allYears.length > 0 ? Math.max(...allYears) : null;
+        
         leagues.forEach(league => {
             const leagueSeasons = seasons.filter(s => s.league_id === league.id);
             const hasRecentData = leagueSeasons.length > 0;
@@ -29,10 +32,16 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
                 ? Math.max(...leagueSeasons.map(s => parseInt(s.year.split('-')[0])))
                 : null;
             
+            // Consider inactive if: no data, or data is old (>5 years behind most recent), or marked as defunct
+            const isDefunct = league.is_active === false;
+            const isStale = mostRecentYear && latestYear && (mostRecentYear - latestYear > 5);
+            
             activity[league.id] = {
-                isActive: hasRecentData,
+                isActive: hasRecentData && !isDefunct && !isStale,
                 latestYear,
-                seasonCount: leagueSeasons.length
+                seasonCount: leagueSeasons.length,
+                isDefunct,
+                isStale
             };
         });
         return activity;
@@ -148,6 +157,8 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
                                                     const activity = leagueActivity[league.id];
                                                     const leagueClubs = clubs.filter(c => c.league_id === league.id && !c.is_defunct);
                                                     const isActive = activity?.isActive;
+                                                    const isDefunct = activity?.isDefunct;
+                                                    const isStale = activity?.isStale;
 
                                                     return (
                                                         <div 
@@ -155,7 +166,7 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
                                                             className={`p-3 rounded-lg border transition-all ${
                                                                 isActive 
                                                                     ? 'bg-white border-slate-200 hover:border-emerald-300' 
-                                                                    : 'bg-slate-50 border-slate-200 opacity-60'
+                                                                    : 'bg-slate-50 border-slate-200 opacity-50 grayscale'
                                                             }`}
                                                         >
                                                             <Link 
@@ -176,14 +187,14 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center gap-2">
                                                                         <h4 className="font-bold text-slate-900 truncate">{league.name}</h4>
-                                                                        {!isActive && (
-                                                                            <Badge variant="outline" className="text-xs bg-slate-100 text-slate-600">
-                                                                                Inactive
-                                                                            </Badge>
-                                                                        )}
-                                                                        {league.is_active === false && (
+                                                                        {isDefunct && (
                                                                             <Badge variant="outline" className="text-xs bg-red-50 text-red-600 border-red-200">
                                                                                 Defunct
+                                                                            </Badge>
+                                                                        )}
+                                                                        {!isActive && !isDefunct && (
+                                                                            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                                                                                {isStale ? 'Dormant' : 'No Data'}
                                                                             </Badge>
                                                                         )}
                                                                     </div>
