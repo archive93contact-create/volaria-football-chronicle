@@ -25,6 +25,7 @@ import ImmersiveNationContent from '@/components/nations/ImmersiveNationContent'
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
+import LeagueStructureManager from '@/components/nations/LeagueStructureManager';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {
@@ -697,6 +698,13 @@ export default function NationDetail() {
                             </AdminOnly>
                         </div>
 
+                        <LeagueStructureManager 
+                            leagues={leagues} 
+                            seasons={seasons} 
+                            clubs={clubs}
+                            nationId={nationId}
+                        />
+
                         {/* Domestic Cups Section */}
                         {(domesticCups.length > 0 || true) && (
                             <div className="mt-8">
@@ -734,66 +742,7 @@ export default function NationDetail() {
                             </div>
                         )}
 
-                        {Object.keys(leaguesByTier).length === 0 ? (
-                            <Card className="border-dashed border-2 border-slate-300">
-                                <CardContent className="flex flex-col items-center justify-center py-12">
-                                    <Trophy className="w-12 h-12 text-slate-300 mb-4" />
-                                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No Leagues Yet</h3>
-                                    <p className="text-slate-500 mb-4">Start building the league structure</p>
-                                    <Link to={createPageUrl(`AddLeague?nation_id=${nationId}`)}>
-                                        <Button>Add First League</Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            Object.entries(leaguesByTier).sort(([a], [b]) => a - b).map(([tier, tierLeagues]) => (
-                                <div key={tier}>
-                                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                                        {tier === '1' ? 'Top Division' : `Tier ${tier}`}
-                                    </h3>
-                                    <div className="space-y-3">
-                                        {tierLeagues.map(league => {
-                                            const leagueClubs = clubs.filter(c => c.league_id === league.id && !c.is_defunct);
-                                            return (
-                                                <Link 
-                                                    key={league.id} 
-                                                    to={createPageUrl(`LeagueDetail?id=${league.id}`)}
-                                                    className="block"
-                                                >
-                                                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                                                        <CardContent className="p-4 flex items-center gap-4">
-                                                            {league.logo_url ? (
-                                                                <img 
-                                                                    src={league.logo_url} 
-                                                                    alt={league.name}
-                                                                    className="w-14 h-14 object-contain rounded-lg bg-slate-100 p-2"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-                                                                    <Trophy className="w-6 h-6 text-amber-600" />
-                                                                </div>
-                                                            )}
-                                                            <div className="flex-1">
-                                                                <h4 className="font-bold text-slate-900">{league.name}</h4>
-                                                                <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
-                                                                    <span>{leagueClubs.length} clubs</span>
-                                                                    {league.current_champion && (
-                                                                        <span className="text-emerald-600">
-                                                                            🏆 {league.current_champion}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            <ChevronRight className="w-5 h-5 text-slate-400" />
-                                                        </CardContent>
-                                                    </Card>
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            ))
-                        )}
+
                     </div>
 
                     {/* Info & Clubs Sidebar */}
