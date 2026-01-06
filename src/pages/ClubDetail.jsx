@@ -34,6 +34,7 @@ import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboard';
+import TrophyHaul from '@/components/clubs/TrophyHaul';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -515,6 +516,7 @@ export default function ClubDetail() {
                 <Tabs defaultValue="overview" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="overview">Club Story & Honours</TabsTrigger>
+                        <TabsTrigger value="trophies">Trophy Haul</TabsTrigger>
                         <TabsTrigger value="statistics">Season History</TabsTrigger>
                         <TabsTrigger value="rivalries">Rivalries & Dynasty</TabsTrigger>
                         <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
@@ -1032,6 +1034,16 @@ export default function ClubDetail() {
                         allClubs={allClubs}
                         allLeagueTables={allNationLeagueTables}
                     />
+                    </TabsContent>
+
+                    {/* TROPHY HAUL TAB */}
+                    <TabsContent value="trophies">
+                        <TrophyHaul 
+                            club={club}
+                            combinedStats={combinedStats}
+                            seasons={combinedSeasons}
+                            allLeagues={allLeagues}
+                        />
                     </TabsContent>
 
                     {/* STATISTICS TAB - Season History & Graph */}
