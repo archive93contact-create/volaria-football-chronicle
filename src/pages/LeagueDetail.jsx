@@ -943,6 +943,27 @@ export default function LeagueDetail() {
                             <div><Label>Teams</Label><Input type="number" value={editData.number_of_teams || ''} onChange={(e) => setEditData({...editData, number_of_teams: e.target.value})} className="mt-1" /></div>
                             <div><Label>Format</Label><Input value={editData.format || ''} onChange={(e) => setEditData({...editData, format: e.target.value})} className="mt-1" /></div>
                         </div>
+                        <div>
+                            <Label>Governing Body</Label>
+                            <Input 
+                                value={editData.governing_body || ''} 
+                                onChange={(e) => setEditData({...editData, governing_body: e.target.value})} 
+                                className="mt-1" 
+                                placeholder="e.g., TFA, Regional FA"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">Groups leagues with same governing body on nation page</p>
+                        </div>
+                        <div>
+                            <Label>Inactivity/Dormancy Reason</Label>
+                            <Textarea
+                                value={editData.inactivity_reason || ''}
+                                onChange={(e) => setEditData({...editData, inactivity_reason: e.target.value})}
+                                rows={2}
+                                className="mt-1"
+                                placeholder="e.g., 'War suspended operations 1940-1945' or 'Restructured into X League in 1995'"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">Explain gaps in seasons or league dormancy periods</p>
+                        </div>
                         <div><Label>Description</Label><Textarea value={editData.description || ''} onChange={(e) => setEditData({...editData, description: e.target.value})} rows={3} className="mt-1" /></div>
                         <div><Label>History</Label><Textarea value={editData.history || ''} onChange={(e) => setEditData({...editData, history: e.target.value})} rows={4} className="mt-1" /></div>
                         
