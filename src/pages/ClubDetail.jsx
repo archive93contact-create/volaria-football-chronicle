@@ -1088,6 +1088,7 @@ export default function ClubDetail() {
                                                         <TableCell>
                                                                                                                           {seasonLeague ? (
                                                                                                                               (() => {
+                                                                                                                                  // Use tier from league table first, then season, then league's current tier
                                                                                                                                   const displayTier = season.tier || seasonLeague.tier;
                                                                                                                                   return (
                                                                                                                                       <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className={`hover:text-emerald-600 hover:underline ${displayTier === 1 ? 'font-bold' : ''}`}>

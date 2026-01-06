@@ -191,11 +191,11 @@ export default function LeagueDetail() {
         const newTier = parseInt(editData.tier) || 1;
         const oldTier = league.tier || 1;
         
-        // If tier has changed, preserve historical tier in all existing seasons
-        if (newTier !== oldTier && seasons.length > 0) {
+        // If tier has changed, preserve historical tier in all existing seasons AND league tables
+        if (newTier !== oldTier && (seasons.length > 0 || leagueTables.length > 0)) {
             const confirmed = window.confirm(
                 `League tier is changing from ${oldTier} to ${newTier}.\n\n` +
-                `This will automatically preserve the old tier (${oldTier}) in all ${seasons.length} existing season records, ` +
+                `This will automatically preserve the old tier (${oldTier}) in all existing season and table records, ` +
                 `so club history will show the correct tier for when they played.\n\n` +
                 `Continue?`
             );
@@ -209,8 +209,16 @@ export default function LeagueDetail() {
                 }
             }
             
+            // Update all existing league table entries to preserve old tier
+            for (const table of leagueTables) {
+                if (!table.tier) { // Only set if not already overridden
+                    await base44.entities.LeagueTable.update(table.id, { tier: oldTier });
+                }
+            }
+            
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
         }
         
         const submitData = {
