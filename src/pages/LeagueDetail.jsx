@@ -37,6 +37,7 @@ import StatsCard from '@/components/common/StatsCard';
 import ThemedCard from '@/components/common/ThemedCard';
 import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
 import LeagueHistoricalStats from '@/components/leagues/LeagueHistoricalStats';
+import LeagueAnalyticsDashboard from '@/components/analytics/LeagueAnalyticsDashboard';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -378,6 +379,7 @@ export default function LeagueDetail() {
                         <TabsTrigger value="titles">Most Titles</TabsTrigger>
                         <TabsTrigger value="seasons">Season History</TabsTrigger>
                         <TabsTrigger value="records">All-Time Records</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="predictions">Predictions</TabsTrigger>
                     </TabsList>
 
@@ -846,6 +848,16 @@ export default function LeagueDetail() {
                                             clubs={allNationClubs}
                                             seasons={seasons}
                                         />
+                    </TabsContent>
+
+                    {/* ANALYTICS TAB */}
+                    <TabsContent value="analytics">
+                        <LeagueAnalyticsDashboard 
+                            league={league}
+                            seasons={seasons}
+                            allTables={leagueTables}
+                            clubs={allNationClubs}
+                        />
                     </TabsContent>
 
                     {/* PREDICTIONS TAB */}

@@ -33,6 +33,7 @@ import ThemedCard from '@/components/common/ThemedCard';
 import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
+import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboard';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -519,8 +520,9 @@ export default function ClubDetail() {
                         <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="continental">Continental</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="info">Club Info</TabsTrigger>
-                    </TabsList>
+                        </TabsList>
 
                     {/* OVERVIEW TAB - Club Story, History & Honours */}
                     <TabsContent value="overview">
