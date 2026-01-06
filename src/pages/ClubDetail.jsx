@@ -1254,6 +1254,16 @@ export default function ClubDetail() {
                     })()}
                     </TabsContent>
 
+                    {/* ANALYTICS TAB */}
+                    <TabsContent value="analytics">
+                        <ClubAnalyticsDashboard 
+                            club={{...club, ...combinedStats}}
+                            seasons={combinedSeasons}
+                            allClubs={allClubs}
+                            allLeagues={allLeagues}
+                        />
+                    </TabsContent>
+
                     {/* CONTINENTAL TAB */}
                     <TabsContent value="continental">
                         <ThemedCard 
