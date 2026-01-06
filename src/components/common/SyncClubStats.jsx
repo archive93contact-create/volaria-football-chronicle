@@ -53,7 +53,8 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
                     seasonsPlayed++;
 
                     const tableLeague = leagues.find(l => l.id === table.league_id);
-                    if (tableLeague?.tier === 1) {
+                    const tableTier = table.tier || tableLeague?.tier || 1;
+                    if (tableTier === 1) {
                         seasonsTopFlight++;
                         if (table.status === 'champion' || table.position === 1) {
                             leagueTitles++;
