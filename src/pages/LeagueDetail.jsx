@@ -200,7 +200,10 @@ export default function LeagueDetail() {
                 `Continue?`
             );
             
-            if (!confirmed) return;
+            if (!confirmed) {
+                setIsEditing(false);
+                return;
+            }
             
             // Update all existing seasons to preserve old tier
             for (const season of seasons) {
