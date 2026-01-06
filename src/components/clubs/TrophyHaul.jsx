@@ -71,7 +71,7 @@ export default function TrophyHaul({ club, combinedStats, seasons = [], allLeagu
         const championshipsByTier = {};
         seasons.forEach(s => {
             if (s.status === 'champion') {
-                const tier = allLeagues.find(l => l.id === s.league_id)?.tier || 1;
+                const tier = s.tier || allLeagues.find(l => l.id === s.league_id)?.tier || 1;
                 if (tier > 1) { // Only lower tiers
                     if (!championshipsByTier[tier]) {
                         championshipsByTier[tier] = { count: 0, years: [], leagueName: '' };

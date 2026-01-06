@@ -9,7 +9,11 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
         const results = [];
         
-        const getLeagueTier = (leagueId) => leagues.find(l => l.id === leagueId)?.tier || 1;
+        const getLeagueTier = (leagueId, season) => {
+            // Use season's tier override if available, otherwise use league's current tier
+            if (season?.tier) return season.tier;
+            return leagues.find(l => l.id === leagueId)?.tier || 1;
+        };
         const getLeagueName = (leagueId, season) => {
             const leagueName = leagues.find(l => l.id === leagueId)?.name || 'the league';
             if (season?.division_name) {
@@ -87,7 +91,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         // First recorded season with context
         if (firstSeason) {
             const leagueName = getLeagueName(firstSeason.league_id, firstSeason);
-            const tier = getLeagueTier(firstSeason.league_id);
+            const tier = getLeagueTier(firstSeason.league_id, firstSeason);
             const pos = ordinal(firstSeason.position);
             
             let seasonText;
@@ -110,8 +114,8 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         }
 
         // First top flight season (only if they didn't start there)
-        const firstTopFlight = sortedSeasons.find(s => getLeagueTier(s.league_id) === 1);
-        if (firstTopFlight && getLeagueTier(firstSeason.league_id) !== 1) {
+        const firstTopFlight = sortedSeasons.find(s => getLeagueTier(s.league_id, s) === 1);
+        if (firstTopFlight && getLeagueTier(firstSeason.league_id, firstSeason) !== 1) {
             const leagueName = getLeagueName(firstTopFlight.league_id, firstTopFlight);
             results.push({
                 year: parseInt(firstTopFlight.year.split('-')[0]),
@@ -126,7 +130,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
         const championships = sortedSeasons.filter(s => s.status === 'champion');
         
         championships.forEach(s => {
-            const tier = getLeagueTier(s.league_id);
+            const tier = getLeagueTier(s.league_id, s);
             if (!championshipsByTier[tier]) championshipsByTier[tier] = [];
             championshipsByTier[tier].push(s);
         });
@@ -156,7 +160,7 @@ export default function ClubHistory({ club, nation, league, seasons = [], league
             const yearNum = parseInt(firstTopFlightTitle.year.split('-')[0]);
             
             // Only add if it's different from the first ever championship
-            if (championships[0] && getLeagueTier(championships[0].league_id) !== 1) {
+            if (championships[0] && getLeagueTier(championships[0].league_id, championships[0]) !== 1) {
                 results.push({
                     year: yearNum,
                     icon: Trophy,
