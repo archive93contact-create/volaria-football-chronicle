@@ -2018,6 +2018,28 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                 });
             }
         }
+        
+        // Yo-yo between TFA and non-league
+        if (tfaSeasons.length >= 3 && nonTfaSeasons.length >= 3) {
+            const transitions = [];
+            for (let i = 1; i < sortedSeasons.length; i++) {
+                const prevTier = sortedSeasons[i-1].tier || getLeagueTier(sortedSeasons[i-1].league_id);
+                const currTier = sortedSeasons[i].tier || getLeagueTier(sortedSeasons[i].league_id);
+                if ((prevTier <= 4 && currTier > 4) || (prevTier > 4 && currTier <= 4)) {
+                    transitions.push(sortedSeasons[i].year);
+                }
+            }
+            
+            if (transitions.length >= 4) {
+                narratives.push({
+                    icon: TrendingUp,
+                    color: 'text-purple-600',
+                    bg: 'bg-purple-50',
+                    title: 'TFA Yo-Yo Club',
+                    text: `Bounced between TFA and non-league football ${transitions.length} times. A turbulent existence on the edge of organized football.`
+                });
+            }
+        }
     }
 
     // High scoring club
