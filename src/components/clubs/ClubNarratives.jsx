@@ -1950,13 +1950,6 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                 }
             }
         }
-
-        // Currently outside TFA - enhanced duration-based narratives
-        const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
-        const mostRecentTier = getLeagueTier(mostRecentSeason?.league_id);
-        if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
-            const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
-            const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
             
             // Don't duplicate these narratives since they're shown earlier in different forms
         }
