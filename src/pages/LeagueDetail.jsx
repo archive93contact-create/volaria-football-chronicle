@@ -38,7 +38,6 @@ import ThemedCard from '@/components/common/ThemedCard';
 import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
 import LeagueHistoricalStats from '@/components/leagues/LeagueHistoricalStats';
 import LeagueAnalyticsDashboard from '@/components/analytics/LeagueAnalyticsDashboard';
-import PreserveHistoricalTiers from '@/components/leagues/PreserveHistoricalTiers';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -741,11 +740,6 @@ export default function LeagueDetail() {
                             <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
                                 <div className="flex gap-2">
                                     <AdminOnly>
-                                        <PreserveHistoricalTiers 
-                                            league={league}
-                                            seasons={seasons}
-                                            leagueTables={leagueTables}
-                                        />
                                         <RecalculateSeasonStats 
                                             seasons={seasons}
                                             leagueTables={leagueTables}

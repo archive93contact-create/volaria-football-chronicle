@@ -60,11 +60,12 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
                     totalGA += table.goals_against || 0;
                     seasonsPlayed++;
 
-                    const tableLeague = leagues.find(l => l.id === table.league_id);
-                    const tableTier = table.tier || tableLeague?.tier || 1;
+                    // CRITICAL: Only use the tier saved on the table entry itself, not the league's current tier
+                    // If no tier is saved, skip this entry for tier-dependent calculations
+                    const tableTier = table.tier;
                     
-                    // Track best finish (lower tier = higher priority, then lower position)
-                    if (table.position) {
+                    // Track best/worst finish only if tier is explicitly saved (don't use current league tier)
+                    if (table.position && tableTier) {
                         const isNewBest = !bestFinish || 
                             tableTier < bestFinishTier || 
                             (tableTier === bestFinishTier && table.position < bestFinish);
@@ -85,7 +86,7 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
                         }
                     }
                     
-                    if (tableTier === 1) {
+                    if (tableTier && tableTier === 1) {
                         seasonsTopFlight++;
                         if (table.status === 'champion' || table.position === 1) {
                             leagueTitles++;
