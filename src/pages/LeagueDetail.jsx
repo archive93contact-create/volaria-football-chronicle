@@ -126,29 +126,43 @@ export default function LeagueDetail() {
             
             // If tier has changed, preserve historical tier first
             if (newTier !== oldTier && (seasons.length > 0 || leagueTables.length > 0)) {
+                console.log('Tier changed, preserving historical data...');
+                
                 // Update all existing seasons to preserve old tier
-                for (const season of seasons) {
-                    if (!season.tier) {
-                        await base44.entities.Season.update(season.id, { tier: oldTier });
-                    }
+                const seasonUpdates = seasons
+                    .filter(s => !s.tier)
+                    .map(season => base44.entities.Season.update(season.id, { tier: oldTier }));
+                
+                if (seasonUpdates.length > 0) {
+                    await Promise.all(seasonUpdates);
+                    console.log(`Updated ${seasonUpdates.length} seasons`);
                 }
                 
                 // Update all existing league table entries to preserve old tier
-                for (const table of leagueTables) {
-                    if (!table.tier) {
-                        await base44.entities.LeagueTable.update(table.id, { tier: oldTier });
-                    }
+                const tableUpdates = leagueTables
+                    .filter(t => !t.tier)
+                    .map(table => base44.entities.LeagueTable.update(table.id, { tier: oldTier }));
+                
+                if (tableUpdates.length > 0) {
+                    await Promise.all(tableUpdates);
+                    console.log(`Updated ${tableUpdates.length} league table entries`);
                 }
             }
             
             // Now update the league
+            console.log('Updating league with data:', data);
             return base44.entities.League.update(leagueId, data);
         },
         onSuccess: () => {
+            console.log('League updated successfully');
             queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
             queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
             queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
             setIsEditing(false);
+        },
+        onError: (error) => {
+            console.error('Failed to update league:', error);
+            alert('Failed to update league: ' + error.message);
         },
     });
 
