@@ -1811,10 +1811,6 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         }
     }
 
-    // TFA-specific narratives (Turuliand top 4 tiers)
-    const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
-    const mostRecentTier = mostRecentSeason?.tier || getLeagueTier(mostRecentSeason?.league_id);
-    
     if (isTuruliand) {
         const tfaSeasons = sortedSeasons.filter(s => {
             const tier = s.tier || getLeagueTier(s.league_id);
