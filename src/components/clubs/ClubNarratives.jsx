@@ -1134,48 +1134,6 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             }
         }
 
-        // Currently outside TFA - enhanced duration-based narratives
-        const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
-        const mostRecentTier = getLeagueTier(mostRecentSeason?.league_id);
-        if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
-            const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
-            const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
-            
-            if (seasonsAway >= 20) {
-                narratives.push({
-                    icon: Clock,
-                    color: 'text-slate-700',
-                    bg: 'bg-slate-200',
-                    title: 'Deep Non-League Exile',
-                    text: `${seasonsAway} seasons banished from the TFA system since ${lastTfaSeason.year}. The organized leagues feel like a distant memory.`
-                });
-            } else if (seasonsAway >= 10) {
-                narratives.push({
-                    icon: Clock,
-                    color: 'text-slate-600',
-                    bg: 'bg-slate-100',
-                    title: 'TFA Exile',
-                    text: `${seasonsAway} seasons in the non-league wilderness since ${lastTfaSeason.year}. The road back to the TFA seems ever longer.`
-                });
-            } else if (seasonsAway >= 5) {
-                narratives.push({
-                    icon: Clock,
-                    color: 'text-orange-600',
-                    bg: 'bg-orange-50',
-                    title: 'Outside the TFA',
-                    text: `${seasonsAway} seasons outside the TFA Football League since ${lastTfaSeason.year}. Striving to return to the organized tiers.`
-                });
-            } else if (seasonsAway >= 2) {
-                narratives.push({
-                    icon: Clock,
-                    color: 'text-amber-500',
-                    bg: 'bg-amber-50',
-                    title: 'TFA Return Needed',
-                    text: `${seasonsAway} seasons since last competing in the TFA (${lastTfaSeason.year}). Looking to regain their place.`
-                });
-            }
-        }
-        
         // Return to TFA after exile
         if (mostRecentTier <= 4 && tfaSeasons.length > 0 && nonTfaSeasons.length > 0) {
             const lastNonTfaSeason = [...nonTfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
