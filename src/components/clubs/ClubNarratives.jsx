@@ -992,13 +992,19 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
     }
 
     // Long absence from top flight narratives
-    const topFlightSeasonsList = sortedSeasons.filter(s => getLeagueTier(s.league_id) === 1);
+    const topFlightSeasonsList = sortedSeasons.filter(s => {
+        const tier = s.tier || getLeagueTier(s.league_id);
+        return tier === 1;
+    });
     const currentLeague = leagues.find(l => l.id === club.league_id);
     const currentTier = currentLeague?.tier || 1;
     
     if (topFlightSeasonsList.length > 0 && currentTier > 1) {
         const lastTopFlightSeason = [...topFlightSeasonsList].sort((a, b) => b.year.localeCompare(a.year))[0];
-        const seasonsAway = sortedSeasons.filter(s => s.year > lastTopFlightSeason.year && getLeagueTier(s.league_id) > 1).length;
+        const seasonsAway = sortedSeasons.filter(s => {
+            const tier = s.tier || getLeagueTier(s.league_id);
+            return s.year > lastTopFlightSeason.year && tier > 1;
+        }).length;
         
         if (seasonsAway >= 30) {
             narratives.push({
@@ -1964,7 +1970,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                     color: 'text-slate-700',
                     bg: 'bg-slate-200',
                     title: 'Deep Non-League Exile',
-                    text: `${seasonsAway} seasons banished from the TFA system since ${lastTfaSeason.year}. The organized leagues feel like a distant memory for supporters.`
+                    text: `${seasonsAway} seasons banished from the TFA system since ${lastTfaSeason.year}. TFA football is now just folklore for the younger fans.`
                 });
             } else if (seasonsAway >= 15) {
                 narratives.push({
@@ -1972,7 +1978,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                     color: 'text-slate-600',
                     bg: 'bg-slate-100',
                     title: 'Non-League Wanderers',
-                    text: `${seasonsAway} seasons in the non-league wilderness since ${lastTfaSeason.year}. A generation has passed without TFA football.`
+                    text: `${seasonsAway} seasons in non-league football since ${lastTfaSeason.year}. A whole generation has grown up without TFA football.`
                 });
             } else if (seasonsAway >= 10) {
                 narratives.push({
@@ -1980,15 +1986,15 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                     color: 'text-orange-700',
                     bg: 'bg-orange-100',
                     title: 'TFA Exile',
-                    text: `${seasonsAway} seasons outside the TFA since ${lastTfaSeason.year}. The path back to organized football grows steeper.`
+                    text: `${seasonsAway} seasons outside the TFA since ${lastTfaSeason.year}. The gap back to organized football grows wider each year.`
                 });
             } else if (seasonsAway >= 5) {
                 narratives.push({
                     icon: Clock,
                     color: 'text-orange-600',
                     bg: 'bg-orange-50',
-                    title: 'Outside the TFA',
-                    text: `${seasonsAway} seasons outside the TFA Football League since ${lastTfaSeason.year}. Fighting to return to the organized tiers.`
+                    title: 'Non-League Reality',
+                    text: `${seasonsAway} seasons outside the TFA Football League since ${lastTfaSeason.year}. Established in regional football but dreaming of organized league return.`
                 });
             } else if (seasonsAway >= 2) {
                 narratives.push({
@@ -1996,7 +2002,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                     color: 'text-amber-500',
                     bg: 'bg-amber-50',
                     title: 'TFA Return Quest',
-                    text: `${seasonsAway} seasons since last competing in the TFA (${lastTfaSeason.year}). Working hard to regain their place.`
+                    text: `${seasonsAway} seasons since last competing in the TFA (${lastTfaSeason.year}). Working hard to regain their place in organized football.`
                 });
             }
         }
