@@ -355,6 +355,7 @@ export default function AddSeason() {
                         season_id: divSeason.id,
                         league_id: leagueId,
                         year: data.year,
+                        tier: currentTier, // Capture the league's tier at time of creation
                         division_name: div.name,
                         club_id: allClubIdMaps[row.club_name.trim()] || '',
                         ...row
@@ -519,6 +520,7 @@ export default function AddSeason() {
                 season_id: season.id,
                 league_id: leagueId,
                 year: data.year,
+                tier: currentTier, // Capture the league's tier at time of creation
                 division_name: data.division_name || null,
                 club_id: clubIdMap[row.club_name.trim()] || '',
                 ...row
