@@ -42,6 +42,14 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
             let promotions = 0, relegations = 0;
             let leagueTitles = 0;
             const titleYears = [];
+            
+            // Track best/worst finishes with their historical tiers
+            let bestFinish = null;
+            let bestFinishTier = null;
+            let bestFinishYear = null;
+            let worstFinish = null;
+            let worstFinishTier = null;
+            let worstFinishYear = null;
 
             for (const table of clubTables) {
                 if (table.played > 0 || table.won > 0) {
@@ -54,6 +62,29 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
 
                     const tableLeague = leagues.find(l => l.id === table.league_id);
                     const tableTier = table.tier || tableLeague?.tier || 1;
+                    
+                    // Track best finish (lower tier = higher priority, then lower position)
+                    if (table.position) {
+                        const isNewBest = !bestFinish || 
+                            tableTier < bestFinishTier || 
+                            (tableTier === bestFinishTier && table.position < bestFinish);
+                        if (isNewBest) {
+                            bestFinish = table.position;
+                            bestFinishTier = tableTier;
+                            bestFinishYear = table.year;
+                        }
+                        
+                        // Track worst finish (higher tier = higher priority, then higher position)
+                        const isNewWorst = !worstFinish || 
+                            tableTier > worstFinishTier || 
+                            (tableTier === worstFinishTier && table.position > worstFinish);
+                        if (isNewWorst) {
+                            worstFinish = table.position;
+                            worstFinishTier = tableTier;
+                            worstFinishYear = table.year;
+                        }
+                    }
+                    
                     if (tableTier === 1) {
                         seasonsTopFlight++;
                         if (table.status === 'champion' || table.position === 1) {
@@ -81,7 +112,13 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
                 league_titles: leagueTitles,
                 title_years: titleYears.sort().join(', '),
                 promotions: promotions,
-                relegations: relegations
+                relegations: relegations,
+                best_finish: bestFinish,
+                best_finish_tier: bestFinishTier,
+                best_finish_year: bestFinishYear,
+                worst_finish: worstFinish,
+                worst_finish_tier: worstFinishTier,
+                worst_finish_year: worstFinishYear
             });
             updated++;
         }
