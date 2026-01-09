@@ -195,9 +195,12 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         
         // RISING CLUB - tasted top flight or long history
         if (topFlightSeasons >= 1 || totalSeasons >= 10) {
+            const topFlightText = topFlightSeasons >= 1 
+                ? 'has tasted top-flight football and is building towards becoming an established force' 
+                : 'is steadily building their reputation through the divisions';
             return {
                 tier: 'Rising Club',
-                description: `${club.name} has tasted top-flight football and is building towards becoming an established force. Well-known locally and growing their reputation.`,
+                description: `${club.name} ${topFlightText}. Well-known locally and growing their reputation.`,
                 color: 'text-cyan-500',
                 bg: 'bg-cyan-50'
             };
@@ -1854,11 +1857,25 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             return tier && tier > 4;
         });
 
+        // Always been TFA - never dropped below tier 4
+        if (tfaSeasons.length > 0 && nonTfaSeasons.length === 0 && sortedSeasons.length >= 5) {
+            narratives.push({
+                icon: Shield,
+                color: 'text-blue-700',
+                bg: 'bg-blue-100',
+                title: 'TFA Stalwarts',
+                text: `A proud TFA club throughout their entire ${sortedSeasons.length}-season history. Never dropped below the organized leagues.`
+            });
+        }
+        
         // First time joining TFA
-        if (tfaSeasons.length > 0) {
+        else if (tfaSeasons.length > 0) {
             const firstTfaSeason = [...tfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
             const seasonsBeforeTfa = sortedSeasons.filter(s => s.year < firstTfaSeason.year);
-            if (seasonsBeforeTfa.length > 0 && seasonsBeforeTfa.every(s => getLeagueTier(s.league_id) > 4)) {
+            if (seasonsBeforeTfa.length > 0 && seasonsBeforeTfa.every(s => {
+                const tier = s.tier || getLeagueTier(s.league_id);
+                return tier > 4;
+            })) {
                 narratives.push({
                     icon: TrendingUp,
                     color: 'text-emerald-600',
@@ -1869,13 +1886,60 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             }
         }
 
+        // Never reached TFA - solid non-league side
+        if (tfaSeasons.length === 0 && sortedSeasons.length >= 5) {
+            const tier5Seasons = sortedSeasons.filter(s => {
+                const tier = s.tier || getLeagueTier(s.league_id);
+                return tier === 5;
+            });
+            const bestNonLeagueFinish = sortedSeasons.reduce((best, s) => {
+                const tier = s.tier || getLeagueTier(s.league_id);
+                if (tier > 4 && s.position) {
+                    if (!best || tier < best.tier || (tier === best.tier && s.position < best.position)) {
+                        return { tier, position: s.position, year: s.year };
+                    }
+                }
+                return best;
+            }, null);
+            
+            if (tier5Seasons.length >= 10) {
+                narratives.push({
+                    icon: Shield,
+                    color: 'text-purple-600',
+                    bg: 'bg-purple-50',
+                    title: 'Non-League Mainstays',
+                    text: `A solid Tier 5 club with ${tier5Seasons.length} seasons. So close to the TFA, yet always just outside the organized leagues.`
+                });
+            } else if (bestNonLeagueFinish && bestNonLeagueFinish.tier === 5 && bestNonLeagueFinish.position <= 3) {
+                narratives.push({
+                    icon: Target,
+                    color: 'text-indigo-600',
+                    bg: 'bg-indigo-50',
+                    title: 'Knocking on TFA\'s Door',
+                    text: `Finished ${bestNonLeagueFinish.position}${bestNonLeagueFinish.position === 1 ? 'st' : bestNonLeagueFinish.position === 2 ? 'nd' : 'rd'} in Tier 5 (${bestNonLeagueFinish.year}). The TFA beckons, but remains elusive.`
+                });
+            } else if (sortedSeasons.length >= 8) {
+                const lowestTier = Math.max(...sortedSeasons.map(s => s.tier || getLeagueTier(s.league_id)));
+                narratives.push({
+                    icon: Shield,
+                    color: 'text-slate-600',
+                    bg: 'bg-slate-100',
+                    title: 'Community Club',
+                    text: `A small community club competing in Tier ${lowestTier}. Pride of their locality, focused on grassroots football.`
+                });
+            }
+        }
+        
         // Dropped out of TFA for the first time
-        if (nonTfaSeasons.length > 0 && tfaSeasons.length > 0) {
+        else if (nonTfaSeasons.length > 0 && tfaSeasons.length > 0) {
             const firstNonTfaSeason = [...nonTfaSeasons].sort((a, b) => a.year.localeCompare(b.year))[0];
             const tfaSeasonsBeforeDrop = tfaSeasons.filter(s => s.year < firstNonTfaSeason.year);
             if (tfaSeasonsBeforeDrop.length > 0) {
                 const allSeasonsBefore = sortedSeasons.filter(s => s.year < firstNonTfaSeason.year);
-                if (allSeasonsBefore.every(s => getLeagueTier(s.league_id) <= 4)) {
+                if (allSeasonsBefore.every(s => {
+                    const tier = s.tier || getLeagueTier(s.league_id);
+                    return tier <= 4;
+                })) {
                     narratives.push({
                         icon: TrendingDown,
                         color: 'text-red-600',
@@ -1983,8 +2047,8 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         if (tfaSeasons.length >= 3 && nonTfaSeasons.length >= 3) {
             const transitions = [];
             for (let i = 1; i < sortedSeasons.length; i++) {
-                const prevTier = getLeagueTier(sortedSeasons[i-1].league_id);
-                const currTier = getLeagueTier(sortedSeasons[i].league_id);
+                const prevTier = sortedSeasons[i-1].tier || getLeagueTier(sortedSeasons[i-1].league_id);
+                const currTier = sortedSeasons[i].tier || getLeagueTier(sortedSeasons[i].league_id);
                 if ((prevTier <= 4 && currTier > 4) || (prevTier > 4 && currTier <= 4)) {
                     transitions.push(sortedSeasons[i].year);
                 }
