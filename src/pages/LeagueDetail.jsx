@@ -120,51 +120,12 @@ export default function LeagueDetail() {
     });
 
     const updateMutation = useMutation({
-        mutationFn: async (data) => {
-            const newTier = parseInt(data.tier) || 1;
-            const oldTier = league.tier || 1;
-            
-            // If tier has changed, preserve historical tier first
-            if (newTier !== oldTier && (seasons.length > 0 || leagueTables.length > 0)) {
-                console.log('Tier changed, preserving historical data...');
-                
-                // Update seasons in batches to avoid rate limits
-                const seasonsToUpdate = seasons.filter(s => !s.tier);
-                if (seasonsToUpdate.length > 0) {
-                    const batchSize = 5;
-                    for (let i = 0; i < seasonsToUpdate.length; i += batchSize) {
-                        const batch = seasonsToUpdate.slice(i, i + batchSize);
-                        await Promise.all(batch.map(s => base44.entities.Season.update(s.id, { tier: oldTier })));
-                    }
-                    console.log(`Updated ${seasonsToUpdate.length} seasons`);
-                }
-                
-                // Update league tables in batches to avoid rate limits
-                const tablesToUpdate = leagueTables.filter(t => !t.tier);
-                if (tablesToUpdate.length > 0) {
-                    const batchSize = 10;
-                    for (let i = 0; i < tablesToUpdate.length; i += batchSize) {
-                        const batch = tablesToUpdate.slice(i, i + batchSize);
-                        await Promise.all(batch.map(t => base44.entities.LeagueTable.update(t.id, { tier: oldTier })));
-                    }
-                    console.log(`Updated ${tablesToUpdate.length} league table entries`);
-                }
-            }
-            
-            // Now update the league
-            console.log('Updating league with data:', data);
-            return base44.entities.League.update(leagueId, data);
-        },
+        mutationFn: (data) => base44.entities.League.update(leagueId, data),
         onSuccess: () => {
-            console.log('League updated successfully');
             queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
             queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
             queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
             setIsEditing(false);
-        },
-        onError: (error) => {
-            console.error('Failed to update league:', error);
-            alert('Failed to update league: ' + error.message);
         },
     });
 
