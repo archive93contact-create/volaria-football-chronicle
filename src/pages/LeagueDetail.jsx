@@ -212,14 +212,14 @@ export default function LeagueDetail() {
         setIsEditing(true);
     };
 
-    const handleSave = async () => {
+    const handleSave = () => {
         const submitData = {
             ...editData,
             tier: editData.tier ? parseInt(editData.tier) : null,
             founded_year: editData.founded_year ? parseInt(editData.founded_year) : null,
             number_of_teams: editData.number_of_teams ? parseInt(editData.number_of_teams) : null,
         };
-        await updateMutation.mutateAsync(submitData);
+        updateMutation.mutate(submitData);
     };
 
     if (!league) {
