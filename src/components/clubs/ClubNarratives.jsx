@@ -1812,6 +1812,9 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
     }
 
     // TFA-specific narratives (Turuliand top 4 tiers)
+    const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+    const mostRecentTier = mostRecentSeason?.tier || getLeagueTier(mostRecentSeason?.league_id);
+    
     if (isTuruliand) {
         const tfaSeasons = sortedSeasons.filter(s => {
             const tier = s.tier || getLeagueTier(s.league_id);
@@ -1821,10 +1824,6 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             const tier = s.tier || getLeagueTier(s.league_id);
             return tier && tier > 4;
         });
-        
-        // Calculate most recent tier for all TFA narratives
-        const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
-        const mostRecentTier = mostRecentSeason?.tier || getLeagueTier(mostRecentSeason?.league_id);
 
         // Always been TFA - never dropped below tier 4
         if (tfaSeasons.length > 0 && nonTfaSeasons.length === 0 && sortedSeasons.length >= 5) {
