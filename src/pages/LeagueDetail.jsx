@@ -128,24 +128,26 @@ export default function LeagueDetail() {
             if (newTier !== oldTier && (seasons.length > 0 || leagueTables.length > 0)) {
                 console.log('Tier changed, preserving historical data...');
                 
-                // Update all existing seasons to preserve old tier
-                const seasonUpdates = seasons
-                    .filter(s => !s.tier)
-                    .map(season => base44.entities.Season.update(season.id, { tier: oldTier }));
-                
-                if (seasonUpdates.length > 0) {
-                    await Promise.all(seasonUpdates);
-                    console.log(`Updated ${seasonUpdates.length} seasons`);
+                // Update seasons in batches to avoid rate limits
+                const seasonsToUpdate = seasons.filter(s => !s.tier);
+                if (seasonsToUpdate.length > 0) {
+                    const batchSize = 5;
+                    for (let i = 0; i < seasonsToUpdate.length; i += batchSize) {
+                        const batch = seasonsToUpdate.slice(i, i + batchSize);
+                        await Promise.all(batch.map(s => base44.entities.Season.update(s.id, { tier: oldTier })));
+                    }
+                    console.log(`Updated ${seasonsToUpdate.length} seasons`);
                 }
                 
-                // Update all existing league table entries to preserve old tier
-                const tableUpdates = leagueTables
-                    .filter(t => !t.tier)
-                    .map(table => base44.entities.LeagueTable.update(table.id, { tier: oldTier }));
-                
-                if (tableUpdates.length > 0) {
-                    await Promise.all(tableUpdates);
-                    console.log(`Updated ${tableUpdates.length} league table entries`);
+                // Update league tables in batches to avoid rate limits
+                const tablesToUpdate = leagueTables.filter(t => !t.tier);
+                if (tablesToUpdate.length > 0) {
+                    const batchSize = 10;
+                    for (let i = 0; i < tablesToUpdate.length; i += batchSize) {
+                        const batch = tablesToUpdate.slice(i, i + batchSize);
+                        await Promise.all(batch.map(t => base44.entities.LeagueTable.update(t.id, { tier: oldTier })));
+                    }
+                    console.log(`Updated ${tablesToUpdate.length} league table entries`);
                 }
             }
             
