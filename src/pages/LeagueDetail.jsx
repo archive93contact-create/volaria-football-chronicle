@@ -112,9 +112,12 @@ export default function LeagueDetail() {
     const { data: allNationSeasons = [] } = useQuery({
         queryKey: ['allNationSeasons', league?.nation_id],
         queryFn: async () => {
-            const leagueIds = allNationLeagues.map(l => l.id);
-            const allSeasons = await base44.entities.Season.list();
-            return allSeasons.filter(s => leagueIds.includes(s.league_id));
+            if (allNationLeagues.length === 0) return [];
+            const seasonPromises = allNationLeagues.map(l => 
+                base44.entities.Season.filter({ league_id: l.id })
+            );
+            const results = await Promise.all(seasonPromises);
+            return results.flat();
         },
         enabled: allNationLeagues.length > 0,
     });
