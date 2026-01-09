@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Trophy, TrendingUp, TrendingDown, Star, Target, Calendar, Award, Flame, Shield, Clock, Zap } from 'lucide-react';
+import { selectBestNarratives, deduplicateNarratives } from './improvedNarratives';
 
 export default function ClubNarratives({ club, seasons, leagues, allClubs = [], allLeagueTables = [] }) {
     const narratives = [];
@@ -2015,6 +2016,56 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                 });
             }
         }
+        
+        // Currently outside TFA - enhanced duration-based narratives
+        const mostRecentSeason = [...sortedSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+        const mostRecentTier = mostRecentSeason?.tier || getLeagueTier(mostRecentSeason?.league_id);
+        if (mostRecentTier && mostRecentTier > 4 && tfaSeasons.length > 0) {
+            const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+            const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
+
+            if (seasonsAway >= 25) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-slate-700',
+                    bg: 'bg-slate-200',
+                    title: 'Deep Non-League Exile',
+                    text: `${seasonsAway} seasons banished from the TFA system since ${lastTfaSeason.year}. TFA football is now just folklore for the younger fans.`
+                });
+            } else if (seasonsAway >= 15) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-slate-600',
+                    bg: 'bg-slate-100',
+                    title: 'Non-League Wanderers',
+                    text: `${seasonsAway} seasons in non-league football since ${lastTfaSeason.year}. A whole generation has grown up without TFA football.`
+                });
+            } else if (seasonsAway >= 10) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-orange-700',
+                    bg: 'bg-orange-100',
+                    title: 'TFA Exile',
+                    text: `${seasonsAway} seasons outside the TFA since ${lastTfaSeason.year}. The gap back to organized football grows wider each year.`
+                });
+            } else if (seasonsAway >= 5) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-orange-600',
+                    bg: 'bg-orange-50',
+                    title: 'Non-League Reality',
+                    text: `${seasonsAway} seasons outside the TFA Football League since ${lastTfaSeason.year}. Established in regional football but dreaming of organized league return.`
+                });
+            } else if (seasonsAway >= 2) {
+                narratives.push({
+                    icon: Clock,
+                    color: 'text-amber-500',
+                    bg: 'bg-amber-50',
+                    title: 'TFA Return Quest',
+                    text: `${seasonsAway} seasons since last competing in the TFA (${lastTfaSeason.year}). Working hard to regain their place in organized football.`
+                });
+            }
+        }
     }
 
     // High scoring club
@@ -2032,6 +2083,10 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
     }
 
     if (narratives.length === 0 && !clubStature) return null;
+
+    // Deduplicate and prioritize narratives
+    const uniqueNarratives = deduplicateNarratives(narratives);
+    const bestNarratives = selectBestNarratives(uniqueNarratives, club, sortedSeasons, 10);
 
     const patternStyle = getPatternStyle(club.pattern_preference);
 
@@ -2068,7 +2123,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                 )}
 
                 <div className="grid gap-3 md:grid-cols-2">
-                    {narratives.slice(0, 12).map((narrative, idx) => (
+                    {bestNarratives.map((narrative, idx) => (
                         <div 
                             key={idx} 
                             className={`flex gap-3 p-3 rounded-lg ${narrative.bg} border border-transparent`}
