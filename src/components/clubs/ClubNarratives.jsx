@@ -1892,6 +1892,38 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
             }
         }
 
+        // Former TFA mainstay now in non-league - EMPHASIZE THE FALL
+        if (tfaSeasons.length >= 10 && mostRecentTier > 4) {
+            const tfaPercentage = Math.round((tfaSeasons.length / sortedSeasons.length) * 100);
+            const lastTfaSeason = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
+            const seasonsAway = sortedSeasons.filter(s => s.year > lastTfaSeason.year).length;
+            
+            narratives.push({
+                icon: TrendingDown,
+                color: 'text-red-700',
+                bg: 'bg-red-100',
+                title: 'Fallen from Grace',
+                text: `Once spent ${tfaSeasons.length} seasons (${tfaPercentage}% of their history) in the TFA Football League. Now languish in Tier ${mostRecentTier} - ${seasonsAway} seasons since organized football. A painful decline.`
+            });
+        }
+        
+        // Former top-flight club now far down the pyramid
+        if (topFlightSeasonsList.length >= 5 && mostRecentTier >= 4) {
+            const lastTopFlight = [...topFlightSeasonsList].sort((a, b) => b.year.localeCompare(a.year))[0];
+            const seasonsAway = sortedSeasons.filter(s => {
+                const tier = s.tier || getLeagueTier(s.league_id);
+                return s.year > lastTopFlight.year && tier > 1;
+            }).length;
+            
+            narratives.push({
+                icon: Clock,
+                color: 'text-orange-800',
+                bg: 'bg-orange-100',
+                title: 'The Great Fall',
+                text: `Spent ${topFlightSeasonsList.length} seasons among the elite in the top flight. Now compete in Tier ${mostRecentTier}, ${seasonsAway} seasons removed from their glory days. How the mighty have fallen.`
+            });
+        }
+        
         // Never reached TFA - solid non-league side
         if (tfaSeasons.length === 0 && sortedSeasons.length >= 5) {
             const tier5Seasons = sortedSeasons.filter(s => {
@@ -2123,7 +2155,7 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
                 )}
 
                 <div className="grid gap-3 md:grid-cols-2">
-                    {narratives.slice(0, 8).map((narrative, idx) => (
+                    {narratives.slice(0, 12).map((narrative, idx) => (
                         <div 
                             key={idx} 
                             className={`flex gap-3 p-3 rounded-lg ${narrative.bg} border border-transparent`}
