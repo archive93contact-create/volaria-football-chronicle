@@ -95,20 +95,14 @@ export default function ClubDetail() {
         enabled: !!club?.nation_id,
     });
 
-    // Fetch league tables for this nation only (batched by league)
+    // Fetch all league tables for dynamic rivalry detection
     const { data: allNationLeagueTables = [] } = useQuery({
         queryKey: ['allNationLeagueTables', club?.nation_id],
         queryFn: async () => {
-            if (!club?.nation_id) return [];
             const nationLeagues = await base44.entities.League.filter({ nation_id: club.nation_id });
-            if (nationLeagues.length === 0) return [];
-            
-            // Fetch tables for each league in parallel
-            const tablePromises = nationLeagues.map(l => 
-                base44.entities.LeagueTable.filter({ league_id: l.id })
-            );
-            const results = await Promise.all(tablePromises);
-            return results.flat();
+            const leagueIds = nationLeagues.map(l => l.id);
+            const tables = await base44.entities.LeagueTable.list();
+            return tables.filter(t => leagueIds.includes(t.league_id));
         },
         enabled: !!club?.nation_id,
     });
