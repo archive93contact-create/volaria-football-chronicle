@@ -46,13 +46,15 @@ export default function ClubDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
 
-    const { data: club } = useQuery({
+    const { data: club, isLoading: clubLoading, error: clubError } = useQuery({
         queryKey: ['club', clubId],
         queryFn: async () => {
+            if (!clubId) return null;
             const clubs = await base44.entities.Club.filter({ id: clubId });
-            return clubs[0];
+            return clubs[0] || null;
         },
         enabled: !!clubId,
+        retry: 2,
     });
 
     const { data: nation } = useQuery({
@@ -353,8 +355,20 @@ export default function ClubDetail() {
         updateMutation.mutate(submitData);
     };
 
-    if (!club) {
+    if (clubLoading) {
         return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
+    }
+
+    if (clubError || !club) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Club Not Found</h2>
+                    <p className="text-slate-600 mb-4">The club you're looking for doesn't exist.</p>
+                    <Button onClick={() => navigate(createPageUrl('AllClubs'))}>View All Clubs</Button>
+                </div>
+            </div>
+        );
     }
 
     return (
