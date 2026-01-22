@@ -27,10 +27,10 @@ import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
 import LeagueStructureManager from '@/components/nations/LeagueStructureManager';
 import NationSeasonOverview from '@/components/nations/NationSeasonOverview';
-import DominantErasTimeline from '@/components/nations/DominantErasTimeline';
-import GeographicSuccessMap from '@/components/nations/GeographicSuccessMap';
-import PyramidFlowDiagram from '@/components/nations/PyramidFlowDiagram';
 import NationAnalyticsDashboard from '@/components/analytics/NationAnalyticsDashboard';
+import GeographicSuccessMap from '@/components/nations/GeographicSuccessMap';
+import DominantEraTimeline from '@/components/nations/DominantEraTimeline';
+import LeaguePyramidFlow from '@/components/nations/LeaguePyramidFlow';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {
@@ -398,35 +398,17 @@ export default function NationDetail() {
 
                 {/* Tabs for main content */}
                 <Tabs defaultValue="overview" className="mt-6">
-                    <TabsList className="mb-6">
-                        <TabsTrigger value="overview" className="flex items-center gap-2">
-                            <Shield className="w-4 h-4" />
-                            Overview
-                        </TabsTrigger>
-                        <TabsTrigger value="pyramid" className="flex items-center gap-2">
-                            <Layers className="w-4 h-4" />
-                            League Pyramid
-                        </TabsTrigger>
-                        <TabsTrigger value="national-squad" className="flex items-center gap-2">
-                            <Trophy className="w-4 h-4" />
-                            National Squad
-                        </TabsTrigger>
-                        <TabsTrigger value="season-overview" className="flex items-center gap-2">
-                            <Award className="w-4 h-4" />
-                            Season Overview
-                        </TabsTrigger>
-                        <TabsTrigger value="details" className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            Nation Details
-                        </TabsTrigger>
-                        <TabsTrigger value="clubs" className="flex items-center gap-2">
-                            <Star className="w-4 h-4" />
-                            Most Successful
-                        </TabsTrigger>
-                        <TabsTrigger value="analytics" className="flex items-center gap-2">
-                            <Trophy className="w-4 h-4" />
-                            Analytics
-                        </TabsTrigger>
+                    <TabsList className="mb-6 flex-wrap h-auto">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="pyramid">Pyramid</TabsTrigger>
+                        <TabsTrigger value="geography">Geography</TabsTrigger>
+                        <TabsTrigger value="eras">Eras</TabsTrigger>
+                        <TabsTrigger value="flow">Flow</TabsTrigger>
+                        <TabsTrigger value="national-squad">Squad</TabsTrigger>
+                        <TabsTrigger value="season-overview">Season</TabsTrigger>
+                        <TabsTrigger value="details">Details</TabsTrigger>
+                        <TabsTrigger value="clubs">Success</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="pyramid">
@@ -844,35 +826,30 @@ export default function NationDetail() {
                 </div>
                     </TabsContent>
 
+                    <TabsContent value="geography">
+                        <GeographicSuccessMap 
+                            clubs={clubs}
+                            leagueTables={leagueTables}
+                            leagues={leagues}
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="eras">
+                        <DominantEraTimeline 
+                            clubs={clubs}
+                            leagueTables={leagueTables}
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="flow">
+                        <LeaguePyramidFlow 
+                            clubs={clubs}
+                            leagueTables={leagueTables}
+                            leagues={leagues}
+                        />
+                    </TabsContent>
+
                     <TabsContent value="analytics">
-                        {/* Geographic Success Map */}
-                        <div className="mb-8">
-                            <GeographicSuccessMap 
-                                seasons={seasons}
-                                clubs={allNationClubs}
-                                nationId={nationId}
-                            />
-                        </div>
-
-                        {/* Dominant Era Timeline */}
-                        <div className="mb-8">
-                            <DominantErasTimeline 
-                                seasons={seasons}
-                                clubs={allNationClubs}
-                                leagues={leagues}
-                            />
-                        </div>
-
-                        {/* League Pyramid Flow */}
-                        <div className="mb-8">
-                            <PyramidFlowDiagram 
-                                seasons={seasons}
-                                allLeagueTables={leagueTables}
-                                leagues={leagues}
-                            />
-                        </div>
-
-                        {/* Existing Analytics Dashboard */}
                         <NationAnalyticsDashboard 
                             nation={nation}
                             leagues={leagues}

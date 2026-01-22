@@ -5,7 +5,8 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { Trophy, TrendingUp, Activity, MapPin, Users, Target, Flame, Crown, BarChart3, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import LeagueAllTimeClubs from '@/components/leagues/LeagueAllTimeClubs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LeagueClubHistory from '../leagues/LeagueClubHistory';
 
 export default function LeagueAnalyticsDashboard({ league, seasons = [], allTables = [], clubs = [] }) {
     const analytics = useMemo(() => {
@@ -197,9 +198,17 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
     const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6'];
 
     return (
-        <div className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
+                <TabsTrigger value="trends">Trends</TabsTrigger>
+                <TabsTrigger value="history">Club History</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+                {/* Key Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
                     <CardContent className="p-4 text-center">
                         <Trophy className="w-6 h-6 text-blue-600 mx-auto mb-2" />
@@ -427,8 +436,63 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                 </Card>
             )}
 
-            {/* All-Time Clubs & Consecutive Stays */}
-            <LeagueAllTimeClubs league={league} allTables={allTables} clubs={clubs} />
-        </div>
+            {/* Most Frequent Clubs */}
+            <Card className="border-0 shadow-sm">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-500" />
+                        Most Frequent Clubs
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-2">
+                        {analytics.mostFrequentClubs.map((club, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">
+                                        {idx + 1}
+                                    </div>
+                                    {club.clubId ? (
+                                        <Link to={createPageUrl(`ClubDetail?id=${club.clubId}`)} className="font-semibold hover:text-blue-600">
+                                            {club.name}
+                                        </Link>
+                                    ) : (
+                                        <span className="font-semibold">{club.name}</span>
+                                    )}
+                                </div>
+                                <Badge variant="outline">{club.count} seasons</Badge>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+            </TabsContent>
+
+            <TabsContent value="performance" className="space-y-6">
+                {/* Add performance metrics here in future */}
+                <Card>
+                    <CardContent className="py-8">
+                        <p className="text-center text-slate-500">Performance analytics coming soon...</p>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="trends" className="space-y-6">
+                {/* Add trend analysis here in future */}
+                <Card>
+                    <CardContent className="py-8">
+                        <p className="text-center text-slate-500">Trend analysis coming soon...</p>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-6">
+                <LeagueClubHistory 
+                    league={league}
+                    leagueTables={allTables}
+                    clubs={clubs}
+                />
+            </TabsContent>
+        </Tabs>
     );
 }

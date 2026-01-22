@@ -35,7 +35,6 @@ import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboard';
 import TrophyHaul from '@/components/clubs/TrophyHaul';
-import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -516,15 +515,16 @@ export default function ClubDetail() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <Tabs defaultValue="overview" className="space-y-6">
                     <TabsList>
-                        <TabsTrigger value="overview">Club Story & Honours</TabsTrigger>
-                        <TabsTrigger value="trophies">Trophy Haul</TabsTrigger>
-                        <TabsTrigger value="statistics">Season History</TabsTrigger>
-                        <TabsTrigger value="rivalries">Rivalries & Dynasty</TabsTrigger>
+                        <TabsTrigger value="overview">Story & Honours</TabsTrigger>
+                        <TabsTrigger value="trophies">Trophies</TabsTrigger>
+                        <TabsTrigger value="statistics">History</TabsTrigger>
+                        <TabsTrigger value="decades">Decades</TabsTrigger>
+                        <TabsTrigger value="rivalries">Rivalries</TabsTrigger>
                         <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="continental">Continental</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                        <TabsTrigger value="info">Club Info</TabsTrigger>
+                        <TabsTrigger value="info">Info</TabsTrigger>
                         </TabsList>
 
                     {/* OVERVIEW TAB - Club Story, History & Honours */}
@@ -1049,13 +1049,6 @@ export default function ClubDetail() {
 
                     {/* STATISTICS TAB - Season History & Graph */}
                     <TabsContent value="statistics">
-                        {/* Decade-by-Decade Breakdown */}
-                        {combinedSeasons.length > 0 && (
-                            <div className="mb-8">
-                                <DecadeBreakdown seasons={combinedSeasons} allLeagues={allLeagues} />
-                            </div>
-                        )}
-
                         <Card className="border-0 shadow-sm">
                             <CardHeader><CardTitle>Season by Season</CardTitle></CardHeader>
                             <CardContent>
@@ -1142,10 +1135,19 @@ export default function ClubDetail() {
                         )}
                     </TabsContent>
 
+                    {/* DECADES TAB */}
+                    <TabsContent value="decades">
+                        <DecadeBreakdown 
+                            club={club} 
+                            leagueTables={combinedSeasons}
+                            leagues={allLeagues}
+                        />
+                    </TabsContent>
+
                     {/* RIVALRIES & DYNASTY TAB */}
                     <TabsContent value="rivalries">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <DynastyTracker club={club} combinedStats={combinedStats} />
+                        <div className="space-y-6">
+                            <DynastyTracker club={club} leagueTables={combinedSeasons} />
                             <RivalryTracker club={club} allClubs={allClubs} allLeagueTables={allNationLeagueTables} />
                         </div>
                     </TabsContent>
