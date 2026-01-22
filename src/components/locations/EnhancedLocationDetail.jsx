@@ -21,6 +21,7 @@ import AILocationEnhancer from '@/components/locations/AILocationEnhancer';
 import AILocationImagery from '@/components/locations/AILocationImagery';
 import AdminOnly from '@/components/common/AdminOnly';
 import LocationAnalytics from '@/components/locations/LocationAnalytics';
+import LocationRankings from '@/components/locations/LocationRankings';
 import { estimateLocationPopulation } from '@/components/common/populationUtils';
 
 export default function EnhancedLocationDetail({ 
@@ -619,13 +620,37 @@ export default function EnhancedLocationDetail({
                 </TabsContent>
 
                 <TabsContent value="analytics">
-                    <LocationAnalytics 
-                        locationClubs={locationClubs}
-                        leagues={leagues}
-                        locationType={locationType}
-                        locationName={locationName}
-                        allLeagueTables={allLeagueTables}
-                    />
+                    <div className="space-y-6">
+                        <LocationAnalytics 
+                            locationClubs={locationClubs}
+                            leagues={leagues}
+                            locationType={locationType}
+                            locationName={locationName}
+                            allLeagueTables={allLeagueTables}
+                        />
+                        
+                        {/* Location Rankings */}
+                        {(() => {
+                            // Fetch all locations for rankings
+                            const { data: allLocations = [] } = useQuery({
+                                queryKey: ['allLocations', nationId],
+                                queryFn: () => base44.entities.Location.filter({ nation_id: nationId }),
+                                enabled: !!nationId,
+                            });
+
+                            if (allLocations.length === 0) return null;
+
+                            return (
+                                <LocationRankings 
+                                    allLocations={allLocations}
+                                    allClubs={clubs}
+                                    allLeagues={leagues}
+                                    allLeagueTables={allLeagueTables}
+                                    locationType={locationType}
+                                />
+                            );
+                        })()}
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="successful">
