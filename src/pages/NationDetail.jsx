@@ -26,6 +26,7 @@ import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
 import LeagueStructureManager from '@/components/nations/LeagueStructureManager';
+import NationSeasonOverview from '@/components/nations/NationSeasonOverview';
 import NationAnalyticsDashboard from '@/components/analytics/NationAnalyticsDashboard';
 import { useNavigate } from 'react-router-dom';
 
@@ -407,6 +408,10 @@ export default function NationDetail() {
                             <Trophy className="w-4 h-4" />
                             National Squad
                         </TabsTrigger>
+                        <TabsTrigger value="season-overview" className="flex items-center gap-2">
+                            <Award className="w-4 h-4" />
+                            Season Overview
+                        </TabsTrigger>
                         <TabsTrigger value="details" className="flex items-center gap-2">
                             <MapPin className="w-4 h-4" />
                             Nation Details
@@ -423,6 +428,15 @@ export default function NationDetail() {
 
                     <TabsContent value="pyramid">
                         <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
+                    </TabsContent>
+
+                    <TabsContent value="season-overview">
+                        <NationSeasonOverview 
+                            nation={nation}
+                            allSeasons={seasons}
+                            allLeagues={leagues}
+                            allClubs={allNationClubs}
+                        />
                     </TabsContent>
 
                     <TabsContent value="national-squad">
