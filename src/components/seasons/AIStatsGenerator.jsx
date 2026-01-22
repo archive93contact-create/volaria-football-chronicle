@@ -11,6 +11,11 @@ export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, 
         row.club_name && (row.points === 0 || row.played === 0)
     );
 
+    const clubsWithStats = tableRows.filter(r => 
+        r.club_name?.trim() && r.played > 0 && r.points !== undefined
+    );
+    const canGenerateMatches = clubsWithStats.length >= 2 && seasonId && leagueId;
+
     const generateStats = async () => {
         setLoading(true);
 
@@ -201,14 +206,6 @@ Make some matches exciting (high scoring, late drama) and some defensive (0-0, 1
             setGeneratingMatches(false);
         }
     };
-
-    if (!hasIncompleteStats) {
-        return null;
-    }
-
-    const allStatsComplete = !hasIncompleteStats;
-    const hasEnoughClubs = tableRows.filter(r => r.club_name?.trim()).length >= 2;
-    const canGenerateMatches = allStatsComplete && seasonId && leagueId && hasEnoughClubs;
 
     return (
         <div className="flex gap-2">
