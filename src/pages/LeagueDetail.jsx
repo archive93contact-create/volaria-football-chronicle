@@ -25,6 +25,7 @@ import AdminOnly from '@/components/common/AdminOnly';
 import LeagueHistory from '@/components/leagues/LeagueHistory';
 import SeasonStorylines from '@/components/seasons/SeasonStorylines';
 import LeaguePredictions from '@/components/leagues/LeaguePredictions';
+import MatchResultsViewer from '@/components/seasons/MatchResultsViewer';
 import VisualLeagueHistory from '@/components/leagues/VisualLeagueHistory';
 import AIFillMissingStats from '@/components/leagues/AIFillMissingStats';
 import SyncClubStats from '@/components/common/SyncClubStats';
@@ -390,7 +391,9 @@ export default function LeagueDetail() {
 
                     {/* LEAGUE TABLE TAB */}
                     <TabsContent value="table">
-                {currentSeasonTable.length > 0 && (
+                    {currentSeasonTable.length > 0 && (() => {
+                    const currentSeasonObj = seasons.find(s => s.year === currentYear);
+                    return (
                     <div>
                     <ThemedCard
                         title={
@@ -505,7 +508,8 @@ export default function LeagueDetail() {
                         />
                     )}
                     </div>
-                )}
+                    );
+                    })()}
                     </TabsContent>
 
                     {/* HISTORY & STATS TAB */}
