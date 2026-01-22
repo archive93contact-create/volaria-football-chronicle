@@ -1,238 +1,219 @@
 import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, TrendingDown, Award, Target, Calendar, Star } from 'lucide-react';
+import { Trophy, TrendingUp, TrendingDown, Award, Target } from 'lucide-react';
 
-export default function DecadeBreakdown({ seasons = [], allLeagues = [] }) {
-    const decadeStats = useMemo(() => {
-        if (!seasons || seasons.length === 0) return [];
+export default function DecadeBreakdown({ club, leagueTables, leagues }) {
+    const decadeData = useMemo(() => {
+        if (!leagueTables || leagueTables.length === 0) return [];
 
-        // Group seasons by decade
         const decades = {};
 
-        seasons.forEach(season => {
-            if (!season.year) return;
-            
-            const year = parseInt(season.year);
+        leagueTables.forEach(entry => {
+            const year = parseInt(entry.year);
             const decade = Math.floor(year / 10) * 10;
-            const league = allLeagues.find(l => l.id === season.league_id);
-            const tier = season.tier || league?.tier || 1;
+            const decadeLabel = `${decade}s`;
 
-            if (!decades[decade]) {
-                decades[decade] = {
-                    decade,
-                    decadeLabel: `${decade}s`,
-                    seasons: 0,
-                    wins: 0,
-                    draws: 0,
-                    losses: 0,
-                    goalsFor: 0,
-                    goalsAgainst: 0,
-                    points: 0,
+            if (!decades[decadeLabel]) {
+                decades[decadeLabel] = {
+                    decade: decadeLabel,
+                    startYear: decade,
+                    seasons: [],
                     titles: 0,
                     promotions: 0,
                     relegations: 0,
-                    bestFinish: 99,
-                    bestFinishYear: null,
-                    worstFinish: 0,
-                    worstFinishYear: null,
+                    topThreeFinishes: 0,
                     avgPosition: 0,
-                    seasonsInTopFlight: 0,
-                    highestTier: 99,
-                    lowestTier: 0,
+                    bestFinish: 999,
+                    worstFinish: 0,
+                    bestFinishYear: '',
+                    worstFinishYear: '',
+                    totalSeasons: 0,
+                    tierBreakdown: {}
                 };
             }
 
-            const d = decades[decade];
-            d.seasons++;
-            d.wins += season.won || 0;
-            d.draws += season.drawn || 0;
-            d.losses += season.lost || 0;
-            d.goalsFor += season.goals_for || 0;
-            d.goalsAgainst += season.goals_against || 0;
-            d.points += season.points || 0;
-            d.avgPosition += season.position || 0;
+            const tier = entry.tier || leagues?.find(l => l.id === entry.league_id)?.tier || 1;
 
-            if (tier === 1) d.seasonsInTopFlight++;
-            d.highestTier = Math.min(d.highestTier, tier);
-            d.lowestTier = Math.max(d.lowestTier, tier);
+            decades[decadeLabel].seasons.push({
+                year: entry.year,
+                position: entry.position,
+                tier: tier,
+                status: entry.status
+            });
 
-            if (season.status === 'champion') d.titles++;
-            if (season.status === 'promoted') d.promotions++;
-            if (season.status === 'relegated') d.relegations++;
+            decades[decadeLabel].totalSeasons++;
+            decades[decadeLabel].avgPosition += entry.position;
 
-            if (season.position < d.bestFinish) {
-                d.bestFinish = season.position;
-                d.bestFinishYear = season.year;
+            // Track tier breakdown
+            decades[decadeLabel].tierBreakdown[tier] = (decades[decadeLabel].tierBreakdown[tier] || 0) + 1;
+
+            if (entry.position < decades[decadeLabel].bestFinish) {
+                decades[decadeLabel].bestFinish = entry.position;
+                decades[decadeLabel].bestFinishYear = entry.year;
+                decades[decadeLabel].bestFinishTier = tier;
             }
-            if (season.position > d.worstFinish) {
-                d.worstFinish = season.position;
-                d.worstFinishYear = season.year;
+
+            if (entry.position > decades[decadeLabel].worstFinish) {
+                decades[decadeLabel].worstFinish = entry.position;
+                decades[decadeLabel].worstFinishYear = entry.year;
+                decades[decadeLabel].worstFinishTier = tier;
+            }
+
+            if (entry.status === 'champion') {
+                decades[decadeLabel].titles++;
+            }
+            if (entry.status === 'promoted' || entry.status === 'playoff_winner') {
+                decades[decadeLabel].promotions++;
+            }
+            if (entry.status === 'relegated') {
+                decades[decadeLabel].relegations++;
+            }
+            if (entry.position <= 3 && tier === 1) {
+                decades[decadeLabel].topThreeFinishes++;
             }
         });
 
-        // Calculate averages
-        Object.values(decades).forEach(d => {
-            d.avgPosition = d.seasons > 0 ? (d.avgPosition / d.seasons).toFixed(1) : 0;
-            d.winRate = d.seasons > 0 ? ((d.wins / (d.wins + d.draws + d.losses)) * 100).toFixed(1) : 0;
-            d.goalsPerSeason = d.seasons > 0 ? (d.goalsFor / d.seasons).toFixed(1) : 0;
+        // Calculate averages and assess era quality
+        Object.values(decades).forEach(decade => {
+            decade.avgPosition = (decade.avgPosition / decade.totalSeasons).toFixed(1);
+            
+            // Determine era quality
+            const topTierSeasons = decade.tierBreakdown[1] || 0;
+            const topTierPercentage = (topTierSeasons / decade.totalSeasons) * 100;
+
+            if (decade.titles >= 2 || (decade.titles >= 1 && decade.topThreeFinishes >= 3)) {
+                decade.eraQuality = 'golden';
+                decade.eraLabel = '🏆 Golden Era';
+                decade.eraColor = 'bg-amber-50 border-amber-300';
+            } else if (topTierPercentage >= 70 && decade.avgPosition <= 8) {
+                decade.eraQuality = 'strong';
+                decade.eraLabel = '💪 Strong Period';
+                decade.eraColor = 'bg-emerald-50 border-emerald-300';
+            } else if (decade.relegations >= 2 || topTierPercentage < 30) {
+                decade.eraQuality = 'struggling';
+                decade.eraLabel = '📉 Difficult Times';
+                decade.eraColor = 'bg-red-50 border-red-300';
+            } else if (decade.promotions >= 1 && decade.relegations === 0) {
+                decade.eraQuality = 'rising';
+                decade.eraLabel = '📈 On the Rise';
+                decade.eraColor = 'bg-blue-50 border-blue-300';
+            } else {
+                decade.eraQuality = 'stable';
+                decade.eraLabel = '⚖️ Stable';
+                decade.eraColor = 'bg-slate-50 border-slate-300';
+            }
         });
 
-        return Object.values(decades).sort((a, b) => b.decade - a.decade);
-    }, [seasons, allLeagues]);
+        return Object.values(decades).sort((a, b) => b.startYear - a.startYear);
+    }, [leagueTables, leagues]);
 
-    if (decadeStats.length === 0) {
-        return null;
+    if (decadeData.length === 0) {
+        return (
+            <Card>
+                <CardContent className="py-8">
+                    <p className="text-slate-500 text-center">No historical data available for decade breakdown</p>
+                </CardContent>
+            </Card>
+        );
     }
 
-    const getDecadeQuality = (decade) => {
-        const score = 
-            (decade.titles * 50) + 
-            (decade.seasonsInTopFlight * 10) + 
-            (decade.promotions * 5) - 
-            (decade.relegations * 5) +
-            (decade.avgPosition < 5 ? 20 : decade.avgPosition < 10 ? 10 : 0);
-        
-        if (score > 100) return { label: 'Golden Era', color: 'bg-amber-500', textColor: 'text-amber-700' };
-        if (score > 50) return { label: 'Strong Period', color: 'bg-emerald-500', textColor: 'text-emerald-700' };
-        if (score > 20) return { label: 'Stable', color: 'bg-blue-500', textColor: 'text-blue-700' };
-        if (score > 0) return { label: 'Rebuilding', color: 'bg-slate-400', textColor: 'text-slate-700' };
-        return { label: 'Difficult Era', color: 'bg-red-500', textColor: 'text-red-700' };
-    };
-
     return (
-        <Card className="border-0 shadow-sm">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                    Decade-by-Decade Performance Breakdown
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-6">
-                    {decadeStats.map((decade, idx) => {
-                        const quality = getDecadeQuality(decade);
-                        
-                        return (
-                            <div 
-                                key={decade.decade}
-                                className="relative p-6 rounded-xl border-2 border-slate-200 hover:shadow-lg transition-all bg-gradient-to-r from-slate-50 to-white"
-                            >
-                                {/* Decade Header */}
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-4xl font-bold text-slate-800">{decade.decadeLabel}</div>
-                                        <Badge className={`${quality.color} text-white`}>
-                                            {quality.label}
-                                        </Badge>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-sm text-slate-500">{decade.seasons} seasons played</div>
-                                        {decade.highestTier === decade.lowestTier ? (
-                                            <Badge variant="outline">Tier {decade.highestTier} only</Badge>
-                                        ) : (
-                                            <div className="text-xs text-slate-600">
-                                                Tiers {decade.highestTier}-{decade.lowestTier}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Key Stats Grid */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-4">
-                                    {decade.titles > 0 && (
-                                        <div className="p-3 bg-amber-50 rounded-lg text-center border border-amber-200">
-                                            <Trophy className="w-5 h-5 text-amber-600 mx-auto mb-1" />
-                                            <div className="text-2xl font-bold text-amber-700">{decade.titles}</div>
-                                            <div className="text-xs text-amber-600">Titles</div>
-                                        </div>
-                                    )}
-                                    <div className="p-3 bg-slate-50 rounded-lg text-center">
-                                        <Target className="w-5 h-5 text-slate-600 mx-auto mb-1" />
-                                        <div className="text-xl font-bold text-slate-700">{decade.avgPosition}</div>
-                                        <div className="text-xs text-slate-500">Avg Position</div>
-                                    </div>
-                                    <div className="p-3 bg-slate-50 rounded-lg text-center">
-                                        <div className="text-xl font-bold text-green-600">{decade.winRate}%</div>
-                                        <div className="text-xs text-slate-500">Win Rate</div>
-                                    </div>
-                                    {decade.seasonsInTopFlight > 0 && (
-                                        <div className="p-3 bg-blue-50 rounded-lg text-center border border-blue-200">
-                                            <Star className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                                            <div className="text-xl font-bold text-blue-700">{decade.seasonsInTopFlight}</div>
-                                            <div className="text-xs text-blue-600">Top Flight</div>
-                                        </div>
-                                    )}
-                                    {decade.promotions > 0 && (
-                                        <div className="p-3 bg-green-50 rounded-lg text-center">
-                                            <TrendingUp className="w-5 h-5 text-green-600 mx-auto mb-1" />
-                                            <div className="text-xl font-bold text-green-700">{decade.promotions}</div>
-                                            <div className="text-xs text-green-600">Promoted</div>
-                                        </div>
-                                    )}
-                                    {decade.relegations > 0 && (
-                                        <div className="p-3 bg-red-50 rounded-lg text-center">
-                                            <TrendingDown className="w-5 h-5 text-red-600 mx-auto mb-1" />
-                                            <div className="text-xl font-bold text-red-700">{decade.relegations}</div>
-                                            <div className="text-xs text-red-600">Relegated</div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Secondary Stats */}
-                                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center text-sm">
-                                    <div className="p-2 bg-green-50 rounded">
-                                        <div className="font-bold text-green-700">{decade.wins}</div>
-                                        <div className="text-xs text-slate-500">W</div>
-                                    </div>
-                                    <div className="p-2 bg-slate-50 rounded">
-                                        <div className="font-bold text-slate-700">{decade.draws}</div>
-                                        <div className="text-xs text-slate-500">D</div>
-                                    </div>
-                                    <div className="p-2 bg-red-50 rounded">
-                                        <div className="font-bold text-red-700">{decade.losses}</div>
-                                        <div className="text-xs text-slate-500">L</div>
-                                    </div>
-                                    <div className="p-2 bg-blue-50 rounded">
-                                        <div className="font-bold text-blue-700">{decade.goalsFor}</div>
-                                        <div className="text-xs text-slate-500">GF</div>
-                                    </div>
-                                    <div className="p-2 bg-slate-50 rounded">
-                                        <div className="font-bold text-slate-700">{decade.goalsAgainst}</div>
-                                        <div className="text-xs text-slate-500">GA</div>
-                                    </div>
-                                    <div className="p-2 bg-amber-50 rounded">
-                                        <div className="font-bold text-amber-700">{decade.points}</div>
-                                        <div className="text-xs text-slate-500">Pts</div>
-                                    </div>
-                                </div>
-
-                                {/* Best/Worst */}
-                                <div className="flex items-center justify-around mt-4 pt-4 border-t">
-                                    <div className="text-center">
-                                        <div className="text-xs text-slate-500 mb-1">Best Finish</div>
-                                        <div className="font-bold text-emerald-700">
-                                            {decade.bestFinish === 1 ? '1st' : decade.bestFinish === 2 ? '2nd' : decade.bestFinish === 3 ? '3rd' : `${decade.bestFinish}th`}
-                                        </div>
-                                        <div className="text-xs text-slate-400">{decade.bestFinishYear}</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-xs text-slate-500 mb-1">Worst Finish</div>
-                                        <div className="font-bold text-slate-600">
-                                            {decade.worstFinish === 1 ? '1st' : decade.worstFinish === 2 ? '2nd' : decade.worstFinish === 3 ? '3rd' : `${decade.worstFinish}th`}
-                                        </div>
-                                        <div className="text-xs text-slate-400">{decade.worstFinishYear}</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-xs text-slate-500 mb-1">Avg Goals/Season</div>
-                                        <div className="font-bold text-blue-700">{decade.goalsPerSeason}</div>
-                                    </div>
-                                </div>
+        <div className="space-y-4">
+            {decadeData.map((decade) => (
+                <Card key={decade.decade} className={`border-2 ${decade.eraColor}`}>
+                    <CardHeader>
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <CardTitle className="text-2xl">{decade.decade}</CardTitle>
+                                <CardDescription>
+                                    {decade.totalSeasons} {decade.totalSeasons === 1 ? 'season' : 'seasons'} tracked
+                                </CardDescription>
                             </div>
-                        );
-                    })}
-                </div>
-            </CardContent>
-        </Card>
+                            <Badge className="text-base px-3 py-1">{decade.eraLabel}</Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            {/* Titles */}
+                            <div className="bg-white rounded-lg p-3 border">
+                                <div className="flex items-center gap-2 text-amber-600 mb-1">
+                                    <Trophy className="w-4 h-4" />
+                                    <span className="text-xs font-medium uppercase">Titles</span>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-900">{decade.titles}</p>
+                            </div>
+
+                            {/* Top 3 Finishes */}
+                            <div className="bg-white rounded-lg p-3 border">
+                                <div className="flex items-center gap-2 text-emerald-600 mb-1">
+                                    <Award className="w-4 h-4" />
+                                    <span className="text-xs font-medium uppercase">Top 3</span>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-900">{decade.topThreeFinishes}</p>
+                            </div>
+
+                            {/* Avg Position */}
+                            <div className="bg-white rounded-lg p-3 border">
+                                <div className="flex items-center gap-2 text-blue-600 mb-1">
+                                    <Target className="w-4 h-4" />
+                                    <span className="text-xs font-medium uppercase">Avg Position</span>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-900">{decade.avgPosition}</p>
+                            </div>
+
+                            {/* Promotions/Relegations */}
+                            <div className="bg-white rounded-lg p-3 border">
+                                <div className="flex items-center gap-2 text-slate-600 mb-1">
+                                    <TrendingUp className="w-4 h-4" />
+                                    <span className="text-xs font-medium uppercase">↑/↓</span>
+                                </div>
+                                <p className="text-2xl font-bold">
+                                    <span className="text-green-600">{decade.promotions}</span>
+                                    <span className="text-slate-400 mx-1">/</span>
+                                    <span className="text-red-600">{decade.relegations}</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Best/Worst */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                                <p className="text-xs font-medium text-green-700 mb-1 uppercase">Best Finish</p>
+                                <p className="text-lg font-bold text-green-900">
+                                    {decade.bestFinish === 1 ? '🏆 Champion' : `${decade.bestFinish}${decade.bestFinish === 2 ? 'nd' : decade.bestFinish === 3 ? 'rd' : 'th'} place`}
+                                    <span className="text-sm font-normal ml-2 text-green-700">
+                                        ({decade.bestFinishYear}, Tier {decade.bestFinishTier})
+                                    </span>
+                                </p>
+                            </div>
+                            <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                                <p className="text-xs font-medium text-red-700 mb-1 uppercase">Worst Finish</p>
+                                <p className="text-lg font-bold text-red-900">
+                                    {decade.worstFinish}th place
+                                    <span className="text-sm font-normal ml-2 text-red-700">
+                                        ({decade.worstFinishYear}, Tier {decade.worstFinishTier})
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Tier Distribution */}
+                        <div className="bg-white rounded-lg p-3 border">
+                            <p className="text-xs font-medium text-slate-700 mb-2 uppercase">Time by Tier</p>
+                            <div className="flex flex-wrap gap-2">
+                                {Object.entries(decade.tierBreakdown)
+                                    .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                                    .map(([tier, count]) => (
+                                        <Badge key={tier} variant="outline" className="text-sm">
+                                            Tier {tier}: {count} {count === 1 ? 'season' : 'seasons'}
+                                        </Badge>
+                                    ))}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
     );
 }
