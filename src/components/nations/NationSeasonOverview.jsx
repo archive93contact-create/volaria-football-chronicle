@@ -47,50 +47,86 @@ export default function NationSeasonOverview({ nation, allSeasons, allLeagues, a
         if (!selectedYear) return;
         setGenerating(true);
 
-        const leagueNarrative = yearSeasons.map(s => {
+        // Sort leagues by tier (Tier 1 first)
+        const sortedSeasons = [...yearSeasons].sort((a, b) => {
+            const leagueA = allLeagues.find(l => l.id === a.league_id);
+            const leagueB = allLeagues.find(l => l.id === b.league_id);
+            return (leagueA?.tier || 999) - (leagueB?.tier || 999);
+        });
+
+        const leagueData = sortedSeasons.map(s => {
             const league = allLeagues.find(l => l.id === s.league_id);
-            const table = yearTables.filter(t => t.league_id === s.league_id && t.year === selectedYear);
+            const table = yearTables.filter(t => t.league_id === s.league_id && t.year === selectedYear).sort((a, b) => a.position - b.position);
             const champion = table.find(t => t.position === 1);
+            const runnerUp = table.find(t => t.position === 2);
             const relegated = table.filter(t => t.status === 'relegated');
             const promoted = table.filter(t => t.status === 'promoted' || t.status === 'playoff_winner');
+            const topScorer = s.top_scorer || 'N/A';
             
-            return `
-**${league?.name || 'League'}** (Tier ${league?.tier || '?'})
-- Champion: ${s.champion_name || 'N/A'}${champion ? ` (${champion.points} pts)` : ''}
-- Runner-up: ${s.runner_up || 'N/A'}
-- Top Scorer: ${s.top_scorer || 'N/A'}
-${promoted.length > 0 ? `- Promoted: ${promoted.map(p => p.club_name).join(', ')}` : ''}
-${relegated.length > 0 ? `- Relegated: ${relegated.map(r => r.club_name).join(', ')}` : ''}
-${s.notes ? `- Notes: ${s.notes}` : ''}
+            return {
+                leagueName: league?.name || 'Unknown League',
+                tier: league?.tier || 999,
+                champion: s.champion_name || 'N/A',
+                championPoints: champion?.points || 0,
+                runnerUp: s.runner_up || runnerUp?.club_name || 'N/A',
+                runnerUpPoints: runnerUp?.points || 0,
+                topScorer,
+                promoted: promoted.map(p => p.club_name).filter(Boolean),
+                relegated: relegated.map(r => r.club_name).filter(Boolean),
+                notes: s.notes || '',
+                tableData: table.slice(0, 10).map(t => `${t.position}. ${t.club_name} (${t.points} pts)`)
+            };
+        });
+
+        const cupData = cupSeasons.map(cs => ({
+            cupName: cs.cup_id,
+            winner: cs.champion_name || 'N/A',
+            runnerUp: cs.runner_up || 'N/A',
+            finalScore: cs.final_score || '',
+            notes: cs.notes || ''
+        }));
+
+        const dataString = `
+LEAGUE CHAMPIONS & STANDINGS (Tier 1 = Top Division):
+${leagueData.map(ld => `
+${ld.leagueName} (Tier ${ld.tier}):
+Champion: ${ld.champion} (${ld.championPoints} pts)
+Runner-up: ${ld.runnerUp} (${ld.runnerUpPoints} pts)
+Top Scorer: ${ld.topScorer}
+${ld.promoted.length > 0 ? `Promoted to this tier: ${ld.promoted.join(', ')}` : ''}
+${ld.relegated.length > 0 ? `Relegated: ${ld.relegated.join(', ')}` : ''}
+${ld.notes ? `Notes: ${ld.notes}` : ''}
+
+Top 10 Final Standings:
+${ld.tableData.join('\n')}
+`).join('\n---\n')}
+
+${cupData.length > 0 ? `CUP WINNERS:
+${cupData.map(cd => `${cd.cupName}: ${cd.winner} defeated ${cd.runnerUp}${cd.finalScore ? ` (${cd.finalScore})` : ''}`).join('\n')}` : ''}
 `;
-        }).join('\n');
 
-        const cupNarrative = cupSeasons.map(cs => `
-**${cs.cup_id}**
-- Winner: ${cs.champion_name || 'N/A'}
-- Runner-up: ${cs.runner_up || 'N/A'}
-${cs.final_score ? `- Final Score: ${cs.final_score}` : ''}
-${cs.notes ? `- ${cs.notes}` : ''}
-`).join('\n');
+        const prompt = `You are a football journalist writing a season review for ${nation.name} in ${selectedYear}.
 
-        const prompt = `Write a comprehensive season overview for ${nation.name} football in ${selectedYear}.
+ACTUAL DATA FROM THIS SEASON:
+${dataString}
 
-LEAGUE RESULTS:
-${leagueNarrative}
+CRITICAL INSTRUCTIONS:
+- ONLY use club names that appear in the data above
+- DO NOT invent or make up any club names
+- Focus on the ACTUAL champions, runners-up, promoted and relegated teams listed
+- Use the actual points totals and standings provided
+- Reference the top scorers that are listed
+- Tier 1 is the TOP division, Tier 2 is second tier, etc.
 
-${cupSeasons.length > 0 ? `CUP RESULTS:\n${cupNarrative}` : ''}
+Write a compelling 300-word narrative covering:
+1. Top division title race and champion
+2. Notable performances across all tiers
+3. Promotion/relegation drama
+4. Cup competition results
+5. Emerging or declining clubs based on the standings
+6. Overall atmosphere of the season
 
-Create an engaging narrative that:
-1. Summarizes the major storylines across all tiers
-2. Highlights surprise title winners, close races, or dominant champions
-3. Notes any significant promotion/relegation stories
-4. Discusses cup competitions and any upsets
-5. Mentions any league structure changes (if divisions/tiers changed)
-6. Comments on new clubs entering the pyramid
-7. Identifies emerging powers or declining giants
-8. Creates a sense of the overall season atmosphere
-
-Write in a journalistic, engaging style - like a season retrospective. Use past tense. Keep it concise (300-400 words).`;
+Use past tense, journalistic style. Make it engaging but stick to the facts provided.`;
 
         try {
             const result = await base44.integrations.Core.InvokeLLM({
@@ -166,6 +202,63 @@ Write in a journalistic, engaging style - like a season retrospective. Use past 
                         </Card>
                     )}
 
+                    {/* Key Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        {(() => {
+                            // Find first-time winners
+                            const allPreviousSeasons = allSeasons.filter(s => parseInt(s.year) < parseInt(selectedYear));
+                            const previousChampions = new Set(allPreviousSeasons.map(s => s.champion_name?.toLowerCase()).filter(Boolean));
+                            const firstTimeWinners = yearSeasons.filter(s => 
+                                s.champion_name && !previousChampions.has(s.champion_name.toLowerCase())
+                            );
+
+                            // Find new clubs (clubs in this year that weren't in previous year)
+                            const thisYearClubs = new Set(yearTables.map(t => t.club_name?.toLowerCase()));
+                            const prevYearTables = allSeasons
+                                .filter(s => parseInt(s.year) === parseInt(selectedYear) - 1)
+                                .map(s => s.league_id);
+                            const prevYearClubNames = new Set();
+                            
+                            return (
+                                <>
+                                    <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-yellow-50">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <Trophy className="w-8 h-8 text-amber-500" />
+                                                <div>
+                                                    <div className="text-2xl font-bold">{yearSeasons.length}</div>
+                                                    <div className="text-sm text-slate-600">Champions Crowned</div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-green-50">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <Shield className="w-8 h-8 text-emerald-500" />
+                                                <div>
+                                                    <div className="text-2xl font-bold">{firstTimeWinners.length}</div>
+                                                    <div className="text-sm text-slate-600">First-Time Winners</div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <Globe className="w-8 h-8 text-blue-500" />
+                                                <div>
+                                                    <div className="text-2xl font-bold">{cupSeasons.length}</div>
+                                                    <div className="text-sm text-slate-600">Cup Competitions</div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </>
+                            );
+                        })()}
+                    </div>
+
                     {/* League Results */}
                     <Card>
                         <CardHeader>
@@ -176,39 +269,65 @@ Write in a journalistic, engaging style - like a season retrospective. Use past 
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {yearSeasons.map(season => {
-                                    const league = allLeagues.find(l => l.id === season.league_id);
-                                    const table = yearTables.filter(t => t.league_id === season.league_id);
-                                    const champion = table.find(t => t.position === 1);
-                                    
-                                    return (
-                                        <div key={season.id} className="border-l-4 border-emerald-500 pl-4">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <Link to={createPageUrl(`LeagueDetail?id=${league?.id}`)} className="font-bold text-lg hover:text-emerald-600">
-                                                        {league?.name} <span className="text-slate-500 text-sm">(Tier {league?.tier})</span>
-                                                    </Link>
-                                                    <div className="mt-1 space-y-1 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <Trophy className="w-4 h-4 text-amber-500" />
-                                                            <span className="font-semibold text-emerald-600">{season.champion_name}</span>
-                                                            {champion && <span className="text-slate-500">({champion.points} pts)</span>}
+                                {yearSeasons
+                                    .sort((a, b) => {
+                                        const leagueA = allLeagues.find(l => l.id === a.league_id);
+                                        const leagueB = allLeagues.find(l => l.id === b.league_id);
+                                        return (leagueA?.tier || 999) - (leagueB?.tier || 999);
+                                    })
+                                    .map(season => {
+                                        const league = allLeagues.find(l => l.id === season.league_id);
+                                        const table = yearTables.filter(t => t.league_id === season.league_id);
+                                        const champion = table.find(t => t.position === 1);
+                                        const championClub = allClubs.find(c => c.id === champion?.club_id);
+                                        
+                                        // Check if first-time winner
+                                        const allPreviousSeasons = allSeasons.filter(s => parseInt(s.year) < parseInt(selectedYear) && s.league_id === season.league_id);
+                                        const previousChampions = new Set(allPreviousSeasons.map(s => s.champion_name?.toLowerCase()).filter(Boolean));
+                                        const isFirstTime = season.champion_name && !previousChampions.has(season.champion_name.toLowerCase());
+                                        
+                                        return (
+                                            <div key={season.id} className="border-l-4 border-emerald-500 pl-4 hover:bg-slate-50 rounded-r-lg transition-colors p-2">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex items-start gap-3 flex-1">
+                                                        {championClub?.logo_url && (
+                                                            <img 
+                                                                src={championClub.logo_url} 
+                                                                alt={season.champion_name} 
+                                                                className="w-12 h-12 object-contain bg-white rounded-lg p-1 shadow-sm"
+                                                            />
+                                                        )}
+                                                        <div className="flex-1">
+                                                            <Link to={createPageUrl(`LeagueDetail?id=${league?.id}`)} className="font-bold text-lg hover:text-emerald-600">
+                                                                {league?.name} <span className="text-slate-500 text-sm">(Tier {league?.tier})</span>
+                                                            </Link>
+                                                            <div className="mt-1 space-y-1 text-sm">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <Trophy className="w-4 h-4 text-amber-500" />
+                                                                    <span className="font-semibold text-emerald-600">{season.champion_name}</span>
+                                                                    {champion && <span className="text-slate-500">({champion.points} pts)</span>}
+                                                                    {isFirstTime && (
+                                                                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded">
+                                                                            First Title!
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {season.runner_up && (
+                                                                    <div className="text-slate-600">Runner-up: {season.runner_up}</div>
+                                                                )}
+                                                                {season.top_scorer && (
+                                                                    <div className="text-slate-600">⚽ {season.top_scorer}</div>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        {season.runner_up && (
-                                                            <div className="text-slate-600">Runner-up: {season.runner_up}</div>
-                                                        )}
-                                                        {season.top_scorer && (
-                                                            <div className="text-slate-600">⚽ {season.top_scorer}</div>
-                                                        )}
                                                     </div>
+                                                    <Link to={createPageUrl(`LeagueDetail?id=${league?.id}`)}>
+                                                        <Button variant="outline" size="sm">View Table</Button>
+                                                    </Link>
                                                 </div>
-                                                <Link to={createPageUrl(`LeagueDetail?id=${league?.id}`)}>
-                                                    <Button variant="outline" size="sm">View Table</Button>
-                                                </Link>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
                             </div>
                         </CardContent>
                     </Card>
