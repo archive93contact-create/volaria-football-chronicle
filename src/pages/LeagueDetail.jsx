@@ -496,6 +496,15 @@ export default function LeagueDetail() {
                         </CardContent>
                     </ThemedCard>
 
+                    {/* Match Results */}
+                    {currentSeasonObj?.id && (
+                        <MatchResultsViewer 
+                            seasonId={currentSeasonObj.id}
+                            leagueId={leagueId}
+                            seasonYear={currentYear}
+                        />
+                    )}
+
                     {/* Season Storylines */}
                     {(selectedSeason || uniqueYears[0]) && (
                         <SeasonStorylines 
