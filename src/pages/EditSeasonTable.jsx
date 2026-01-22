@@ -14,6 +14,7 @@ import PageHeader from '@/components/common/PageHeader';
 import { useIsAdmin } from '@/components/common/AdminOnly';
 import { recalculateStabilityAfterSeason } from '@/components/stability/autoUpdateStability';
 import AIStatsGenerator from '@/components/seasons/AIStatsGenerator';
+import MatchResultsViewer from '@/components/seasons/MatchResultsViewer';
 
 export default function EditSeasonTable() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -256,6 +257,8 @@ export default function EditSeasonTable() {
                         )}
                     </CardContent>
                 </Card>
+
+                <MatchResultsViewer seasonId={seasonId} leagueId={leagueId} seasonYear={year} />
 
                 <div className="flex items-center justify-between mt-6">
                     <Button variant="ghost" onClick={() => navigate(-1)}>
