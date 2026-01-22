@@ -58,8 +58,9 @@ export default function ClubDetail() {
     const { data: nation } = useQuery({
         queryKey: ['nation', club?.nation_id],
         queryFn: async () => {
+            if (!club?.nation_id) return null;
             const nations = await base44.entities.Nation.filter({ id: club.nation_id });
-            return nations[0];
+            return nations[0] || null;
         },
         enabled: !!club?.nation_id,
     });
@@ -67,8 +68,9 @@ export default function ClubDetail() {
     const { data: league } = useQuery({
         queryKey: ['league', club?.league_id],
         queryFn: async () => {
+            if (!club?.league_id) return null;
             const leagues = await base44.entities.League.filter({ id: club.league_id });
-            return leagues[0];
+            return leagues[0] || null;
         },
         enabled: !!club?.league_id,
     });
@@ -112,8 +114,9 @@ export default function ClubDetail() {
     const { data: predecessorClub } = useQuery({
         queryKey: ['predecessorClub', club?.predecessor_club_id],
         queryFn: async () => {
+            if (!club?.predecessor_club_id) return null;
             const clubs = await base44.entities.Club.filter({ id: club.predecessor_club_id });
-            return clubs[0];
+            return clubs[0] || null;
         },
         enabled: !!club?.predecessor_club_id,
     });
@@ -122,8 +125,9 @@ export default function ClubDetail() {
     const { data: predecessorClub2 } = useQuery({
         queryKey: ['predecessorClub2', club?.predecessor_club_2_id],
         queryFn: async () => {
+            if (!club?.predecessor_club_2_id) return null;
             const clubs = await base44.entities.Club.filter({ id: club.predecessor_club_2_id });
-            return clubs[0];
+            return clubs[0] || null;
         },
         enabled: !!club?.predecessor_club_2_id,
     });
@@ -146,8 +150,9 @@ export default function ClubDetail() {
     const { data: successorClub } = useQuery({
         queryKey: ['successorClub', club?.successor_club_id],
         queryFn: async () => {
+            if (!club?.successor_club_id) return null;
             const clubs = await base44.entities.Club.filter({ id: club.successor_club_id });
-            return clubs[0];
+            return clubs[0] || null;
         },
         enabled: !!club?.successor_club_id,
     });
@@ -156,8 +161,9 @@ export default function ClubDetail() {
     const { data: formerNameClub } = useQuery({
         queryKey: ['formerNameClub', club?.former_name_club_id],
         queryFn: async () => {
+            if (!club?.former_name_club_id) return null;
             const clubs = await base44.entities.Club.filter({ id: club.former_name_club_id });
-            return clubs[0];
+            return clubs[0] || null;
         },
         enabled: !!club?.former_name_club_id,
     });
@@ -166,8 +172,9 @@ export default function ClubDetail() {
     const { data: formerNameClub2 } = useQuery({
         queryKey: ['formerNameClub2', club?.former_name_club_2_id],
         queryFn: async () => {
+            if (!club?.former_name_club_2_id) return null;
             const clubs = await base44.entities.Club.filter({ id: club.former_name_club_2_id });
-            return clubs[0];
+            return clubs[0] || null;
         },
         enabled: !!club?.former_name_club_2_id,
     });
@@ -197,8 +204,9 @@ export default function ClubDetail() {
     const { data: currentNameClub } = useQuery({
         queryKey: ['currentNameClub', club?.current_name_club_id],
         queryFn: async () => {
+            if (!club?.current_name_club_id) return null;
             const clubs = await base44.entities.Club.filter({ id: club.current_name_club_id });
-            return clubs[0];
+            return clubs[0] || null;
         },
         enabled: !!club?.current_name_club_id,
     });
