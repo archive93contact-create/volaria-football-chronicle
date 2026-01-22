@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { MapPin, Users, Shield, Trophy, Star, Globe, Building2, Home, Landmark, Edit2, Save, X, Plus, Trash2, ChevronRight, Layers } from 'lucide-react';
+import { MapPin, Users, Shield, Trophy, Star, Globe, Building2, Home, Landmark, Edit2, Save, X, Plus, Trash2, ChevronRight, Layers, Target } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import LocationNarratives from '@/components/locations/LocationNarratives';
 import AILocationEnhancer from '@/components/locations/AILocationEnhancer';
 import AILocationImagery from '@/components/locations/AILocationImagery';
 import AdminOnly from '@/components/common/AdminOnly';
+import LocationAnalytics from '@/components/locations/LocationAnalytics';
 import { estimateLocationPopulation } from '@/components/common/populationUtils';
 
 export default function EnhancedLocationDetail({ 
@@ -32,7 +33,8 @@ export default function EnhancedLocationDetail({
     clubs,
     parentInfo,
     subLocations,
-    isCapital
+    isCapital,
+    allLeagueTables = []
 }) {
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
@@ -223,6 +225,10 @@ export default function EnhancedLocationDetail({
                     <TabsTrigger value="clubs">
                         <Trophy className="w-4 h-4 mr-2" />
                         Clubs
+                    </TabsTrigger>
+                    <TabsTrigger value="analytics">
+                        <Target className="w-4 h-4 mr-2" />
+                        Analytics
                     </TabsTrigger>
                     {(() => {
                         const topClub = [...locationClubs].sort((a, b) => 
@@ -604,6 +610,16 @@ export default function EnhancedLocationDetail({
                         })()}
                         </div>
                     </div>
+                </TabsContent>
+
+                <TabsContent value="analytics">
+                    <LocationAnalytics 
+                        locationClubs={locationClubs}
+                        leagues={leagues}
+                        locationType={locationType}
+                        locationName={locationName}
+                        allLeagueTables={allLeagueTables}
+                    />
                 </TabsContent>
 
                 <TabsContent value="successful">
