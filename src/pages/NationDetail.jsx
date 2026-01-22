@@ -845,6 +845,34 @@ export default function NationDetail() {
                     </TabsContent>
 
                     <TabsContent value="analytics">
+                        {/* Geographic Success Map */}
+                        <div className="mb-8">
+                            <GeographicSuccessMap 
+                                seasons={seasons}
+                                clubs={allNationClubs}
+                                nationId={nationId}
+                            />
+                        </div>
+
+                        {/* Dominant Era Timeline */}
+                        <div className="mb-8">
+                            <DominantErasTimeline 
+                                seasons={seasons}
+                                clubs={allNationClubs}
+                                leagues={leagues}
+                            />
+                        </div>
+
+                        {/* League Pyramid Flow */}
+                        <div className="mb-8">
+                            <PyramidFlowDiagram 
+                                seasons={seasons}
+                                allLeagueTables={leagueTables}
+                                leagues={leagues}
+                            />
+                        </div>
+
+                        {/* Existing Analytics Dashboard */}
                         <NationAnalyticsDashboard 
                             nation={nation}
                             leagues={leagues}
