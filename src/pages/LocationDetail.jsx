@@ -39,6 +39,11 @@ export default function LocationDetail() {
         queryFn: () => base44.entities.LeagueTable.list(),
     });
 
+    const { data: allLocations = [] } = useQuery({
+        queryKey: ['allLocations'],
+        queryFn: () => base44.entities.Location.list(),
+    });
+
     const nation = nations.find(n => n.id === nationId);
     
     // Check if this location is the capital
@@ -210,6 +215,7 @@ export default function LocationDetail() {
                     parentInfo={parentInfo}
                     subLocations={subLocations}
                     allLeagueTables={allLeagueTables}
+                    allLocations={allLocations}
                 />
             </div>
         </div>
