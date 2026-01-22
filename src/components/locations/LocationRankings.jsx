@@ -65,7 +65,7 @@ export default function LocationRankings({ location, allClubs, allLeagues }) {
                 cupTitles,
                 vccTitles,
                 cccTitles,
-                isTopFlight,
+                isTopFlight: currentTier === 1,
                 score,
                 league,
             };
