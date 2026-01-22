@@ -55,6 +55,7 @@ export default function ClubDetail() {
         },
         enabled: !!clubId,
         retry: 2,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     });
 
     const { data: nation } = useQuery({
@@ -65,6 +66,7 @@ export default function ClubDetail() {
             return nations[0] || null;
         },
         enabled: !!club?.nation_id,
+        staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     });
 
     const { data: league } = useQuery({
@@ -75,6 +77,7 @@ export default function ClubDetail() {
             return leagues[0] || null;
         },
         enabled: !!club?.league_id,
+        staleTime: 10 * 60 * 1000,
     });
 
     const { data: leagues = [] } = useQuery({
@@ -84,6 +87,7 @@ export default function ClubDetail() {
             return await base44.entities.League.filter({ nation_id: club.nation_id }) || [];
         },
         enabled: !!club?.nation_id,
+        staleTime: 10 * 60 * 1000,
     });
 
     const { data: clubSeasons = [] } = useQuery({
@@ -93,23 +97,27 @@ export default function ClubDetail() {
             return await base44.entities.LeagueTable.filter({ club_id: clubId }, '-year') || [];
         },
         enabled: !!clubId,
+        staleTime: 5 * 60 * 1000,
     });
 
     const { data: allLeagues = [] } = useQuery({
         queryKey: ['allLeagues'],
         queryFn: async () => await base44.entities.League.list() || [],
+        staleTime: 15 * 60 * 1000, // Cache for 15 minutes - rarely changes
     });
 
+    // Only fetch all clubs when editing (for predecessor selection)
     const { data: allClubs = [] } = useQuery({
         queryKey: ['allClubsForPredecessor', club?.nation_id],
         queryFn: async () => {
             if (!club?.nation_id) return [];
             return await base44.entities.Club.filter({ nation_id: club.nation_id }) || [];
         },
-        enabled: !!club?.nation_id,
+        enabled: !!club?.nation_id && isEditing, // Only load when needed
+        staleTime: 10 * 60 * 1000,
     });
 
-    // Fetch all league tables for dynamic rivalry detection
+    // Fetch all league tables for dynamic rivalry detection - only when on rivalries tab
     const { data: allNationLeagueTables = [] } = useQuery({
         queryKey: ['allNationLeagueTables', club?.nation_id],
         queryFn: async () => {
@@ -119,123 +127,73 @@ export default function ClubDetail() {
             const tables = await base44.entities.LeagueTable.list() || [];
             return tables.filter(t => leagueIds.includes(t.league_id));
         },
-        enabled: !!club?.nation_id,
+        enabled: false, // Manually trigger when rivalries tab is opened
+        staleTime: 10 * 60 * 1000,
     });
 
-    // Fetch predecessor club data if exists
-    const { data: predecessorClub } = useQuery({
-        queryKey: ['predecessorClub', club?.predecessor_club_id],
+    // Batch fetch related club data (predecessor, successor, former names) in one go
+    const relatedClubIds = [
+        club?.predecessor_club_id,
+        club?.predecessor_club_2_id,
+        club?.successor_club_id,
+        club?.former_name_club_id,
+        club?.former_name_club_2_id,
+        club?.current_name_club_id
+    ].filter(Boolean);
+
+    const { data: relatedClubs = [] } = useQuery({
+        queryKey: ['relatedClubs', relatedClubIds.join(',')],
         queryFn: async () => {
-            if (!club?.predecessor_club_id) return null;
-            const clubs = await base44.entities.Club.filter({ id: club.predecessor_club_id });
-            return clubs[0] || null;
+            if (relatedClubIds.length === 0) return [];
+            const clubs = await base44.entities.Club.list() || [];
+            return clubs.filter(c => relatedClubIds.includes(c.id));
         },
-        enabled: !!club?.predecessor_club_id,
+        enabled: !!club && relatedClubIds.length > 0,
+        staleTime: 10 * 60 * 1000,
     });
 
-    // Fetch second predecessor club data if exists (merger)
-    const { data: predecessorClub2 } = useQuery({
-        queryKey: ['predecessorClub2', club?.predecessor_club_2_id],
+    // Extract individual clubs from batch
+    const predecessorClub = relatedClubs.find(c => c.id === club?.predecessor_club_id);
+    const predecessorClub2 = relatedClubs.find(c => c.id === club?.predecessor_club_2_id);
+    const successorClub = relatedClubs.find(c => c.id === club?.successor_club_id);
+    const formerNameClub = relatedClubs.find(c => c.id === club?.former_name_club_id);
+    const formerNameClub2 = relatedClubs.find(c => c.id === club?.former_name_club_2_id);
+    const currentNameClub = relatedClubs.find(c => c.id === club?.current_name_club_id);
+
+    // Batch fetch seasons for related clubs
+    const relatedSeasonClubIds = [
+        club?.predecessor_club_id,
+        club?.predecessor_club_2_id,
+        club?.former_name_club_id,
+        club?.former_name_club_2_id
+    ].filter(Boolean);
+
+    const { data: relatedSeasons = [] } = useQuery({
+        queryKey: ['relatedSeasons', relatedSeasonClubIds.join(',')],
         queryFn: async () => {
-            if (!club?.predecessor_club_2_id) return null;
-            const clubs = await base44.entities.Club.filter({ id: club.predecessor_club_2_id });
-            return clubs[0] || null;
+            if (relatedSeasonClubIds.length === 0) return [];
+            const allTables = await base44.entities.LeagueTable.list() || [];
+            return allTables.filter(t => relatedSeasonClubIds.includes(t.club_id));
         },
-        enabled: !!club?.predecessor_club_2_id,
+        enabled: !!club && relatedSeasonClubIds.length > 0,
+        staleTime: 10 * 60 * 1000,
     });
 
-    // Fetch predecessor's seasons
-    const { data: predecessorSeasons = [] } = useQuery({
-        queryKey: ['predecessorSeasons', club?.predecessor_club_id],
-        queryFn: async () => {
-            if (!club?.predecessor_club_id) return [];
-            return await base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_id }, '-year') || [];
-        },
-        enabled: !!club?.predecessor_club_id,
-    });
+    // Extract individual season arrays
+    const predecessorSeasons = relatedSeasons.filter(s => s.club_id === club?.predecessor_club_id).sort((a, b) => b.year.localeCompare(a.year));
+    const predecessorSeasons2 = relatedSeasons.filter(s => s.club_id === club?.predecessor_club_2_id).sort((a, b) => b.year.localeCompare(a.year));
+    const formerNameSeasons = relatedSeasons.filter(s => s.club_id === club?.former_name_club_id).sort((a, b) => b.year.localeCompare(a.year));
+    const formerNameSeasons2 = relatedSeasons.filter(s => s.club_id === club?.former_name_club_2_id).sort((a, b) => b.year.localeCompare(a.year));
 
-    // Fetch second predecessor's seasons
-    const { data: predecessorSeasons2 = [] } = useQuery({
-        queryKey: ['predecessorSeasons2', club?.predecessor_club_2_id],
-        queryFn: async () => {
-            if (!club?.predecessor_club_2_id) return [];
-            return await base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_2_id }, '-year') || [];
-        },
-        enabled: !!club?.predecessor_club_2_id,
-    });
-
-    // Fetch successor club if this is defunct
-    const { data: successorClub } = useQuery({
-        queryKey: ['successorClub', club?.successor_club_id],
-        queryFn: async () => {
-            if (!club?.successor_club_id) return null;
-            const clubs = await base44.entities.Club.filter({ id: club.successor_club_id });
-            return clubs[0] || null;
-        },
-        enabled: !!club?.successor_club_id,
-    });
-
-    // Fetch former name club data if exists
-    const { data: formerNameClub } = useQuery({
-        queryKey: ['formerNameClub', club?.former_name_club_id],
-        queryFn: async () => {
-            if (!club?.former_name_club_id) return null;
-            const clubs = await base44.entities.Club.filter({ id: club.former_name_club_id });
-            return clubs[0] || null;
-        },
-        enabled: !!club?.former_name_club_id,
-    });
-
-    // Fetch second former name club data if exists
-    const { data: formerNameClub2 } = useQuery({
-        queryKey: ['formerNameClub2', club?.former_name_club_2_id],
-        queryFn: async () => {
-            if (!club?.former_name_club_2_id) return null;
-            const clubs = await base44.entities.Club.filter({ id: club.former_name_club_2_id });
-            return clubs[0] || null;
-        },
-        enabled: !!club?.former_name_club_2_id,
-    });
-
-    // Fetch former name club's seasons
-    const { data: formerNameSeasons = [] } = useQuery({
-        queryKey: ['formerNameSeasons', club?.former_name_club_id],
-        queryFn: async () => {
-            if (!club?.former_name_club_id) return [];
-            return await base44.entities.LeagueTable.filter({ club_id: club.former_name_club_id }, '-year') || [];
-        },
-        enabled: !!club?.former_name_club_id,
-    });
-
-    // Fetch second former name club's seasons
-    const { data: formerNameSeasons2 = [] } = useQuery({
-        queryKey: ['formerNameSeasons2', club?.former_name_club_2_id],
-        queryFn: async () => {
-            if (!club?.former_name_club_2_id) return [];
-            return await base44.entities.LeagueTable.filter({ club_id: club.former_name_club_2_id }, '-year') || [];
-        },
-        enabled: !!club?.former_name_club_2_id,
-    });
-
-    // Fetch players for Squad tab
+    // Fetch players for Squad tab - only when needed
     const { data: players = [] } = useQuery({
         queryKey: ['players', clubId],
         queryFn: async () => {
             if (!clubId) return [];
             return await base44.entities.Player.filter({ club_id: clubId }) || [];
         },
-        enabled: !!clubId,
-    });
-
-    // Fetch current name club if this is a former name record
-    const { data: currentNameClub } = useQuery({
-        queryKey: ['currentNameClub', club?.current_name_club_id],
-        queryFn: async () => {
-            if (!club?.current_name_club_id) return null;
-            const clubs = await base44.entities.Club.filter({ id: club.current_name_club_id });
-            return clubs[0] || null;
-        },
-        enabled: !!club?.current_name_club_id,
+        enabled: false, // Load on demand when squad tab is opened
+        staleTime: 5 * 60 * 1000,
     });
 
     // Combine seasons from current club, predecessors, and former names
