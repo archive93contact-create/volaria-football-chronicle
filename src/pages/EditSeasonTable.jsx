@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PageHeader from '@/components/common/PageHeader';
 import { useIsAdmin } from '@/components/common/AdminOnly';
 import { recalculateStabilityAfterSeason } from '@/components/stability/autoUpdateStability';
+import AIStatsGenerator from '@/components/seasons/AIStatsGenerator';
 
 export default function EditSeasonTable() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -176,8 +177,19 @@ export default function EditSeasonTable() {
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <Card className="border-0 shadow-sm">
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Edit League Table</CardTitle>
+                        <AIStatsGenerator 
+                            tableRows={tableRows}
+                            setTableRows={setTableRows}
+                            seasonData={season}
+                            league={league}
+                            seasonId={seasonId}
+                            leagueId={leagueId}
+                            onMatchesGenerated={() => {
+                                queryClient.invalidateQueries(['matches']);
+                            }}
+                        />
                     </CardHeader>
                     <CardContent>
                         {tableRows.length === 0 ? (
