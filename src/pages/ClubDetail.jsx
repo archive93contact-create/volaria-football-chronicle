@@ -77,24 +77,33 @@ export default function ClubDetail() {
 
     const { data: leagues = [] } = useQuery({
         queryKey: ['leaguesByNation', club?.nation_id],
-        queryFn: () => base44.entities.League.filter({ nation_id: club.nation_id }),
+        queryFn: async () => {
+            if (!club?.nation_id) return [];
+            return await base44.entities.League.filter({ nation_id: club.nation_id }) || [];
+        },
         enabled: !!club?.nation_id,
     });
 
     const { data: clubSeasons = [] } = useQuery({
         queryKey: ['clubSeasons', clubId],
-        queryFn: () => base44.entities.LeagueTable.filter({ club_id: clubId }, '-year'),
+        queryFn: async () => {
+            if (!clubId) return [];
+            return await base44.entities.LeagueTable.filter({ club_id: clubId }, '-year') || [];
+        },
         enabled: !!clubId,
     });
 
     const { data: allLeagues = [] } = useQuery({
         queryKey: ['allLeagues'],
-        queryFn: () => base44.entities.League.list(),
+        queryFn: async () => await base44.entities.League.list() || [],
     });
 
     const { data: allClubs = [] } = useQuery({
         queryKey: ['allClubsForPredecessor', club?.nation_id],
-        queryFn: () => base44.entities.Club.filter({ nation_id: club.nation_id }),
+        queryFn: async () => {
+            if (!club?.nation_id) return [];
+            return await base44.entities.Club.filter({ nation_id: club.nation_id }) || [];
+        },
         enabled: !!club?.nation_id,
     });
 
@@ -102,9 +111,10 @@ export default function ClubDetail() {
     const { data: allNationLeagueTables = [] } = useQuery({
         queryKey: ['allNationLeagueTables', club?.nation_id],
         queryFn: async () => {
-            const nationLeagues = await base44.entities.League.filter({ nation_id: club.nation_id });
+            if (!club?.nation_id) return [];
+            const nationLeagues = await base44.entities.League.filter({ nation_id: club.nation_id }) || [];
             const leagueIds = nationLeagues.map(l => l.id);
-            const tables = await base44.entities.LeagueTable.list();
+            const tables = await base44.entities.LeagueTable.list() || [];
             return tables.filter(t => leagueIds.includes(t.league_id));
         },
         enabled: !!club?.nation_id,
@@ -135,14 +145,20 @@ export default function ClubDetail() {
     // Fetch predecessor's seasons
     const { data: predecessorSeasons = [] } = useQuery({
         queryKey: ['predecessorSeasons', club?.predecessor_club_id],
-        queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_id }, '-year'),
+        queryFn: async () => {
+            if (!club?.predecessor_club_id) return [];
+            return await base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_id }, '-year') || [];
+        },
         enabled: !!club?.predecessor_club_id,
     });
 
     // Fetch second predecessor's seasons
     const { data: predecessorSeasons2 = [] } = useQuery({
         queryKey: ['predecessorSeasons2', club?.predecessor_club_2_id],
-        queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_2_id }, '-year'),
+        queryFn: async () => {
+            if (!club?.predecessor_club_2_id) return [];
+            return await base44.entities.LeagueTable.filter({ club_id: club.predecessor_club_2_id }, '-year') || [];
+        },
         enabled: !!club?.predecessor_club_2_id,
     });
 
@@ -182,21 +198,30 @@ export default function ClubDetail() {
     // Fetch former name club's seasons
     const { data: formerNameSeasons = [] } = useQuery({
         queryKey: ['formerNameSeasons', club?.former_name_club_id],
-        queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.former_name_club_id }, '-year'),
+        queryFn: async () => {
+            if (!club?.former_name_club_id) return [];
+            return await base44.entities.LeagueTable.filter({ club_id: club.former_name_club_id }, '-year') || [];
+        },
         enabled: !!club?.former_name_club_id,
     });
 
     // Fetch second former name club's seasons
     const { data: formerNameSeasons2 = [] } = useQuery({
         queryKey: ['formerNameSeasons2', club?.former_name_club_2_id],
-        queryFn: () => base44.entities.LeagueTable.filter({ club_id: club.former_name_club_2_id }, '-year'),
+        queryFn: async () => {
+            if (!club?.former_name_club_2_id) return [];
+            return await base44.entities.LeagueTable.filter({ club_id: club.former_name_club_2_id }, '-year') || [];
+        },
         enabled: !!club?.former_name_club_2_id,
     });
 
     // Fetch players for Squad tab
     const { data: players = [] } = useQuery({
         queryKey: ['players', clubId],
-        queryFn: () => base44.entities.Player.filter({ club_id: clubId }),
+        queryFn: async () => {
+            if (!clubId) return [];
+            return await base44.entities.Player.filter({ club_id: clubId }) || [];
+        },
         enabled: !!clubId,
     });
 
