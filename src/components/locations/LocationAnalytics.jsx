@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Star, TrendingUp, TrendingDown, Shield, Users, Target, Award, Globe } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import LocationRankings from './LocationRankings';
 
-export default function LocationAnalytics({ locationClubs, leagues, locationType, locationName, allLeagueTables = [] }) {
+export default function LocationAnalytics({ locationClubs, leagues, locationType, locationName, allLeagueTables = [], allLocations = [], allClubs = [] }) {
     const analytics = useMemo(() => {
         if (!locationClubs || locationClubs.length === 0) return null;
 
@@ -346,6 +347,18 @@ export default function LocationAnalytics({ locationClubs, leagues, locationType
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Location Rankings */}
+            {allLocations && allLocations.length > 0 && allClubs && allClubs.length > 0 && (
+                <div className="mt-6">
+                    <LocationRankings 
+                        allLocations={allLocations}
+                        allClubs={allClubs}
+                        allLeagues={leagues}
+                        locationType={locationType}
+                    />
+                </div>
+            )}
         </div>
     );
 }
