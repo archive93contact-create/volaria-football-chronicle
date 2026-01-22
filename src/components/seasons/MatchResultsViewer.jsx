@@ -12,11 +12,11 @@ import { Label } from "@/components/ui/label";
 import AdminOnly from '@/components/common/AdminOnly';
 
 export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clubs = [] }) {
+    const queryClient = useQueryClient();
     const [selectedMatch, setSelectedMatch] = React.useState(null);
     const [selectedMatchday, setSelectedMatchday] = React.useState('all');
     const [isEditing, setIsEditing] = React.useState(false);
     const [editData, setEditData] = React.useState({});
-    const queryClient = useQueryClient();
 
     const { data: matches = [], isLoading } = useQuery({
         queryKey: ['matches', seasonId],
@@ -52,48 +52,48 @@ export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clu
     const matchdays = Object.keys(matchesByDay).map(Number).sort((a, b) => a - b);
     
     // Filter matches by selected matchday
-    const displayMatchdays = selectedMatchday === 'all' 
+    const filteredMatchdays = selectedMatchday === 'all' 
         ? matchdays 
-        : matchdays.filter(md => md === parseInt(selectedMatchday));
+        : [parseInt(selectedMatchday)].filter(md => matchdays.includes(md));
 
     const handleEditMatch = (match) => {
         setEditData({
             ...match,
             goalscorers: match.goalscorers || [],
-            home_lineup: match.home_lineup || [],
-            away_lineup: match.away_lineup || [],
-            home_subs: match.home_subs || [],
-            away_subs: match.away_subs || []
         });
         setIsEditing(true);
     };
 
     const handleSaveMatch = () => {
-        const submitData = {
-            ...editData,
-            home_score: parseInt(editData.home_score) || 0,
-            away_score: parseInt(editData.away_score) || 0,
-            matchday: parseInt(editData.matchday) || 1,
-            attendance: editData.attendance ? parseInt(editData.attendance) : null
-        };
-        updateMatchMutation.mutate({ id: editData.id, data: submitData });
+        updateMatchMutation.mutate({
+            id: selectedMatch.id,
+            data: {
+                ...editData,
+                home_score: parseInt(editData.home_score) || 0,
+                away_score: parseInt(editData.away_score) || 0,
+                attendance: editData.attendance ? parseInt(editData.attendance) : null,
+            }
+        });
     };
 
     const addGoalscorer = () => {
         setEditData({
             ...editData,
-            goalscorers: [...(editData.goalscorers || []), { player_name: '', minute: '', is_home: true }]
+            goalscorers: [
+                ...(editData.goalscorers || []),
+                { player_name: '', minute: 0, is_home: true }
+            ]
         });
     };
 
     const removeGoalscorer = (index) => {
-        const newGoalscorers = [...editData.goalscorers];
+        const newGoalscorers = [...(editData.goalscorers || [])];
         newGoalscorers.splice(index, 1);
         setEditData({ ...editData, goalscorers: newGoalscorers });
     };
 
     const updateGoalscorer = (index, field, value) => {
-        const newGoalscorers = [...editData.goalscorers];
+        const newGoalscorers = [...(editData.goalscorers || [])];
         newGoalscorers[index] = { ...newGoalscorers[index], [field]: value };
         setEditData({ ...editData, goalscorers: newGoalscorers });
     };
@@ -119,7 +119,7 @@ export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clu
             </CardHeader>
             <CardContent>
                 <div className="space-y-6">
-                    {displayMatchdays.map(day => (
+                    {filteredMatchdays.map(day => (
                         <div key={day}>
                             <h3 className="font-semibold text-sm text-slate-600 mb-3">Matchday {day}</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
