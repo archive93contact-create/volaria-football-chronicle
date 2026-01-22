@@ -806,12 +806,13 @@ export default function LeagueDetail() {
                                                     <TableCell className="text-right">
                                                         <div className="flex items-center justify-end gap-1">
                                                             <Button variant="ghost" size="sm" onClick={() => handleViewTable(season.year)}>
-                                                                View
+                                                                View Table
                                                             </Button>
                                                             <AdminOnly>
                                                                 <Link to={createPageUrl(`EditSeasonTable?league_id=${leagueId}&season_id=${season.id}&year=${season.year}`)}>
-                                                                    <Button variant="ghost" size="sm" title="Edit Table">
-                                                                        <Edit2 className="w-4 h-4" />
+                                                                    <Button variant="ghost" size="sm">
+                                                                        <Edit2 className="w-4 h-4 mr-1" />
+                                                                        Edit Table & Matches
                                                                     </Button>
                                                                 </Link>
                                                                 <Button variant="ghost" size="sm" onClick={() => handleEditSeason(season)} title="Edit Season Info">
