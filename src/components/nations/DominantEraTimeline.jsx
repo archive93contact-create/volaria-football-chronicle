@@ -13,7 +13,8 @@ export default function DominantEraTimeline({ clubs, leagueTables }) {
         const decades = {};
         
         leagueTables.forEach(entry => {
-            // Only count top-tier titles
+            // Only count major titles: league titles, domestic cups, and continental trophies
+            // For now, we only have league tables, so count only top-tier league titles
             if (entry.status !== 'champion' || (entry.tier && entry.tier !== 1)) return;
 
             const year = parseInt(entry.year);

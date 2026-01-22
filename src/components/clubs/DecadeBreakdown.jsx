@@ -7,6 +7,9 @@ export default function DecadeBreakdown({ club, leagueTables, leagues }) {
     const decadeData = useMemo(() => {
         if (!leagueTables || leagueTables.length === 0) return [];
 
+        // Get cup title years to incorporate
+        const cupTitleYears = club?.domestic_cup_title_years?.split(',').map(y => y.trim()) || [];
+
         const decades = {};
 
         leagueTables.forEach(entry => {
@@ -20,12 +23,15 @@ export default function DecadeBreakdown({ club, leagueTables, leagues }) {
                     startYear: decade,
                     seasons: [],
                     titles: 0,
+                    cupTitles: 0,
                     promotions: 0,
                     relegations: 0,
                     topThreeFinishes: 0,
                     avgPosition: 0,
                     bestFinish: 999,
+                    bestFinishTier: 999,
                     worstFinish: 0,
+                    worstFinishTier: 0,
                     bestFinishYear: '',
                     worstFinishYear: '',
                     totalSeasons: 0,
@@ -48,13 +54,19 @@ export default function DecadeBreakdown({ club, leagueTables, leagues }) {
             // Track tier breakdown
             decades[decadeLabel].tierBreakdown[tier] = (decades[decadeLabel].tierBreakdown[tier] || 0) + 1;
 
-            if (entry.position < decades[decadeLabel].bestFinish) {
+            // For best finish: lower position is better, but prioritize higher tier (lower tier number)
+            const currentBestScore = (decades[decadeLabel].bestFinishTier * 100) + decades[decadeLabel].bestFinish;
+            const thisEntryBestScore = (tier * 100) + entry.position;
+            if (thisEntryBestScore < currentBestScore) {
                 decades[decadeLabel].bestFinish = entry.position;
                 decades[decadeLabel].bestFinishYear = entry.year;
                 decades[decadeLabel].bestFinishTier = tier;
             }
 
-            if (entry.position > decades[decadeLabel].worstFinish) {
+            // For worst finish: higher position is worse, but also consider lower tier (higher tier number is worse)
+            const currentWorstScore = (decades[decadeLabel].worstFinishTier * 100) + decades[decadeLabel].worstFinish;
+            const thisEntryWorstScore = (tier * 100) + entry.position;
+            if (thisEntryWorstScore > currentWorstScore) {
                 decades[decadeLabel].worstFinish = entry.position;
                 decades[decadeLabel].worstFinishYear = entry.year;
                 decades[decadeLabel].worstFinishTier = tier;
@@ -74,15 +86,26 @@ export default function DecadeBreakdown({ club, leagueTables, leagues }) {
             }
         });
 
+        // Add cup titles to decades
+        cupTitleYears.forEach(year => {
+            const yearInt = parseInt(year);
+            const decade = Math.floor(yearInt / 10) * 10;
+            const decadeLabel = `${decade}s`;
+            if (decades[decadeLabel]) {
+                decades[decadeLabel].cupTitles++;
+            }
+        });
+
         // Calculate averages and assess era quality
         Object.values(decades).forEach(decade => {
             decade.avgPosition = (decade.avgPosition / decade.totalSeasons).toFixed(1);
             
-            // Determine era quality
+            // Determine era quality - now include cup titles
             const topTierSeasons = decade.tierBreakdown[1] || 0;
             const topTierPercentage = (topTierSeasons / decade.totalSeasons) * 100;
+            const totalMajorTitles = decade.titles + decade.cupTitles;
 
-            if (decade.titles >= 2 || (decade.titles >= 1 && decade.topThreeFinishes >= 3)) {
+            if (totalMajorTitles >= 2 || (totalMajorTitles >= 1 && decade.topThreeFinishes >= 3)) {
                 decade.eraQuality = 'golden';
                 decade.eraLabel = '🏆 Golden Era';
                 decade.eraColor = 'bg-amber-50 border-amber-300';
@@ -139,10 +162,21 @@ export default function DecadeBreakdown({ club, leagueTables, leagues }) {
                             <div className="bg-white rounded-lg p-3 border">
                                 <div className="flex items-center gap-2 text-amber-600 mb-1">
                                     <Trophy className="w-4 h-4" />
-                                    <span className="text-xs font-medium uppercase">Titles</span>
+                                    <span className="text-xs font-medium uppercase">League Titles</span>
                                 </div>
                                 <p className="text-2xl font-bold text-slate-900">{decade.titles}</p>
                             </div>
+
+                            {/* Cup Titles */}
+                            {decade.cupTitles > 0 && (
+                                <div className="bg-white rounded-lg p-3 border">
+                                    <div className="flex items-center gap-2 text-orange-600 mb-1">
+                                        <Award className="w-4 h-4" />
+                                        <span className="text-xs font-medium uppercase">Cup Titles</span>
+                                    </div>
+                                    <p className="text-2xl font-bold text-slate-900">{decade.cupTitles}</p>
+                                </div>
+                            )}
 
                             {/* Top 3 Finishes */}
                             <div className="bg-white rounded-lg p-3 border">

@@ -77,10 +77,14 @@ export default function LeaguePyramidFlow({ clubs, leagueTables, leagues }) {
             }
         });
 
-        // Find most dramatic journeys
+        // Find most dramatic journeys - only clubs with actual tier changes
         const dramaticJourneys = Object.values(clubMovements)
-            .filter(cm => cm.history.length > 0)
-            .sort((a, b) => b.tierChanges - a.tierChanges)
+            .filter(cm => cm.history.length > 0 && cm.tierChanges > 0)
+            .sort((a, b) => {
+                // Sort by tier changes first, then by tier gap
+                const aTierGap = cm => (cm.lowestTier - cm.highestTier);
+                return (b.tierChanges - a.tierChanges) || (aTierGap(b) - aTierGap(a));
+            })
             .slice(0, 10);
 
         // Find yo-yo clubs

@@ -12,49 +12,59 @@ export default function GeographicSuccessMap({ clubs, leagueTables, leagues }) {
         const locations = {};
 
         clubs.forEach(club => {
-            // Use the most specific location available
-            const locationKey = club.settlement || club.district || club.region || 'Unknown';
-            const locationType = club.settlement ? 'settlement' : club.district ? 'district' : 'region';
+            // Track each location level separately
+            const locationLevels = [
+                { key: club.region, type: 'region' },
+                { key: club.district, type: 'district' },
+                { key: club.settlement, type: 'settlement' }
+            ].filter(l => l.key);
 
-            if (!locations[locationKey]) {
-                locations[locationKey] = {
-                    name: locationKey,
-                    type: locationType,
-                    region: club.region,
-                    district: club.district,
-                    settlement: club.settlement,
-                    clubs: [],
-                    titles: 0,
-                    topThreeFinishes: 0,
-                    totalSeasons: 0,
-                    clubCount: 0
-                };
-            }
+            locationLevels.forEach(({ key, type }) => {
+                if (!locations[key]) {
+                    locations[key] = {
+                        name: key,
+                        type: type,
+                        region: club.region,
+                        district: club.district,
+                        settlement: club.settlement,
+                        clubs: [],
+                        titles: 0,
+                        topThreeFinishes: 0,
+                        totalSeasons: 0,
+                        clubCount: 0
+                    };
+                }
 
-            locations[locationKey].clubs.push(club);
-            locations[locationKey].clubCount++;
+                // Only add club once per location
+                if (!locations[key].clubs.find(c => c.id === club.id)) {
+                    locations[key].clubs.push(club);
+                    locations[key].clubCount++;
+                }
+            });
         });
 
-        // Calculate success metrics from league tables
+        // Calculate success metrics from league tables for all location levels
         leagueTables.forEach(entry => {
             const club = clubs.find(c => c.id === entry.club_id);
             if (!club) return;
 
-            const locationKey = club.settlement || club.district || club.region || 'Unknown';
-            if (!locations[locationKey]) return;
-
             const league = leagues?.find(l => l.id === entry.league_id);
             const tier = entry.tier || league?.tier || 1;
 
-            locations[locationKey].totalSeasons++;
+            // Update all location levels for this club
+            [club.region, club.district, club.settlement].filter(Boolean).forEach(locationKey => {
+                if (!locations[locationKey]) return;
 
-            if (entry.status === 'champion' && tier === 1) {
-                locations[locationKey].titles++;
-            }
+                locations[locationKey].totalSeasons++;
 
-            if (entry.position <= 3 && tier === 1) {
-                locations[locationKey].topThreeFinishes++;
-            }
+                if (entry.status === 'champion' && tier === 1) {
+                    locations[locationKey].titles++;
+                }
+
+                if (entry.position <= 3 && tier === 1) {
+                    locations[locationKey].topThreeFinishes++;
+                }
+            });
         });
 
         // Calculate dominance score

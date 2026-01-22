@@ -17,6 +17,7 @@ import SyncCupStatsButton from '@/components/common/SyncCupStats';
 import CupHistory from '@/components/cups/CupHistory';
 import AdminOnly from '@/components/common/AdminOnly';
 import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
+import CupAnalyticsDashboard from '@/components/cups/CupAnalyticsDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DomesticCupDetail() {
@@ -145,6 +146,7 @@ export default function DomesticCupDetail() {
                 <Tabs defaultValue="overview" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
                         <TabsTrigger value="winners">All Winners</TabsTrigger>
                     </TabsList>
@@ -201,6 +203,14 @@ export default function DomesticCupDetail() {
                         <CardContent><p className="text-slate-600 whitespace-pre-line">{cup.history}</p></CardContent>
                     </Card>
                 )}
+                    </TabsContent>
+
+                    {/* ANALYTICS TAB */}
+                    <TabsContent value="analytics">
+                        <CupAnalyticsDashboard 
+                            seasons={seasons}
+                            clubs={clubs}
+                        />
                     </TabsContent>
 
                     {/* HISTORY & STATS TAB */}
