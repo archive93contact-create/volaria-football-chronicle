@@ -7,43 +7,73 @@ import { Trophy, Crown, TrendingUp } from 'lucide-react';
 
 export default function DominantEraTimeline({ clubs, leagueTables }) {
     const eraData = useMemo(() => {
-        if (!leagueTables || leagueTables.length === 0) return [];
+        if (!clubs || clubs.length === 0) return [];
 
-        // Group by decade
+        // Group by decade - count league titles + cup titles from club records
         const decades = {};
         
-        leagueTables.forEach(entry => {
-            // Only count major titles: league titles, domestic cups, and continental trophies
-            // For now, we only have league tables, so count only top-tier league titles
-            if (entry.status !== 'champion' || (entry.tier && entry.tier !== 1)) return;
+        clubs.forEach(club => {
+            // Process league titles
+            const leagueTitleYears = club.title_years?.split(',').map(y => y.trim()).filter(Boolean) || [];
+            leagueTitleYears.forEach(year => {
+                const yearInt = parseInt(year);
+                const decade = Math.floor(yearInt / 10) * 10;
+                const decadeLabel = `${decade}s`;
 
-            const year = parseInt(entry.year);
-            const decade = Math.floor(year / 10) * 10;
-            const decadeLabel = `${decade}s`;
+                if (!decades[decadeLabel]) {
+                    decades[decadeLabel] = {
+                        decade: decadeLabel,
+                        startYear: decade,
+                        endYear: decade + 9,
+                        clubTitles: {},
+                        totalTitles: 0,
+                        uniqueChampions: 0
+                    };
+                }
 
-            if (!decades[decadeLabel]) {
-                decades[decadeLabel] = {
-                    decade: decadeLabel,
-                    startYear: decade,
-                    endYear: decade + 9,
-                    clubTitles: {},
-                    totalTitles: 0,
-                    uniqueChampions: 0
-                };
-            }
+                if (!decades[decadeLabel].clubTitles[club.name]) {
+                    decades[decadeLabel].clubTitles[club.name] = {
+                        count: 0,
+                        years: [],
+                        club_id: club.id
+                    };
+                }
 
-            const clubName = entry.club_name;
-            if (!decades[decadeLabel].clubTitles[clubName]) {
-                decades[decadeLabel].clubTitles[clubName] = {
-                    count: 0,
-                    years: [],
-                    club_id: entry.club_id
-                };
-            }
+                decades[decadeLabel].clubTitles[club.name].count++;
+                decades[decadeLabel].clubTitles[club.name].years.push(year);
+                decades[decadeLabel].totalTitles++;
+            });
 
-            decades[decadeLabel].clubTitles[clubName].count++;
-            decades[decadeLabel].clubTitles[clubName].years.push(entry.year);
-            decades[decadeLabel].totalTitles++;
+            // Process cup titles
+            const cupTitleYears = club.domestic_cup_title_years?.split(',').map(y => y.trim()).filter(Boolean) || [];
+            cupTitleYears.forEach(year => {
+                const yearInt = parseInt(year);
+                const decade = Math.floor(yearInt / 10) * 10;
+                const decadeLabel = `${decade}s`;
+
+                if (!decades[decadeLabel]) {
+                    decades[decadeLabel] = {
+                        decade: decadeLabel,
+                        startYear: decade,
+                        endYear: decade + 9,
+                        clubTitles: {},
+                        totalTitles: 0,
+                        uniqueChampions: 0
+                    };
+                }
+
+                if (!decades[decadeLabel].clubTitles[club.name]) {
+                    decades[decadeLabel].clubTitles[club.name] = {
+                        count: 0,
+                        years: [],
+                        club_id: club.id
+                    };
+                }
+
+                decades[decadeLabel].clubTitles[club.name].count++;
+                decades[decadeLabel].clubTitles[club.name].years.push(year);
+                decades[decadeLabel].totalTitles++;
+            });
         });
 
         // Process each decade

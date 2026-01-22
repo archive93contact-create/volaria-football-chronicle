@@ -167,7 +167,7 @@ export default function CupAnalyticsDashboard({ seasons, clubs }) {
                                     <img src={data.club.logo_url} alt={data.name} className="w-10 h-10 object-contain bg-white rounded" />
                                 )}
                                 <div className="flex-1">
-                                    {data.club ? (
+                                    {data.club?.id ? (
                                         <Link to={createPageUrl('ClubDetail', `?id=${data.club.id}`)} className="font-bold text-slate-900 hover:text-emerald-600 hover:underline">
                                             {data.name}
                                         </Link>
@@ -211,7 +211,7 @@ export default function CupAnalyticsDashboard({ seasons, clubs }) {
                                                 <img src={club.logo_url} alt={streak.club} className="w-6 h-6 object-contain bg-white rounded" />
                                             )}
                                             <div>
-                                                {club ? (
+                                                {club?.id ? (
                                                     <Link to={createPageUrl('ClubDetail', `?id=${club.id}`)} className="font-bold text-slate-900 hover:text-purple-600 hover:underline">
                                                         {streak.club}
                                                     </Link>
@@ -252,7 +252,7 @@ export default function CupAnalyticsDashboard({ seasons, clubs }) {
                                             {club?.logo_url && (
                                                 <img src={club.logo_url} alt={data.name} className="w-6 h-6 object-contain bg-white rounded" />
                                             )}
-                                            {club ? (
+                                            {club?.id ? (
                                                 <Link to={createPageUrl('ClubDetail', `?id=${club.id}`)} className="font-bold text-slate-900 hover:text-emerald-600 hover:underline">
                                                     {data.name}
                                                 </Link>

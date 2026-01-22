@@ -80,10 +80,13 @@ export default function LeaguePyramidFlow({ clubs, leagueTables, leagues }) {
         // Find most dramatic journeys - only clubs with actual tier changes
         const dramaticJourneys = Object.values(clubMovements)
             .filter(cm => cm.history.length > 0 && cm.tierChanges > 0)
+            .map(cm => ({
+                ...cm,
+                tierGap: cm.lowestTier - cm.highestTier
+            }))
             .sort((a, b) => {
-                // Sort by tier changes first, then by tier gap
-                const aTierGap = cm => (cm.lowestTier - cm.highestTier);
-                return (b.tierChanges - a.tierChanges) || (aTierGap(b) - aTierGap(a));
+                // Sort by tier gap first, then by tier changes
+                return (b.tierGap - a.tierGap) || (b.tierChanges - a.tierChanges);
             })
             .slice(0, 10);
 
@@ -176,6 +179,9 @@ export default function LeaguePyramidFlow({ clubs, leagueTables, leagues }) {
                                     <div className="flex items-center gap-2">
                                         <Badge variant="outline">
                                             {clubData.tierChanges} tier changes
+                                        </Badge>
+                                        <Badge className="bg-purple-100 text-purple-800">
+                                            {clubData.tierGap} tier gap
                                         </Badge>
                                         {clubData.currentTier && (
                                             <Badge>Currently: Tier {clubData.currentTier}</Badge>
