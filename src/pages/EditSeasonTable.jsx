@@ -143,7 +143,7 @@ export default function EditSeasonTable() {
         queryClient.invalidateQueries(['clubs']);
         queryClient.invalidateQueries(['allClubs']);
         setSaving(false);
-        navigate(createPageUrl(`LeagueDetail?id=${leagueId}`));
+        alert('✅ Changes saved! You can now generate match results below.');
     };
 
     if (authLoading || tablesLoading) {
