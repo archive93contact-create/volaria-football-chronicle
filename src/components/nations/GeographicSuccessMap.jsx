@@ -91,10 +91,11 @@ export default function GeographicSuccessMap({ clubs, leagueTables, leagues }) {
     const currentData = locationStats[viewMode] || [];
 
     const getDominanceLevel = (location) => {
-        if (location.titles >= 5) return { label: '🏆 Dominant', color: 'bg-amber-100 text-amber-800 border-amber-300' };
-        if (location.titles >= 2) return { label: '⭐ Strong', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+        const totalMajorTitles = location.titles + location.cupTitles;
+        if (totalMajorTitles >= 5) return { label: '🏆 Dominant', color: 'bg-amber-100 text-amber-800 border-amber-300' };
+        if (totalMajorTitles >= 2) return { label: '⭐ Strong', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
         if (location.topThreeFinishes >= 5) return { label: '💪 Competitive', color: 'bg-blue-100 text-blue-800 border-blue-300' };
-        if (location.totalSeasons >= 10) return { label: '📍 Established', color: 'bg-slate-100 text-slate-800 border-slate-300' };
+        if (location.topFlightSeasons >= 20) return { label: '📍 Established', color: 'bg-slate-100 text-slate-800 border-slate-300' };
         return { label: '🌱 Emerging', color: 'bg-purple-100 text-purple-800 border-purple-300' };
     };
 

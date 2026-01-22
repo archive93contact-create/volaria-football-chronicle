@@ -178,10 +178,10 @@ export default function LeaguePyramidFlow({ clubs, leagueTables, leagues }) {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Badge variant="outline">
-                                            {clubData.tierChanges} tier changes
+                                            {clubData.tierChanges} changes
                                         </Badge>
                                         <Badge className="bg-purple-100 text-purple-800">
-                                            {clubData.tierGap} tier gap
+                                            Tier {clubData.highestTier} ↔ {clubData.lowestTier} (gap: {clubData.tierGap})
                                         </Badge>
                                         {clubData.currentTier && (
                                             <Badge>Currently: Tier {clubData.currentTier}</Badge>

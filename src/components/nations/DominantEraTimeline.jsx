@@ -151,7 +151,7 @@ export default function DominantEraTimeline({ clubs, leagueTables }) {
                                 <div>
                                     <h3 className="text-2xl font-bold text-slate-900">{era.decade}</h3>
                                     <p className="text-sm text-slate-600">
-                                        {era.totalTitles} {era.totalTitles === 1 ? 'title' : 'titles'} • {era.uniqueChampions} {era.uniqueChampions === 1 ? 'champion' : 'different champions'}
+                                       {era.totalTitles} major {era.totalTitles === 1 ? 'title' : 'titles'} (league + cup) • {era.uniqueChampions} {era.uniqueChampions === 1 ? 'champion' : 'different champions'}
                                     </p>
                                 </div>
                                 <Badge className={`${era.eraColor} border text-base px-3 py-1`}>
@@ -184,10 +184,10 @@ export default function DominantEraTimeline({ clubs, leagueTables }) {
                                             <div className="flex items-center gap-2 mt-1">
                                                 <Badge className="bg-amber-100 text-amber-800">
                                                     <Trophy className="w-3 h-3 mr-1" />
-                                                    {era.dominantClub[1].count} {era.dominantClub[1].count === 1 ? 'title' : 'titles'}
+                                                    {era.dominantClub[1].count} major {era.dominantClub[1].count === 1 ? 'title' : 'titles'}
                                                 </Badge>
                                                 <span className="text-xs text-slate-600">
-                                                    {era.dominantClub[1].years.join(', ')}
+                                                    {era.dominantClub[1].years.sort().join(', ')}
                                                 </span>
                                             </div>
                                         </div>
