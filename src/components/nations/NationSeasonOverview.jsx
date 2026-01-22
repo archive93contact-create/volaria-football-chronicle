@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trophy, Calendar, Sparkles, Globe, Shield } from 'lucide-react';
+import { Loader2, Trophy, Calendar, Sparkles, Globe, Shield, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -41,6 +41,20 @@ export default function NationSeasonOverview({ nation, allSeasons, allLeagues, a
             return results.flat();
         },
         enabled: !!selectedYear,
+    });
+
+    const { data: yearMatches = [] } = useQuery({
+        queryKey: ['yearMatches', selectedYear, allLeagues],
+        queryFn: async () => {
+            const leagueIds = allLeagues.map(l => l.id);
+            if (leagueIds.length === 0) return [];
+            const allMatches = await base44.entities.Match.filter({
+                league_id: { $in: leagueIds },
+                year: selectedYear
+            }, 'matchday');
+            return allMatches;
+        },
+        enabled: !!selectedYear && allLeagues.length > 0,
     });
 
     const generateOverview = async () => {
@@ -343,18 +357,104 @@ Use past tense, journalistic style. Make it engaging but stick to the facts prov
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-3">
-                                    {cupSeasons.map(cs => (
-                                        <div key={cs.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                            <div>
-                                                <div className="font-semibold">{cs.cup_id}</div>
-                                                <div className="text-sm text-slate-600">
-                                                    Winner: <span className="font-medium text-blue-600">{cs.champion_name}</span>
-                                                    {cs.runner_up && <> vs {cs.runner_up}</>}
-                                                    {cs.final_score && <> ({cs.final_score})</>}
+                                    {cupSeasons.map(cs => {
+                                        const winnerClub = allClubs.find(c => c.name === cs.champion_name);
+                                        return (
+                                            <div key={cs.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    {winnerClub?.logo_url && (
+                                                        <img 
+                                                            src={winnerClub.logo_url} 
+                                                            alt={cs.champion_name} 
+                                                            className="w-10 h-10 object-contain bg-white rounded-lg p-1 shadow-sm"
+                                                        />
+                                                    )}
+                                                    <div>
+                                                        <div className="font-semibold">{cs.cup_id}</div>
+                                                        <div className="text-sm text-slate-600">
+                                                            Winner: <span className="font-medium text-blue-600">{cs.champion_name}</span>
+                                                            {cs.runner_up && <> vs {cs.runner_up}</>}
+                                                            {cs.final_score && <> ({cs.final_score})</>}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Match Results by League */}
+                    {yearMatches.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Calendar className="w-5 h-5 text-emerald-500" />
+                                    Match Results ({yearMatches.length} matches)
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-6">
+                                    {allLeagues
+                                        .sort((a, b) => (a.tier || 999) - (b.tier || 999))
+                                        .map(league => {
+                                            const leagueMatches = yearMatches.filter(m => m.league_id === league.id);
+                                            if (leagueMatches.length === 0) return null;
+                                            
+                                            // Group by matchday
+                                            const matchesByMatchday = leagueMatches.reduce((acc, match) => {
+                                                const md = match.matchday || 1;
+                                                if (!acc[md]) acc[md] = [];
+                                                acc[md].push(match);
+                                                return acc;
+                                            }, {});
+
+                                            return (
+                                                <div key={league.id}>
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <h4 className="font-bold text-slate-900">
+                                                            {league.name} <span className="text-slate-500 text-sm">(Tier {league.tier})</span>
+                                                        </h4>
+                                                        <Link to={createPageUrl(`LeagueDetail?id=${league.id}`)}>
+                                                            <Button variant="ghost" size="sm">
+                                                                View Full Table <ChevronRight className="w-4 h-4 ml-1" />
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {Object.entries(matchesByMatchday)
+                                                            .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                                                            .slice(0, 3)
+                                                            .map(([matchday, matches]) => (
+                                                                <div key={matchday} className="border rounded-lg p-3 bg-white">
+                                                                    <div className="text-xs font-semibold text-slate-500 mb-2">Matchday {matchday}</div>
+                                                                    <div className="space-y-1">
+                                                                        {matches.slice(0, 5).map(match => (
+                                                                            <div key={match.id} className="flex items-center justify-between text-sm py-1 px-2 hover:bg-slate-50 rounded">
+                                                                                <span className="flex-1 truncate">{match.home_club_name}</span>
+                                                                                <span className="font-bold mx-3">{match.home_score} - {match.away_score}</span>
+                                                                                <span className="flex-1 truncate text-right">{match.away_club_name}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                        {matches.length > 5 && (
+                                                                            <div className="text-xs text-slate-500 text-center pt-1">
+                                                                                +{matches.length - 5} more matches
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        {Object.keys(matchesByMatchday).length > 3 && (
+                                                            <div className="text-sm text-slate-500 text-center">
+                                                                Showing first 3 matchdays • {Object.keys(matchesByMatchday).length} total matchdays
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                 </div>
                             </CardContent>
                         </Card>
