@@ -496,15 +496,6 @@ export default function LeagueDetail() {
                         </CardContent>
                     </ThemedCard>
 
-                    {/* Match Results */}
-                    {currentSeasonObj?.id && (
-                        <MatchResultsViewer 
-                            seasonId={currentSeasonObj.id}
-                            leagueId={leagueId}
-                            seasonYear={currentYear}
-                        />
-                    )}
-
                     {/* Season Storylines */}
                     {(selectedSeason || uniqueYears[0]) && (
                         <SeasonStorylines 
@@ -514,6 +505,16 @@ export default function LeagueDetail() {
                             allSeasons={seasons}
                             allLeagueTables={leagueTables}
                             clubs={allNationClubs}
+                        />
+                    )}
+
+                    {/* Match Results */}
+                    {currentSeasonObj?.id && (
+                        <MatchResultsViewer 
+                            seasonId={currentSeasonObj.id}
+                            leagueId={leagueId}
+                            seasonYear={currentYear}
+                            clubs={clubs}
                         />
                     )}
                     </div>
