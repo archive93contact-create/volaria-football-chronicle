@@ -28,18 +28,35 @@ export default function LocationRankings({ location, allClubs, allLeagues }) {
 
             // Calculate club metrics
             const leagueTitles = club.league_titles || 0;
+            const lowerTierTitles = club.lower_tier_titles || 0;
             const cupTitles = club.domestic_cup_titles || 0;
             const vccTitles = club.vcc_titles || 0;
             const cccTitles = club.ccc_titles || 0;
-            const isTopFlight = league?.tier === 1;
+            const seasonsTopFlight = club.seasons_top_flight || 0;
+            const currentTier = league?.tier || 99;
+            const bestFinish = club.best_finish || 99;
+            const bestFinishTier = club.best_finish_tier || 99;
 
-            // Scoring system
+            // Comprehensive scoring system
             const score = (
+                // Major trophies (highest weight)
                 (vccTitles * 100) +
                 (cccTitles * 50) +
                 (leagueTitles * 20) +
-                (cupTitles * 5) +
-                (isTopFlight ? 10 : 0)
+                
+                // Minor trophies (lower weight)
+                (cupTitles * 8) +
+                (lowerTierTitles * 3) +
+                
+                // Historical presence (longevity and tier)
+                (seasonsTopFlight * 2) +
+                
+                // Current status (tier bonus)
+                (currentTier === 1 ? 15 : currentTier === 2 ? 8 : currentTier === 3 ? 4 : currentTier === 4 ? 2 : 0) +
+                
+                // Best finish bonus (only if in top tier)
+                (bestFinishTier === 1 && bestFinish <= 3 ? (4 - bestFinish) * 5 : 0) +
+                (bestFinishTier === 1 && bestFinish <= 10 ? 2 : 0)
             );
 
             return {
