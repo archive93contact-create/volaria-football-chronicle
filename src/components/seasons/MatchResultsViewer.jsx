@@ -97,53 +97,6 @@ export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clu
         newGoalscorers[index] = { ...newGoalscorers[index], [field]: value };
         setEditData({ ...editData, goalscorers: newGoalscorers });
     };
-    
-    // Filter matches by selected matchday
-    const filteredMatchdays = selectedMatchday === 'all' 
-        ? matchdays 
-        : [parseInt(selectedMatchday)].filter(md => matchdays.includes(md));
-
-    const handleEditMatch = (match) => {
-        setEditData({
-            ...match,
-            goalscorers: match.goalscorers || [],
-        });
-        setIsEditing(true);
-    };
-
-    const handleSaveMatch = () => {
-        updateMatchMutation.mutate({
-            id: selectedMatch.id,
-            data: {
-                ...editData,
-                home_score: parseInt(editData.home_score) || 0,
-                away_score: parseInt(editData.away_score) || 0,
-                attendance: editData.attendance ? parseInt(editData.attendance) : null,
-            }
-        });
-    };
-
-    const addGoalscorer = () => {
-        setEditData({
-            ...editData,
-            goalscorers: [
-                ...(editData.goalscorers || []),
-                { player_name: '', minute: 0, is_home: true }
-            ]
-        });
-    };
-
-    const removeGoalscorer = (index) => {
-        const newGoalscorers = [...(editData.goalscorers || [])];
-        newGoalscorers.splice(index, 1);
-        setEditData({ ...editData, goalscorers: newGoalscorers });
-    };
-
-    const updateGoalscorer = (index, field, value) => {
-        const newGoalscorers = [...(editData.goalscorers || [])];
-        newGoalscorers[index] = { ...newGoalscorers[index], [field]: value };
-        setEditData({ ...editData, goalscorers: newGoalscorers });
-    };
 
     return (
         <Card className="border-0 shadow-sm mt-6">
@@ -166,7 +119,7 @@ export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clu
             </CardHeader>
             <CardContent>
                 <div className="space-y-6">
-                    {filteredMatchdays.map(day => (
+                    {displayMatchdays.map(day => (
                         <div key={day}>
                             <h3 className="font-semibold text-sm text-slate-600 mb-3">Matchday {day}</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -423,8 +376,7 @@ export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clu
                                 </div>
                             )}
                         </div>
-                        );
-                    })()}
+                    )}
                 </DialogContent>
             </Dialog>
         </Card>
