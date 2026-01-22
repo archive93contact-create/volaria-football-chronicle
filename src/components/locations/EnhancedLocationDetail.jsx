@@ -511,7 +511,7 @@ export default function EnhancedLocationDetail({
                                                     <TableRow key={club.id}>
                                                         <TableCell>
                                                             <Link 
-                                                                to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                                                                to={createPageUrl('ClubDetail') + `?id=${club.id}`}
                                                                 className="flex items-center gap-3 hover:text-emerald-600"
                                                             >
                                                                 {club.logo_url ? (

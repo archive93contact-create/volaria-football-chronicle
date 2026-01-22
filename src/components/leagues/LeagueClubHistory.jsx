@@ -116,7 +116,7 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
                                         <TableCell className="font-medium">{idx + 1}</TableCell>
                                         <TableCell>
                                             <Link 
-                                                to={createPageUrl('ClubDetail', `?id=${club.club_id}`)}
+                                                to={createPageUrl('ClubDetail') + `?id=${club.club_id}`}
                                                 className="flex items-center gap-3 hover:underline"
                                             >
                                                 {club.club_id && getClubLogo(club.club_id) && (
@@ -192,7 +192,7 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
                                         <TableCell className="font-medium">{idx + 1}</TableCell>
                                         <TableCell>
                                             <Link 
-                                                to={createPageUrl('ClubDetail', `?id=${club.club_id}`)}
+                                                to={createPageUrl('ClubDetail') + `?id=${club.club_id}`}
                                                 className="flex items-center gap-3 hover:underline"
                                             >
                                                 {club.club_id && getClubLogo(club.club_id) && (
