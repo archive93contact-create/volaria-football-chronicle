@@ -323,10 +323,10 @@ export default function EnhancedLocationDetail({
                                                 <Link 
                                                     key={district.name}
                                                     to={createPageUrl(`LocationDetail?name=${encodeURIComponent(district.name)}&type=district&nation_id=${nationId}`)}
-                                                    className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100"
+                                                    className="flex items-center justify-between p-3 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all cursor-pointer"
                                                 >
-                                                    <span className="font-medium text-sm">{district.name}</span>
-                                                    <Badge variant="outline">{district.clubs.length}</Badge>
+                                                    <span className="font-medium text-blue-600 hover:text-blue-700">{district.name}</span>
+                                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{district.clubs.length} clubs</Badge>
                                                 </Link>
                                             ))}
                                         </div>
@@ -345,14 +345,20 @@ export default function EnhancedLocationDetail({
                                                     <Link 
                                                         key={settlement.name}
                                                         to={createPageUrl(`LocationDetail?name=${encodeURIComponent(settlement.name)}&type=settlement&nation_id=${nationId}`)}
-                                                        className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 ${isLargeCity ? 'bg-amber-50' : ''}`}
+                                                        className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer ${
+                                                            isLargeCity 
+                                                                ? 'bg-amber-50 border-amber-200 hover:bg-amber-100 hover:border-amber-300' 
+                                                                : 'border-transparent hover:bg-slate-100 hover:border-slate-200'
+                                                        }`}
                                                     >
-                                                        <span className={`font-medium text-sm flex items-center gap-1 ${isLargeCity ? 'text-amber-800' : ''}`}>
+                                                        <span className={`font-medium flex items-center gap-1 ${
+                                                            isLargeCity ? 'text-amber-700 hover:text-amber-800' : 'text-emerald-600 hover:text-emerald-700'
+                                                        }`}>
                                                             {isLargeCity && <Landmark className="w-3 h-3" />}
                                                             {settlement.name}
                                                         </span>
-                                                        <Badge variant={isLargeCity ? "default" : "outline"} className={isLargeCity ? 'bg-amber-500' : ''}>
-                                                            {settlement.clubs.length}
+                                                        <Badge variant={isLargeCity ? "default" : "outline"} className={isLargeCity ? 'bg-amber-500' : 'bg-slate-100'}>
+                                                            {settlement.clubs.length} clubs
                                                         </Badge>
                                                     </Link>
                                                 );
