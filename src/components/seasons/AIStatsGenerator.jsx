@@ -121,7 +121,7 @@ Generate UNIQUE stats - not linear progression!`;
         
         setGeneratingMatches(true);
 
-        const clubs = tableRows.filter(r => r.club_name && r.club_id);
+        const clubs = tableRows.filter(r => r.club_name?.trim());
         if (clubs.length < 2) {
             setGeneratingMatches(false);
             return;
@@ -170,18 +170,22 @@ Make some matches exciting (high scoring, late drama) and some defensive (0-0, 1
             });
 
             if (result.matches && result.matches.length > 0) {
-                // Map club names to IDs
+                // Map club names to IDs (if available)
                 const clubMap = {};
-                clubs.forEach(c => clubMap[c.club_name.toLowerCase()] = c.club_id);
+                clubs.forEach(c => {
+                    if (c.club_id) {
+                        clubMap[c.club_name.toLowerCase()] = c.club_id;
+                    }
+                });
 
                 const matchRecords = result.matches.map(m => ({
                     season_id: seasonId,
                     league_id: leagueId,
                     year: seasonData.year,
                     matchday: m.matchday,
-                    home_club_id: clubMap[m.home_club.toLowerCase()] || '',
+                    home_club_id: clubMap[m.home_club.toLowerCase()] || null,
                     home_club_name: m.home_club,
-                    away_club_id: clubMap[m.away_club.toLowerCase()] || '',
+                    away_club_id: clubMap[m.away_club.toLowerCase()] || null,
                     away_club_name: m.away_club,
                     home_score: m.home_score,
                     away_score: m.away_score,
@@ -189,6 +193,7 @@ Make some matches exciting (high scoring, late drama) and some defensive (0-0, 1
 
                 await base44.entities.Match.bulkCreate(matchRecords);
                 if (onMatchesGenerated) onMatchesGenerated();
+                alert(`✅ Generated ${matchRecords.length} matches!`);
             }
         } catch (err) {
             console.error('Failed to generate matches:', err);
@@ -202,7 +207,8 @@ Make some matches exciting (high scoring, late drama) and some defensive (0-0, 1
     }
 
     const allStatsComplete = !hasIncompleteStats;
-    const canGenerateMatches = allStatsComplete && seasonId && tableRows.filter(r => r.club_name && r.club_id).length >= 2;
+    const hasEnoughClubs = tableRows.filter(r => r.club_name?.trim()).length >= 2;
+    const canGenerateMatches = allStatsComplete && seasonId && leagueId && hasEnoughClubs;
 
     return (
         <div className="flex gap-2">
