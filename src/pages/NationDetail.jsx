@@ -27,6 +27,9 @@ import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
 import NationStats from '@/components/nations/NationStats';
 import LeagueStructureManager from '@/components/nations/LeagueStructureManager';
 import NationSeasonOverview from '@/components/nations/NationSeasonOverview';
+import DominantErasTimeline from '@/components/nations/DominantErasTimeline';
+import GeographicSuccessMap from '@/components/nations/GeographicSuccessMap';
+import PyramidFlowDiagram from '@/components/nations/PyramidFlowDiagram';
 import NationAnalyticsDashboard from '@/components/analytics/NationAnalyticsDashboard';
 import { useNavigate } from 'react-router-dom';
 

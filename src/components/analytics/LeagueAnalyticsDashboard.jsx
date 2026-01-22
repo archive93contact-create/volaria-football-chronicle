@@ -5,6 +5,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { Trophy, TrendingUp, Activity, MapPin, Users, Target, Flame, Crown, BarChart3, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import LeagueAllTimeClubs from '@/components/leagues/LeagueAllTimeClubs';
 
 export default function LeagueAnalyticsDashboard({ league, seasons = [], allTables = [], clubs = [] }) {
     const analytics = useMemo(() => {
@@ -426,36 +427,8 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                 </Card>
             )}
 
-            {/* Most Frequent Clubs */}
-            <Card className="border-0 shadow-sm">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-blue-500" />
-                        Most Frequent Clubs
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-2">
-                        {analytics.mostFrequentClubs.map((club, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">
-                                        {idx + 1}
-                                    </div>
-                                    {club.clubId ? (
-                                        <Link to={createPageUrl(`ClubDetail?id=${club.clubId}`)} className="font-semibold hover:text-blue-600">
-                                            {club.name}
-                                        </Link>
-                                    ) : (
-                                        <span className="font-semibold">{club.name}</span>
-                                    )}
-                                </div>
-                                <Badge variant="outline">{club.count} seasons</Badge>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+            {/* All-Time Clubs & Consecutive Stays */}
+            <LeagueAllTimeClubs league={league} allTables={allTables} clubs={clubs} />
         </div>
     );
 }

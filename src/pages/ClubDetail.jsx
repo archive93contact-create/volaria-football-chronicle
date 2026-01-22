@@ -35,6 +35,7 @@ import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboard';
 import TrophyHaul from '@/components/clubs/TrophyHaul';
+import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1048,6 +1049,13 @@ export default function ClubDetail() {
 
                     {/* STATISTICS TAB - Season History & Graph */}
                     <TabsContent value="statistics">
+                        {/* Decade-by-Decade Breakdown */}
+                        {combinedSeasons.length > 0 && (
+                            <div className="mb-8">
+                                <DecadeBreakdown seasons={combinedSeasons} allLeagues={allLeagues} />
+                            </div>
+                        )}
+
                         <Card className="border-0 shadow-sm">
                             <CardHeader><CardTitle>Season by Season</CardTitle></CardHeader>
                             <CardContent>
