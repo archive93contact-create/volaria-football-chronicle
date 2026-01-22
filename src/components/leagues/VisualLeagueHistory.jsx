@@ -207,7 +207,7 @@ export default function VisualLeagueHistory({ league, seasons = [], clubs = [] }
                                     </div>
                                     <div className="w-32 md:w-48 truncate font-medium text-sm">
                                         {clubId ? (
-                                            <Link to={createPageUrl(`ClubDetail?id=${clubId}`)} className="hover:text-emerald-600 hover:underline">
+                                            <Link to={createPageUrl('ClubDetail') + `?id=${clubId}`} className="hover:text-emerald-600 hover:underline">
                                                 {club}
                                             </Link>
                                         ) : club}
@@ -251,7 +251,7 @@ export default function VisualLeagueHistory({ league, seasons = [], clubs = [] }
                                     >
                                         <div className="font-bold text-sm" style={{ color: getClubColor(dynasty.club) }}>
                                             {clubId ? (
-                                                <Link to={createPageUrl(`ClubDetail?id=${clubId}`)} className="hover:underline">
+                                                <Link to={createPageUrl('ClubDetail') + `?id=${clubId}`} className="hover:underline">
                                                     {dynasty.club}
                                                 </Link>
                                             ) : dynasty.club}
