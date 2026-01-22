@@ -348,17 +348,14 @@ export default function LocationAnalytics({ locationClubs, leagues, locationType
                 </Card>
             </div>
 
-            {/* Location Rankings */}
-            {allLocations && allLocations.length > 0 && allClubs && allClubs.length > 0 && (
-                <div className="mt-6">
-                    <LocationRankings 
-                        allLocations={allLocations}
-                        allClubs={allClubs}
-                        allLeagues={leagues}
-                        locationType={locationType}
-                    />
-                </div>
-            )}
+            {/* Club Rankings in this Location */}
+            <div className="mt-6">
+                <LocationRankings 
+                    location={{ name: locationName, type: locationType }}
+                    allClubs={locationClubs}
+                    allLeagues={leagues}
+                />
+            </div>
         </div>
     );
 }
