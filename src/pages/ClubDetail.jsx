@@ -35,6 +35,7 @@ import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboard';
 import TrophyHaul from '@/components/clubs/TrophyHaul';
+import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
