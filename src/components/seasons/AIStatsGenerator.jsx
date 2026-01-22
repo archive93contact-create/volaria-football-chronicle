@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, league, divisionTeamCount }) {
+export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, league, divisionTeamCount, onMatchesGenerated, seasonId, leagueId }) {
     const [loading, setLoading] = useState(false);
+    const [generatingMatches, setGeneratingMatches] = useState(false);
 
     const hasIncompleteStats = tableRows.some(row => 
         row.club_name && (row.points === 0 || row.played === 0)
@@ -115,28 +116,136 @@ Generate UNIQUE stats - not linear progression!`;
         }
     };
 
+    const generateMatches = async () => {
+        if (!seasonId || !leagueId) return;
+        
+        setGeneratingMatches(true);
+
+        const clubs = tableRows.filter(r => r.club_name && r.club_id);
+        if (clubs.length < 2) {
+            setGeneratingMatches(false);
+            return;
+        }
+
+        const prompt = `Generate realistic match results for a football season that produces these EXACT final standings:
+
+${clubs.map((c, idx) => `${idx + 1}. ${c.club_name} - P:${c.played} W:${c.won} D:${c.drawn} L:${c.lost} GF:${c.goals_for} GA:${c.goals_against} Pts:${c.points}`).join('\n')}
+
+Generate ALL fixtures (home and away) between these ${clubs.length} teams.
+Each team plays ${clubs.length - 1} home games and ${clubs.length - 1} away games = ${(clubs.length - 1) * 2} total games.
+
+CRITICAL: The match results MUST mathematically produce the exact W/D/L/GF/GA/Pts shown above.
+
+For each match, provide:
+- home_club (name)
+- away_club (name)
+- home_score (number)
+- away_score (number)
+- matchday (number 1-${(clubs.length - 1) * 2})
+
+Create realistic scores (0-0 to 5-4 range, mostly 1-3 goals per team).
+Make some matches exciting (high scoring, late drama) and some defensive (0-0, 1-0).`;
+
+        try {
+            const result = await base44.integrations.Core.InvokeLLM({
+                prompt,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        matches: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    home_club: { type: "string" },
+                                    away_club: { type: "string" },
+                                    home_score: { type: "number" },
+                                    away_score: { type: "number" },
+                                    matchday: { type: "number" }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (result.matches && result.matches.length > 0) {
+                // Map club names to IDs
+                const clubMap = {};
+                clubs.forEach(c => clubMap[c.club_name.toLowerCase()] = c.club_id);
+
+                const matchRecords = result.matches.map(m => ({
+                    season_id: seasonId,
+                    league_id: leagueId,
+                    year: seasonData.year,
+                    matchday: m.matchday,
+                    home_club_id: clubMap[m.home_club.toLowerCase()] || '',
+                    home_club_name: m.home_club,
+                    away_club_id: clubMap[m.away_club.toLowerCase()] || '',
+                    away_club_name: m.away_club,
+                    home_score: m.home_score,
+                    away_score: m.away_score,
+                }));
+
+                await base44.entities.Match.bulkCreate(matchRecords);
+                if (onMatchesGenerated) onMatchesGenerated();
+            }
+        } catch (err) {
+            console.error('Failed to generate matches:', err);
+        } finally {
+            setGeneratingMatches(false);
+        }
+    };
+
     if (!hasIncompleteStats) {
         return null;
     }
 
+    const allStatsComplete = !hasIncompleteStats;
+    const canGenerateMatches = allStatsComplete && seasonId && tableRows.filter(r => r.club_name && r.club_id).length >= 2;
+
     return (
-        <Button 
-            onClick={generateStats} 
-            disabled={loading}
-            variant="outline"
-            className="border-purple-300 text-purple-700 hover:bg-purple-50"
-        >
-            {loading ? (
-                <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating Stats...
-                </>
-            ) : (
-                <>
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    AI Generate Missing Stats
-                </>
+        <div className="flex gap-2">
+            {hasIncompleteStats && (
+                <Button 
+                    onClick={generateStats} 
+                    disabled={loading}
+                    variant="outline"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Generating Stats...
+                        </>
+                    ) : (
+                        <>
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            AI Generate Stats
+                        </>
+                    )}
+                </Button>
             )}
-        </Button>
+            {canGenerateMatches && (
+                <Button 
+                    onClick={generateMatches} 
+                    disabled={generatingMatches}
+                    variant="outline"
+                    className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                >
+                    {generatingMatches ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Generating Matches...
+                        </>
+                    ) : (
+                        <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Generate Match Results
+                        </>
+                    )}
+                </Button>
+            )}
+        </div>
     );
 }
