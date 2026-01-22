@@ -52,6 +52,53 @@ export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clu
     const matchdays = Object.keys(matchesByDay).map(Number).sort((a, b) => a - b);
     
     // Filter matches by selected matchday
+    const displayMatchdays = selectedMatchday === 'all' 
+        ? matchdays 
+        : matchdays.filter(md => md === parseInt(selectedMatchday));
+
+    const handleEditMatch = (match) => {
+        setEditData({
+            ...match,
+            goalscorers: match.goalscorers || [],
+            home_lineup: match.home_lineup || [],
+            away_lineup: match.away_lineup || [],
+            home_subs: match.home_subs || [],
+            away_subs: match.away_subs || []
+        });
+        setIsEditing(true);
+    };
+
+    const handleSaveMatch = () => {
+        const submitData = {
+            ...editData,
+            home_score: parseInt(editData.home_score) || 0,
+            away_score: parseInt(editData.away_score) || 0,
+            matchday: parseInt(editData.matchday) || 1,
+            attendance: editData.attendance ? parseInt(editData.attendance) : null
+        };
+        updateMatchMutation.mutate({ id: editData.id, data: submitData });
+    };
+
+    const addGoalscorer = () => {
+        setEditData({
+            ...editData,
+            goalscorers: [...(editData.goalscorers || []), { player_name: '', minute: '', is_home: true }]
+        });
+    };
+
+    const removeGoalscorer = (index) => {
+        const newGoalscorers = [...editData.goalscorers];
+        newGoalscorers.splice(index, 1);
+        setEditData({ ...editData, goalscorers: newGoalscorers });
+    };
+
+    const updateGoalscorer = (index, field, value) => {
+        const newGoalscorers = [...editData.goalscorers];
+        newGoalscorers[index] = { ...newGoalscorers[index], [field]: value };
+        setEditData({ ...editData, goalscorers: newGoalscorers });
+    };
+    
+    // Filter matches by selected matchday
     const filteredMatchdays = selectedMatchday === 'all' 
         ? matchdays 
         : [parseInt(selectedMatchday)].filter(md => matchdays.includes(md));
@@ -376,7 +423,8 @@ export default function MatchResultsViewer({ seasonId, leagueId, seasonYear, clu
                                 </div>
                             )}
                         </div>
-                    )}
+                        );
+                    })()}
                 </DialogContent>
             </Dialog>
         </Card>
