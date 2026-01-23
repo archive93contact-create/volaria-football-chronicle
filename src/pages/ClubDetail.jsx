@@ -19,7 +19,7 @@ import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors
 import LeagueHistoryChart from '@/components/clubs/LeagueHistoryChart';
 import ClubNarratives from '@/components/clubs/ClubNarratives';
 import ClubHistory from '@/components/clubs/ClubHistory';
-import AIClubStory from '@/components/clubs/AIClubStory';
+import PersonalizedClubStory from '@/components/clubs/PersonalizedClubStory';
 import RivalryTracker from '@/components/clubs/RivalryTracker';
 import DynastyTracker from '@/components/clubs/DynastyTracker';
 import AdminOnly from '@/components/common/AdminOnly';
@@ -1025,20 +1025,17 @@ export default function ClubDetail() {
                     </Card>
                 )}
 
-                {/* AI-Generated Club Story */}
-                    <AIClubStory 
+                {/* Personalized Club Story */}
+                    <PersonalizedClubStory
                         club={{...club, ...combinedStats}}
                         nation={nation}
                         league={league}
                         seasons={combinedSeasons}
-                        allLeagues={allLeagues}
+                        leagues={allLeagues}
                         allClubs={allClubs}
-                        onStoryGenerated={(newStory) => {
-                            queryClient.setQueryData(['club', clubId], {...club, history: newStory});
-                        }}
                     />
 
-                    {/* Club History Timeline */}
+                {/* Club History Timeline */}
                     <ClubHistory 
                         club={{...club, ...combinedStats}}
                         nation={nation}
