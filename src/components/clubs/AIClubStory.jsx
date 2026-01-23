@@ -30,6 +30,34 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 .filter(Boolean)
                 .slice(0, 3);
 
+            // Get club succession/merger context
+            const predecessorClub = club.predecessor_club_id ? allClubs.find(c => c.id === club.predecessor_club_id) : null;
+            const predecessorClub2 = club.predecessor_club_2_id ? allClubs.find(c => c.id === club.predecessor_club_2_id) : null;
+            const successorClub = club.successor_club_id ? allClubs.find(c => c.id === club.successor_club_id) : null;
+            const formerNameClub = club.former_name_club_id ? allClubs.find(c => c.id === club.former_name_club_id) : null;
+            const currentNameClub = club.current_name_club_id ? allClubs.find(c => c.id === club.current_name_club_id) : null;
+
+            // Build succession context
+            let successionContext = '';
+            if (club.is_defunct && successorClub) {
+                successionContext = `\nDEFUNCT CLUB: This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'}. They were succeeded by ${successorClub.name}. This should be mentioned as a bittersweet ending - the club is gone but lives on through their successor.`;
+            } else if (club.is_defunct) {
+                successionContext = `\nDEFUNCT CLUB: This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'} with no successor. This should be treated as a tragic ending - a club that simply ceased to exist.`;
+            }
+
+            if (predecessorClub && predecessorClub2) {
+                successionContext += `\n\nFORMED FROM MERGER: ${club.name} was formed from a merger of ${predecessorClub.name} (${predecessorClub.defunct_year || 'defunct'}) and ${predecessorClub2.name} (${predecessorClub2.defunct_year || 'defunct'}). This should be mentioned as their origin story - two clubs became one.`;
+            } else if (predecessorClub) {
+                successionContext += `\n\nREFORMATION/CONTINUATION: ${club.name} continues the legacy of ${predecessorClub.name} (${predecessorClub.defunct_year ? `defunct ${predecessorClub.defunct_year}` : 'predecessor'}). The club was reformed/restarted. Mention this as a phoenix rising from the ashes story.`;
+            }
+
+            if (club.is_former_name && currentNameClub) {
+                successionContext += `\n\nFORMER NAME: This record represents a former name. The club is now known as ${currentNameClub.name} (changed ${club.renamed_year || 'unknown year'}). Explain this is the same club, just renamed.`;
+            } else if (formerNameClub || club.former_name_club_id) {
+                const formerName = formerNameClub?.name || 'previous name';
+                successionContext += `\n\nNAME CHANGE: This club was formerly known as ${formerName} until ${club.renamed_year || 'a name change'}${club.reverted_to_original ? ' (reverted to original name)' : ''}. Same club, different name - explain the continuity.`;
+            }
+
             // Build TFA context
             let tfaContext = '';
             if (isTuruliand && seasons.length > 0) {
@@ -55,6 +83,7 @@ CLUB DATA:
 - Stadium: ${club.stadium || 'Unknown'} (${club.stadium_capacity ? `${club.stadium_capacity.toLocaleString()} capacity` : 'capacity unknown'})
 - Current League: ${league?.name || 'Unknown'} (Tier ${currentTier})
 - Rivals: ${rivals.length > 0 ? rivals.map(r => r.name).join(', ') : 'None specified'}
+${successionContext}
 
 HISTORY:
 - Seasons played: ${club.seasons_played || 0}
