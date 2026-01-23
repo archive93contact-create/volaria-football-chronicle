@@ -205,11 +205,21 @@ export default function LocationDetail() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <PersonalizedLocationStory
-                    location={allLocations.find(loc => 
-                        loc.name?.toLowerCase() === locationNameParam?.toLowerCase() && 
-                        loc.type === locationType &&
-                        loc.nation_id === nationId
-                    )}
+                    location={
+                        allLocations.find(loc => 
+                            loc.name?.toLowerCase() === locationNameParam?.toLowerCase() && 
+                            loc.type === locationType &&
+                            loc.nation_id === nationId
+                        ) || {
+                            name: locationName,
+                            type: locationType,
+                            nation_id: nationId,
+                            is_capital: isCapital,
+                            parent_region: parentInfo?.region,
+                            parent_district: parentInfo?.district,
+                            population: stats.population?.value
+                        }
+                    }
                     clubs={locationClubs}
                     leagueTables={allLeagueTables}
                     leagues={leagues}
