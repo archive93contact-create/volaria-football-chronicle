@@ -37,6 +37,7 @@ import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboard';
 import TrophyHaul from '@/components/clubs/TrophyHaul';
 import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
+import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatus';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1023,6 +1024,15 @@ export default function ClubDetail() {
                             </div>
                         </CardContent>
                     </Card>
+                )}
+
+                {/* Turuliand Non-League Status Card */}
+                {nation?.name === 'Turuliand' && (
+                    <TuruliandNonLeagueStatus 
+                        club={club}
+                        seasons={combinedSeasons}
+                        leagues={allLeagues}
+                    />
                 )}
 
                 {/* Personalized Club Story */}

@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
 import NationNarratives from '@/components/nations/NationNarratives';
+import PersonalizedNationStory from '@/components/nations/PersonalizedNationStory';
 import GoldenEras from '@/components/nations/GoldenEras';
 import AdminOnly from '@/components/common/AdminOnly';
 import AINationEnhancer from '@/components/nations/AINationEnhancer';
