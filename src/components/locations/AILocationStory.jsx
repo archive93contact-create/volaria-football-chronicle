@@ -72,11 +72,11 @@ Do NOT use markdown. Plain paragraphs separated by double line breaks.`;
                 add_context_from_internet: false
             });
 
+            // Save to location record
+            await base44.entities.Location.update(location.id, { culture_description: result });
             setStory(result);
             
-            // Save to location record
             if (onStoryGenerated) {
-                await base44.entities.Location.update(location.id, { culture_description: result });
                 onStoryGenerated(result);
             }
         } catch (error) {

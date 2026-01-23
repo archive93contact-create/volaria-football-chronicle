@@ -86,11 +86,11 @@ Do NOT use markdown. Just plain paragraphs separated by double line breaks.`;
                 add_context_from_internet: false
             });
 
+            // Save to club record
+            await base44.entities.Club.update(club.id, { history: result });
             setStory(result);
             
-            // Save to club record
             if (onStoryGenerated) {
-                await base44.entities.Club.update(club.id, { history: result });
                 onStoryGenerated(result);
             }
         } catch (error) {
