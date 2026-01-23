@@ -39,6 +39,7 @@ import ThemedCard from '@/components/common/ThemedCard';
 import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
 import LeagueHistoricalStats from '@/components/leagues/LeagueHistoricalStats';
 import LeagueAnalyticsDashboard from '@/components/analytics/LeagueAnalyticsDashboard';
+import PersonalizedLeagueStory from '@/components/leagues/PersonalizedLeagueStory';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
