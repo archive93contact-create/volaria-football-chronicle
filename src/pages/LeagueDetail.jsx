@@ -356,6 +356,15 @@ export default function LeagueDetail() {
             </ImmersiveHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Personalized League Story */}
+                <PersonalizedLeagueStory
+                    league={league}
+                    nation={nation}
+                    seasons={seasons}
+                    clubs={allNationClubs}
+                    allLeagueTables={leagueTables}
+                />
+
                 {/* League Name Change Notice */}
                 {league.former_name && league.renamed_year && (
                     <Card className="border-0 shadow-sm mb-6 bg-blue-50 border-l-4 border-l-blue-500">

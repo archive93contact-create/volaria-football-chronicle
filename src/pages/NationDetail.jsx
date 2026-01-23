@@ -306,6 +306,15 @@ export default function NationDetail() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Personalized Nation Football Story */}
+                <PersonalizedNationStory
+                    nation={nation}
+                    leagues={leagues}
+                    clubs={allNationClubs}
+                    seasons={seasons}
+                    coefficients={coefficients}
+                />
+
                 {/* Nation Stats */}
                 <NationStats nation={nation} clubs={clubs} leagues={leagues} coefficient={coefficient} nationalTeamStrength={nationalTeamStrength} />
 
