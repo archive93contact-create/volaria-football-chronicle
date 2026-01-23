@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PageHeader from '@/components/common/PageHeader';
 import LocationNarratives from '@/components/locations/LocationNarratives';
+import AILocationStory from '@/components/locations/AILocationStory';
 import AILocationEnhancer from '@/components/locations/AILocationEnhancer';
 import AILocationImagery from '@/components/locations/AILocationImagery';
 import AdminOnly from '@/components/common/AdminOnly';
@@ -264,6 +265,20 @@ export default function EnhancedLocationDetail({
                                 </CardContent>
                             </Card>
                         </div>
+                    )}
+
+                    {/* AI-Generated Location Story */}
+                    {existingLocation && (
+                        <AILocationStory 
+                            location={existingLocation}
+                            nation={nation}
+                            clubs={locationClubs}
+                            subLocations={[
+                                ...(subLocations?.districts || []).map(d => ({name: d.name, type: 'district'})),
+                                ...(subLocations?.settlements || []).map(s => ({name: s.name, type: 'settlement'}))
+                            ]}
+                            onStoryGenerated={() => queryClient.invalidateQueries(['location'])}
+                        />
                     )}
 
                     {/* Location Narratives */}
