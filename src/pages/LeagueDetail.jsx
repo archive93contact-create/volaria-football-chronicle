@@ -357,13 +357,15 @@ export default function LeagueDetail() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Personalized League Story */}
-                <PersonalizedLeagueStory
-                    league={league}
-                    nation={nation}
-                    seasons={seasons}
-                    clubs={allNationClubs}
-                    allLeagueTables={leagueTables}
-                />
+                {seasons.length > 0 && allNationClubs.length > 0 && leagueTables.length > 0 && (
+                    <PersonalizedLeagueStory
+                        league={league}
+                        nation={nation}
+                        seasons={seasons}
+                        clubs={allNationClubs}
+                        allLeagueTables={leagueTables}
+                    />
+                )}
 
                 {/* League Name Change Notice */}
                 {league.former_name && league.renamed_year && (

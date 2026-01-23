@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function PersonalizedLeagueStory({ league, nation, seasons, clubs, allLeagueTables }) {
-    if (!league || !seasons || seasons.length === 0) return null;
+    if (!league || !seasons || seasons.length === 0 || !clubs || !allLeagueTables) return null;
 
     const story = useMemo(() => {
         const paragraphs = [];
