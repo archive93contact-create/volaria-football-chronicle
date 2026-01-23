@@ -160,7 +160,7 @@ Do NOT use markdown. Just plain paragraphs separated by double line breaks.`;
                 </div>
             </CardHeader>
             <CardContent>
-                {story ? (
+                {story && typeof story === 'string' ? (
                     <div className="prose prose-sm max-w-none">
                         {story.split('\n\n').map((para, idx) => (
                             <p key={idx} className="text-slate-700 leading-relaxed mb-4">{para}</p>
