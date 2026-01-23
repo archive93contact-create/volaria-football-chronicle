@@ -204,6 +204,26 @@ export default function LocationDetail() {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <PersonalizedLocationStory
+                    location={allLocations.find(loc => 
+                        loc.name?.toLowerCase() === locationNameParam?.toLowerCase() && 
+                        loc.type === locationType &&
+                        loc.nation_id === nationId
+                    )}
+                    clubs={locationClubs}
+                    leagueTables={allLeagueTables}
+                    leagues={leagues}
+                    nation={nation}
+                    subLocations={locationType === 'region' ? 
+                        [...(subLocations.districts || []).map(d => ({ name: d.name, type: 'district' })), 
+                         ...(subLocations.settlements || []).map(s => ({ name: s.name, type: 'settlement' }))] :
+                        locationType === 'district' ?
+                        (subLocations.settlements || []).map(s => ({ name: s.name, type: 'settlement' })) :
+                        []
+                    }
+                    parentLocation={parentInfo}
+                />
+                
                 <EnhancedLocationDetail
                     isCapital={isCapital}
                     locationName={locationName}
