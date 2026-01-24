@@ -10,6 +10,9 @@ import AdminOnly from '@/components/common/AdminOnly';
 import PyramidStructureManager from './PyramidStructureManager';
 
 export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueTables = [], nationId }) {
+    // Filter out youth and reserve leagues - only show professional leagues
+    const professionalLeagues = leagues.filter(l => l.league_type !== 'youth' && l.league_type !== 'reserve');
+    
     const [showManager, setShowManager] = useState(false);
     const [hoveredLeague, setHoveredLeague] = useState(null);
     const [selectedPathway, setSelectedPathway] = useState(null);
@@ -31,9 +34,9 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
     }, [availableYears, selectedYear]);
 
     const pyramidData = useMemo(() => {
-        if (!leagues || leagues.length === 0) return { tiers: [], mostRecentYear: null, connections: [], leaguePositions: {} };
+        if (!professionalLeagues || professionalLeagues.length === 0) return { tiers: [], mostRecentYear: null, connections: [], leaguePositions: {} };
 
-        const activeLeagues = leagues.filter(l => l.is_active !== false);
+        const activeLeagues = professionalLeagues.filter(l => l.is_active !== false);
         const displayYear = selectedYear || (seasons.length > 0 
             ? [...seasons].sort((a, b) => b.year.localeCompare(a.year))[0]?.year 
             : null);
@@ -153,8 +156,8 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
             mostRecentYear: displayYear,
             connections,
             leagueDataMap
-        };
-    }, [leagues, seasons, clubs, selectedYear]);
+            };
+            }, [professionalLeagues, seasons, clubs, selectedYear]);
 
     // Calculate pathway to top from a league
     const getPathwayToTop = (leagueId) => {
@@ -201,7 +204,7 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                         <Button onClick={() => setShowManager(false)} variant="outline" size="sm" className="mb-4">
                             Hide Manager
                         </Button>
-                        <PyramidStructureManager leagues={leagues} nationId={nationId} />
+                        <PyramidStructureManager leagues={professionalLeagues} nationId={nationId} />
                     </div>
                 )}
             </AdminOnly>
