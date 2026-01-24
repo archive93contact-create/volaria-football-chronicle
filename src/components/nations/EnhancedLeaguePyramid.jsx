@@ -1,10 +1,14 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Trophy, Shield, Users, ArrowUp, ArrowDown, ChevronRight } from 'lucide-react';
+import { Trophy, Shield, Users, ArrowUp, ArrowDown, ChevronRight, Settings } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import AdminOnly from '@/components/common/AdminOnly';
+import PyramidStructureManager from './PyramidStructureManager';
 
-export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueTables = [] }) {
+export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueTables = [], nationId }) {
+    const [showManager, setShowManager] = React.useState(false);
     const pyramidData = useMemo(() => {
         if (!leagues || leagues.length === 0) return { tiers: [], mostRecentYear: null };
 
@@ -109,19 +113,36 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
     const maxLeaguesInTier = Math.max(...pyramidData.tiers.map(t => t.leagues.length));
 
     return (
-        <div className="bg-gradient-to-b from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden">
-            {/* Header */}
-            <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Trophy className="w-6 h-6 text-amber-400" />
-                    <h2 className="text-xl font-bold">League Pyramid</h2>
-                </div>
-                {pyramidData.mostRecentYear && (
-                    <Badge className="bg-white/20 text-white border-0">
-                        {pyramidData.mostRecentYear} Season
-                    </Badge>
+        <div className="space-y-6">
+            <AdminOnly>
+                {!showManager ? (
+                    <Button onClick={() => setShowManager(true)} variant="outline" size="sm">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Manage Pyramid Structure
+                    </Button>
+                ) : (
+                    <div>
+                        <Button onClick={() => setShowManager(false)} variant="outline" size="sm" className="mb-4">
+                            Hide Manager
+                        </Button>
+                        <PyramidStructureManager leagues={leagues} nationId={nationId} />
+                    </div>
                 )}
-            </div>
+            </AdminOnly>
+
+            <div className="bg-gradient-to-b from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden">
+                {/* Header */}
+                <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Trophy className="w-6 h-6 text-amber-400" />
+                        <h2 className="text-xl font-bold">League Pyramid</h2>
+                    </div>
+                    {pyramidData.mostRecentYear && (
+                        <Badge className="bg-white/20 text-white border-0">
+                            {pyramidData.mostRecentYear} Season
+                        </Badge>
+                    )}
+                </div>
 
             {/* Pyramid */}
             <div className="p-6">
@@ -194,7 +215,18 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                                                     </div>
                                                 </div>
                                             )}
-                                            
+
+                                            {/* Parent league indicator */}
+                                            {league.parent_league_id && (() => {
+                                                const parent = leagues.find(l => l.id === league.parent_league_id);
+                                                return parent ? (
+                                                    <div className="absolute -top-2 left-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                                                        <ArrowUp className="w-3 h-3" />
+                                                        → {parent.name}
+                                                    </div>
+                                                ) : null;
+                                            })()}
+
                                             <div className="flex items-start gap-3">
                                                 {league.logo_url ? (
                                                     <img 
@@ -297,19 +329,20 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                         </div>
                     );
                 })}
-            </div>
-            
-            {/* Legend */}
-            <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap gap-4 text-xs text-slate-500">
-                <span className="flex items-center gap-1">
-                    <ArrowUp className="w-3 h-3 text-green-500" /> Promotion
-                </span>
-                <span className="flex items-center gap-1">
-                    <ArrowDown className="w-3 h-3 text-red-500" /> Relegation
-                </span>
-                <span className="flex items-center gap-1">
-                    <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs">+PO</span> Playoff promotion
-                </span>
+                </div>
+                
+                {/* Legend */}
+                <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap gap-4 text-xs text-slate-500">
+                    <span className="flex items-center gap-1">
+                        <ArrowUp className="w-3 h-3 text-green-500" /> Promotion
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <ArrowDown className="w-3 h-3 text-red-500" /> Relegation
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs">+PO</span> Playoff promotion
+                    </span>
+                </div>
             </div>
         </div>
     );

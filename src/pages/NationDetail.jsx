@@ -422,7 +422,7 @@ export default function NationDetail() {
                     </TabsList>
 
                     <TabsContent value="pyramid">
-                        <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} />
+                        <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} nationId={nationId} />
                     </TabsContent>
 
                     <TabsContent value="season-overview">
