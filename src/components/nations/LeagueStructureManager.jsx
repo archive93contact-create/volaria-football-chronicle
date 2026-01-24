@@ -9,15 +9,18 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import AdminOnly from '@/components/common/AdminOnly';
 
 export default function LeagueStructureManager({ leagues = [], seasons = [], clubs = [], nationId }) {
-    // Group leagues by tier
+    // Filter out youth and reserve leagues - only manage professional leagues
+    const professionalLeagues = leagues.filter(l => l.league_type !== 'youth' && l.league_type !== 'reserve');
+    
+    // Group professional leagues by tier
     const leaguesByTier = useMemo(() => {
-        return leagues.reduce((acc, league) => {
+        return professionalLeagues.reduce((acc, league) => {
             const tier = league.tier || 1;
             if (!acc[tier]) acc[tier] = [];
             acc[tier].push(league);
             return acc;
         }, {});
-    }, [leagues]);
+    }, [professionalLeagues]);
 
     // Calculate which leagues are active (have recent season data and not defunct)
     const leagueActivity = useMemo(() => {
@@ -25,7 +28,7 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
         const allYears = seasons.map(s => parseInt(s.year.split('-')[0])).filter(Boolean);
         const mostRecentYear = allYears.length > 0 ? Math.max(...allYears) : null;
         
-        leagues.forEach(league => {
+        professionalLeagues.forEach(league => {
             const leagueSeasons = seasons.filter(s => s.league_id === league.id);
             const hasRecentData = leagueSeasons.length > 0;
             const latestYear = leagueSeasons.length > 0 
@@ -45,7 +48,7 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
             };
         });
         return activity;
-    }, [leagues, seasons]);
+    }, [professionalLeagues, seasons]);
 
     // Track open/closed tiers
     const [openTiers, setOpenTiers] = useState(() => {
@@ -68,7 +71,7 @@ export default function LeagueStructureManager({ leagues = [], seasons = [], clu
         return grouped;
     };
 
-    if (leagues.length === 0) {
+    if (professionalLeagues.length === 0) {
         return (
             <Card className="border-dashed border-2 border-slate-300">
                 <CardContent className="flex flex-col items-center justify-center py-12">
