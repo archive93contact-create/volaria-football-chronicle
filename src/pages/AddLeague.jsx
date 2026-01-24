@@ -49,7 +49,8 @@ export default function AddLeague() {
         name: '', nation_id: preselectedNationId || '', logo_url: '', tier: 1,
         description: '', history: '', founded_year: '', number_of_teams: '',
         format: '', promotion_spots: '', relegation_spots: '',
-        current_champion: '', most_titles: '', primary_color: '#1e40af', secondary_color: '#fbbf24'
+        current_champion: '', most_titles: '', primary_color: '#1e40af', secondary_color: '#fbbf24',
+        league_type: 'professional', age_group: ''
     });
 
     const createMutation = useMutation({
@@ -119,9 +120,49 @@ export default function AddLeague() {
                                             </Select>
                                         </div>
                                     </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label>League Type</Label>
+                                            <Select 
+                                                value={formData.league_type} 
+                                                onValueChange={(v) => setFormData({...formData, league_type: v})}
+                                            >
+                                                <SelectTrigger className="mt-1">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="professional">Professional</SelectItem>
+                                                    <SelectItem value="youth">Youth</SelectItem>
+                                                    <SelectItem value="reserve">Reserve</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        {formData.league_type === 'youth' && (
+                                            <div>
+                                                <Label>Age Group *</Label>
+                                                <Select 
+                                                    value={formData.age_group} 
+                                                    onValueChange={(v) => setFormData({...formData, age_group: v})}
+                                                >
+                                                    <SelectTrigger className="mt-1">
+                                                        <SelectValue placeholder="Select age group" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="U-23">U-23</SelectItem>
+                                                        <SelectItem value="U-21">U-21</SelectItem>
+                                                        <SelectItem value="U-19">U-19</SelectItem>
+                                                        <SelectItem value="U-18">U-18</SelectItem>
+                                                        <SelectItem value="U-17">U-17</SelectItem>
+                                                        <SelectItem value="U-16">U-16</SelectItem>
+                                                        <SelectItem value="U-15">U-15</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
-                                            <Label>Tier</Label>
+                                            <Label>Tier {formData.league_type === 'youth' ? '(optional)' : ''}</Label>
                                             <Input type="number" min="1" value={formData.tier} onChange={(e) => setFormData({...formData, tier: e.target.value})} className="mt-1" />
                                         </div>
                                         <div>
