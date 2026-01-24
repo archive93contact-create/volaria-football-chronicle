@@ -39,6 +39,7 @@ import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboar
 import TrophyHaul from '@/components/clubs/TrophyHaul';
 import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatus';
+import YouthSetup from '@/components/youth/YouthSetup';
 import YouthSetup from '@/components/clubs/YouthSetup';
 
 export default function ClubDetail() {
@@ -1271,6 +1272,11 @@ export default function ClubDetail() {
                                 </div>
                             );
                         })()}
+                    </TabsContent>
+
+                    {/* YOUTH SETUP TAB */}
+                    <TabsContent value="youth-setup">
+                        <YouthSetup club={club} />
                     </TabsContent>
 
                     {/* YOUTH TAB */}
