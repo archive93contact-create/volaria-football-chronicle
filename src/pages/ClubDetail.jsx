@@ -39,6 +39,7 @@ import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboar
 import TrophyHaul from '@/components/clubs/TrophyHaul';
 import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatus';
+import YouthSetup from '@/components/clubs/YouthSetup';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -531,12 +532,18 @@ export default function ClubDetail() {
                         <TabsTrigger value="rivalries">Rivalries</TabsTrigger>
                         <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
+                        {club.has_youth_academy && <TabsTrigger value="youth-setup">Youth Setup</TabsTrigger>}
                         <TabsTrigger value="continental">Continental</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="info">Info</TabsTrigger>
                         </TabsList>
 
                     {/* OVERVIEW TAB - Club Story, History & Honours */}
+                    {/* YOUTH SETUP TAB */}
+                    <TabsContent value="youth-setup">
+                        <YouthSetup club={club} allLeagues={allLeagues} />
+                    </TabsContent>
+
                     <TabsContent value="overview">
                 {/* Stats - with subtle club theming */}
                 <div 
