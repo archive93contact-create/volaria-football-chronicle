@@ -40,7 +40,6 @@ import TrophyHaul from '@/components/clubs/TrophyHaul';
 import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatus';
 import YouthSetup from '@/components/youth/YouthSetup';
-import YouthSetup from '@/components/clubs/YouthSetup';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -540,11 +539,6 @@ export default function ClubDetail() {
                         </TabsList>
 
                     {/* OVERVIEW TAB - Club Story, History & Honours */}
-                    {/* YOUTH SETUP TAB */}
-                    <TabsContent value="youth-setup">
-                        <YouthSetup club={club} allLeagues={allLeagues} />
-                    </TabsContent>
-
                     <TabsContent value="overview">
                 {/* Stats - with subtle club theming */}
                 <div 
@@ -1274,11 +1268,6 @@ export default function ClubDetail() {
                         })()}
                     </TabsContent>
 
-                    {/* YOUTH SETUP TAB */}
-                    <TabsContent value="youth-setup">
-                        <YouthSetup club={club} />
-                    </TabsContent>
-
                     {/* YOUTH TAB */}
                     <TabsContent value="youth">
                     {(() => {
@@ -1333,6 +1322,11 @@ export default function ClubDetail() {
                             </div>
                         );
                     })()}
+                    </TabsContent>
+
+                    {/* YOUTH SETUP TAB */}
+                    <TabsContent value="youth-setup">
+                        <YouthSetup club={club} />
                     </TabsContent>
 
                     {/* ANALYTICS TAB */}
