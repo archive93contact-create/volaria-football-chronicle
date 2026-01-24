@@ -37,28 +37,35 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
             const formerNameClub = club.former_name_club_id ? allClubs.find(c => c.id === club.former_name_club_id) : null;
             const currentNameClub = club.current_name_club_id ? allClubs.find(c => c.id === club.current_name_club_id) : null;
 
-            // Build succession context
+            // Build succession context - MUST be mentioned in the story
             let successionContext = '';
             if (club.is_defunct && successorClub) {
-                successionContext = `\nDEFUNCT CLUB: This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'}. They were succeeded by ${successorClub.name}. This should be mentioned as a bittersweet ending - the club is gone but lives on through their successor.`;
+                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'}. They were succeeded by ${successorClub.name}. **You MUST mention this** - explain the bittersweet ending where the club is gone but lives on through their successor.`;
             } else if (club.is_defunct) {
-                successionContext = `\nDEFUNCT CLUB: This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'} with no successor. This should be treated as a tragic ending - a club that simply ceased to exist.`;
+                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'} with no successor. **You MUST mention this** - treat it as a tragic ending where a club simply ceased to exist.`;
             }
 
             if (predecessorClub && predecessorClub2) {
-                successionContext += `\n\nFORMED FROM MERGER: ${club.name} was formed from a merger of ${predecessorClub.name} (${predecessorClub.defunct_year || 'defunct'}) and ${predecessorClub2.name} (${predecessorClub2.defunct_year || 'defunct'}). This should be mentioned as their origin story - two clubs became one.`;
+                successionContext += `\n\n🔴 FORMED FROM MERGER (MUST MENTION): ${club.name} was formed in their founding year from a merger of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}) and ${predecessorClub2.name} (defunct ${predecessorClub2.defunct_year || 'earlier'}). **You MUST mention this merger as their origin story** - two clubs became one to create this club.`;
             } else if (predecessorClub) {
-                successionContext += `\n\nREFORMATION/CONTINUATION: ${club.name} continues the legacy of ${predecessorClub.name} (${predecessorClub.defunct_year ? `defunct ${predecessorClub.defunct_year}` : 'predecessor'}). The club was reformed/restarted. Mention this as a phoenix rising from the ashes story.`;
+                successionContext += `\n\n🔴 REFORMATION/CONTINUATION (MUST MENTION): ${club.name} continues the legacy of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}). **You MUST mention this** - the club was reformed/restarted as a phoenix rising from the ashes of their predecessor.`;
             }
 
             if (club.is_former_name && currentNameClub) {
-                successionContext += `\n\nFORMER NAME: This record represents a former name. The club is now known as ${currentNameClub.name} (changed ${club.renamed_year || 'unknown year'}). Explain this is the same club, just renamed.`;
+                successionContext += `\n\n🔴 FORMER NAME RECORD (MUST MENTION): This record represents a former name. The club is now known as ${currentNameClub.name} (changed ${club.renamed_year || 'later'}). **You MUST explain this is the same club**, just renamed - maintain continuity in the story.`;
             } else if (formerNameClub || club.former_name_club_id) {
-                const formerName = formerNameClub?.name || 'previous name';
-                successionContext += `\n\nNAME CHANGE: This club was formerly known as ${formerName} until ${club.renamed_year || 'a name change'}${club.reverted_to_original ? ' (reverted to original name)' : ''}. Same club, different name - explain the continuity.`;
+                const formerName = formerNameClub?.name || 'their previous name';
+                successionContext += `\n\n🔴 NAME CHANGE (MUST MENTION): This club was formerly known as ${formerName} until ${club.renamed_year || 'they changed their name'}${club.reverted_to_original ? ' (they reverted to their original name)' : ''}. **You MUST mention this name change** - same club, different name, explain the continuity and why they changed.`;
+            }
+            
+            if (club.former_name_club_2_id) {
+                const formerName2 = allClubs.find(c => c.id === club.former_name_club_2_id);
+                if (formerName2) {
+                    successionContext += `\n\nSECOND NAME CHANGE: The club also had another previous name: ${formerName2.name}. **Mention this too** - they've gone through multiple identity changes.`;
+                }
             }
 
-            // Build TFA context
+            // Build TFA context (ONLY for Turuliand)
             let tfaContext = '';
             if (isTuruliand && seasons.length > 0) {
                 if (tfaSeasons.length === 0 && nonTfaSeasons.length > 0) {
@@ -66,11 +73,33 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 } else if (tfaSeasons.length > 0 && currentTier > 4) {
                     const lastTfa = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
                     const seasonsAway = seasons.filter(s => s.year > lastTfa.year).length;
-                    tfaContext = `They had ${tfaSeasons.length} season${tfaSeasons.length > 1 ? 's' : ''} in the TFA but dropped out in ${lastTfa.year}. Now ${seasonsAway} seasons in non-league wilderness. Current league: ${league?.name}. This is CRUCIAL - emphasize the stark difference between structured TFA football and sparse regional non-league matches.`;
+                    tfaContext = `They had ${tfaSeasons.length} season${tfaSeasons.length > 1 ? 's' : ''} in the TFA but dropped out in ${lastTfa.year}. Now ${seasonsAway} seasons in non-league wilderness (Tier ${currentTier}). This is CRUCIAL - emphasize the stark difference between structured TFA football and sparse regional non-league matches.`;
                 } else if (tfaSeasons.length > 0 && currentTier <= 4) {
                     tfaContext = `Currently in the TFA (${league?.name}, Tier ${currentTier}). ${tfaSeasons.length} total TFA seasons${nonTfaSeasons.length > 0 ? `, but they spent ${nonTfaSeasons.length} seasons in non-league before climbing up` : ', always in organized football'}.`;
                 } else if (currentTier <= 4 && tfaSeasons.length === seasons.length) {
                     tfaContext = `TFA stalwarts - ALL ${tfaSeasons.length} recorded seasons in the organized leagues. Non-league is alien to them.`;
+                }
+                
+                // Add tier context for non-TFA clubs
+                if (currentTier > 4) {
+                    if (currentTier === 5) {
+                        tfaContext += `\n\nCURRENT POSITION: Tier 5 - they're on the doorstep of the TFA. One promotion away from organized football. This is crucial context - they're close but not quite there yet.`;
+                    } else if (currentTier >= 6 && currentTier <= 8) {
+                        tfaContext += `\n\nCURRENT POSITION: Tier ${currentTier} - deep in the regional leagues but not completely lost. Several tiers away from the TFA but still within reach with sustained success.`;
+                    } else if (currentTier > 8) {
+                        tfaContext += `\n\nCURRENT POSITION: Tier ${currentTier} - the doldrums. Far removed from organized football, playing sporadic regional matches. The TFA feels like a different world entirely. Emphasize the isolation and struggle at this level.`;
+                    }
+                }
+            } else if (isTuruliand && seasons.length === 0) {
+                // New club or no history
+                if (currentTier <= 4) {
+                    tfaContext = `Currently in the TFA (${league?.name}, Tier ${currentTier}) - organized football from the start.`;
+                } else if (currentTier === 5) {
+                    tfaContext = `Starting life in Tier 5 - one tier below the TFA. Close to organized football but not quite there yet.`;
+                } else if (currentTier > 8) {
+                    tfaContext = `Starting in the doldrums at Tier ${currentTier}. Regional non-league football where the TFA is a distant dream.`;
+                } else {
+                    tfaContext = `Starting in Tier ${currentTier} - deep in the regional leagues, multiple tiers below the TFA.`;
                 }
             }
 
@@ -98,13 +127,18 @@ HISTORY:
 ${tfaContext ? `\nTURULIAND TFA STATUS (CRITICAL):\n${tfaContext}\n` : ''}
 
 REQUIREMENTS:
-1. First paragraph: The club's origins and identity - what makes them unique? Use their location, founding story, name meaning if relevant. Make it PERSONAL to ${[club.settlement, club.district, club.region].filter(Boolean)[0] || club.city || 'their town'}.
+1. **FIRST PARAGRAPH - Origins & Identity**: Start with their founding and identity. ${successionContext ? '**CRITICAL**: You MUST mention their succession/merger/name change context (marked with 🔴 above) in this opening - it defines who they are.' : ''} What makes them unique? Use their location: ${[club.settlement, club.district, club.region].filter(Boolean)[0] || club.city || 'their town'}. Make it PERSONAL.
 
-2. Second paragraph: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity).' : ''}
+2. **SECOND PARAGRAPH - Journey**: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements from the data above. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity). **You MUST accurately describe their current tier situation** (marked in TFA STATUS above).' : ''}
 
-3. Third paragraph: Their current status and what defines them today. Where do they sit in the hierarchy? What's their relationship to ${rivals.length > 0 ? 'their rivals (' + rivals.map(r => r.name).join(', ') + ')' : 'other local clubs'}? What are fans feeling right now?
+3. **THIRD PARAGRAPH - Present Day**: Their current status and what defines them today. Where do they sit in the hierarchy? ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is the doldrums.' : ''} What's their relationship to ${rivals.length > 0 ? 'their rivals (' + rivals.map(r => r.name).join(', ') + ')' : 'other local clubs'}? What are fans feeling?
 
-4. Optional fourth: If they have interesting data quirks (yo-yo club, fallen giant, never relegated, etc), explore this emotionally.
+4. **OPTIONAL FOURTH**: Data quirks (yo-yo club, fallen giant, never relegated, etc) - explore emotionally.
+
+**CRITICAL REMINDERS**:
+- ${successionContext ? '🔴 You MUST mention succession/merger/name change context - it\'s marked with 🔴 above' : 'No succession context to mention'}
+- ${tfaContext && isTuruliand ? '🔴 You MUST accurately describe their tier level and distance from TFA' : 'Not a Turuliand club'}
+- TFA ONLY EXISTS IN TURULIAND - never mention TFA for other nations
 
 TONE: Engaging, emotionally resonant, like a documentary. Use specific data points (years, numbers, names). Avoid clichés. Make every club story feel completely different.
 
