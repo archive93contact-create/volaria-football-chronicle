@@ -25,6 +25,7 @@ import AINationEnhancer from '@/components/nations/AINationEnhancer';
 import ImmersiveNationContent from '@/components/nations/ImmersiveNationContent';
 import LeaguePyramid from '@/components/nations/LeaguePyramid';
 import EnhancedLeaguePyramid from '@/components/nations/EnhancedLeaguePyramid';
+import YouthLeagueStructure from '@/components/nations/YouthLeagueStructure';
 import NationStats from '@/components/nations/NationStats';
 import LeagueStructureManager from '@/components/nations/LeagueStructureManager';
 import NationSeasonOverview from '@/components/nations/NationSeasonOverview';

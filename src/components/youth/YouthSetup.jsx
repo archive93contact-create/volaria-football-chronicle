@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import YouthTeamCard from './YouthTeamCard';
 import YouthTeamHistory from './YouthTeamHistory';
 import AdminOnly from '@/components/common/AdminOnly';
+import AddYouthTeamDialog from './AddYouthTeamDialog';
 
 export default function YouthSetup({ club }) {
     const [selectedTeamId, setSelectedTeamId] = useState(null);
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
 
     const { data: youthTeams = [] } = useQuery({
         queryKey: ['youthTeams', club.id],
@@ -52,7 +54,11 @@ export default function YouthSetup({ club }) {
                             </div>
                         </div>
                         <AdminOnly>
-                            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                            <Button
+                                size="sm"
+                                className="bg-indigo-600 hover:bg-indigo-700"
+                                onClick={() => setAddDialogOpen(true)}
+                            >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Youth Team
                             </Button>
@@ -98,7 +104,10 @@ export default function YouthSetup({ club }) {
                         <h3 className="text-xl font-semibold text-slate-700 mb-2">No Youth Teams</h3>
                         <p className="text-slate-500 mb-4">Set up your youth development structure</p>
                         <AdminOnly>
-                            <Button className="bg-indigo-600 hover:bg-indigo-700">
+                            <Button
+                                className="bg-indigo-600 hover:bg-indigo-700"
+                                onClick={() => setAddDialogOpen(true)}
+                            >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Create First Youth Team
                             </Button>
@@ -155,6 +164,14 @@ export default function YouthSetup({ club }) {
                     )}
                 </>
             )}
+
+            <AdminOnly>
+                <AddYouthTeamDialog
+                    club={club}
+                    open={addDialogOpen}
+                    onOpenChange={setAddDialogOpen}
+                />
+            </AdminOnly>
         </div>
     );
 }
