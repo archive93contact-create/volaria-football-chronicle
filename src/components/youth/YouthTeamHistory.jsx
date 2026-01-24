@@ -1,12 +1,14 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Award, TrendingUp } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-export default function YouthTeamHistory({ youthTeam, seasons, allLeagues }) {
+export default function YouthTeamHistory({ youthTeam, allLeagues }) {
     // Filter seasons for this youth team's league
     const teamSeasons = seasons
         .filter(s => s.league_id === youthTeam.league_id)

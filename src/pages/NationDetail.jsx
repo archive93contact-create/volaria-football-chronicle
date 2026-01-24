@@ -412,6 +412,7 @@ export default function NationDetail() {
                     <TabsList className="mb-6 flex-wrap h-auto">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="pyramid">Pyramid</TabsTrigger>
+                        <TabsTrigger value="youth-structure">Youth Structure</TabsTrigger>
                         <TabsTrigger value="geography">Geography</TabsTrigger>
                         <TabsTrigger value="eras">Eras</TabsTrigger>
                         <TabsTrigger value="flow">Flow</TabsTrigger>
@@ -424,6 +425,10 @@ export default function NationDetail() {
 
                     <TabsContent value="pyramid">
                         <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} nationId={nationId} />
+                    </TabsContent>
+
+                    <TabsContent value="youth-structure">
+                        <YouthLeagueStructure nationId={nationId} />
                     </TabsContent>
 
                     <TabsContent value="season-overview">

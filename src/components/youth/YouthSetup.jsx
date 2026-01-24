@@ -157,7 +157,6 @@ export default function YouthSetup({ club }) {
                             </div>
                             <YouthTeamHistory 
                                 youthTeam={selectedTeam} 
-                                seasons={allSeasons}
                                 allLeagues={allLeagues}
                             />
                         </div>

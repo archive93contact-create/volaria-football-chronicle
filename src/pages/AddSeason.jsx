@@ -59,6 +59,18 @@ export default function AddSeason() {
         enabled: !!league?.nation_id,
     });
 
+    const { data: youthTeams = [] } = useQuery({
+        queryKey: ['youthTeams', league?.nation_id],
+        queryFn: async () => {
+            const clubs = await base44.entities.Club.filter({ nation_id: league.nation_id }) || [];
+            const clubIds = clubs.map(c => c.id);
+            if (clubIds.length === 0) return [];
+            const allYouthTeams = await base44.entities.YouthTeam.list() || [];
+            return allYouthTeams.filter(yt => clubIds.includes(yt.parent_club_id));
+        },
+        enabled: !!league?.nation_id && league?.league_type === 'youth',
+    });
+
     const [seasonData, setSeasonData] = useState({
         year: '', number_of_teams: 18, top_scorer: '', notes: '',
         champion_color: '#fef3c7', promotion_color: '#d1fae5', relegation_color: '#fee2e2',
@@ -77,6 +89,7 @@ export default function AddSeason() {
     const [useMultipleDivisions, setUseMultipleDivisions] = useState(false);
     const [divisionPasteDialogOpen, setDivisionPasteDialogOpen] = useState(false);
     const [divisionPasteText, setDivisionPasteText] = useState('');
+    const [selectedYouthTeams, setSelectedYouthTeams] = useState({});
 
     const initializeTable = (numTeams) => {
         const rows = [];
@@ -515,7 +528,8 @@ export default function AddSeason() {
                 }
             }
 
-            // Create league table entries with club IDs
+            // Create league table entries with club IDs (and youth team IDs if youth league)
+            const isYouthLeague = league.league_type === 'youth';
             const tableEntries = tableRows.filter(r => r.club_name.trim()).map(row => ({
                 season_id: season.id,
                 league_id: leagueId,
@@ -523,6 +537,7 @@ export default function AddSeason() {
                 tier: currentTier, // Capture the league's tier at time of creation
                 division_name: data.division_name || null,
                 club_id: clubIdMap[row.club_name.trim()] || '',
+                youth_team_id: isYouthLeague ? selectedYouthTeams[row.position] : null,
                 ...row
             }));
 
@@ -837,12 +852,34 @@ export default function AddSeason() {
                                                 <TableRow key={idx} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
                                                     <TableCell className="font-bold">{row.position}</TableCell>
                                                     <TableCell>
-                                                        <Input 
-                                                            value={row.club_name} 
-                                                            onChange={(e) => updateRow(idx, 'club_name', e.target.value)} 
-                                                            placeholder="Club name"
-                                                            className="h-8"
-                                                        />
+                                                        {league.league_type === 'youth' ? (
+                                                            <Select 
+                                                                value={selectedYouthTeams[row.position] || ''} 
+                                                                onValueChange={(v) => {
+                                                                    setSelectedYouthTeams({...selectedYouthTeams, [row.position]: v});
+                                                                    const yt = youthTeams.find(t => t.id === v);
+                                                                    if (yt) updateRow(idx, 'club_name', yt.name);
+                                                                }}
+                                                            >
+                                                                <SelectTrigger className="h-8">
+                                                                    <SelectValue placeholder="Select youth team" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {youthTeams.filter(yt => yt.age_group === league.age_group).map(yt => (
+                                                                        <SelectItem key={yt.id} value={yt.id}>
+                                                                            {yt.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        ) : (
+                                                            <Input 
+                                                                value={row.club_name} 
+                                                                onChange={(e) => updateRow(idx, 'club_name', e.target.value)} 
+                                                                placeholder="Club name"
+                                                                className="h-8"
+                                                            />
+                                                        )}
                                                     </TableCell>
                                                     <TableCell><Input type="number" value={row.played} onChange={(e) => updateRow(idx, 'played', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
                                                     <TableCell><Input type="number" value={row.won} onChange={(e) => updateRow(idx, 'won', e.target.value)} className="h-8 w-14 text-center p-1" /></TableCell>
