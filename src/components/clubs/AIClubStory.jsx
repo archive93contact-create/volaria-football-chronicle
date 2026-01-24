@@ -118,10 +118,15 @@ HISTORY:
 - Seasons played: ${club.seasons_played || 0}
 - Top flight seasons: ${club.seasons_top_flight || 0}
 - League titles: ${club.league_titles || 0}${club.title_years ? ` (${club.title_years})` : ''}
-- Domestic cup titles: ${club.domestic_cup_titles || 0}
-- VCC titles: ${club.vcc_titles || 0}, CCC titles: ${club.ccc_titles || 0}
+  ${club.title_years ? `🔴 FIRST EVER TITLE: ${club.title_years.split(',')[0].trim()} - **You MUST mention their first-ever championship** - it's a historic moment` : ''}
+- Lower tier titles: ${club.lower_tier_titles || 0}${club.lower_tier_title_years ? ` (${club.lower_tier_title_years})` : ''}
+- Domestic cup titles: ${club.domestic_cup_titles || 0}${club.domestic_cup_title_years ? ` (${club.domestic_cup_title_years})` : ''}
+  ${club.domestic_cup_title_years ? `🔴 Cup glory years: ${club.domestic_cup_title_years} - **Mention major cup wins**, they're huge moments` : ''}
+  ${club.domestic_cup_runner_up > 0 ? `- Cup finals lost: ${club.domestic_cup_runner_up} (heartbreak)` : ''}
+- VCC titles: ${club.vcc_titles || 0}${club.vcc_title_years ? ` (${club.vcc_title_years})` : ''}, CCC titles: ${club.ccc_titles || 0}${club.ccc_title_years ? ` (${club.ccc_title_years})` : ''}
+  ${club.vcc_title_years || club.ccc_title_years ? `🔴 CONTINENTAL GLORY - **Must mention these historic achievements**` : ''}
 - Promotions: ${club.promotions || 0}, Relegations: ${club.relegations || 0}
-- Best finish: ${club.best_finish ? `${club.best_finish}${club.best_finish === 1 ? 'st' : club.best_finish === 2 ? 'nd' : club.best_finish === 3 ? 'rd' : 'th'} (${club.best_finish_year || 'unknown year'})` : 'No data'}
+- Best finish: ${club.best_finish ? `${club.best_finish}${club.best_finish === 1 ? 'st' : club.best_finish === 2 ? 'nd' : club.best_finish === 3 ? 'rd' : 'th'} (${club.best_finish_year || 'unknown year'}, Tier ${club.best_finish_tier || 'unknown'})` : 'No data'}
 - Professional status: ${club.professional_status || 'Unknown'}
 
 ${tfaContext ? `\nTURULIAND TFA STATUS (CRITICAL):\n${tfaContext}\n` : ''}
