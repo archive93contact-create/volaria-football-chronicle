@@ -194,8 +194,11 @@ export default function NationDetail() {
         );
     }
 
-    // Group leagues by tier
-    const leaguesByTier = leagues.reduce((acc, league) => {
+    // Filter professional leagues only for tier structure
+    const professionalLeagues = leagues.filter(l => l.league_type !== 'youth' && l.league_type !== 'reserve');
+    
+    // Group professional leagues by tier
+    const leaguesByTier = professionalLeagues.reduce((acc, league) => {
         const tier = league.tier || 1;
         if (!acc[tier]) acc[tier] = [];
         acc[tier].push(league);
@@ -322,8 +325,8 @@ export default function NationDetail() {
                 {/* Quick Access Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
                     {/* Top League */}
-                    {leagues.filter(l => l.tier === 1)[0] && (
-                        <Link to={createPageUrl(`LeagueDetail?id=${leagues.filter(l => l.tier === 1)[0].id}`)}>
+                    {professionalLeagues.filter(l => l.tier === 1)[0] && (
+                        <Link to={createPageUrl(`LeagueDetail?id=${professionalLeagues.filter(l => l.tier === 1)[0].id}`)}>
                             <Card className="border-0 shadow-sm hover:shadow-lg transition-all h-full bg-gradient-to-br from-amber-50 to-orange-50 group cursor-pointer">
                                 <CardContent className="p-5">
                                     <div className="flex items-center gap-3 mb-3">
@@ -332,12 +335,12 @@ export default function NationDetail() {
                                         </div>
                                         <div>
                                             <p className="text-xs text-amber-600 font-medium">Top Division</p>
-                                            <h3 className="font-bold text-slate-900 group-hover:text-amber-700">{leagues.filter(l => l.tier === 1)[0].name}</h3>
+                                            <h3 className="font-bold text-slate-900 group-hover:text-amber-700">{professionalLeagues.filter(l => l.tier === 1)[0].name}</h3>
                                         </div>
                                     </div>
-                                    {leagues.filter(l => l.tier === 1)[0].current_champion && (
+                                    {professionalLeagues.filter(l => l.tier === 1)[0].current_champion && (
                                         <p className="text-sm text-slate-600">
-                                            🏆 Champion: <span className="font-medium text-emerald-600">{leagues.filter(l => l.tier === 1)[0].current_champion}</span>
+                                            🏆 Champion: <span className="font-medium text-emerald-600">{professionalLeagues.filter(l => l.tier === 1)[0].current_champion}</span>
                                         </p>
                                     )}
                                     <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
@@ -424,7 +427,7 @@ export default function NationDetail() {
                     </TabsList>
 
                     <TabsContent value="pyramid">
-                        <EnhancedLeaguePyramid leagues={leagues} seasons={seasons} clubs={clubs} nationId={nationId} />
+                        <EnhancedLeaguePyramid leagues={professionalLeagues} seasons={seasons} clubs={clubs} nationId={nationId} />
                     </TabsContent>
 
                     <TabsContent value="youth-structure">
@@ -730,7 +733,7 @@ export default function NationDetail() {
                         </div>
 
                         <LeagueStructureManager 
-                            leagues={leagues} 
+                            leagues={professionalLeagues} 
                             seasons={seasons} 
                             clubs={clubs}
                             nationId={nationId}
