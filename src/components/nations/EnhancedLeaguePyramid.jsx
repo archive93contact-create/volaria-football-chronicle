@@ -10,17 +10,13 @@ import PyramidStructureManager from './PyramidStructureManager';
 export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueTables = [], nationId }) {
     const [showManager, setShowManager] = React.useState(false);
     const pyramidData = useMemo(() => {
-        if (!leagues || leagues.length === 0) return { tiers: [], mostRecentYear: null };
+        if (!leagues || leagues.length === 0) return { tiers: [], mostRecentYear: null, connections: [] };
 
-        // Filter to only active leagues (is_active is true or undefined for backwards compatibility)
         const activeLeagues = leagues.filter(l => l.is_active !== false);
-
-        // Find most recent season year overall
         const mostRecentYear = seasons.length > 0 
             ? [...seasons].sort((a, b) => b.year.localeCompare(a.year))[0]?.year 
             : null;
 
-        // Get current tier for each league
         const getLeagueCurrentTier = (league) => {
             const leagueSeasons = seasons.filter(s => s.league_id === league.id);
             if (leagueSeasons.length === 0) return league.tier || 1;
@@ -28,7 +24,6 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
             return sorted[0].tier || league.tier || 1;
         };
 
-        // Get season info for most recent year
         const getLeagueSeasonInfo = (league) => {
             const leagueSeasons = seasons.filter(s => s.league_id === league.id);
             if (leagueSeasons.length === 0) return null;
@@ -38,7 +33,6 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
             return sorted.filter(s => s.year === latestYear);
         };
 
-        // Get promotion/relegation data from latest season
         const getPromotionRelegationData = (league, seasonInfo) => {
             if (!seasonInfo || seasonInfo.length === 0) return { promoted: [], relegated: [], promotionSpots: 0, relegationSpots: 0 };
             
@@ -55,7 +49,8 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
             };
         };
 
-        // Build pyramid structure
+        // Build league data with positioning info
+        const leagueDataMap = {};
         const pyramidByTier = {};
         
         activeLeagues.forEach(league => {
@@ -68,49 +63,80 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                 pyramidByTier[currentTier] = [];
             }
             
-            // Handle multiple divisions at same tier
-            if (seasonInfo && seasonInfo.length > 1) {
-                seasonInfo.forEach(div => {
-                    pyramidByTier[currentTier].push({
-                        ...league,
-                        displayName: div.division_name ? `${league.name} ${div.division_name}` : league.name,
-                        divisionName: div.division_name,
-                        seasonId: div.id,
-                        teamCount: div.number_of_teams || leagueClubs.length,
-                        champion: div.champion_name,
-                        year: div.year,
-                        ...getPromotionRelegationData(league, [div])
-                    });
-                });
-            } else {
-                const season = seasonInfo?.[0];
-                pyramidByTier[currentTier].push({
-                    ...league,
-                    displayName: league.name,
-                    divisionName: null,
-                    seasonId: season?.id,
-                    teamCount: season?.number_of_teams || leagueClubs.length,
-                    champion: season?.champion_name,
-                    year: season?.year,
-                    ...promoReleg
-                });
-            }
+            const season = seasonInfo?.[0];
+            const leagueData = {
+                ...league,
+                displayName: league.name,
+                divisionName: null,
+                seasonId: season?.id,
+                teamCount: season?.number_of_teams || leagueClubs.length,
+                champion: season?.champion_name,
+                year: season?.year,
+                ...promoReleg,
+                tier: currentTier
+            };
+            
+            pyramidByTier[currentTier].push(leagueData);
+            leagueDataMap[league.id] = leagueData;
         });
 
         const sortedTiers = Object.keys(pyramidByTier).map(Number).sort((a, b) => a - b);
         
-        return { 
-            tiers: sortedTiers.map(tier => ({
+        // Position leagues based on parent relationships
+        const positionedTiers = sortedTiers.map(tier => {
+            const tierLeagues = pyramidByTier[tier];
+            
+            // Separate leagues with and without parents
+            const withParent = tierLeagues.filter(l => l.parent_league_id);
+            const withoutParent = tierLeagues.filter(l => !l.parent_league_id);
+            
+            // Group leagues by their parent
+            const groupedByParent = {};
+            withParent.forEach(league => {
+                const parentId = league.parent_league_id;
+                if (!groupedByParent[parentId]) {
+                    groupedByParent[parentId] = [];
+                }
+                groupedByParent[parentId].push(league);
+            });
+            
+            // Order: place leagues with parents first, grouped together, then independent leagues
+            const ordered = [];
+            Object.values(groupedByParent).forEach(group => {
+                ordered.push(...group);
+            });
+            ordered.push(...withoutParent);
+            
+            return {
                 tier,
-                leagues: pyramidByTier[tier]
-            })),
-            mostRecentYear
+                leagues: ordered
+            };
+        });
+        
+        // Build connection data for SVG lines
+        const connections = [];
+        activeLeagues.forEach(league => {
+            if (league.parent_league_id) {
+                const parent = leagueDataMap[league.parent_league_id];
+                if (parent) {
+                    connections.push({
+                        from: league.id,
+                        to: league.parent_league_id,
+                        fromLeague: league,
+                        toLeague: parent
+                    });
+                }
+            }
+        });
+        
+        return { 
+            tiers: positionedTiers,
+            mostRecentYear,
+            connections
         };
     }, [leagues, seasons, clubs]);
 
     if (pyramidData.tiers.length === 0) return null;
-
-    const maxLeaguesInTier = Math.max(...pyramidData.tiers.map(t => t.leagues.length));
 
     return (
         <div className="space-y-6">
@@ -144,8 +170,8 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                     )}
                 </div>
 
-            {/* Pyramid */}
-            <div className="p-6">
+            {/* Pyramid with SVG connections */}
+            <div className="p-6 relative">
                 {pyramidData.tiers.map((tierData, tierIdx) => {
                     const isTopTier = tierData.tier === 1;
                     const nextTier = pyramidData.tiers[tierIdx + 1];
@@ -187,7 +213,7 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                             </div>
                             
                             {/* Leagues Grid */}
-                            <div className={`grid gap-3 ${
+                            <div className={`grid gap-3 relative ${
                                 tierData.leagues.length === 1 
                                     ? 'grid-cols-1 max-w-xl mx-auto' 
                                     : tierData.leagues.length === 2 
@@ -196,6 +222,51 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                                             ? 'grid-cols-3'
                                             : 'grid-cols-2 lg:grid-cols-4'
                             }`}>
+                                {/* SVG Layer for connections within tier */}
+                                <svg 
+                                    className="absolute inset-0 pointer-events-none -z-10" 
+                                    style={{ width: '100%', height: '100%', overflow: 'visible' }}
+                                >
+                                    {pyramidData.connections
+                                        .filter(conn => {
+                                            const fromLeague = tierData.leagues.find(l => l.id === conn.from);
+                                            const toTier = pyramidData.tiers.find(t => t.leagues.some(l => l.id === conn.to));
+                                            return fromLeague && toTier && toTier.tier === tierData.tier - 1;
+                                        })
+                                        .map((conn, connIdx) => {
+                                            const fromIdx = tierData.leagues.findIndex(l => l.id === conn.from);
+                                            const prevTier = pyramidData.tiers.find(t => t.tier === tierData.tier - 1);
+                                            const toIdx = prevTier?.leagues.findIndex(l => l.id === conn.to) ?? -1;
+                                            
+                                            if (fromIdx === -1 || toIdx === -1) return null;
+                                            
+                                            // Calculate positions (rough estimation)
+                                            const cols = tierData.leagues.length <= 3 ? tierData.leagues.length : 4;
+                                            const cardWidth = 100 / cols;
+                                            const fromX = (fromIdx % cols) * cardWidth + cardWidth / 2;
+                                            
+                                            return (
+                                                <g key={connIdx}>
+                                                    <line
+                                                        x1={`${fromX}%`}
+                                                        y1="0"
+                                                        x2={`${fromX}%`}
+                                                        y2="-40"
+                                                        stroke="#10b981"
+                                                        strokeWidth="2"
+                                                        strokeDasharray="4 2"
+                                                    />
+                                                    <circle
+                                                        cx={`${fromX}%`}
+                                                        cy="-40"
+                                                        r="4"
+                                                        fill="#10b981"
+                                                    />
+                                                </g>
+                                            );
+                                        })}
+                                </svg>
+
                                 {tierData.leagues.map((league, idx) => (
                                     <Link 
                                         key={`${league.id}-${idx}`}
@@ -216,14 +287,11 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                                                 </div>
                                             )}
 
-                                            {/* Parent league indicator */}
+                                            {/* Connection indicator */}
                                             {league.parent_league_id && (() => {
                                                 const parent = leagues.find(l => l.id === league.parent_league_id);
                                                 return parent ? (
-                                                    <div className="absolute -top-2 left-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                                                        <ArrowUp className="w-3 h-3" />
-                                                        → {parent.name}
-                                                    </div>
+                                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-3 bg-emerald-400" />
                                                 ) : null;
                                             })()}
 
