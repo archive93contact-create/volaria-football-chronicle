@@ -109,14 +109,14 @@ export default function ClubDetail() {
         staleTime: 15 * 60 * 1000, // Cache for 15 minutes - rarely changes
     });
 
-    // Only fetch all clubs when editing (for predecessor selection)
+    // Fetch all clubs in this nation (needed for AI story generation and predecessor/successor context)
     const { data: allClubs = [] } = useQuery({
         queryKey: ['allClubsForPredecessor', club?.nation_id],
         queryFn: async () => {
             if (!club?.nation_id) return [];
             return await base44.entities.Club.filter({ nation_id: club.nation_id }) || [];
         },
-        enabled: !!club?.nation_id && isEditing, // Only load when needed
+        enabled: !!club?.nation_id,
         staleTime: 10 * 60 * 1000,
     });
 
