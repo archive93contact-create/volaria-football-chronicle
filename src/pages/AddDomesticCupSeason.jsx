@@ -74,8 +74,15 @@ export default function AddDomesticCupSeason() {
     });
 
     const { data: allLeagueTables = [] } = useQuery({
-        queryKey: ['allLeagueTables'],
-        queryFn: () => base44.entities.LeagueTable.list(),
+        queryKey: ['allLeagueTables', cup?.nation_id],
+        queryFn: async () => {
+            if (!cup?.nation_id || leagues.length === 0) return [];
+            const nationLeagueIds = leagues.map(l => l.id);
+            // Fetch ALL league tables for this nation's leagues (no limit)
+            const allTables = await base44.entities.LeagueTable.list('-year', 5000);
+            return allTables.filter(t => nationLeagueIds.includes(t.league_id));
+        },
+        enabled: !!cup?.nation_id && leagues.length > 0,
     });
 
     // Available years from league tables FOR THIS NATION'S LEAGUES
