@@ -281,13 +281,14 @@ export default function AddDomesticCupSeason() {
                             <div className="flex gap-3">
                                 <Trophy className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
-                                    <p className="font-semibold mb-1">How the draw system works:</p>
+                                    <p className="font-semibold mb-1">🔄 FA Cup-Style Draw System:</p>
                                     <ol className="list-decimal ml-4 space-y-1">
-                                        <li>Create this season with basic details</li>
-                                        <li>On the season page, use the <strong>Draw Round</strong> button for each round</li>
-                                        <li>The system will show eligible clubs and create seeded matchups</li>
-                                        <li>Winners automatically become eligible for the next round's draw</li>
-                                        <li>Odd numbers of clubs are handled with automatic byes</li>
+                                        <li>Create this season first</li>
+                                        <li>On the season page, configure tier entry rules (which tier enters at which round)</li>
+                                        <li>Use the <strong>Draw Round</strong> button for each round</li>
+                                        <li>System uses Power of 2 logic: auto-calculates byes (M = T - 2^n)</li>
+                                        <li>Seeded or random draw based on cup settings</li>
+                                        <li>Winners automatically eligible for next round</li>
                                     </ol>
                                 </div>
                             </div>

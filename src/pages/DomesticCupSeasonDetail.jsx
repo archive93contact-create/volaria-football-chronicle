@@ -260,14 +260,11 @@ export default function DomesticCupSeasonDetail() {
                 <AdminOnly>
                     <div className="mb-8">
                         <DomesticCupDrawer
-                            seasonId={seasonId}
                             season={season}
                             cup={cup}
-                            clubs={clubs}
-                            leagues={leagues}
-                            leagueTables={leagueTables}
-                            matches={matches}
-                            onDrawComplete={() => queryClient.invalidateQueries(['cupMatches', seasonId])}
+                            allClubs={clubs}
+                            existingMatches={matches}
+                            allLeagueTables={leagueTables}
                         />
                     </div>
                 </AdminOnly>

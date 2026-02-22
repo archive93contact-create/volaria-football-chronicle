@@ -128,22 +128,65 @@ export default function DomesticCups() {
                     <Input value={formData.eligible_tiers || ''} onChange={(e) => setFormData({...formData, eligible_tiers: e.target.value})} placeholder="e.g., 1-4" className="mt-1" />
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div>
+                <Label>Format</Label>
+                <Input value={formData.format || ''} onChange={(e) => setFormData({...formData, format: e.target.value})} placeholder="e.g., Single elimination knockout" className="mt-1" />
+            </div>
+            
+            {/* FA Cup-Style Settings */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+                <h4 className="font-semibold text-blue-900 text-sm">Cup Draw Configuration</h4>
+                
                 <div>
-                    <Label>Format</Label>
-                    <Input value={formData.format || ''} onChange={(e) => setFormData({...formData, format: e.target.value})} placeholder="e.g., Single elimination knockout" className="mt-1" />
+                    <Label className="text-xs">Draw Style</Label>
+                    <Select value={formData.draw_style || 'random'} onValueChange={(v) => setFormData({...formData, draw_style: v})}>
+                        <SelectTrigger className="mt-1">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="random">Random (any team vs any)</SelectItem>
+                            <SelectItem value="seeded">Seeded (higher tiers protected)</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-                <div>
-                    <Label className="flex items-center gap-2">
-                        <input 
-                            type="checkbox" 
-                            checked={formData.is_main_cup !== false}
-                            onChange={(e) => setFormData({...formData, is_main_cup: e.target.checked})}
-                            className="rounded"
-                        />
-                        Main Cup (for stats)
+
+                <div className="flex items-center gap-2">
+                    <input 
+                        type="checkbox" 
+                        id="uses_replays"
+                        checked={formData.uses_replays || false}
+                        onChange={(e) => setFormData({...formData, uses_replays: e.target.checked})}
+                        className="rounded"
+                    />
+                    <Label htmlFor="uses_replays" className="text-xs cursor-pointer">
+                        Use replays (drawn matches replay at away ground)
                     </Label>
-                    <p className="text-xs text-slate-500 mt-1">Check this if it's the primary cup competition (stats will count towards club records)</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <input 
+                        type="checkbox" 
+                        id="neutral_venue_final"
+                        checked={formData.neutral_venue_final !== false}
+                        onChange={(e) => setFormData({...formData, neutral_venue_final: e.target.checked})}
+                        className="rounded"
+                    />
+                    <Label htmlFor="neutral_venue_final" className="text-xs cursor-pointer">
+                        Final played at neutral venue
+                    </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <input 
+                        type="checkbox" 
+                        id="is_main_cup"
+                        checked={formData.is_main_cup !== false}
+                        onChange={(e) => setFormData({...formData, is_main_cup: e.target.checked})}
+                        className="rounded"
+                    />
+                    <Label htmlFor="is_main_cup" className="text-xs cursor-pointer">
+                        Main cup (stats count towards club records)
+                    </Label>
                 </div>
             </div>
             <div>
