@@ -179,8 +179,9 @@ export default function DomesticCupDrawer({
                 }
             }
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['cupMatches', season.id] });
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['cupMatches', season.id] });
+            await queryClient.refetchQueries({ queryKey: ['cupMatches', season.id] });
             setIsDrawDialogOpen(false);
             setSelectedRound('');
         }
