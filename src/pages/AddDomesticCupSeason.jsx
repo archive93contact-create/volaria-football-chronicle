@@ -379,16 +379,59 @@ export default function AddDomesticCupSeason() {
                             />
                         </div>
 
+                        {/* Smart Suggestions */}
+                        {recommendedStartRound && (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                                <div className="flex gap-3">
+                                    <Trophy className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                                    <div className="text-sm">
+                                        <p className="font-semibold mb-2 text-emerald-900">✨ Smart Configuration</p>
+                                        <div className="space-y-2 text-emerald-800">
+                                            <div className="flex items-center gap-2">
+                                                <Badge className="bg-emerald-600">
+                                                    Recommended: Start at {recommendedStartRound.round}
+                                                </Badge>
+                                                <span className="text-xs">
+                                                    ({totalClubs} teams → {recommendedStartRound.bracketSize}-team bracket, {recommendedStartRound.byes} byes)
+                                                </span>
+                                            </div>
+                                            {autoGenerateEntryRules && Object.keys(autoGenerateEntryRules).length > 0 && (
+                                                <div className="mt-3 p-2 bg-white rounded">
+                                                    <p className="font-semibold text-xs text-emerald-900 mb-1">Auto-Generated Entry Rules:</p>
+                                                    <div className="space-y-1">
+                                                        {Object.entries(autoGenerateEntryRules)
+                                                            .sort((a, b) => {
+                                                                const tierA = a[0].includes('-') ? parseInt(a[0].split('-')[0]) : parseInt(a[0]);
+                                                                const tierB = b[0].includes('-') ? parseInt(b[0].split('-')[0]) : parseInt(b[0]);
+                                                                return tierA - tierB;
+                                                            })
+                                                            .map(([tier, round]) => (
+                                                                <div key={tier} className="text-xs flex justify-between">
+                                                                    <span className="font-medium">Tier {tier}:</span>
+                                                                    <span className="text-emerald-700">{round}</span>
+                                                                </div>
+                                                            ))}
+                                                    </div>
+                                                    <p className="text-xs text-slate-600 mt-2 italic">
+                                                        These rules will be automatically saved and can be adjusted later on the season page.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                             <div className="flex gap-3">
                                 <Trophy className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">🔄 FA Cup-Style Draw System:</p>
                                     <ol className="list-decimal ml-4 space-y-1">
-                                        <li>Create this season first</li>
-                                        <li>On the season page, configure tier entry rules (which tier enters at which round)</li>
-                                        <li>Use the <strong>Draw Round</strong> button for each round</li>
-                                        <li>System uses Power of 2 logic: auto-calculates byes (M = T - 2^n)</li>
+                                        <li>Create this season (entry rules auto-configured based on tiers)</li>
+                                        <li>Use the <strong>Draw Round</strong> button on season page for each round</li>
+                                        <li>System uses Power of 2 logic with auto-calculated byes</li>
                                         <li>Seeded or random draw based on cup settings</li>
                                         <li>Winners automatically eligible for next round</li>
                                     </ol>
