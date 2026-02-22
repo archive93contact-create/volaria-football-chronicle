@@ -485,7 +485,8 @@ export default function DomesticCupDrawer({
                             <p>🔍 Debugging info:</p>
                             <p>• Entry rules configured: {Object.keys(entryConfig).length > 0 ? 'Yes' : 'No'}</p>
                             <p>• Total clubs in nation: {allClubs.length}</p>
-                            <p>• League tables for {season.year}: {allLeagueTables.length}</p>
+                            <p>• League tables for {season.year}: {allLeagueTables.filter(t => t.year === season.year).length}</p>
+                            <p>• League tables with tier field: {allLeagueTables.filter(t => t.year === season.year && t.tier).length}</p>
                             <p>• Entry config: {JSON.stringify(entryConfig)}</p>
                         </div>
                         <p className="text-xs mt-2 text-red-600">
