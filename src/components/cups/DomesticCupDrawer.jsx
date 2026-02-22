@@ -356,10 +356,21 @@ export default function DomesticCupDrawer({
                 )}
 
                 {selectedRound && availableTeams.length === 0 && (
-                    <div className="text-center py-6 text-slate-500 bg-slate-50 rounded-lg">
-                        <Users className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                        <p className="text-sm">No teams available for {selectedRound}</p>
-                        <p className="text-xs mt-1">Complete previous round or check entry rules</p>
+                    <div className="text-center py-6 text-slate-500 bg-red-50 border border-red-200 rounded-lg">
+                        <Users className="w-8 h-8 mx-auto mb-2 text-red-400" />
+                        <p className="text-sm font-semibold text-red-900">No teams available for {selectedRound}</p>
+                        <div className="text-xs mt-2 text-red-700 space-y-1">
+                            <p>🔍 Debugging info:</p>
+                            <p>• Entry rules configured: {Object.keys(entryConfig).length > 0 ? 'Yes' : 'No'}</p>
+                            <p>• Total clubs in nation: {allClubs.length}</p>
+                            <p>• League tables for {season.year}: {allLeagueTables.length}</p>
+                            <p>• Entry config: {JSON.stringify(entryConfig)}</p>
+                        </div>
+                        <p className="text-xs mt-2 text-red-600">
+                            {Object.keys(entryConfig).length === 0 
+                                ? '⚠️ Set entry rules above first!' 
+                                : 'Complete previous round or adjust entry rules'}
+                        </p>
                     </div>
                 )}
             </CardContent>
