@@ -20,7 +20,8 @@ export default function DomesticCupDrawer({
     cup, 
     allClubs = [],
     existingMatches = [],
-    allLeagueTables = []
+    allLeagueTables = [],
+    leagues = []
 }) {
     const queryClient = useQueryClient();
     const [selectedRound, setSelectedRound] = useState('');
@@ -50,13 +51,21 @@ export default function DomesticCupDrawer({
                 (t.club_id === club.id || t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim()) && 
                 t.year === season.year
             );
+            if (!tableEntry) return { ...club, tier: null, position: null };
+            
+            // Get tier from table entry first, then fall back to league tier
+            const tier = tableEntry.tier || (() => {
+                const league = leagues.find(l => l.id === tableEntry.league_id);
+                return league?.tier || null;
+            })();
+            
             return {
                 ...club,
-                tier: tableEntry?.tier || null,
+                tier,
                 position: tableEntry?.position
             };
         }).filter(club => club.tier !== null); // Only include clubs with tier data for this season
-    }, [allClubs, allLeagueTables, season.year]);
+    }, [allClubs, allLeagueTables, leagues, season.year]);
 
     // Get teams that have entered - all clubs from league tables for this season
     const getEligibleTeamsForRound = (roundName) => {

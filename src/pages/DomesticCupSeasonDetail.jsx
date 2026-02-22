@@ -266,6 +266,7 @@ export default function DomesticCupSeasonDetail() {
                             allClubs={clubs}
                             existingMatches={matches}
                             allLeagueTables={leagueTables}
+                            leagues={leagues}
                         />
                     </div>
                 </AdminOnly>
