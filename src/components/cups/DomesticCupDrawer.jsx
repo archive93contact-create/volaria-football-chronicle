@@ -182,6 +182,25 @@ export default function DomesticCupDrawer({
         }
     });
 
+    // Calculate recommended starting round based on number of teams
+    const getRecommendedStartingRound = () => {
+        const totalTeams = season.number_of_teams || 0;
+        if (totalTeams === 0) return null;
+        
+        // Find closest power of 2 and suggest appropriate round
+        if (totalTeams <= 2) return 'Final';
+        if (totalTeams <= 4) return 'Semi-Final';
+        if (totalTeams <= 8) return 'Quarter-Final';
+        if (totalTeams <= 16) return 'Fifth Round';
+        if (totalTeams <= 32) return 'Fourth Round';
+        if (totalTeams <= 64) return 'Third Round';
+        if (totalTeams <= 128) return 'Second Round';
+        return 'First Round';
+    };
+
+    const recommendedRound = getRecommendedStartingRound();
+    const hasNoMatches = existingMatches.length === 0;
+
     return (
         <Card className="border-0 shadow-sm">
             <CardHeader>
@@ -194,6 +213,22 @@ export default function DomesticCupDrawer({
                 </p>
             </CardHeader>
             <CardContent className="space-y-4">
+                {/* Recommended Starting Round */}
+                {hasNoMatches && recommendedRound && season.number_of_teams > 0 && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                        <div className="flex items-start gap-2">
+                            <Trophy className="w-4 h-4 text-emerald-600 mt-0.5" />
+                            <div>
+                                <p className="text-sm font-semibold text-emerald-900">
+                                    💡 Recommended: Start at <strong>{recommendedRound}</strong>
+                                </p>
+                                <p className="text-xs text-emerald-700 mt-1">
+                                    Based on {season.number_of_teams} teams, this round fits the bracket size. Configure entry rules above first, then draw this round.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Entry Configuration */}
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                     <div className="flex items-start justify-between">
