@@ -25,6 +25,8 @@ export default function DomesticCupDrawer({
     const queryClient = useQueryClient();
     const [selectedRound, setSelectedRound] = useState('');
     const [isDrawDialogOpen, setIsDrawDialogOpen] = useState(false);
+    const [isConfigOpen, setIsConfigOpen] = useState(false);
+    const [entryConfig, setEntryConfig] = useState(cup.entry_rounds_by_tier || {});
 
     // Define standard cup rounds (FA Cup style)
     const standardRounds = [
@@ -45,7 +47,7 @@ export default function DomesticCupDrawer({
 
     // Get teams that have entered based on cup tier entry rules
     const getEligibleTeamsForRound = (roundName) => {
-        const entryRules = cup.entry_rounds_by_tier || {};
+        const entryRules = cup.entry_rounds_by_tier || entryConfig;
         
         // Get teams that should enter at this round or earlier
         const eligibleTiers = Object.entries(entryRules)
@@ -56,9 +58,22 @@ export default function DomesticCupDrawer({
             })
             .map(([tierRange]) => tierRange);
 
+        // Get all clubs with their tier from league tables for this season
+        const clubsWithTier = allClubs.map(club => {
+            const tableEntry = allLeagueTables.find(t => 
+                (t.club_id === club.id || t.club_name === club.name) && 
+                t.year === season.year
+            );
+            return {
+                ...club,
+                tier: tableEntry?.tier || club.tier || 999,
+                position: tableEntry?.position
+            };
+        });
+
         // Parse tier ranges (e.g., "1-2" or "3-5" or "1")
-        const teams = allClubs.filter(club => {
-            const clubTier = club.tier || 999;
+        const teams = clubsWithTier.filter(club => {
+            const clubTier = club.tier;
             
             return eligibleTiers.some(range => {
                 if (range.includes('-')) {
@@ -70,16 +85,7 @@ export default function DomesticCupDrawer({
             });
         });
 
-        // Add club data from league tables
-        return teams.map(club => {
-            const tableEntry = allLeagueTables.find(t => 
-                t.club_id === club.id && t.year === season.year
-            );
-            return {
-                ...club,
-                position: tableEntry?.position
-            };
-        }).sort((a, b) => (a.tier || 999) - (b.tier || 999));
+        return teams.sort((a, b) => (a.tier || 999) - (b.tier || 999));
     };
 
     // Get teams already in the competition (from previous rounds)
@@ -137,6 +143,19 @@ export default function DomesticCupDrawer({
         return combined.filter(t => !alreadyDrawn.has(t.id));
     }, [selectedRound, existingMatches, allClubs, cup, season]);
 
+    // Save entry configuration
+    const saveConfigMutation = useMutation({
+        mutationFn: async (config) => {
+            await base44.entities.DomesticCup.update(cup.id, {
+                entry_rounds_by_tier: config
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['domesticCup']);
+            setIsConfigOpen(false);
+        }
+    });
+
     // Create matches from drawn pairs
     const createMatchesMutation = useMutation({
         mutationFn: async (pairs) => {
@@ -175,6 +194,80 @@ export default function DomesticCupDrawer({
                 </p>
             </CardHeader>
             <CardContent className="space-y-4">
+                {/* Entry Configuration */}
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h4 className="font-semibold text-amber-900 text-sm">⚙️ Tier Entry Configuration</h4>
+                            <p className="text-xs text-amber-700 mt-1">
+                                {Object.keys(entryConfig).length > 0 
+                                    ? `${Object.keys(entryConfig).length} tier rule(s) configured`
+                                    : 'No entry rules set - configure which tiers enter at which rounds'}
+                            </p>
+                        </div>
+                        <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
+                            <DialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="bg-white">
+                                    Configure Entry
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-xl">
+                                <DialogHeader>
+                                    <DialogTitle>Configure Tier Entry Rules</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                    <p className="text-sm text-slate-600">
+                                        Define which tier(s) of clubs enter at each round. Example: Tier 1-2 clubs enter at "Third Round", Tier 3-4 at "First Round"
+                                    </p>
+                                    <div className="space-y-3">
+                                        {['1', '2', '3', '4', '5', '1-2', '3-4', '5-6', '7-10'].map(tierRange => (
+                                            <div key={tierRange} className="flex items-center gap-2">
+                                                <Label className="w-24 text-sm">Tier {tierRange}:</Label>
+                                                <Select 
+                                                    value={entryConfig[tierRange] || ''} 
+                                                    onValueChange={(v) => setEntryConfig({...entryConfig, [tierRange]: v})}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="No entry" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="_none">No entry</SelectItem>
+                                                        {standardRounds.map(r => (
+                                                            <SelectItem key={r} value={r}>{r}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex justify-end gap-2 pt-4 border-t">
+                                        <Button variant="outline" onClick={() => setIsConfigOpen(false)}>Cancel</Button>
+                                        <Button 
+                                            onClick={() => {
+                                                const filtered = Object.fromEntries(
+                                                    Object.entries(entryConfig).filter(([_, v]) => v && v !== '_none')
+                                                );
+                                                saveConfigMutation.mutate(filtered);
+                                            }}
+                                            className="bg-emerald-600"
+                                        >
+                                            Save Entry Rules
+                                        </Button>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </div>
+
+                {/* Draw Style Badge */}
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                    <span className="text-sm text-slate-600">Draw Style:</span>
+                    <Badge variant="outline">
+                        {cup.draw_style === 'seeded' ? '🎯 Seeded (higher tiers protected)' : '🎲 Random'}
+                    </Badge>
+                </div>
+
                 {/* Round Selector */}
                 <div>
                     <Label>Select Round to Draw</Label>
