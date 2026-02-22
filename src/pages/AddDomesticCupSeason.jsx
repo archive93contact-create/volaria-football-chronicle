@@ -114,6 +114,81 @@ export default function AddDomesticCupSeason() {
         }, 0);
     }, [seasonData.year, selectedLeagues, allLeagueTables]);
 
+    // Calculate recommended starting round based on total teams
+    const recommendedStartRound = useMemo(() => {
+        if (totalClubs === 0) return null;
+        
+        const rounds = ['Final', 'Semi-final', 'Quarter-final', 'Round of 16', 'Round of 32', 'Round of 64', 
+                       'Round of 128', 'Fifth Round', 'Fourth Round', 'Third Round', 'Second Round', 
+                       'First Round', 'Preliminary Round'];
+        
+        // Find nearest power of 2 bracket size
+        let n = 1;
+        while (Math.pow(2, n) < totalClubs) n++;
+        const bracketSize = Math.pow(2, n);
+        
+        // Suggest starting round (work backwards from Final)
+        const roundsFromFinal = n;
+        const suggestedIndex = Math.max(0, rounds.length - roundsFromFinal - 1);
+        
+        return {
+            round: rounds[suggestedIndex],
+            bracketSize,
+            byes: bracketSize - totalClubs
+        };
+    }, [totalClubs]);
+
+    // Auto-generate entry rules based on league tiers
+    const autoGenerateEntryRules = useMemo(() => {
+        if (!seasonData.year || selectedLeagues.length === 0 || !recommendedStartRound) return null;
+        
+        const rounds = ['Preliminary Round', 'First Round', 'Second Round', 'Third Round', 'Fourth Round', 'Fifth Round'];
+        const startIndex = rounds.indexOf(recommendedStartRound.round);
+        if (startIndex === -1) return null;
+        
+        // Get tier distribution from selected leagues
+        const tierGroups = {};
+        selectedLeagues.forEach(leagueId => {
+            const league = leagues.find(l => l.id === leagueId);
+            if (league?.tier) {
+                const clubsInTier = allLeagueTables.filter(t => 
+                    t.year === seasonData.year && 
+                    t.league_id === leagueId
+                ).length;
+                
+                if (clubsInTier > 0) {
+                    if (!tierGroups[league.tier]) {
+                        tierGroups[league.tier] = 0;
+                    }
+                    tierGroups[league.tier] += clubsInTier;
+                }
+            }
+        });
+        
+        const tiers = Object.keys(tierGroups).map(Number).sort((a, b) => a - b);
+        if (tiers.length === 0) return null;
+        
+        // Auto-assign rounds (top tiers enter later)
+        const config = {};
+        const minTier = Math.min(...tiers);
+        const maxTier = Math.max(...tiers);
+        
+        if (tiers.length <= 2) {
+            // Simple: top tier enters later
+            config[`${minTier}`] = rounds[Math.min(startIndex + 2, rounds.length - 1)];
+            if (tiers.length > 1) {
+                config[`${maxTier}`] = rounds[startIndex];
+            }
+        } else {
+            // Group tiers
+            const midTier = Math.floor((minTier + maxTier) / 2);
+            config[`${minTier}-${midTier}`] = rounds[Math.min(startIndex + 2, rounds.length - 1)];
+            config[`${midTier + 1}-${maxTier}`] = rounds[startIndex];
+        }
+        
+        return config;
+    }, [seasonData.year, selectedLeagues, leagues, allLeagueTables, recommendedStartRound]);
+
     const createSeasonMutation = useMutation({
         mutationFn: async () => {
             const season = await base44.entities.DomesticCupSeason.create({
@@ -130,10 +205,18 @@ export default function AddDomesticCupSeason() {
                 notes: seasonData.notes || null
             });
 
+            // Auto-save entry rules if we generated them
+            if (autoGenerateEntryRules && Object.keys(autoGenerateEntryRules).length > 0) {
+                await base44.entities.DomesticCup.update(cupId, {
+                    entry_rounds_by_tier: autoGenerateEntryRules
+                });
+            }
+
             return season;
         },
         onSuccess: (season) => {
             queryClient.invalidateQueries(['cupSeasons']);
+            queryClient.invalidateQueries(['domesticCup']);
             navigate(createPageUrl(`DomesticCupSeasonDetail?id=${season.id}`));
         },
     });
