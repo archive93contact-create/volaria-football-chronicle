@@ -180,7 +180,7 @@ export default function DomesticCupDrawer({
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['cupMatches']);
+            queryClient.invalidateQueries({ queryKey: ['cupMatches'] });
             setIsDrawDialogOpen(false);
             setSelectedRound('');
         }
