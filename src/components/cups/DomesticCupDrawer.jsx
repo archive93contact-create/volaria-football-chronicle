@@ -241,30 +241,61 @@ export default function DomesticCupDrawer({
                             </p>
                             {Object.keys(entryConfig).length > 0 && (
                                 <div className="mt-2 space-y-1">
-                                    {Object.entries(entryConfig).sort((a, b) => {
-                                        const tierA = a[0].includes('-') ? parseInt(a[0].split('-')[0]) : parseInt(a[0]);
-                                        const tierB = b[0].includes('-') ? parseInt(b[0].split('-')[0]) : parseInt(b[0]);
-                                        return tierA - tierB;
-                                    }).map(([tier, round]) => {
-                                        const teamsInTier = allClubs.filter(club => {
+                                    {(() => {
+                                        // Debug: show what data we have
+                                        const clubsWithTierData = allClubs.map(club => {
                                             const tableEntry = allLeagueTables.find(t => 
-                                                (t.club_id === club.id || t.club_name === club.name) && 
+                                                (t.club_id === club.id || t.club_name?.toLowerCase().trim() === club.name?.toLowerCase().trim()) && 
                                                 t.year === season.year
                                             );
-                                            const clubTier = tableEntry?.tier || club.tier || 999;
-                                            if (tier.includes('-')) {
-                                                const [min, max] = tier.split('-').map(Number);
-                                                return clubTier >= min && clubTier <= max;
-                                            }
-                                            return clubTier === Number(tier);
+                                            return {
+                                                ...club,
+                                                tier: tableEntry?.tier || null,
+                                                tableEntry
+                                            };
                                         });
+                                        
+                                        const tierCounts = {};
+                                        clubsWithTierData.forEach(club => {
+                                            if (club.tier) {
+                                                tierCounts[club.tier] = (tierCounts[club.tier] || 0) + 1;
+                                            }
+                                        });
+                                        
                                         return (
-                                            <div key={tier} className="text-xs bg-white rounded px-2 py-1 flex items-center justify-between">
-                                                <span><strong>Tier {tier}:</strong> {round}</span>
-                                                <Badge variant="outline" className="text-xs">{teamsInTier.length} clubs</Badge>
-                                            </div>
+                                            <>
+                                                {/* Debug info */}
+                                                <div className="text-xs bg-yellow-50 rounded px-2 py-1 border border-yellow-200">
+                                                    <strong>Debug:</strong> Tier distribution: {JSON.stringify(tierCounts)} | 
+                                                    Clubs with tier: {clubsWithTierData.filter(c => c.tier).length}/{allClubs.length}
+                                                </div>
+                                                
+                                                {Object.entries(entryConfig).sort((a, b) => {
+                                                    const tierA = a[0].includes('-') ? parseInt(a[0].split('-')[0]) : parseInt(a[0]);
+                                                    const tierB = b[0].includes('-') ? parseInt(b[0].split('-')[0]) : parseInt(b[0]);
+                                                    return tierA - tierB;
+                                                }).map(([tier, round]) => {
+                                                    const teamsInTier = clubsWithTierData.filter(club => {
+                                                        const clubTier = club.tier;
+                                                        if (!clubTier) return false;
+                                                        
+                                                        if (tier.includes('-')) {
+                                                            const [min, max] = tier.split('-').map(Number);
+                                                            return clubTier >= min && clubTier <= max;
+                                                        }
+                                                        return clubTier === Number(tier);
+                                                    });
+                                                    
+                                                    return (
+                                                        <div key={tier} className="text-xs bg-white rounded px-2 py-1 flex items-center justify-between">
+                                                            <span><strong>Tier {tier}:</strong> {round}</span>
+                                                            <Badge variant="outline" className="text-xs">{teamsInTier.length} clubs</Badge>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </>
                                         );
-                                    })}
+                                    })()}
                                 </div>
                             )}
                         </div>
