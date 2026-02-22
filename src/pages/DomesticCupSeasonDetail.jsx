@@ -60,6 +60,7 @@ export default function DomesticCupSeasonDetail() {
     const { data: matches = [] } = useQuery({
         queryKey: ['cupMatches', seasonId],
         queryFn: () => base44.entities.DomesticCupMatch.filter({ season_id: seasonId }),
+        enabled: !!seasonId,
     });
 
     const { data: clubs = [] } = useQuery({

@@ -56,12 +56,11 @@ export default function CupDrawEngine({
 
         setTimeout(() => {
             const pairs = [];
-            let teamsPool = [...availableTeams];
-            const { matchesNeeded, byes } = bracketMath;
+            const { matchesNeeded } = bracketMath;
 
             if (drawStyle === 'seeded') {
                 // Seeded draw: Lower tiers play, higher tiers get byes
-                const sorted = [...teamsPool].sort((a, b) => {
+                const sorted = [...availableTeams].sort((a, b) => {
                     const tierA = a.tier || 999;
                     const tierB = b.tier || 999;
                     return tierB - tierA; // Higher tier numbers (lower divisions) first
@@ -89,7 +88,7 @@ export default function CupDrawEngine({
 
             } else {
                 // Random draw: Randomly select who plays
-                const shuffled = teamsPool.sort(() => Math.random() - 0.5);
+                const shuffled = [...availableTeams].sort(() => Math.random() - 0.5);
                 
                 // First matchesNeeded*2 teams play
                 const playingTeams = shuffled.slice(0, matchesNeeded * 2);
