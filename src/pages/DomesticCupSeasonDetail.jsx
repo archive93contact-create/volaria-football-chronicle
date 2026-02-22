@@ -78,7 +78,8 @@ export default function DomesticCupSeasonDetail() {
         queryKey: ['yearLeagueTables', season?.year, cup?.nation_id],
         queryFn: async () => {
             const nationLeagueIds = leagues.map(l => l.id);
-            const tables = await base44.entities.LeagueTable.list();
+            // Fetch ALL league tables (no limit) then filter
+            const tables = await base44.entities.LeagueTable.list('-year', 5000);
             return tables.filter(t => t.year === season.year && nationLeagueIds.includes(t.league_id));
         },
         enabled: !!season?.year && leagues.length > 0,
