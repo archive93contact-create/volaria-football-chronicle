@@ -229,69 +229,134 @@ export default function DomesticCupDrawer({
                         </div>
                     </div>
                 )}
-                {/* Entry Configuration */}
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                {/* Auto-suggested Entry Configuration */}
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                     <div className="flex items-start justify-between">
-                        <div>
-                            <h4 className="font-semibold text-amber-900 text-sm">⚙️ Tier Entry Configuration</h4>
-                            <p className="text-xs text-amber-700 mt-1">
+                        <div className="flex-1">
+                            <h4 className="font-semibold text-emerald-900 text-sm">⚙️ Entry Rules</h4>
+                            <p className="text-xs text-emerald-700 mt-1">
                                 {Object.keys(entryConfig).length > 0 
                                     ? `${Object.keys(entryConfig).length} tier rule(s) configured`
-                                    : 'No entry rules set - configure which tiers enter at which rounds'}
+                                    : 'Click "Auto-Configure" to automatically set entry rules based on team count'}
                             </p>
-                        </div>
-                        <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
-                            <DialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="bg-white">
-                                    Configure Entry
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-xl">
-                                <DialogHeader>
-                                    <DialogTitle>Configure Tier Entry Rules</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                    <p className="text-sm text-slate-600">
-                                        Define which tier(s) of clubs enter at each round. Example: Tier 1-2 clubs enter at "Third Round", Tier 3-4 at "First Round"
-                                    </p>
-                                    <div className="space-y-3">
-                                        {['1', '2', '3', '4', '5', '1-2', '3-4', '5-6', '7-10'].map(tierRange => (
-                                            <div key={tierRange} className="flex items-center gap-2">
-                                                <Label className="w-24 text-sm">Tier {tierRange}:</Label>
-                                                <Select 
-                                                    value={entryConfig[tierRange] || ''} 
-                                                    onValueChange={(v) => setEntryConfig({...entryConfig, [tierRange]: v})}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="No entry" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="_none">No entry</SelectItem>
-                                                        {standardRounds.map(r => (
-                                                            <SelectItem key={r} value={r}>{r}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                            {Object.keys(entryConfig).length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                    {Object.entries(entryConfig).sort((a, b) => {
+                                        const tierA = a[0].includes('-') ? parseInt(a[0].split('-')[0]) : parseInt(a[0]);
+                                        const tierB = b[0].includes('-') ? parseInt(b[0].split('-')[0]) : parseInt(b[0]);
+                                        return tierA - tierB;
+                                    }).map(([tier, round]) => {
+                                        const teamsInTier = allClubs.filter(club => {
+                                            const tableEntry = allLeagueTables.find(t => 
+                                                (t.club_id === club.id || t.club_name === club.name) && 
+                                                t.year === season.year
+                                            );
+                                            const clubTier = tableEntry?.tier || club.tier || 999;
+                                            if (tier.includes('-')) {
+                                                const [min, max] = tier.split('-').map(Number);
+                                                return clubTier >= min && clubTier <= max;
+                                            }
+                                            return clubTier === Number(tier);
+                                        });
+                                        return (
+                                            <div key={tier} className="text-xs bg-white rounded px-2 py-1 flex items-center justify-between">
+                                                <span><strong>Tier {tier}:</strong> {round}</span>
+                                                <Badge variant="outline" className="text-xs">{teamsInTier.length} clubs</Badge>
                                             </div>
-                                        ))}
-                                    </div>
-                                    <div className="flex justify-end gap-2 pt-4 border-t">
-                                        <Button variant="outline" onClick={() => setIsConfigOpen(false)}>Cancel</Button>
-                                        <Button 
-                                            onClick={() => {
-                                                const filtered = Object.fromEntries(
-                                                    Object.entries(entryConfig).filter(([_, v]) => v && v !== '_none')
-                                                );
-                                                saveConfigMutation.mutate(filtered);
-                                            }}
-                                            className="bg-emerald-600"
-                                        >
-                                            Save Entry Rules
-                                        </Button>
-                                    </div>
+                                        );
+                                    })}
                                 </div>
-                            </DialogContent>
-                        </Dialog>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="bg-white"
+                                onClick={() => {
+                                    // Auto-configure based on total teams
+                                    const totalTeams = season.number_of_teams || 0;
+                                    const autoConfig = {};
+                                    
+                                    if (totalTeams <= 32) {
+                                        // Small cup - everyone starts early
+                                        autoConfig['1-2'] = 'Third Round';
+                                        autoConfig['3-5'] = 'Second Round';
+                                        autoConfig['6-10'] = 'First Round';
+                                    } else if (totalTeams <= 64) {
+                                        // Medium cup - FA Cup style
+                                        autoConfig['1-2'] = 'Third Round';
+                                        autoConfig['3-4'] = 'Second Round';
+                                        autoConfig['5-7'] = 'First Round';
+                                        autoConfig['8-10'] = 'Preliminary Round';
+                                    } else {
+                                        // Large cup - multiple qualifying rounds
+                                        autoConfig['1-2'] = 'Fourth Round';
+                                        autoConfig['3-4'] = 'Third Round';
+                                        autoConfig['5-6'] = 'Second Round';
+                                        autoConfig['7-8'] = 'First Round';
+                                        autoConfig['9-10'] = 'Preliminary Round';
+                                    }
+                                    
+                                    setEntryConfig(autoConfig);
+                                    saveConfigMutation.mutate(autoConfig);
+                                }}
+                            >
+                                Auto-Configure
+                            </Button>
+                            <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
+                                <DialogTrigger asChild>
+                                    <Button size="sm" variant="outline" className="bg-white">
+                                        Manual Setup
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-xl">
+                                    <DialogHeader>
+                                        <DialogTitle>Configure Tier Entry Rules</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                        <p className="text-sm text-slate-600">
+                                            Define which tier(s) of clubs enter at each round. Example: Tier 1-2 clubs enter at "Third Round", Tier 3-4 at "First Round"
+                                        </p>
+                                        <div className="space-y-3">
+                                            {['1', '2', '3', '4', '5', '1-2', '3-4', '5-6', '7-10'].map(tierRange => (
+                                                <div key={tierRange} className="flex items-center gap-2">
+                                                    <Label className="w-24 text-sm">Tier {tierRange}:</Label>
+                                                    <Select 
+                                                        value={entryConfig[tierRange] || ''} 
+                                                        onValueChange={(v) => setEntryConfig({...entryConfig, [tierRange]: v})}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="No entry" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="_none">No entry</SelectItem>
+                                                            {standardRounds.map(r => (
+                                                                <SelectItem key={r} value={r}>{r}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex justify-end gap-2 pt-4 border-t">
+                                            <Button variant="outline" onClick={() => setIsConfigOpen(false)}>Cancel</Button>
+                                            <Button 
+                                                onClick={() => {
+                                                    const filtered = Object.fromEntries(
+                                                        Object.entries(entryConfig).filter(([_, v]) => v && v !== '_none')
+                                                    );
+                                                    saveConfigMutation.mutate(filtered);
+                                                }}
+                                                className="bg-emerald-600"
+                                            >
+                                                Save Entry Rules
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </div>
                 </div>
 
@@ -355,6 +420,32 @@ export default function DomesticCupDrawer({
                     </Dialog>
                 )}
 
+                {/* Show available teams for selected round */}
+                {selectedRound && availableTeams.length > 0 && !isDrawDialogOpen && (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <h4 className="text-sm font-semibold mb-2 text-slate-700">
+                            📋 {availableTeams.length} Teams Entering at {selectedRound}:
+                        </h4>
+                        <div className="max-h-60 overflow-y-auto space-y-1">
+                            {availableTeams
+                                .sort((a, b) => (b.tier || 999) - (a.tier || 999)) // Lowest tiers first (highest tier numbers)
+                                .map(team => {
+                                    const tableEntry = allLeagueTables.find(t => 
+                                        (t.club_id === team.id || t.club_name === team.name) && 
+                                        t.year === season.year
+                                    );
+                                    return (
+                                        <div key={team.id} className="flex items-center gap-2 text-xs p-2 bg-white rounded">
+                                            {team.logo_url && <img src={team.logo_url} alt="" className="w-5 h-5 object-contain" />}
+                                            <span className="flex-1">{team.name}</span>
+                                            <Badge variant="outline" className="text-xs">T{team.tier || tableEntry?.tier || '?'}</Badge>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    </div>
+                )}
+
                 {selectedRound && availableTeams.length === 0 && (
                     <div className="text-center py-6 text-slate-500 bg-red-50 border border-red-200 rounded-lg">
                         <Users className="w-8 h-8 mx-auto mb-2 text-red-400" />
@@ -368,7 +459,7 @@ export default function DomesticCupDrawer({
                         </div>
                         <p className="text-xs mt-2 text-red-600">
                             {Object.keys(entryConfig).length === 0 
-                                ? '⚠️ Set entry rules above first!' 
+                                ? '⚠️ Click "Auto-Configure" above to set entry rules!' 
                                 : 'Complete previous round or adjust entry rules'}
                         </p>
                     </div>

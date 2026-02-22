@@ -86,8 +86,14 @@ export default function AddDomesticCupSeason() {
             allLeagueTables
                 .filter(t => nationLeagueIds.includes(t.league_id))
                 .map(t => t.year)
+                .filter(y => y) // Remove null/undefined years
         )];
-        return years.sort().reverse();
+        return years.sort((a, b) => {
+            // Sort chronologically (oldest to newest, or handle string/number formats)
+            const yearA = typeof a === 'string' ? parseInt(a) : a;
+            const yearB = typeof b === 'string' ? parseInt(b) : b;
+            return yearB - yearA; // Descending (newest first)
+        });
     }, [allLeagueTables, leagues]);
 
     // Calculate total clubs from selected leagues
