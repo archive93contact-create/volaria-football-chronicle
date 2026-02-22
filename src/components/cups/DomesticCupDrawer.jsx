@@ -130,21 +130,54 @@ export default function DomesticCupDrawer({
     // Create matches from drawn pairs
     const createMatchesMutation = useMutation({
         mutationFn: async (pairs) => {
-            const matches = pairs.map((pair, idx) => ({
+            // Separate actual matches from byes
+            const actualMatches = pairs.filter(p => !p.isBye);
+            const byeTeams = pairs.filter(p => p.isBye).map(p => p.home);
+
+            // Create matches (excluding byes)
+            const matches = actualMatches.map((pair, idx) => ({
                 season_id: season.id,
                 round: selectedRound,
                 match_number: idx + 1,
                 home_club_id: pair.home.id,
                 home_club_name: pair.home.name,
-                away_club_id: pair.away?.id || null,
-                away_club_name: pair.away?.name || null,
+                away_club_id: pair.away.id,
+                away_club_name: pair.away.name,
                 home_score: null,
                 away_score: null,
-                winner_id: pair.isBye ? pair.home.id : null, // Auto-advance bye
-                winner: pair.isBye ? pair.home.name : null
+                winner_id: null,
+                winner: null
             }));
 
-            await base44.entities.DomesticCupMatch.bulkCreate(matches);
+            if (matches.length > 0) {
+                await base44.entities.DomesticCupMatch.bulkCreate(matches);
+            }
+
+            // Auto-advance bye teams to next round (if not final)
+            if (byeTeams.length > 0 && selectedRound !== 'Final') {
+                const nextRoundIndex = standardRounds.indexOf(selectedRound) + 1;
+                const nextRound = standardRounds[nextRoundIndex];
+                
+                if (nextRound) {
+                    // Create placeholder matches in next round with byes as winners
+                    const byeMatches = byeTeams.map((team, idx) => ({
+                        season_id: season.id,
+                        round: nextRound,
+                        match_number: idx + 1,
+                        home_club_id: team.id,
+                        home_club_name: team.name,
+                        away_club_id: null,
+                        away_club_name: 'TBD',
+                        home_score: null,
+                        away_score: null,
+                        winner_id: null,
+                        winner: null,
+                        notes: `Advanced via bye from ${selectedRound}`
+                    }));
+                    
+                    await base44.entities.DomesticCupMatch.bulkCreate(byeMatches);
+                }
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['cupMatches']);
