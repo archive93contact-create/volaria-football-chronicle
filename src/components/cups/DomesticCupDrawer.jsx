@@ -27,7 +27,7 @@ export default function DomesticCupDrawer({
     const [selectedRound, setSelectedRound] = useState('');
     const [isDrawDialogOpen, setIsDrawDialogOpen] = useState(false);
 
-    // Define standard cup rounds (FA Cup style)
+    // Define standard cup rounds (FA Cup style) - MUST match EnhancedBracketView round order
     const standardRounds = [
         'Preliminary Round',
         'First Round Qualifying',
@@ -39,8 +39,12 @@ export default function DomesticCupDrawer({
         'Third Round',
         'Fourth Round',
         'Fifth Round',
-        'Quarter-Final',
-        'Semi-Final',
+        'Round of 128',
+        'Round of 64',
+        'Round of 32',
+        'Round of 16',
+        'Quarter-final',
+        'Semi-final',
         'Final'
     ];
 
