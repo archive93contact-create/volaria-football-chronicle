@@ -57,65 +57,58 @@ export default function CupDrawEngine({
         setTimeout(() => {
             const pairs = [];
             let teamsPool = [...availableTeams];
+            const { matchesNeeded, byes } = bracketMath;
 
             if (drawStyle === 'seeded') {
-                // Seeded draw: Split into high and low tiers
+                // Seeded draw: Lower tiers play, higher tiers get byes
                 const sorted = [...teamsPool].sort((a, b) => {
                     const tierA = a.tier || 999;
                     const tierB = b.tier || 999;
-                    return tierA - tierB;
+                    return tierB - tierA; // Higher tier numbers (lower divisions) first
                 });
 
-                const midpoint = Math.floor(sorted.length / 2);
-                const higherTier = sorted.slice(0, midpoint);
-                const lowerTier = sorted.slice(midpoint);
+                // Lower tier teams play each other
+                const playingTeams = sorted.slice(0, matchesNeeded * 2);
+                const byeTeams = sorted.slice(matchesNeeded * 2);
 
-                // Shuffle each pot
-                const shuffleArray = (arr) => arr.sort(() => Math.random() - 0.5);
-                shuffleArray(higherTier);
-                shuffleArray(lowerTier);
-
-                // Pair higher vs lower
-                const pairCount = Math.min(higherTier.length, lowerTier.length);
-                for (let i = 0; i < pairCount; i++) {
-                    pairs.push({
-                        home: higherTier[i],
-                        away: lowerTier[i]
-                    });
+                // Shuffle playing teams and pair them
+                const shuffled = playingTeams.sort(() => Math.random() - 0.5);
+                for (let i = 0; i < shuffled.length; i += 2) {
+                    if (i + 1 < shuffled.length) {
+                        pairs.push({
+                            home: shuffled[i],
+                            away: shuffled[i + 1]
+                        });
+                    }
                 }
 
-                // Handle remaining teams from either pot
-                const remaining = [
-                    ...higherTier.slice(pairCount),
-                    ...lowerTier.slice(pairCount)
-                ];
-
-                // Pair remaining teams randomly
-                while (remaining.length >= 2) {
-                    const home = remaining.splice(Math.floor(Math.random() * remaining.length), 1)[0];
-                    const away = remaining.splice(Math.floor(Math.random() * remaining.length), 1)[0];
-                    pairs.push({ home, away });
-                }
-
-                // Odd team gets bye (highest remaining tier)
-                if (remaining.length === 1) {
-                    pairs.push({ home: remaining[0], away: null, isBye: true });
-                }
+                // Add byes for remaining teams
+                byeTeams.forEach(team => {
+                    pairs.push({ home: team, away: null, isBye: true });
+                });
 
             } else {
-                // Random draw: Fully shuffled
+                // Random draw: Randomly select who plays
                 const shuffled = teamsPool.sort(() => Math.random() - 0.5);
+                
+                // First matchesNeeded*2 teams play
+                const playingTeams = shuffled.slice(0, matchesNeeded * 2);
+                const byeTeams = shuffled.slice(matchesNeeded * 2);
 
-                while (shuffled.length >= 2) {
-                    const home = shuffled.pop();
-                    const away = shuffled.pop();
-                    pairs.push({ home, away });
+                // Pair playing teams
+                for (let i = 0; i < playingTeams.length; i += 2) {
+                    if (i + 1 < playingTeams.length) {
+                        pairs.push({
+                            home: playingTeams[i],
+                            away: playingTeams[i + 1]
+                        });
+                    }
                 }
 
-                // Odd team gets bye
-                if (shuffled.length === 1) {
-                    pairs.push({ home: shuffled[0], away: null, isBye: true });
-                }
+                // Add byes
+                byeTeams.forEach(team => {
+                    pairs.push({ home: team, away: null, isBye: true });
+                });
             }
 
             setDrawnPairs(pairs);
