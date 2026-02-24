@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target, Briefcase } from 'lucide-react';
+import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target, Briefcase, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +23,8 @@ export default function NationClubs() {
     const [settlementFilter, setSettlementFilter] = useState('all');
     const [tierFilter, setTierFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [letterFilter, setLetterFilter] = useState('all');
+    const [missingDataFilter, setMissingDataFilter] = useState('all');
     const [sortField, setSortField] = useState('name');
     const [sortDir, setSortDir] = useState('asc');
 
@@ -146,6 +148,15 @@ export default function NationClubs() {
             const matchesDistrict = districtFilter === 'all' || club.district === districtFilter;
             const matchesSettlement = settlementFilter === 'all' || club.settlement === settlementFilter;
             
+            const matchesLetter = letterFilter === 'all' || club.name.charAt(0).toUpperCase() === letterFilter;
+            
+            let matchesMissingData = true;
+            if (missingDataFilter === 'missing_location') {
+                matchesMissingData = !club.settlement && !club.city;
+            } else if (missingDataFilter === 'missing_founded') {
+                matchesMissingData = !club.founded_year;
+            }
+            
             let matchesTier = true;
             if (tierFilter !== 'all') {
                 const league = getLeagueInfo(club.league_id);
@@ -155,7 +166,7 @@ export default function NationClubs() {
                 club.professional_status === statusFilter || 
                 (statusFilter === 'amateur' && !club.professional_status);
             
-            return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier && matchesStatus;
+            return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier && matchesStatus && matchesLetter && matchesMissingData;
         });
         
         // Sort inactive clubs to the end
@@ -212,7 +223,7 @@ export default function NationClubs() {
         });
 
         return result;
-    }, [clubs, search, regionFilter, districtFilter, settlementFilter, tierFilter, statusFilter, sortField, sortDir, leagues]);
+    }, [clubs, search, regionFilter, districtFilter, settlementFilter, tierFilter, statusFilter, letterFilter, missingDataFilter, sortField, sortDir, leagues]);
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -249,6 +260,29 @@ export default function NationClubs() {
                 {/* Filters */}
                 <Card className="border-0 shadow-sm mb-6">
                     <CardContent className="p-4">
+                        {/* Alphabet Filter */}
+                        <div className="flex flex-wrap gap-1 mb-4 pb-4 border-b border-slate-200">
+                            <Button
+                                variant={letterFilter === 'all' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setLetterFilter('all')}
+                                className="h-8 px-3"
+                            >
+                                All
+                            </Button>
+                            {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(letter => (
+                                <Button
+                                    key={letter}
+                                    variant={letterFilter === letter ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setLetterFilter(letter)}
+                                    className="h-8 w-8 p-0"
+                                >
+                                    {letter}
+                                </Button>
+                            ))}
+                        </div>
+
                         <div className="flex flex-col lg:flex-row gap-4">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -318,6 +352,18 @@ export default function NationClubs() {
                                     <SelectItem value="professional">Professional</SelectItem>
                                     <SelectItem value="semi-professional">Semi-Pro</SelectItem>
                                     <SelectItem value="amateur">Amateur</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select value={missingDataFilter} onValueChange={setMissingDataFilter}>
+                                <SelectTrigger className="w-full lg:w-48">
+                                    <AlertCircle className="w-4 h-4 mr-2 text-slate-400" />
+                                    <SelectValue placeholder="Missing Data" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Clubs</SelectItem>
+                                    <SelectItem value="missing_location">Missing Location</SelectItem>
+                                    <SelectItem value="missing_founded">Missing Founded Year</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
