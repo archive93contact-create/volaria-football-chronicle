@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target, Briefcase, AlertCircle } from 'lucide-react';
+import { Search, Filter, Shield, Trophy, ChevronRight, ChevronDown, ChevronUp, MapPin, Calendar, Star, TrendingUp, TrendingDown, Target, Briefcase, AlertCircle, CheckSquare, Square } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
+import BulkClubEditor from '@/components/clubs/BulkClubEditor';
+import AdminOnly from '@/components/common/AdminOnly';
 
 export default function NationClubs() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -27,6 +29,8 @@ export default function NationClubs() {
     const [missingDataFilter, setMissingDataFilter] = useState('all');
     const [sortField, setSortField] = useState('name');
     const [sortDir, setSortDir] = useState('asc');
+    const [selectedClubIds, setSelectedClubIds] = useState([]);
+    const [showBulkEdit, setShowBulkEdit] = useState(false);
 
     const { data: nation } = useQuery({
         queryKey: ['nation', nationId],
@@ -239,6 +243,32 @@ export default function NationClubs() {
         return sortDir === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />;
     };
 
+    // Bulk selection handlers
+    const toggleClubSelection = (clubId) => {
+        setSelectedClubIds(prev => 
+            prev.includes(clubId) 
+                ? prev.filter(id => id !== clubId)
+                : [...prev, clubId]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedClubIds.length === filteredClubs.length) {
+            setSelectedClubIds([]);
+        } else {
+            setSelectedClubIds(filteredClubs.map(c => c.id));
+        }
+    };
+
+    const selectedClubs = clubs.filter(c => selectedClubIds.includes(c.id));
+
+    const handleBulkEditComplete = () => {
+        setShowBulkEdit(false);
+        setSelectedClubIds([]);
+        // Refetch clubs data
+        window.location.reload();
+    };
+
     if (!nation) {
         return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Skeleton className="w-32 h-8" /></div>;
     }
@@ -257,6 +287,50 @@ export default function NationClubs() {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Admin Tools */}
+                <AdminOnly>
+                    <div className="mb-6 space-y-4">
+                        {/* Bulk Edit Bar */}
+                        {selectedClubIds.length > 0 && !showBulkEdit && (
+                            <Card className="border-emerald-200 bg-emerald-50">
+                                <CardContent className="p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <CheckSquare className="w-5 h-5 text-emerald-600" />
+                                        <span className="font-medium text-emerald-900">
+                                            {selectedClubIds.length} club{selectedClubIds.length > 1 ? 's' : ''} selected
+                                        </span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm"
+                                            onClick={() => setSelectedClubIds([])}
+                                        >
+                                            Clear Selection
+                                        </Button>
+                                        <Button 
+                                            size="sm"
+                                            onClick={() => setShowBulkEdit(true)}
+                                            className="bg-emerald-600 hover:bg-emerald-700"
+                                        >
+                                            Bulk Edit
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Bulk Edit Panel */}
+                        {showBulkEdit && (
+                            <BulkClubEditor 
+                                selectedClubs={selectedClubs}
+                                onComplete={handleBulkEditComplete}
+                                onCancel={() => setShowBulkEdit(false)}
+                            />
+                        )}
+                    </div>
+                </AdminOnly>
+
                 {/* Filters */}
                 <Card className="border-0 shadow-sm mb-6">
                     <CardContent className="p-4">
@@ -394,6 +468,17 @@ export default function NationClubs() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-slate-100">
+                                        <AdminOnly>
+                                            <TableHead className="w-12">
+                                                <button onClick={toggleSelectAll}>
+                                                    {selectedClubIds.length === filteredClubs.length && filteredClubs.length > 0 ? (
+                                                        <CheckSquare className="w-4 h-4 text-emerald-600" />
+                                                    ) : (
+                                                        <Square className="w-4 h-4 text-slate-400" />
+                                                    )}
+                                                </button>
+                                            </TableHead>
+                                        </AdminOnly>
                                         <TableHead className="w-12">#</TableHead>
                                         <TableHead>
                                             <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-slate-900">
@@ -453,8 +538,20 @@ export default function NationClubs() {
                                         const isManuallyInactive = club.is_active === false;
                                         const isAnyInactive = inactive || isManuallyInactive;
                                         const lastSeason = getLastSeasonYear(club.id);
+                                        const isSelected = selectedClubIds.includes(club.id);
                                         return (
-                                            <TableRow key={club.id} className={`hover:bg-slate-50 ${isAnyInactive ? 'opacity-50 bg-slate-50' : ''}`}>
+                                            <TableRow key={club.id} className={`hover:bg-slate-50 ${isAnyInactive ? 'opacity-50 bg-slate-50' : ''} ${isSelected ? 'bg-emerald-50' : ''}`}>
+                                                <AdminOnly>
+                                                    <TableCell>
+                                                        <button onClick={() => toggleClubSelection(club.id)}>
+                                                            {isSelected ? (
+                                                                <CheckSquare className="w-4 h-4 text-emerald-600" />
+                                                            ) : (
+                                                                <Square className="w-4 h-4 text-slate-400" />
+                                                            )}
+                                                        </button>
+                                                    </TableCell>
+                                                </AdminOnly>
                                                 <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
                                                 <TableCell>
                                                     <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className={`flex items-center gap-3 hover:text-emerald-600 ${isAnyInactive ? 'italic' : ''}`}>
