@@ -29,8 +29,8 @@ export default function PersonalizedClubStory({ club, nation, league, seasons, l
             ? `Founded in ${club.founded_year}`
             : 'Established in the early days of football';
         
-        // Check if Turuliand for TFA context
-        const isTuruliand = nation?.name === 'Turuliand' || leagues.some(l => l.name?.includes('TFA'));
+        // Check if Turuliand for TFA context (ONLY Turuliand has TFA - never other nations)
+        const isTuruliand = nation?.name === 'Turuliand';
         const tfaSeasons = isTuruliand ? sortedSeasons.filter(s => getLeagueTier(s.league_id) <= 4) : [];
         const nonTfaSeasons = isTuruliand ? sortedSeasons.filter(s => getLeagueTier(s.league_id) > 4) : [];
         const currentTier = getLeagueTier(club.league_id);
