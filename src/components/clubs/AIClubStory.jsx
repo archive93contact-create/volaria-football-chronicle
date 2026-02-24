@@ -65,7 +65,7 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 }
             }
 
-            // Build TFA context (ONLY for Turuliand)
+            // Build TFA context (ONLY for Turuliand - NEVER mention TFA for other nations)
             let tfaContext = '';
             if (isTuruliand && seasons.length > 0) {
                 if (tfaSeasons.length === 0 && nonTfaSeasons.length > 0) {
@@ -134,7 +134,7 @@ ${tfaContext ? `\nTURULIAND TFA STATUS (CRITICAL):\n${tfaContext}\n` : ''}
 REQUIREMENTS:
 1. **FIRST PARAGRAPH - Origins & Identity**: Start with their founding and identity. ${successionContext ? '**CRITICAL**: You MUST mention their succession/merger/name change context (marked with 🔴 above) in this opening - it defines who they are.' : ''} What makes them unique? Use their location: ${[club.settlement, club.district, club.region].filter(Boolean)[0] || club.city || 'their town'}. Make it PERSONAL.
 
-2. **SECOND PARAGRAPH - Journey**: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements from the data above. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity). **You MUST accurately describe their current tier situation** (marked in TFA STATUS above).' : ''}
+2. **SECOND PARAGRAPH - Journey**: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements from the data above. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity). **You MUST accurately describe their current tier situation** (marked in TFA STATUS above).' : `For non-Turuliand clubs, focus on their journey through ${nation?.name}'s league system (${nation?.federation_name || 'the national federation'}). DO NOT mention TFA - it only exists in Turuliand.`}
 
 3. **THIRD PARAGRAPH - Present Day**: Their current status and what defines them today. Where do they sit in the hierarchy? ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is the doldrums.' : ''} What's their relationship to ${rivals.length > 0 ? 'their rivals (' + rivals.map(r => r.name).join(', ') + ')' : 'other local clubs'}? What are fans feeling?
 
@@ -142,8 +142,9 @@ REQUIREMENTS:
 
 **CRITICAL REMINDERS**:
 - ${successionContext ? '🔴 You MUST mention succession/merger/name change context - it\'s marked with 🔴 above' : 'No succession context to mention'}
-- ${tfaContext && isTuruliand ? '🔴 You MUST accurately describe their tier level and distance from TFA' : 'Not a Turuliand club'}
-- TFA ONLY EXISTS IN TURULIAND - never mention TFA for other nations
+- ${tfaContext && isTuruliand ? '🔴 You MUST accurately describe their tier level and distance from TFA' : '🔴 NOT A TURULIAND CLUB - DO NOT MENTION TFA AT ALL'}
+- 🚨 TFA ONLY EXISTS IN TURULIAND - **NEVER** mention TFA, organized tiers, or the TFA system for clubs from ${!isTuruliand ? nation?.name : 'other nations'}
+- For non-Turuliand clubs: Reference ${nation?.federation_name || 'their national federation'} and ${nation?.name}'s league system instead
 
 TONE: Engaging, emotionally resonant, like a documentary. Use specific data points (years, numbers, names). Avoid clichés. Make every club story feel completely different.
 
