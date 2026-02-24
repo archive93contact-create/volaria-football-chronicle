@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, Award, Users, Target, Crown } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function CupAnalyticsDashboard({ seasons, clubs }) {
     const analytics = useMemo(() => {
@@ -95,11 +95,21 @@ export default function CupAnalyticsDashboard({ seasons, clubs }) {
             }))
             .sort((a, b) => a.decade.localeCompare(b.decade));
 
+        // Participants over time
+        const participantsOverTime = seasons
+            .filter(s => s.year && s.number_of_teams)
+            .sort((a, b) => a.year.localeCompare(b.year))
+            .map(s => ({
+                year: s.year,
+                Participants: s.number_of_teams
+            }));
+
         return {
             mostSuccessful,
             unluckyClubs,
             winningStreaks,
             decadeChart,
+            participantsOverTime,
             totalEditions: seasons.length,
             uniqueWinners: new Set(seasons.map(s => s.champion_name).filter(Boolean)).size
         };
@@ -267,6 +277,31 @@ export default function CupAnalyticsDashboard({ seasons, clubs }) {
                                 );
                             })}
                         </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Participants Over Time */}
+            {analytics.participantsOverTime.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Users className="w-5 h-5 text-emerald-600" />
+                            Participants Over Time
+                        </CardTitle>
+                        <CardDescription>Track competition growth and popularity trends</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={analytics.participantsOverTime}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line type="monotone" dataKey="Participants" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 4 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </CardContent>
                 </Card>
             )}
