@@ -75,40 +75,60 @@ export default function AddYouthTeamDialog({ club, open, onOpenChange }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Add Youth Team</DialogTitle>
+                    <DialogTitle>Add Sub Team</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                    <div>
+                        <Label>Team Type</Label>
+                        <Select value={teamType} onValueChange={(v) => {
+                            setTeamType(v);
+                            setFormData(f => ({
+                                ...f,
+                                name: v === 'reserve' ? `${club.name} Reserves` : `${club.name} U-19`,
+                                age_group: v === 'reserve' ? 'Reserve' : 'U-19',
+                                league_id: ''
+                            }));
+                        }}>
+                            <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="youth">Youth Team</SelectItem>
+                                <SelectItem value="reserve">Reserve / B Team</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <div>
                         <Label>Team Name *</Label>
                         <Input
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            placeholder="e.g., Manchester United U-19"
+                            placeholder={teamType === 'reserve' ? `e.g., ${club.name} Reserves` : `e.g., ${club.name} U-19`}
                             className="mt-1"
                         />
                     </div>
+                    {teamType === 'youth' && (
+                        <div>
+                            <Label>Age Group *</Label>
+                            <Select
+                                value={formData.age_group}
+                                onValueChange={(v) => setFormData({ ...formData, age_group: v })}
+                            >
+                                <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="U-23">U-23</SelectItem>
+                                    <SelectItem value="U-21">U-21</SelectItem>
+                                    <SelectItem value="U-19">U-19</SelectItem>
+                                    <SelectItem value="U-18">U-18</SelectItem>
+                                    <SelectItem value="U-17">U-17</SelectItem>
+                                    <SelectItem value="U-16">U-16</SelectItem>
+                                    <SelectItem value="U-15">U-15</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                     <div>
-                        <Label>Age Group *</Label>
-                        <Select
-                            value={formData.age_group}
-                            onValueChange={(v) => setFormData({ ...formData, age_group: v })}
-                        >
-                            <SelectTrigger className="mt-1">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="U-23">U-23</SelectItem>
-                                <SelectItem value="U-21">U-21</SelectItem>
-                                <SelectItem value="U-19">U-19</SelectItem>
-                                <SelectItem value="U-18">U-18</SelectItem>
-                                <SelectItem value="U-17">U-17</SelectItem>
-                                <SelectItem value="U-16">U-16</SelectItem>
-                                <SelectItem value="U-15">U-15</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div>
-                        <Label>Youth League</Label>
+                        <Label>{teamType === 'reserve' ? 'Reserve League' : 'Youth League'}</Label>
                         <Select
                             value={formData.league_id}
                             onValueChange={(v) => setFormData({ ...formData, league_id: v })}
@@ -118,9 +138,9 @@ export default function AddYouthTeamDialog({ club, open, onOpenChange }) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={null}>None</SelectItem>
-                                {youthLeagues.map(league => (
+                                {filteredLeagues.map(league => (
                                     <SelectItem key={league.id} value={league.id}>
-                                        {league.name} ({league.age_group})
+                                        {league.name}{league.age_group ? ` (${league.age_group})` : ''}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
