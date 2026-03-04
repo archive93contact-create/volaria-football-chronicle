@@ -854,6 +854,14 @@ export default function NationDetail() {
                         />
                     </TabsContent>
 
+                    <TabsContent value="geo-stats">
+                        <NationGeographyTab
+                            clubs={clubs}
+                            leagues={leagues}
+                            leagueTables={leagueTables}
+                        />
+                    </TabsContent>
+
                     <TabsContent value="eras">
                         <DominantEraTimeline 
                             clubs={clubs}
