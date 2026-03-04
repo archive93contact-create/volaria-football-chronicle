@@ -398,6 +398,8 @@ export default function AllClubs() {
                                     <SelectItem value="all">All Clubs</SelectItem>
                                     <SelectItem value="missing_location">Missing Location</SelectItem>
                                     <SelectItem value="missing_founded">Missing Founded Year</SelectItem>
+                                    <SelectItem value="missing_logo">Missing Logo</SelectItem>
+                                    <SelectItem value="has_logo">Has Logo</SelectItem>
                                 </SelectContent>
                             </Select>
 
