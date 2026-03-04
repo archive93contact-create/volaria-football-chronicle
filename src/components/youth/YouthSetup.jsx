@@ -47,9 +47,9 @@ export default function YouthSetup({ club }) {
                         <div className="flex items-center gap-3">
                             <Users className="w-8 h-8 text-indigo-600" />
                             <div>
-                                <CardTitle>Youth Setup</CardTitle>
+                                <CardTitle>Sub Teams</CardTitle>
                                 <p className="text-sm text-slate-600 mt-1">
-                                    Academy development and youth teams
+                                    Youth teams, reserve teams and B teams
                                 </p>
                             </div>
                         </div>
