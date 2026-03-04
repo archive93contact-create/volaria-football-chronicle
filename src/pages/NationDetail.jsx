@@ -846,8 +846,8 @@ export default function NationDetail() {
                 </div>
                     </TabsContent>
 
-                    <TabsContent value="geography">
-                        <GeographicSuccessMap 
+                    <TabsContent value="geo-stats">
+                        <NationGeographyTab
                             clubs={clubs}
                             leagueTables={leagueTables}
                             leagues={leagues}
