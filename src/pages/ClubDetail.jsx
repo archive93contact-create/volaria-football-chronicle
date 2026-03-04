@@ -532,7 +532,7 @@ export default function ClubDetail() {
                         <TabsTrigger value="rivalries">Rivalries</TabsTrigger>
                         <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
-                        {club.has_youth_academy && <TabsTrigger value="youth-setup">Youth Setup</TabsTrigger>}
+                        <TabsTrigger value="youth-setup">Sub Teams</TabsTrigger>
                         <TabsTrigger value="continental">Continental</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="info">Info</TabsTrigger>
