@@ -60,7 +60,7 @@ export default function YouthSetup({ club }) {
                                 onClick={() => setAddDialogOpen(true)}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Add Youth Team
+                                Add Sub Team
                             </Button>
                         </AdminOnly>
                     </div>
