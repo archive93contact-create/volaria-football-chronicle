@@ -9,10 +9,14 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function YouthTeamHistory({ youthTeam, allLeagues }) {
-    // Filter seasons for this youth team's league
-    const teamSeasons = seasons
-        .filter(s => s.league_id === youthTeam.league_id)
-        .sort((a, b) => b.year.localeCompare(a.year));
+    const { data: leagueTableEntries = [] } = useQuery({
+        queryKey: ['leagueTable', 'youthTeam', youthTeam.id],
+        queryFn: () => base44.entities.LeagueTable.filter({ youth_team_id: youthTeam.id }),
+        enabled: !!youthTeam.id,
+    });
+
+    const teamSeasons = leagueTableEntries
+        .sort((a, b) => (b.year || '').localeCompare(a.year || ''));
 
     const league = allLeagues.find(l => l.id === youthTeam.league_id);
 
