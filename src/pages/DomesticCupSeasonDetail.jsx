@@ -86,8 +86,28 @@ export default function DomesticCupSeasonDetail() {
         enabled: !!season?.year && leagues.length > 0,
     });
 
+    const updateSeasonFromFinal = async (matchData) => {
+        if (matchData.round === 'Final' && matchData.winner) {
+            const loser = matchData.winner === matchData.home_club_name 
+                ? matchData.away_club_name 
+                : matchData.home_club_name;
+            const winnerClub = clubs.find(c => c.name === matchData.winner);
+            const loserClub = clubs.find(c => c.name === loser);
+            await base44.entities.DomesticCupSeason.update(seasonId, {
+                champion_name: matchData.winner,
+                champion_id: winnerClub?.id || null,
+                runner_up: loser,
+                runner_up_id: loserClub?.id || null,
+            });
+            queryClient.invalidateQueries(['cupSeason']);
+        }
+    };
+
     const updateMatchMutation = useMutation({
-        mutationFn: ({ id, data }) => base44.entities.DomesticCupMatch.update(id, data),
+        mutationFn: async ({ id, data }) => {
+            await base44.entities.DomesticCupMatch.update(id, data);
+            await updateSeasonFromFinal(data);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries(['cupMatches']);
             setEditingMatch(null);
@@ -95,7 +115,10 @@ export default function DomesticCupSeasonDetail() {
     });
 
     const createMatchMutation = useMutation({
-        mutationFn: (data) => base44.entities.DomesticCupMatch.create({ ...data, season_id: seasonId }),
+        mutationFn: async (data) => {
+            await base44.entities.DomesticCupMatch.create({ ...data, season_id: seasonId });
+            await updateSeasonFromFinal(data);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries(['cupMatches']);
             setIsAddMatchOpen(false);
