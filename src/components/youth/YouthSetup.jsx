@@ -118,7 +118,7 @@ export default function YouthSetup({ club }) {
                 <>
                     {/* Youth Teams Grid */}
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Youth Teams</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Sub Teams</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {youthTeams.map(team => {
                                 const league = allLeagues.find(l => l.id === team.league_id);
