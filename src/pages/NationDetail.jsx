@@ -417,7 +417,7 @@ export default function NationDetail() {
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="pyramid">Pyramid</TabsTrigger>
                         <TabsTrigger value="youth-structure">Youth Structure</TabsTrigger>
-                        <TabsTrigger value="geo-stats">Geography</TabsTrigger>
+                        <TabsTrigger value="geography">Geography</TabsTrigger>
                         <TabsTrigger value="eras">Eras</TabsTrigger>
                         <TabsTrigger value="flow">Flow</TabsTrigger>
                         <TabsTrigger value="national-squad">Squad</TabsTrigger>
@@ -851,14 +851,6 @@ export default function NationDetail() {
                             clubs={clubs}
                             leagueTables={leagueTables}
                             leagues={leagues}
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="geo-stats">
-                        <NationGeographyTab
-                            clubs={clubs}
-                            leagues={leagues}
-                            leagueTables={leagueTables}
                         />
                     </TabsContent>
 
