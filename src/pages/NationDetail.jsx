@@ -31,6 +31,7 @@ import LeagueStructureManager from '@/components/nations/LeagueStructureManager'
 import NationSeasonOverview from '@/components/nations/NationSeasonOverview';
 import NationAnalyticsDashboard from '@/components/analytics/NationAnalyticsDashboard';
 import GeographicSuccessMap from '@/components/nations/GeographicSuccessMap';
+import NationGeographyTab from '@/components/nations/NationGeographyTab';
 import DominantEraTimeline from '@/components/nations/DominantEraTimeline';
 import LeaguePyramidFlow from '@/components/nations/LeaguePyramidFlow';
 import { useNavigate } from 'react-router-dom';
