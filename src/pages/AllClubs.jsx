@@ -122,6 +122,10 @@ export default function AllClubs() {
                 matchesMissingData = !club.settlement && !club.city;
             } else if (missingDataFilter === 'missing_founded') {
                 matchesMissingData = !club.founded_year;
+            } else if (missingDataFilter === 'missing_logo') {
+                matchesMissingData = !club.logo_url;
+            } else if (missingDataFilter === 'has_logo') {
+                matchesMissingData = !!club.logo_url;
             }
             
             let matchesTier = true;
