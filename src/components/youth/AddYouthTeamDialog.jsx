@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 export default function AddYouthTeamDialog({ club, open, onOpenChange }) {
     const queryClient = useQueryClient();
+    const [teamType, setTeamType] = useState('youth');
     const [formData, setFormData] = useState({
         name: `${club.name} U-19`,
         age_group: 'U-19',
@@ -19,13 +20,15 @@ export default function AddYouthTeamDialog({ club, open, onOpenChange }) {
         home_ground: ''
     });
 
-    const { data: youthLeagues = [] } = useQuery({
-        queryKey: ['youthLeagues', club.nation_id],
+    const { data: subLeagues = [] } = useQuery({
+        queryKey: ['subLeagues', club.nation_id],
         queryFn: async () => {
             const allLeagues = await base44.entities.League.list() || [];
-            return allLeagues.filter(l => l.nation_id === club.nation_id && l.league_type === 'youth');
+            return allLeagues.filter(l => l.nation_id === club.nation_id && (l.league_type === 'youth' || l.league_type === 'reserve'));
         },
     });
+
+    const filteredLeagues = subLeagues.filter(l => l.league_type === teamType);
 
     const createMutation = useMutation({
         mutationFn: async (data) => {
