@@ -101,15 +101,15 @@ export default function YouthSetup({ club }) {
                 <Card className="border-dashed border-2 border-slate-300">
                     <CardContent className="flex flex-col items-center justify-center py-16">
                         <Users className="w-16 h-16 text-slate-300 mb-4" />
-                        <h3 className="text-xl font-semibold text-slate-700 mb-2">No Youth Teams</h3>
-                        <p className="text-slate-500 mb-4">Set up your youth development structure</p>
+                        <h3 className="text-xl font-semibold text-slate-700 mb-2">No Sub Teams</h3>
+                        <p className="text-slate-500 mb-4">Add youth, reserve or B teams below</p>
                         <AdminOnly>
                             <Button
                                 className="bg-indigo-600 hover:bg-indigo-700"
                                 onClick={() => setAddDialogOpen(true)}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Create First Youth Team
+                                Create First Sub Team
                             </Button>
                         </AdminOnly>
                     </CardContent>
