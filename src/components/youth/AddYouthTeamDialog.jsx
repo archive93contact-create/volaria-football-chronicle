@@ -57,11 +57,18 @@ export default function AddYouthTeamDialog({ club, open, onOpenChange }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.age_group) {
+        if (!formData.name) {
             toast.error('Please fill in required fields');
             return;
         }
-        createMutation.mutate(formData);
+        if (teamType === 'youth' && !formData.age_group) {
+            toast.error('Please select an age group');
+            return;
+        }
+        createMutation.mutate({
+            ...formData,
+            age_group: teamType === 'reserve' ? 'Reserve' : formData.age_group,
+        });
     };
 
     return (
