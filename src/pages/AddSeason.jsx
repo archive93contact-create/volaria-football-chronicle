@@ -68,7 +68,7 @@ export default function AddSeason() {
             const allYouthTeams = await base44.entities.YouthTeam.list() || [];
             return allYouthTeams.filter(yt => clubIds.includes(yt.parent_club_id));
         },
-        enabled: !!league?.nation_id && league?.league_type === 'youth',
+        enabled: !!league?.nation_id && (league?.league_type === 'youth' || league?.league_type === 'reserve'),
     });
 
     const [seasonData, setSeasonData] = useState({
