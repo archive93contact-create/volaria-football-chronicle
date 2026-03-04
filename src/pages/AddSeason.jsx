@@ -852,26 +852,30 @@ export default function AddSeason() {
                                                 <TableRow key={idx} style={{ backgroundColor: row.highlight_color || 'transparent' }}>
                                                     <TableCell className="font-bold">{row.position}</TableCell>
                                                     <TableCell>
-                                                        {league.league_type === 'youth' ? (
-                                                            <Select 
-                                                                value={selectedYouthTeams[row.position] || ''} 
-                                                                onValueChange={(v) => {
-                                                                    setSelectedYouthTeams({...selectedYouthTeams, [row.position]: v});
-                                                                    const yt = youthTeams.find(t => t.id === v);
-                                                                    if (yt) updateRow(idx, 'club_name', yt.name);
-                                                                }}
-                                                            >
-                                                                <SelectTrigger className="h-8">
-                                                                    <SelectValue placeholder="Select youth team" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {youthTeams.filter(yt => yt.age_group === league.age_group).map(yt => (
-                                                                        <SelectItem key={yt.id} value={yt.id}>
-                                                                            {yt.name}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
+                                                        {(league.league_type === 'youth' || league.league_type === 'reserve') ? (
+                                                        <Select 
+                                                           value={selectedYouthTeams[row.position] || ''} 
+                                                           onValueChange={(v) => {
+                                                               setSelectedYouthTeams({...selectedYouthTeams, [row.position]: v});
+                                                               const yt = youthTeams.find(t => t.id === v);
+                                                               if (yt) updateRow(idx, 'club_name', yt.name);
+                                                           }}
+                                                        >
+                                                           <SelectTrigger className="h-8">
+                                                               <SelectValue placeholder={league.league_type === 'reserve' ? 'Select reserve team' : 'Select youth team'} />
+                                                           </SelectTrigger>
+                                                           <SelectContent>
+                                                               {youthTeams
+                                                                   .filter(yt => league.league_type === 'reserve' 
+                                                                       ? yt.age_group === 'Reserve' 
+                                                                       : yt.age_group === league.age_group)
+                                                                   .map(yt => (
+                                                                       <SelectItem key={yt.id} value={yt.id}>
+                                                                           {yt.name}
+                                                                       </SelectItem>
+                                                                   ))}
+                                                           </SelectContent>
+                                                        </Select>
                                                         ) : (
                                                             <Input 
                                                                 value={row.club_name} 
