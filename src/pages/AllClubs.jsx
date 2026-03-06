@@ -397,13 +397,25 @@ export default function AllClubs() {
                                 </SelectContent>
                             </Select>
 
+                            <Select value={activeFilter} onValueChange={setActiveFilter}>
+                                <SelectTrigger className="w-full lg:w-40">
+                                    <Shield className="w-4 h-4 mr-2 text-slate-400" />
+                                    <SelectValue placeholder="Club Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Clubs</SelectItem>
+                                    <SelectItem value="active">Active Only</SelectItem>
+                                    <SelectItem value="inactive">Inactive/Defunct</SelectItem>
+                                </SelectContent>
+                            </Select>
+
                             <Select value={missingDataFilter} onValueChange={setMissingDataFilter}>
                                 <SelectTrigger className="w-full lg:w-48">
                                     <AlertCircle className="w-4 h-4 mr-2 text-slate-400" />
                                     <SelectValue placeholder="Missing Data" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Clubs</SelectItem>
+                                    <SelectItem value="all">All Data</SelectItem>
                                     <SelectItem value="missing_location">Missing Location</SelectItem>
                                     <SelectItem value="missing_founded">Missing Founded Year</SelectItem>
                                     <SelectItem value="missing_logo">Missing Logo</SelectItem>
