@@ -182,7 +182,7 @@ export default function NationClubs() {
                 club.professional_status === statusFilter || 
                 (statusFilter === 'amateur' && !club.professional_status);
             
-            return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier && matchesStatus && matchesLetter && matchesMissingData;
+            return matchesSearch && matchesRegion && matchesDistrict && matchesSettlement && matchesTier && matchesStatus && matchesLetter && matchesMissingData && matchesActive;
         });
         
         // Sort inactive clubs to the end
