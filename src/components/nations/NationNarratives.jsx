@@ -192,8 +192,8 @@ export default function NationNarratives({ nation, leagues, clubs, seasons, cont
         }
     }
 
-    // Multiple title-winning clubs
-    const titleWinners = clubs.filter(c => c.league_titles > 0).length;
+    // Multiple title-winning clubs (active only)
+    const titleWinners = activeClubs.filter(c => c.league_titles > 0).length;
     if (titleWinners >= 10) {
         narratives.push({
             icon: Flame,
