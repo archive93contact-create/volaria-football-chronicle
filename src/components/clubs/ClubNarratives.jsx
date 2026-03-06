@@ -1363,52 +1363,26 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         });
     }
 
-    // Location-based narratives
+    // Location-based narratives (active clubs only - exclude defunct/former names)
+    const activeAllClubs = allClubs.filter(c => !c.is_defunct && !c.is_former_name && c.is_active !== false);
     if (club.settlement) {
-        const sameSettlementClubs = allClubs.filter(c => c.id !== club.id && c.settlement === club.settlement);
-        if (sameSettlementClubs.length >= 2) {
-            narratives.push({
-                icon: Shield,
-                color: 'text-purple-500',
-                bg: 'bg-purple-50',
-                title: 'Local Football Hub',
-                text: `One of ${sameSettlementClubs.length + 1} clubs in ${club.settlement}, making it a footballing hotbed.`
-            });
-        } else if (sameSettlementClubs.length === 1) {
-            narratives.push({
-                icon: Shield,
-                color: 'text-purple-500',
-                bg: 'bg-purple-50',
-                title: 'Town Rivals',
-                text: `Shares ${club.settlement} with ${sameSettlementClubs[0].name} - a natural local rivalry.`
-            });
+        const local = activeAllClubs.filter(c => c.id !== club.id && c.settlement === club.settlement);
+        if (local.length >= 2) {
+            narratives.push({ icon: Shield, color: 'text-purple-500', bg: 'bg-purple-50', title: 'Local Football Hub', text: `One of ${local.length + 1} active clubs in ${club.settlement}, making it a footballing hotbed.` });
+        } else if (local.length === 1) {
+            narratives.push({ icon: Shield, color: 'text-purple-500', bg: 'bg-purple-50', title: 'Town Rivals', text: `Shares ${club.settlement} with ${local[0].name} - a natural local rivalry.` });
         }
     }
-
     if (club.district && !club.settlement) {
-        const sameDistrictClubs = allClubs.filter(c => c.id !== club.id && c.district === club.district);
-        if (sameDistrictClubs.length >= 3) {
-            narratives.push({
-                icon: Shield,
-                color: 'text-blue-500',
-                bg: 'bg-blue-50',
-                title: 'District Football',
-                text: `Part of a strong footballing tradition in ${club.district} with ${sameDistrictClubs.length} other clubs.`
-            });
+        const districtClubs = activeAllClubs.filter(c => c.id !== club.id && c.district === club.district);
+        if (districtClubs.length >= 3) {
+            narratives.push({ icon: Shield, color: 'text-blue-500', bg: 'bg-blue-50', title: 'District Football', text: `Part of a strong footballing tradition in ${club.district} with ${districtClubs.length} other active clubs.` });
         }
     }
-
     if (club.region) {
-        const sameRegionClubs = allClubs.filter(c => c.id !== club.id && c.region === club.region);
-        const regionChampions = sameRegionClubs.filter(c => (c.league_titles || 0) > 0);
+        const regionChampions = activeAllClubs.filter(c => c.id !== club.id && c.region === club.region && (c.league_titles || 0) > 0);
         if ((club.league_titles || 0) > 0 && regionChampions.length === 0) {
-            narratives.push({
-                icon: Trophy,
-                color: 'text-amber-600',
-                bg: 'bg-amber-50',
-                title: 'Regional Pride',
-                text: `The only club from ${club.region} to have won a top-flight title.`
-            });
+            narratives.push({ icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50', title: 'Regional Pride', text: `The only active club from ${club.region} to have won a top-flight title.` });
         }
     }
 
