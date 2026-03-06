@@ -131,7 +131,7 @@ export default function NationNarratives({ nation, leagues, clubs, seasons, cont
         }
     }
 
-    // VCC/CCC continental success
+    // VCC/CCC continental success (all clubs for historical)
     const vccWinners = clubs.filter(c => c.vcc_titles > 0);
     const cccWinners = clubs.filter(c => c.ccc_titles > 0);
     
