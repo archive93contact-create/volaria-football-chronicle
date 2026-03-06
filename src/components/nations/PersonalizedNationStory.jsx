@@ -32,7 +32,7 @@ export default function PersonalizedNationStory({ nation, leagues, clubs, season
         const isTuruliand = nation.name === 'Turuliand';
         const tfaLeagues = isTuruliand ? leagues.filter(l => l.tier <= 4) : [];
         const nonLeagueCount = isTuruliand ? leagues.filter(l => l.tier > 4).length : 0;
-        const tfaClubCount = isTuruliand ? clubs.filter(c => {
+        const tfaClubCount = isTuruliand ? activeClubs.filter(c => {
             const league = leagues.find(l => l.id === c.league_id);
             return league?.tier <= 4;
         }).length : 0;
