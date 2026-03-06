@@ -40,6 +40,7 @@ import TrophyHaul from '@/components/clubs/TrophyHaul';
 import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatus';
 import YouthSetup from '@/components/youth/YouthSetup';
+import ClubDNA from '@/components/clubs/ClubDNA';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);

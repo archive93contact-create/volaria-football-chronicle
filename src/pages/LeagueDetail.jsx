@@ -40,6 +40,7 @@ import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
 import LeagueHistoricalStats from '@/components/leagues/LeagueHistoricalStats';
 import LeagueAnalyticsDashboard from '@/components/analytics/LeagueAnalyticsDashboard';
 import PersonalizedLeagueStory from '@/components/leagues/PersonalizedLeagueStory';
+import LeagueTierSwitcher from '@/components/leagues/LeagueTierSwitcher';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
