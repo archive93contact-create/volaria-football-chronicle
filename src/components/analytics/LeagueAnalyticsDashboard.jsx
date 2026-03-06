@@ -469,193 +469,261 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
             </TabsContent>
 
             <TabsContent value="performance" className="space-y-6">
-                {/* Season-by-season team counts */}
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-blue-500" />
-                            Teams Per Season
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <BarChart data={analytics.goalData.map(d => {
-                                const seasonTables = allTables.filter(t => t.year === d.year && t.league_id === league.id);
-                                return { ...d, teams: seasonTables.length };
-                            })}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="teams" fill="#3b82f6" name="Teams" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
+                {/* Top performers per season */}
+                {(() => {
+                    const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
 
-                {/* Champion Points Over Time */}
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Crown className="w-5 h-5 text-amber-500" />
-                            Champion Points Over Time
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <LineChart data={(() => {
-                                const sortedSeasons = [...new Set(allTables.map(t => t.year))].sort();
-                                return sortedSeasons.map(year => {
-                                    const yearTables = allTables.filter(t => t.year === year && t.league_id === league.id);
-                                    const champion = yearTables.find(t => t.position === 1);
-                                    const last = [...yearTables].sort((a, b) => b.position - a.position)[0];
-                                    return {
-                                        year,
-                                        championPts: champion?.points || null,
-                                        lastPlacePts: last?.points || null,
-                                    };
-                                }).filter(d => d.championPts !== null);
-                            })()}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Line type="monotone" dataKey="championPts" stroke="#f59e0b" strokeWidth={2} name="Champion Pts" dot={false} />
-                                <Line type="monotone" dataKey="lastPlacePts" stroke="#ef4444" strokeWidth={2} name="Last Place Pts" dot={false} strokeDasharray="4 4" />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
+                    // Most points ever in a single season
+                    const allEntries = allTables.filter(t => t.league_id === league.id);
+                    const topPoints = [...allEntries].filter(t => t.points).sort((a, b) => b.points - a.points).slice(0, 10);
+                    const topWins = [...allEntries].filter(t => t.won).sort((a, b) => b.won - a.won).slice(0, 10);
+                    const topGoals = [...allEntries].filter(t => t.goals_for).sort((a, b) => b.goals_for - a.goals_for).slice(0, 10);
+                    const bestDefense = [...allEntries].filter(t => t.goals_against != null && t.played > 0).sort((a, b) => a.goals_against - b.goals_against).slice(0, 10);
 
-                {/* Top scorer table by number of titles */}
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Trophy className="w-5 h-5 text-amber-500" />
-                            All-Time Champions Table
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {analytics.titleDistributionData.map((club, idx) => (
-                                <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${idx === 0 ? 'bg-amber-100 text-amber-700' : idx === 1 ? 'bg-slate-200 text-slate-700' : idx === 2 ? 'bg-orange-100 text-orange-700' : 'bg-white text-slate-500 border'}`}>
-                                        {idx + 1}
+                    // Win % per club (all time)
+                    const clubWinRates = {};
+                    allEntries.forEach(t => {
+                        const key = t.club_name;
+                        if (!clubWinRates[key]) clubWinRates[key] = { played: 0, won: 0, club_id: t.club_id };
+                        clubWinRates[key].played += t.played || 0;
+                        clubWinRates[key].won += t.won || 0;
+                    });
+                    const winRateTable = Object.entries(clubWinRates)
+                        .filter(([, v]) => v.played >= 10)
+                        .map(([name, v]) => ({ name, club_id: v.club_id, winRate: ((v.won / v.played) * 100).toFixed(1), played: v.played, won: v.won }))
+                        .sort((a, b) => b.winRate - a.winRate)
+                        .slice(0, 10);
+
+                    return (
+                        <>
+                            {/* Win Rate Table */}
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2"><Flame className="w-5 h-5 text-orange-500" /> All-Time Win Rate (min. 10 games)</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-2">
+                                        {winRateTable.map((club, idx) => {
+                                            const c = clubs.find(c => c.id === club.club_id || c.name === club.name);
+                                            return (
+                                                <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                                                    <div className="w-7 h-7 flex items-center justify-center font-bold text-slate-500 text-sm">{idx + 1}</div>
+                                                    {c?.logo_url && <img src={c.logo_url} alt="" className="w-6 h-6 object-contain bg-white rounded" />}
+                                                    <Link to={createPageUrl(`ClubDetail?id=${club.club_id}`)} className="flex-1 font-medium hover:underline">{club.name}</Link>
+                                                    <div className="text-sm text-slate-500">{club.won}W / {club.played}P</div>
+                                                    <Badge className="bg-orange-100 text-orange-800 border-orange-200">{club.winRate}%</Badge>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                    {club.clubId ? (
-                                        <Link to={createPageUrl(`ClubDetail?id=${club.clubId}`)} className="flex-1 font-semibold hover:text-blue-600">{club.name}</Link>
-                                    ) : (
-                                        <span className="flex-1 font-semibold">{club.name}</span>
-                                    )}
-                                    <div className="flex items-center gap-1 text-amber-600 font-bold">
-                                        <Trophy className="w-4 h-4" />
-                                        {club.titles}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                </CardContent>
+                            </Card>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Most points in a single season */}
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Trophy className="w-4 h-4 text-amber-500" /> Most Points (Single Season)</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2">
+                                            {topPoints.map((t, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-bold text-slate-400 w-5">{idx + 1}</span>
+                                                        <div>
+                                                            <div className="font-medium text-sm">{t.club_name}</div>
+                                                            <div className="text-xs text-slate-500">{t.year}</div>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline" className="font-bold">{t.points} pts</Badge>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Most wins in a single season */}
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><TrendingUp className="w-4 h-4 text-emerald-500" /> Most Wins (Single Season)</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2">
+                                            {topWins.map((t, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-bold text-slate-400 w-5">{idx + 1}</span>
+                                                        <div>
+                                                            <div className="font-medium text-sm">{t.club_name}</div>
+                                                            <div className="text-xs text-slate-500">{t.year}</div>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline" className="font-bold text-emerald-700">{t.won}W</Badge>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Most goals in a single season */}
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Target className="w-4 h-4 text-blue-500" /> Most Goals Scored (Single Season)</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2">
+                                            {topGoals.map((t, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-bold text-slate-400 w-5">{idx + 1}</span>
+                                                        <div>
+                                                            <div className="font-medium text-sm">{t.club_name}</div>
+                                                            <div className="text-xs text-slate-500">{t.year}</div>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline" className="font-bold text-blue-700">{t.goals_for} goals</Badge>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Best defense */}
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Activity className="w-4 h-4 text-purple-500" /> Best Defense (Single Season)</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2">
+                                            {bestDefense.map((t, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-bold text-slate-400 w-5">{idx + 1}</span>
+                                                        <div>
+                                                            <div className="font-medium text-sm">{t.club_name}</div>
+                                                            <div className="text-xs text-slate-500">{t.year}</div>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline" className="font-bold text-purple-700">{t.goals_against} conceded</Badge>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </>
+                    );
+                })()}
             </TabsContent>
 
             <TabsContent value="trends" className="space-y-6">
-                {/* Goals per game trend */}
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Target className="w-5 h-5 text-green-500" />
-                            Goals Per Game Trend
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <AreaChart data={analytics.goalData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
-                                <YAxis domain={['auto', 'auto']} />
-                                <Tooltip formatter={(v) => [`${v} goals/game`, 'Avg']} />
-                                <Area type="monotone" dataKey="avgGoalsPerGame" stroke="#10b981" fill="#10b981" fillOpacity={0.3} name="Avg Goals/Game" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
+                {(() => {
+                    const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
 
-                {/* Title race tightness trend */}
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Activity className="w-5 h-5 text-blue-500" />
-                            Title Race Tightness (Points Gap Champion vs 2nd)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <AreaChart data={analytics.pointsGapData.filter(d => d.gap > 0)}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
-                                <YAxis label={{ value: 'Pts Gap', angle: -90, position: 'insideLeft' }} />
-                                <Tooltip content={({ active, payload }) => {
-                                    if (active && payload?.length) {
-                                        return (
-                                            <div className="bg-white p-3 border rounded shadow-lg text-sm">
-                                                <p className="font-semibold">{payload[0].payload.year}</p>
-                                                <p>Champion: {payload[0].payload.champion}</p>
-                                                <p>Gap: {payload[0].value} pts</p>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                }} />
-                                <Area type="monotone" dataKey="gap" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} name="Points Gap" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                        <p className="text-xs text-slate-500 text-center mt-2">Lower = more competitive title race</p>
-                    </CardContent>
-                </Card>
+                    // Teams per season
+                    const teamsPerSeason = sortedSeasons.map(s => {
+                        const count = allTables.filter(t => t.league_id === league.id && t.year === s.year).length;
+                        return { year: s.year, teams: count || s.number_of_teams || 0 };
+                    }).filter(d => d.teams > 0);
 
-                {/* Volatility over time */}
-                <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-purple-500" />
-                            Promotion Survival Over Time
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {analytics.totalPromoted > 0 ? (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-700">{analytics.totalPromoted}</div>
-                                        <div className="text-sm text-blue-600">Clubs Tracked</div>
-                                    </div>
-                                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-700">{analytics.promotionSurvivalRate}%</div>
-                                        <div className="text-sm text-green-600">Survived First Season</div>
-                                    </div>
-                                    <div className="text-center p-4 bg-amber-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-amber-700">{analytics.avgPromotedFinish}</div>
-                                        <div className="text-sm text-amber-600">Avg First-Season Finish</div>
-                                    </div>
-                                </div>
-                                <div className="space-y-2 max-h-64 overflow-y-auto">
-                                    {analytics.promotionTracking.slice(0, 20).map((p, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded text-sm">
-                                            <span className="font-medium">{p.clubName}</span>
-                                            <span className="text-slate-500">{p.year}</span>
-                                            <Badge variant={p.survived ? 'outline' : 'destructive'} className={p.survived ? 'text-green-700 border-green-300 bg-green-50' : ''}>
-                                                {p.survived ? `Survived (${p.position}th)` : 'Relegated'}
-                                            </Badge>
-                                        </div>
-                                    ))}
-                                </div>
+                    // Avg points of champion per season
+                    const championPointsTrend = sortedSeasons.map(s => {
+                        const table = allTables.filter(t => t.league_id === league.id && t.year === s.year).sort((a, b) => a.position - b.position);
+                        const champion = table[0];
+                        return { year: s.year, points: champion?.points || null, club: champion?.club_name || s.champion_name };
+                    }).filter(d => d.points);
+
+                    // Avg goals per game trend
+                    const avgGoalsTrend = sortedSeasons.map(s => {
+                        const table = allTables.filter(t => t.league_id === league.id && t.year === s.year);
+                        const totalGoals = table.reduce((sum, t) => sum + (t.goals_for || 0), 0);
+                        const totalGames = table.reduce((sum, t) => sum + (t.played || 0), 0);
+                        return { year: s.year, avgGoals: totalGames > 0 ? parseFloat((totalGoals / totalGames).toFixed(2)) : null };
+                    }).filter(d => d.avgGoals);
+
+                    // Points needed to survive relegation (last safe position)
+                    const safePointsTrend = sortedSeasons.map(s => {
+                        const table = allTables.filter(t => t.league_id === league.id && t.year === s.year).sort((a, b) => a.position - b.position);
+                        const relSpots = s.relegation_spots || league.relegation_spots || 3;
+                        const lastSafe = table[table.length - 1 - relSpots];
+                        return { year: s.year, safePoints: lastSafe?.points || null };
+                    }).filter(d => d.safePoints);
+
+                    return (
+                        <>
+                            {/* Champion points trend */}
+                            <Card className="border-0 shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2"><Crown className="w-5 h-5 text-amber-500" /> Champion's Points Over Time</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ResponsiveContainer width="100%" height={280}>
+                                        <LineChart data={championPointsTrend}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="year" angle={-45} textAnchor="end" height={70} />
+                                            <YAxis />
+                                            <Tooltip content={({ active, payload }) => active && payload?.length ? (
+                                                <div className="bg-white p-3 border rounded shadow-lg">
+                                                    <p className="font-semibold">{payload[0].payload.year}</p>
+                                                    <p className="text-sm text-amber-700">{payload[0].payload.club}</p>
+                                                    <p className="text-sm">{payload[0].value} pts</p>
+                                                </div>
+                                            ) : null} />
+                                            <Line type="monotone" dataKey="points" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} name="Champion Points" />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Avg goals trend */}
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Target className="w-4 h-4 text-green-500" /> Avg Goals per Game Trend</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <ResponsiveContainer width="100%" height={220}>
+                                            <AreaChart data={avgGoalsTrend}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={60} />
+                                                <YAxis domain={['auto', 'auto']} />
+                                                <Tooltip />
+                                                <Area type="monotone" dataKey="avgGoals" stroke="#10b981" fill="#10b981" fillOpacity={0.3} name="Avg Goals/Game" />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Points needed for safety trend */}
+                                {safePointsTrend.length > 0 && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Activity className="w-4 h-4 text-red-500" /> Points Needed for Safety</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={220}>
+                                                <LineChart data={safePointsTrend}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="year" angle={-45} textAnchor="end" height={60} />
+                                                    <YAxis domain={['auto', 'auto']} />
+                                                    <Tooltip />
+                                                    <Line type="monotone" dataKey="safePoints" stroke="#ef4444" strokeWidth={2} name="Safe Points" />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {/* Teams per season */}
+                                {teamsPerSeason.length > 0 && (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Users className="w-4 h-4 text-blue-500" /> Teams per Season</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={220}>
+                                                <BarChart data={teamsPerSeason}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="year" angle={-45} textAnchor="end" height={60} />
+                                                    <YAxis allowDecimals={false} />
+                                                    <Tooltip />
+                                                    <Bar dataKey="teams" fill="#3b82f6" name="Teams" />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </CardContent>
+                                    </Card>
+                                )}
                             </div>
-                        ) : (
-                            <p className="text-center text-slate-500 py-8">No promotion tracking data available</p>
-                        )}
-                    </CardContent>
-                </Card>
+                        </>
+                    );
+                })()}
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6">
