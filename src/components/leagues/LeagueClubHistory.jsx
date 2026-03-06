@@ -72,12 +72,42 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
             }
         });
 
+        // Build all-time league table by accumulated points
+        const allTimePoints = {};
+        leagueTables.forEach(entry => {
+            const key = entry.club_id || entry.club_name;
+            if (!allTimePoints[key]) {
+                allTimePoints[key] = {
+                    club_id: entry.club_id,
+                    club_name: entry.club_name,
+                    points: 0,
+                    played: 0,
+                    won: 0,
+                    drawn: 0,
+                    lost: 0,
+                    goals_for: 0,
+                    goals_against: 0,
+                };
+            }
+            allTimePoints[key].points += entry.points || 0;
+            allTimePoints[key].played += entry.played || 0;
+            allTimePoints[key].won += entry.won || 0;
+            allTimePoints[key].drawn += entry.drawn || 0;
+            allTimePoints[key].lost += entry.lost || 0;
+            allTimePoints[key].goals_for += entry.goals_for || 0;
+            allTimePoints[key].goals_against += entry.goals_against || 0;
+        });
+
+        const allTimeTable = Object.values(allTimePoints)
+            .sort((a, b) => b.points - a.points || b.won - a.won || (b.goals_for - b.goals_against) - (a.goals_for - a.goals_against))
+            .map((c, idx) => ({ ...c, rank: idx + 1, gd: c.goals_for - c.goals_against }));
+
         const allClubs = Object.values(clubStats).sort((a, b) => b.totalSeasons - a.totalSeasons);
         const currentClubs = allClubs
             .filter(c => c.isCurrentlyInLeague)
             .sort((a, b) => b.currentConsecutive - a.currentConsecutive);
 
-        return { allClubs, currentClubs };
+        return { allClubs, currentClubs, allTimeTable };
     }, [leagueTables]);
 
     const getClubLogo = (clubId) => {
