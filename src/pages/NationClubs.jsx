@@ -160,6 +160,17 @@ export default function NationClubs() {
                 matchesMissingData = !club.settlement && !club.city;
             } else if (missingDataFilter === 'missing_founded') {
                 matchesMissingData = !club.founded_year;
+            } else if (missingDataFilter === 'missing_logo') {
+                matchesMissingData = !club.logo_url;
+            } else if (missingDataFilter === 'has_logo') {
+                matchesMissingData = !!club.logo_url;
+            }
+
+            let matchesActive = true;
+            if (activeFilter === 'active') {
+                matchesActive = !club.is_defunct && !club.is_former_name && club.is_active !== false;
+            } else if (activeFilter === 'inactive') {
+                matchesActive = club.is_defunct || club.is_former_name || club.is_active === false;
             }
             
             let matchesTier = true;
