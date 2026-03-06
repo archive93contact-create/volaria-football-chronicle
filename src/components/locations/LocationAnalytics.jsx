@@ -7,13 +7,26 @@ import { Trophy, Star, TrendingUp, TrendingDown, Shield, Users, Target, Award, G
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import LocationRankings from './LocationRankings';
 
+// Helper to determine if a club is considered "active" (not defunct, not a former name record)
+const isActiveClub = (club) => {
+    if (club.is_defunct) return false;
+    if (club.is_former_name) return false;
+    if (club.is_active === false) return false;
+    return true;
+};
+
 export default function LocationAnalytics({ locationClubs, leagues, locationType, locationName, allLeagueTables = [], allLocations = [], allClubs = [] }) {
     const analytics = useMemo(() => {
         if (!locationClubs || locationClubs.length === 0) return null;
 
-        // Club distribution by tier
+        // Split into active vs inactive for accurate counts
+        const activeClubs = locationClubs.filter(isActiveClub);
+        const defunctClubs = locationClubs.filter(c => c.is_defunct);
+        const formerNameClubs = locationClubs.filter(c => c.is_former_name);
+
+        // Club distribution by tier (active clubs only)
         const clubsByTier = {};
-        locationClubs.forEach(club => {
+        activeClubs.forEach(club => {
             const league = leagues.find(l => l.id === club.league_id);
             const tier = league?.tier || 99;
             clubsByTier[tier] = (clubsByTier[tier] || 0) + 1;
