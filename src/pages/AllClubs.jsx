@@ -27,6 +27,7 @@ export default function AllClubs() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [letterFilter, setLetterFilter] = useState('all');
     const [missingDataFilter, setMissingDataFilter] = useState('all');
+    const [activeFilter, setActiveFilter] = useState('active');
     const [selectedClubIds, setSelectedClubIds] = useState([]);
     const [showBulkEdit, setShowBulkEdit] = useState(false);
 
