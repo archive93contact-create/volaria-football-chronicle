@@ -215,7 +215,14 @@ export default function NationDetail() {
         <div className="min-h-screen bg-slate-50">
             {headerStyle ? (
                 <div className="relative overflow-hidden" style={headerStyle}>
-                    <div className="absolute inset-0 bg-black/20" />
+                    {/* Flag watermark */}
+                    {nation.flag_url && (
+                        <div
+                            className="absolute inset-0 opacity-[0.07] bg-center bg-no-repeat"
+                            style={{ backgroundImage: `url(${nation.flag_url})`, backgroundSize: '55%', backgroundPosition: 'right 10% center' }}
+                        />
+                    )}
+                    <div className="absolute inset-0 bg-black/25" />
                     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
                         <nav className="flex items-center gap-2 text-sm text-white/70 mb-6">
                             <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
