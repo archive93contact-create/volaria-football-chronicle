@@ -519,6 +519,47 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                 </CardContent>
                             </Card>
 
+                            {/* All-time GD leaderboard */}
+                            {(() => {
+                                const gdTable = Object.entries(
+                                    allEntries.reduce((acc, t) => {
+                                        const key = t.club_name;
+                                        if (!acc[key]) acc[key] = { gd: 0, club_id: t.club_id };
+                                        acc[key].gd += (t.goals_for || 0) - (t.goals_against || 0);
+                                        return acc;
+                                    }, {})
+                                ).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.gd - a.gd).slice(0, 10);
+
+                                return (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2"><BarChart3 className="w-5 h-5 text-indigo-500" /> All-Time Goal Difference Leaders</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-2">
+                                                {gdTable.map((club, idx) => {
+                                                    const c = clubs.find(c => c.id === club.club_id || c.name === club.name);
+                                                    const barWidth = Math.min(100, Math.abs(club.gd) / Math.max(...gdTable.map(x => Math.abs(x.gd))) * 100);
+                                                    return (
+                                                        <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                                                            <span className="text-sm font-bold text-slate-400 w-5">{idx + 1}</span>
+                                                            {c?.logo_url && <img src={c.logo_url} alt="" className="w-6 h-6 object-contain bg-white rounded" />}
+                                                            <Link to={createPageUrl(`ClubDetail?id=${club.club_id}`)} className="w-32 font-medium text-sm hover:underline truncate">{club.name}</Link>
+                                                            <div className="flex-1 bg-slate-200 rounded-full h-2">
+                                                                <div className="h-2 rounded-full bg-indigo-500" style={{ width: `${barWidth}%` }} />
+                                                            </div>
+                                                            <Badge variant="outline" className={`font-bold ${club.gd > 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                                                                {club.gd > 0 ? `+${club.gd}` : club.gd}
+                                                            </Badge>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })()}
+
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Most points in a single season */}
                                 <Card className="border-0 shadow-sm">
