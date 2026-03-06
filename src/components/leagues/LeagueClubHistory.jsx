@@ -117,6 +117,71 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
 
     return (
         <div className="space-y-6">
+            {/* All-Time League Table */}
+            {clubHistory.allTimeTable.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <BarChart2 className="w-5 h-5 text-blue-600" />
+                            All-Time League Table
+                        </CardTitle>
+                        <CardDescription>
+                            Accumulated points by every club that has ever competed in {league.name}, ordered by points
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-10">#</TableHead>
+                                    <TableHead>Club</TableHead>
+                                    <TableHead className="text-center">P</TableHead>
+                                    <TableHead className="text-center">W</TableHead>
+                                    <TableHead className="text-center">D</TableHead>
+                                    <TableHead className="text-center">L</TableHead>
+                                    <TableHead className="text-center">GF</TableHead>
+                                    <TableHead className="text-center">GA</TableHead>
+                                    <TableHead className="text-center">GD</TableHead>
+                                    <TableHead className="text-center font-bold">Pts</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {clubHistory.allTimeTable.map((club) => (
+                                    <TableRow key={club.club_id || club.club_name} className="hover:bg-slate-50">
+                                        <TableCell className="font-bold text-slate-500">{club.rank}</TableCell>
+                                        <TableCell>
+                                            <Link
+                                                to={createPageUrl('ClubDetail') + `?id=${club.club_id}`}
+                                                className="flex items-center gap-2 hover:underline"
+                                            >
+                                                {club.club_id && getClubLogo(club.club_id) && (
+                                                    <img
+                                                        src={getClubLogo(club.club_id)}
+                                                        alt={`${club.club_name} crest`}
+                                                        className="w-5 h-5 object-contain bg-white rounded"
+                                                    />
+                                                )}
+                                                <span className="font-medium">{club.club_name}</span>
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell className="text-center text-slate-600">{club.played}</TableCell>
+                                        <TableCell className="text-center text-slate-600">{club.won}</TableCell>
+                                        <TableCell className="text-center text-slate-600">{club.drawn}</TableCell>
+                                        <TableCell className="text-center text-slate-600">{club.lost}</TableCell>
+                                        <TableCell className="text-center text-slate-600">{club.goals_for}</TableCell>
+                                        <TableCell className="text-center text-slate-600">{club.goals_against}</TableCell>
+                                        <TableCell className={`text-center font-medium ${club.gd > 0 ? 'text-emerald-600' : club.gd < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                                            {club.gd > 0 ? `+${club.gd}` : club.gd}
+                                        </TableCell>
+                                        <TableCell className="text-center font-bold text-blue-700">{club.points}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Current Clubs - Consecutive Stays */}
             <Card>
                 <CardHeader>
