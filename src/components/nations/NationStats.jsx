@@ -249,8 +249,8 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
         });
         const strength = estimateLeagueStrength(activeClubs, leagues, coefficient, nation.membership);
         const proClubs = estimateSustainableProClubs(population.value, topDivisionSize, maxTier, nation.membership, strength.score);
-        const language = nation.language ? { name: nation.language } : generateLanguage(nation.name, clubs, leagues);
-        const capital = nation.capital || generateCapital(nation.name, clubs, leagues);
+        const language = nation.language ? { name: nation.language } : generateLanguage(nation.name, activeClubs, leagues);
+        const capital = nation.capital || generateCapital(nation.name, activeClubs, leagues);
         
         return {
             population,
@@ -261,7 +261,7 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
             regions: geoRegions,
             districts: geoDistricts,
             settlements: geoSettlements,
-            currentClubCount: clubs.length
+            currentClubCount: activeClubs.length
         };
     }, [nation, clubs, leagues, coefficient]);
 
