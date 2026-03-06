@@ -91,7 +91,11 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
         );
         
         // All clubs to check: domestic + continental opponents
-        const allRivalCandidates = [...workingDomesticClubs.filter(c => c.id !== club.id), ...continentalOpponents];
+        // Filter out defunct clubs and former-name records - they are not independent rivals
+        const allRivalCandidates = [
+            ...workingDomesticClubs.filter(c => c.id !== club.id && !c.is_defunct && !c.is_former_name && c.is_active !== false),
+            ...continentalOpponents.filter(c => !c.is_defunct && !c.is_former_name && c.is_active !== false)
+        ];
         
         // Dedupe by id
         const uniqueCandidates = Array.from(new Map(allRivalCandidates.map(c => [c.id, c])).values());
