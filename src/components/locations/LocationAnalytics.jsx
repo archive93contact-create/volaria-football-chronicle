@@ -36,26 +36,26 @@ export default function LocationAnalytics({ locationClubs, leagues, locationType
             .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
             .map(([tier, count]) => ({ tier: `Tier ${tier}`, count }));
 
-        // Success metrics
+        // Success metrics (all clubs including defunct/renamed for historical accuracy)
         const totalTitles = locationClubs.reduce((sum, c) => sum + (c.league_titles || 0), 0);
         const totalCupTitles = locationClubs.reduce((sum, c) => sum + (c.domestic_cup_titles || 0), 0);
         const totalContinental = locationClubs.reduce((sum, c) => sum + (c.vcc_titles || 0) + (c.ccc_titles || 0), 0);
-        const topFlightClubs = locationClubs.filter(c => {
+        const topFlightClubs = activeClubs.filter(c => {
             const league = leagues.find(l => l.id === c.league_id);
             return league?.tier === 1;
         }).length;
 
-        // Club history analysis
+        // Club history analysis (active clubs only for current stats)
         const totalSeasons = locationClubs.reduce((sum, c) => sum + (c.seasons_played || 0), 0);
-        const avgSeasons = locationClubs.length > 0 ? Math.round(totalSeasons / locationClubs.length) : 0;
+        const avgSeasons = activeClubs.length > 0 ? Math.round(totalSeasons / activeClubs.length) : 0;
         const totalPromotions = locationClubs.reduce((sum, c) => sum + (c.promotions || 0), 0);
         const totalRelegations = locationClubs.reduce((sum, c) => sum + (c.relegations || 0), 0);
 
-        // Professional status breakdown
+        // Professional status breakdown (active clubs only)
         const professionalBreakdown = {
-            professional: locationClubs.filter(c => c.professional_status === 'professional').length,
-            semiPro: locationClubs.filter(c => c.professional_status === 'semi-professional').length,
-            amateur: locationClubs.filter(c => !c.professional_status || c.professional_status === 'amateur').length,
+            professional: activeClubs.filter(c => c.professional_status === 'professional').length,
+            semiPro: activeClubs.filter(c => c.professional_status === 'semi-professional').length,
+            amateur: activeClubs.filter(c => !c.professional_status || c.professional_status === 'amateur').length,
         };
 
         const statusData = [
