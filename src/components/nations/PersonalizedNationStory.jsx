@@ -8,6 +8,9 @@ export default function PersonalizedNationStory({ nation, leagues, clubs, season
     const story = useMemo(() => {
         const paragraphs = [];
 
+        // Only count active clubs (not defunct, not former-name records)
+        const activeClubs = clubs.filter(c => !c.is_defunct && !c.is_former_name && c.is_active !== false);
+
         // Sort leagues by tier
         const sortedLeagues = [...leagues].sort((a, b) => (a.tier || 1) - (b.tier || 1));
         const topLeague = sortedLeagues[0];
