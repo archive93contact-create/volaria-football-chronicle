@@ -357,6 +357,9 @@ export default function LeagueDetail() {
                 </AdminOnly>
             </ImmersiveHeader>
 
+            {/* Tier Switcher */}
+            <LeagueTierSwitcher currentLeagueId={leagueId} allLeagues={allNationLeagues} />
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Personalized League Story */}
                 {seasons.length > 0 && allNationClubs.length > 0 && leagueTables.length > 0 && (

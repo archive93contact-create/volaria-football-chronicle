@@ -523,6 +523,9 @@ export default function ClubDetail() {
                 </div>
             </div>
 
+            {/* Club DNA Bar */}
+            <ClubDNA club={club} league={league} nation={nation} allClubs={allClubs} />
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <Tabs defaultValue="overview" className="space-y-6">
                     <TabsList>
