@@ -102,7 +102,7 @@ export default function NationNarratives({ nation, leagues, clubs, seasons, cont
         });
     }
 
-    // Most successful cup club
+    // Most successful cup club (use all clubs for historical honours)
     if (clubs.length > 0) {
         const cupWinners = clubs.filter(c => c.domestic_cup_titles > 0).sort((a, b) => b.domestic_cup_titles - a.domestic_cup_titles);
         if (cupWinners.length > 0 && cupWinners[0].domestic_cup_titles >= 2) {
