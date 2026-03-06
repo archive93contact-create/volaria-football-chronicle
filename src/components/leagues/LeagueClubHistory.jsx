@@ -118,22 +118,22 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
     return (
         <div className="space-y-6">
             {/* All-Time League Table */}
-            {clubHistory.allTimeTable.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <BarChart2 className="w-5 h-5 text-blue-600" />
-                            All-Time League Table
-                        </CardTitle>
-                        <CardDescription>
-                            Accumulated points by every club that has ever competed in {league.name}, ordered by points
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <BarChart2 className="w-5 h-5 text-amber-500" />
+                        All-Time League Table
+                    </CardTitle>
+                    <CardDescription>
+                        Points accumulated by every club across all seasons in {league.name}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {clubHistory.allTimeTable.length > 0 ? (
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-10">#</TableHead>
+                                    <TableHead className="w-12">#</TableHead>
                                     <TableHead>Club</TableHead>
                                     <TableHead className="text-center">P</TableHead>
                                     <TableHead className="text-center">W</TableHead>
@@ -146,41 +146,42 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {clubHistory.allTimeTable.map((club) => (
-                                    <TableRow key={club.club_id || club.club_name} className="hover:bg-slate-50">
-                                        <TableCell className="font-bold text-slate-500">{club.rank}</TableCell>
-                                        <TableCell>
-                                            <Link
-                                                to={createPageUrl('ClubDetail') + `?id=${club.club_id}`}
-                                                className="flex items-center gap-2 hover:underline"
-                                            >
-                                                {club.club_id && getClubLogo(club.club_id) && (
-                                                    <img
-                                                        src={getClubLogo(club.club_id)}
-                                                        alt={`${club.club_name} crest`}
-                                                        className="w-5 h-5 object-contain bg-white rounded"
-                                                    />
-                                                )}
-                                                <span className="font-medium">{club.club_name}</span>
-                                            </Link>
-                                        </TableCell>
-                                        <TableCell className="text-center text-slate-600">{club.played}</TableCell>
-                                        <TableCell className="text-center text-slate-600">{club.won}</TableCell>
-                                        <TableCell className="text-center text-slate-600">{club.drawn}</TableCell>
-                                        <TableCell className="text-center text-slate-600">{club.lost}</TableCell>
-                                        <TableCell className="text-center text-slate-600">{club.goals_for}</TableCell>
-                                        <TableCell className="text-center text-slate-600">{club.goals_against}</TableCell>
-                                        <TableCell className={`text-center font-medium ${club.gd > 0 ? 'text-emerald-600' : club.gd < 0 ? 'text-red-600' : 'text-slate-600'}`}>
-                                            {club.gd > 0 ? `+${club.gd}` : club.gd}
-                                        </TableCell>
-                                        <TableCell className="text-center font-bold text-blue-700">{club.points}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {clubHistory.allTimeTable.map((club) => {
+                                    const clubData = clubs?.find(c => c.id === club.club_id || c.name === club.club_name);
+                                    return (
+                                        <TableRow key={club.club_id || club.club_name} className={club.rank <= 3 ? 'bg-amber-50/50' : ''}>
+                                            <TableCell className="font-bold text-slate-600">
+                                                {club.rank === 1 ? '🥇' : club.rank === 2 ? '🥈' : club.rank === 3 ? '🥉' : club.rank}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Link
+                                                    to={createPageUrl('ClubDetail') + `?id=${club.club_id}`}
+                                                    className="flex items-center gap-2 hover:underline"
+                                                >
+                                                    {clubData?.logo_url && (
+                                                        <img src={clubData.logo_url} alt="" className="w-6 h-6 object-contain bg-white rounded" />
+                                                    )}
+                                                    <span className="font-medium">{club.club_name}</span>
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell className="text-center text-slate-600">{club.played}</TableCell>
+                                            <TableCell className="text-center text-emerald-600 font-medium">{club.won}</TableCell>
+                                            <TableCell className="text-center text-slate-500">{club.drawn}</TableCell>
+                                            <TableCell className="text-center text-red-500">{club.lost}</TableCell>
+                                            <TableCell className="text-center">{club.goals_for}</TableCell>
+                                            <TableCell className="text-center">{club.goals_against}</TableCell>
+                                            <TableCell className="text-center">{club.gd > 0 ? `+${club.gd}` : club.gd}</TableCell>
+                                            <TableCell className="text-center font-bold text-lg">{club.points}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
-                    </CardContent>
-                </Card>
-            )}
+                    ) : (
+                        <p className="text-slate-500 text-center py-8">No points data available</p>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Current Clubs - Consecutive Stays */}
             <Card>
