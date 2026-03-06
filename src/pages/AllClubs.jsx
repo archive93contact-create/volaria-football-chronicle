@@ -142,7 +142,7 @@ export default function AllClubs() {
                 matchesTier = league?.tier === parseInt(tierFilter);
             }
             
-            return matchesSearch && matchesNation && matchesRegion && matchesTier && matchesMembership && matchesStatus && matchesLetter && matchesMissingData;
+            return matchesSearch && matchesNation && matchesRegion && matchesTier && matchesMembership && matchesStatus && matchesLetter && matchesMissingData && matchesActive;
         });
         
         // Sort inactive clubs to the end
