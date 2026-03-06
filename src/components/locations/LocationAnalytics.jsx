@@ -120,7 +120,10 @@ export default function LocationAnalytics({ locationClubs, leagues, locationType
             topClubs,
             performanceOverTime,
             bestFinishes,
-            clubCount: locationClubs.length,
+            clubCount: activeClubs.length,
+            defunctCount: defunctClubs.length,
+            formerNameCount: formerNameClubs.length,
+            totalHistoricalClubs: locationClubs.length,
         };
     }, [locationClubs, leagues, allLeagueTables]);
 
