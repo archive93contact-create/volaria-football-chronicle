@@ -7,6 +7,9 @@ export default function NationNarratives({ nation, leagues, clubs, seasons, cont
     
     if (!nation) return null;
 
+    // Only count active clubs (not defunct, not former-name records)
+    const activeClubs = clubs.filter(c => !c.is_defunct && !c.is_former_name && c.is_active !== false);
+
     // Founding narrative
     if (nation.founded_year) {
         const age = new Date().getFullYear() - nation.founded_year;
