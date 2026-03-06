@@ -75,12 +75,12 @@ export default function PersonalizedNationStory({ nation, leagues, clubs, season
             );
         }
 
-        // CLUB DISTRIBUTION & GEOGRAPHY
-        const totalClubs = clubs.length;
+        // CLUB DISTRIBUTION & GEOGRAPHY (active clubs only)
+        const totalClubs = activeClubs.length;
         if (totalClubs > 0) {
             // Find most club-dense locations
             const locationCounts = {};
-            clubs.forEach(c => {
+            activeClubs.forEach(c => {
                 const loc = c.settlement || c.city || c.district || c.region;
                 if (loc) locationCounts[loc] = (locationCounts[loc] || 0) + 1;
             });
@@ -89,7 +89,7 @@ export default function PersonalizedNationStory({ nation, leagues, clubs, season
                 .slice(0, 3);
 
             paragraphs.push(
-                `${totalClubs} football clubs call ${nation.name} home, spread across ${nation.capital ? `the capital ${nation.capital}` : 'the nation'}${topLocations.length > 0 ? `, ${topLocations.map(([loc, count]) => `${loc} (${count})`).join(', ')}, and beyond` : ''}. ${isTuruliand ? `${tfaClubCount} compete in the TFA system, while ${totalClubs - tfaClubCount} battle in the non-league tiers below.` : 'Each represents their community, their region, and their identity.'}`
+                `${totalClubs} active football clubs call ${nation.name} home, spread across ${nation.capital ? `the capital ${nation.capital}` : 'the nation'}${topLocations.length > 0 ? `, ${topLocations.map(([loc, count]) => `${loc} (${count})`).join(', ')}, and beyond` : ''}. ${isTuruliand ? `${tfaClubCount} compete in the TFA system, while ${totalClubs - tfaClubCount} battle in the non-league tiers below.` : 'Each represents their community, their region, and their identity.'}`
             );
         }
 
