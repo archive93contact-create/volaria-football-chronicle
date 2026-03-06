@@ -469,19 +469,191 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
             </TabsContent>
 
             <TabsContent value="performance" className="space-y-6">
-                {/* Add performance metrics here in future */}
-                <Card>
-                    <CardContent className="py-8">
-                        <p className="text-center text-slate-500">Performance analytics coming soon...</p>
+                {/* Season-by-season team counts */}
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Users className="w-5 h-5 text-blue-500" />
+                            Teams Per Season
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <BarChart data={analytics.goalData.map(d => {
+                                const seasonTables = allTables.filter(t => t.year === d.year && t.league_id === league.id);
+                                return { ...d, teams: seasonTables.length };
+                            })}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
+                                <YAxis />
+                                <Tooltip />
+                                <Bar dataKey="teams" fill="#3b82f6" name="Teams" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Champion Points Over Time */}
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Crown className="w-5 h-5 text-amber-500" />
+                            Champion Points Over Time
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <LineChart data={(() => {
+                                const sortedSeasons = [...new Set(allTables.map(t => t.year))].sort();
+                                return sortedSeasons.map(year => {
+                                    const yearTables = allTables.filter(t => t.year === year && t.league_id === league.id);
+                                    const champion = yearTables.find(t => t.position === 1);
+                                    const last = [...yearTables].sort((a, b) => b.position - a.position)[0];
+                                    return {
+                                        year,
+                                        championPts: champion?.points || null,
+                                        lastPlacePts: last?.points || null,
+                                    };
+                                }).filter(d => d.championPts !== null);
+                            })()}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line type="monotone" dataKey="championPts" stroke="#f59e0b" strokeWidth={2} name="Champion Pts" dot={false} />
+                                <Line type="monotone" dataKey="lastPlacePts" stroke="#ef4444" strokeWidth={2} name="Last Place Pts" dot={false} strokeDasharray="4 4" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Top scorer table by number of titles */}
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Trophy className="w-5 h-5 text-amber-500" />
+                            All-Time Champions Table
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {analytics.titleDistributionData.map((club, idx) => (
+                                <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${idx === 0 ? 'bg-amber-100 text-amber-700' : idx === 1 ? 'bg-slate-200 text-slate-700' : idx === 2 ? 'bg-orange-100 text-orange-700' : 'bg-white text-slate-500 border'}`}>
+                                        {idx + 1}
+                                    </div>
+                                    {club.clubId ? (
+                                        <Link to={createPageUrl(`ClubDetail?id=${club.clubId}`)} className="flex-1 font-semibold hover:text-blue-600">{club.name}</Link>
+                                    ) : (
+                                        <span className="flex-1 font-semibold">{club.name}</span>
+                                    )}
+                                    <div className="flex items-center gap-1 text-amber-600 font-bold">
+                                        <Trophy className="w-4 h-4" />
+                                        {club.titles}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
 
             <TabsContent value="trends" className="space-y-6">
-                {/* Add trend analysis here in future */}
-                <Card>
-                    <CardContent className="py-8">
-                        <p className="text-center text-slate-500">Trend analysis coming soon...</p>
+                {/* Goals per game trend */}
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Target className="w-5 h-5 text-green-500" />
+                            Goals Per Game Trend
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <AreaChart data={analytics.goalData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
+                                <YAxis domain={['auto', 'auto']} />
+                                <Tooltip formatter={(v) => [`${v} goals/game`, 'Avg']} />
+                                <Area type="monotone" dataKey="avgGoalsPerGame" stroke="#10b981" fill="#10b981" fillOpacity={0.3} name="Avg Goals/Game" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Title race tightness trend */}
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Activity className="w-5 h-5 text-blue-500" />
+                            Title Race Tightness (Points Gap Champion vs 2nd)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <AreaChart data={analytics.pointsGapData.filter(d => d.gap > 0)}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" angle={-45} textAnchor="end" height={80} />
+                                <YAxis label={{ value: 'Pts Gap', angle: -90, position: 'insideLeft' }} />
+                                <Tooltip content={({ active, payload }) => {
+                                    if (active && payload?.length) {
+                                        return (
+                                            <div className="bg-white p-3 border rounded shadow-lg text-sm">
+                                                <p className="font-semibold">{payload[0].payload.year}</p>
+                                                <p>Champion: {payload[0].payload.champion}</p>
+                                                <p>Gap: {payload[0].value} pts</p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }} />
+                                <Area type="monotone" dataKey="gap" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} name="Points Gap" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                        <p className="text-xs text-slate-500 text-center mt-2">Lower = more competitive title race</p>
+                    </CardContent>
+                </Card>
+
+                {/* Volatility over time */}
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-purple-500" />
+                            Promotion Survival Over Time
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {analytics.totalPromoted > 0 ? (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-blue-700">{analytics.totalPromoted}</div>
+                                        <div className="text-sm text-blue-600">Clubs Tracked</div>
+                                    </div>
+                                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-green-700">{analytics.promotionSurvivalRate}%</div>
+                                        <div className="text-sm text-green-600">Survived First Season</div>
+                                    </div>
+                                    <div className="text-center p-4 bg-amber-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-amber-700">{analytics.avgPromotedFinish}</div>
+                                        <div className="text-sm text-amber-600">Avg First-Season Finish</div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    {analytics.promotionTracking.slice(0, 20).map((p, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded text-sm">
+                                            <span className="font-medium">{p.clubName}</span>
+                                            <span className="text-slate-500">{p.year}</span>
+                                            <Badge variant={p.survived ? 'outline' : 'destructive'} className={p.survived ? 'text-green-700 border-green-300 bg-green-50' : ''}>
+                                                {p.survived ? `Survived (${p.position}th)` : 'Relegated'}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-center text-slate-500 py-8">No promotion tracking data available</p>
+                        )}
                     </CardContent>
                 </Card>
             </TabsContent>
