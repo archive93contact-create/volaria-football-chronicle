@@ -51,28 +51,28 @@ export default function NationNarratives({ nation, leagues, clubs, seasons, cont
         });
     }
 
-    // Large number of clubs
-    if (clubs.length >= 100) {
+    // Large number of clubs (active only)
+    if (activeClubs.length >= 100) {
         narratives.push({
             icon: Shield,
             color: 'text-blue-500',
             bg: 'bg-blue-50',
             title: 'Football Nation',
-            text: `Home to ${clubs.length} clubs - a true footballing powerhouse.`
+            text: `Home to ${activeClubs.length} active clubs - a true footballing powerhouse.`
         });
-    } else if (clubs.length >= 50) {
+    } else if (activeClubs.length >= 50) {
         narratives.push({
             icon: Shield,
             color: 'text-slate-500',
             bg: 'bg-slate-50',
             title: 'Growing Football Scene',
-            text: `${clubs.length} clubs compete across the national pyramid.`
+            text: `${activeClubs.length} clubs compete across the national pyramid.`
         });
     }
 
-    // Most successful club in nation (total domestic trophies: league + cup)
-    if (clubs.length > 0) {
-        const clubsWithTrophies = clubs.map(c => ({
+    // Most successful club in nation (total domestic trophies: league + cup) - include all clubs for historical honours
+    if (activeClubs.length > 0) {
+        const clubsWithTrophies = activeClubs.map(c => ({
             ...c,
             totalDomesticTrophies: (c.league_titles || 0) + (c.domestic_cup_titles || 0)
         })).filter(c => c.totalDomesticTrophies > 0).sort((a, b) => b.totalDomesticTrophies - a.totalDomesticTrophies);
