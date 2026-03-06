@@ -226,10 +226,10 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
         const topFlightLeagues = leagues.filter(l => l.tier === 1);
         let topDivisionSize = topFlightLeagues.reduce((max, l) => Math.max(max, l.number_of_teams || 0), 0);
         
-        // If no number_of_teams set, infer from clubs in top tier leagues
+        // If no number_of_teams set, infer from clubs in top tier leagues (active only)
         if (topDivisionSize === 0 && topFlightLeagues.length > 0) {
             const topFlightLeagueIds = topFlightLeagues.map(l => l.id);
-            const topFlightClubs = clubs.filter(c => topFlightLeagueIds.includes(c.league_id));
+            const topFlightClubs = activeClubs.filter(c => topFlightLeagueIds.includes(c.league_id));
             topDivisionSize = topFlightClubs.length || 8;
         }
         
