@@ -47,7 +47,7 @@ export default function PersonalizedNationStory({ nation, leagues, clubs, season
             : 'football has deep roots';
 
         paragraphs.push(
-            `${nation.name} - ${nation.description || `a nation where ${foundingText}`}. ${nation.membership ? `A ${nation.membership} member nation, they compete in the ${membership}.` : ''} ${nation.football_history ? nation.football_history : `With ${clubs.length} football clubs spread across the country, the beautiful game is woven into the national fabric.`}`
+            `${nation.name} - ${nation.description || `a nation where ${foundingText}`}. ${nation.membership ? `A ${nation.membership} member nation, they compete in the ${membership}.` : ''} ${nation.football_history ? nation.football_history : `With ${activeClubs.length} football clubs spread across the country, the beautiful game is woven into the national fabric.`}`
         );
 
         // LEAGUE SYSTEM STRUCTURE
