@@ -212,12 +212,15 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
     const stats = useMemo(() => {
         if (!nation) return null;
         
+        // Only use active clubs for geography/capacity calculations
+        const activeClubs = clubs.filter(c => !c.is_defunct && !c.is_former_name && c.is_active !== false);
+
         const maxTier = Math.max(...leagues.map(l => l.tier || 1), 1);
         
-        // Get unique regions/districts/settlements FIRST (before using them)
-        const geoRegions = [...new Set(clubs.map(c => c.region).filter(Boolean))];
-        const geoDistricts = [...new Set(clubs.map(c => c.district).filter(Boolean))];
-        const geoSettlements = [...new Set(clubs.map(c => c.settlement || c.city).filter(Boolean))];
+        // Get unique regions/districts/settlements FIRST (before using them) - active clubs only
+        const geoRegions = [...new Set(activeClubs.map(c => c.region).filter(Boolean))];
+        const geoDistricts = [...new Set(activeClubs.map(c => c.district).filter(Boolean))];
+        const geoSettlements = [...new Set(activeClubs.map(c => c.settlement || c.city).filter(Boolean))];
         
         // Calculate division sizes from leagues or seasons
         const topFlightLeagues = leagues.filter(l => l.tier === 1);
