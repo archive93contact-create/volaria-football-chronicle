@@ -176,8 +176,8 @@ export default function NationNarratives({ nation, leagues, clubs, seasons, cont
         });
     }
 
-    // Oldest club
-    const clubsWithFounded = clubs.filter(c => c.founded_year).sort((a, b) => a.founded_year - b.founded_year);
+    // Oldest active club
+    const clubsWithFounded = activeClubs.filter(c => c.founded_year).sort((a, b) => a.founded_year - b.founded_year);
     if (clubsWithFounded.length > 0) {
         const oldest = clubsWithFounded[0];
         const age = new Date().getFullYear() - oldest.founded_year;
