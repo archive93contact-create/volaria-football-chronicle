@@ -239,7 +239,7 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
             ? leaguesWithTeams.reduce((sum, l) => sum + l.number_of_teams, 0) / leaguesWithTeams.length 
             : topDivisionSize;
         
-        const population = estimateNationPopulation(clubs.length, leagues.length, nation.membership, maxTier, {
+        const population = estimateNationPopulation(activeClubs.length, leagues.length, nation.membership, maxTier, {
             topDivisionSize,
             avgDivisionSize,
             totalDivisions: leagues.length,
@@ -247,7 +247,7 @@ export default function NationStats({ nation, clubs = [], leagues = [], coeffici
             districtCount: geoDistricts.length,
             settlementCount: geoSettlements.length
         });
-        const strength = estimateLeagueStrength(clubs, leagues, coefficient, nation.membership);
+        const strength = estimateLeagueStrength(activeClubs, leagues, coefficient, nation.membership);
         const proClubs = estimateSustainableProClubs(population.value, topDivisionSize, maxTier, nation.membership, strength.score);
         const language = nation.language ? { name: nation.language } : generateLanguage(nation.name, clubs, leagues);
         const capital = nation.capital || generateCapital(nation.name, clubs, leagues);
