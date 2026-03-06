@@ -310,6 +310,54 @@ export default function NationDetail() {
             </PageHeader>
             )}
 
+            {/* Fast Facts Strip */}
+            {(nation.capital || nation.language || nation.federation_name || nation.founded_year || nation.region) && (
+                <div className="bg-slate-800 border-b border-slate-700">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+                        <div className="flex flex-wrap gap-4 md:gap-8 text-sm">
+                            {nation.federation_name && (
+                                <div className="flex items-center gap-1.5 text-slate-300">
+                                    <span className="text-slate-500 text-xs">Federation</span>
+                                    <span className="font-semibold text-white">{nation.federation_name}</span>
+                                </div>
+                            )}
+                            {nation.capital && (
+                                <div className="flex items-center gap-1.5 text-slate-300">
+                                    <span className="text-slate-500 text-xs">Capital</span>
+                                    <span className="font-semibold text-white">{nation.capital}</span>
+                                </div>
+                            )}
+                            {nation.language && (
+                                <div className="flex items-center gap-1.5 text-slate-300">
+                                    <span className="text-slate-500 text-xs">Language</span>
+                                    <span className="font-semibold text-white">{nation.language}</span>
+                                </div>
+                            )}
+                            {nation.founded_year && (
+                                <div className="flex items-center gap-1.5 text-slate-300">
+                                    <span className="text-slate-500 text-xs">Football since</span>
+                                    <span className="font-semibold text-white">{nation.founded_year}</span>
+                                </div>
+                            )}
+                            {nation.region && (
+                                <div className="flex items-center gap-1.5 text-slate-300">
+                                    <span className="text-slate-500 text-xs">Region</span>
+                                    <span className="font-semibold text-white">{nation.region}</span>
+                                </div>
+                            )}
+                            {nation.membership && (
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-slate-500 text-xs">Continental</span>
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${nation.membership === 'VCC' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'}`}>
+                                        {nation.membership}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Personalized Nation Football Story */}
                 <PersonalizedNationStory
