@@ -27,6 +27,7 @@ export default function NationClubs() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [letterFilter, setLetterFilter] = useState('all');
     const [missingDataFilter, setMissingDataFilter] = useState('all');
+    const [activeFilter, setActiveFilter] = useState('active');
     const [sortField, setSortField] = useState('name');
     const [sortDir, setSortDir] = useState('asc');
     const [selectedClubIds, setSelectedClubIds] = useState([]);
