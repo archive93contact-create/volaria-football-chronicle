@@ -215,7 +215,7 @@ export default function AllClubs() {
         });
 
         return result;
-    }, [clubs, nations, search, nationFilter, regionFilter, tierFilter, membershipFilter, statusFilter, letterFilter, missingDataFilter, sortField, sortDir, nationMap, leagueMap]);
+    }, [clubs, nations, search, nationFilter, regionFilter, tierFilter, membershipFilter, statusFilter, letterFilter, missingDataFilter, activeFilter, sortField, sortDir, nationMap, leagueMap]);
 
     const handleSort = (field) => {
         if (sortField === field) {
