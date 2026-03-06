@@ -761,7 +761,73 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                         </CardContent>
                                     </Card>
                                 )}
+
+                                {/* Total goals per season trend */}
+                                {(() => {
+                                    const totalGoalsTrend = [...seasons].sort((a, b) => a.year.localeCompare(b.year)).map(s => {
+                                        const table = allTables.filter(t => t.league_id === league.id && t.year === s.year);
+                                        const totalGoals = table.reduce((sum, t) => sum + (t.goals_for || 0), 0);
+                                        return { year: s.year, totalGoals };
+                                    }).filter(d => d.totalGoals > 0);
+                                    return totalGoalsTrend.length > 0 ? (
+                                        <Card className="border-0 shadow-sm">
+                                            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Target className="w-4 h-4 text-rose-500" /> Total Goals per Season</CardTitle></CardHeader>
+                                            <CardContent>
+                                                <ResponsiveContainer width="100%" height={220}>
+                                                    <BarChart data={totalGoalsTrend}>
+                                                        <CartesianGrid strokeDasharray="3 3" />
+                                                        <XAxis dataKey="year" angle={-45} textAnchor="end" height={60} />
+                                                        <YAxis />
+                                                        <Tooltip />
+                                                        <Bar dataKey="totalGoals" fill="#f43f5e" name="Total Goals" />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </CardContent>
+                                        </Card>
+                                    ) : null;
+                                })()}
                             </div>
+
+                            {/* Competitive Balance over time (unique champion rate by decade) */}
+                            {(() => {
+                                const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
+                                // Group by ~10 year windows
+                                const byDecade = {};
+                                sortedSeasons.forEach(s => {
+                                    if (!s.champion_name) return;
+                                    const decade = Math.floor(parseInt(s.year) / 10) * 10;
+                                    const key = `${decade}s`;
+                                    if (!byDecade[key]) byDecade[key] = { champions: new Set(), total: 0 };
+                                    byDecade[key].champions.add(s.champion_name);
+                                    byDecade[key].total++;
+                                });
+                                const decadeData = Object.entries(byDecade).map(([decade, v]) => ({
+                                    decade,
+                                    uniqueChampions: v.champions.size,
+                                    seasons: v.total,
+                                    balance: parseFloat(((v.champions.size / v.total) * 100).toFixed(1))
+                                })).filter(d => d.seasons >= 2);
+
+                                return decadeData.length > 1 ? (
+                                    <Card className="border-0 shadow-sm">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2"><Activity className="w-5 h-5 text-teal-500" /> Competitive Balance by Era</CardTitle>
+                                            <p className="text-sm text-slate-500">% of seasons won by different champions — higher means more competitive</p>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={240}>
+                                                <BarChart data={decadeData}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="decade" />
+                                                    <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} />
+                                                    <Tooltip formatter={(v) => [`${v}%`, 'Balance Score']} />
+                                                    <Bar dataKey="balance" fill="#14b8a6" name="Balance %" radius={[4,4,0,0]} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </CardContent>
+                                    </Card>
+                                ) : null;
+                            })()}
                         </>
                     );
                 })()}
