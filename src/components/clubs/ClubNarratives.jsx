@@ -1386,12 +1386,11 @@ export default function ClubNarratives({ club, seasons, leagues, allClubs = [], 
         }
     }
 
-    // Manual rivalries narrative
+    // Manual rivalries narrative (active rivals only)
     if (club.rival_club_ids && club.rival_club_ids.length > 0) {
         const rivalNames = club.rival_club_ids
-            .map(id => allClubs.find(c => c.id === id)?.name)
-            .filter(Boolean)
-            .slice(0, 3);
+            .map(id => { const c = allClubs.find(c => c.id === id); return (c && !c.is_defunct && !c.is_former_name && c.is_active !== false) ? c.name : null; })
+            .filter(Boolean).slice(0, 3);
         if (rivalNames.length > 0) {
             narratives.push({
                 icon: Flame,
