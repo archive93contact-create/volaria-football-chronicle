@@ -11,29 +11,36 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
+    const CACHE = 30 * 60 * 1000; // 30 minutes
+
     const { data: nations = [] } = useQuery({
         queryKey: ['nations'],
         queryFn: () => base44.entities.Nation.list(),
+        staleTime: CACHE,
     });
 
     const { data: coefficients = [] } = useQuery({
         queryKey: ['coefficients'],
         queryFn: () => base44.entities.CountryCoefficient.list(),
+        staleTime: CACHE,
     });
 
     const { data: leagues = [] } = useQuery({
         queryKey: ['leagues'],
         queryFn: () => base44.entities.League.list(),
+        staleTime: CACHE,
     });
 
     const { data: clubs = [] } = useQuery({
         queryKey: ['clubs'],
         queryFn: () => base44.entities.Club.list(),
+        staleTime: CACHE,
     });
 
     const { data: seasons = [] } = useQuery({
         queryKey: ['allSeasons'],
         queryFn: () => base44.entities.Season.list(),
+        staleTime: CACHE,
     });
 
     const categorizedNations = useMemo(() => {
