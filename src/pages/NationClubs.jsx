@@ -239,7 +239,7 @@ export default function NationClubs() {
         });
 
         return result;
-    }, [clubs, search, regionFilter, districtFilter, settlementFilter, tierFilter, statusFilter, letterFilter, missingDataFilter, sortField, sortDir, leagues]);
+    }, [clubs, search, regionFilter, districtFilter, settlementFilter, tierFilter, statusFilter, letterFilter, missingDataFilter, activeFilter, sortField, sortDir, leagues]);
 
     const handleSort = (field) => {
         if (sortField === field) {
