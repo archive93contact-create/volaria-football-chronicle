@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trophy, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Trophy, Calendar, TrendingUp, BarChart2 } from 'lucide-react';
 
 export default function LeagueClubHistory({ league, leagueTables, clubs }) {
     const clubHistory = useMemo(() => {
