@@ -307,7 +307,7 @@ export default function AddSeason() {
                     // Process clubs for this division
                     for (const row of div.rows.filter(r => r.club_name.trim())) {
                         const clubName = row.club_name.trim();
-                        const existingClub = allNationClubs.find(c => c.name.toLowerCase() === clubName.toLowerCase());
+                        const existingClub = allNationClubs.find(c => c.name.trim().toLowerCase() === clubName.toLowerCase());
                         const isChampion = row.status === 'champion';
                         const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
                         const isRelegated = row.status === 'relegated';
@@ -412,9 +412,9 @@ export default function AddSeason() {
             for (const row of tableRows.filter(r => r.club_name.trim())) {
                 const clubName = row.club_name.trim();
                 
-                // Check if club already exists in the nation
+                // Check if club already exists in the nation (trim both sides to handle trailing spaces)
                 const existingClub = allNationClubs.find(
-                    c => c.name.toLowerCase() === clubName.toLowerCase()
+                    c => c.name.trim().toLowerCase() === clubName.toLowerCase()
                 );
 
                 if (existingClub) {
