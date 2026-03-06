@@ -128,6 +128,13 @@ export default function AllClubs() {
             } else if (missingDataFilter === 'has_logo') {
                 matchesMissingData = !!club.logo_url;
             }
+
+            let matchesActive = true;
+            if (activeFilter === 'active') {
+                matchesActive = !club.is_defunct && !club.is_former_name && club.is_active !== false;
+            } else if (activeFilter === 'inactive') {
+                matchesActive = club.is_defunct || club.is_former_name || club.is_active === false;
+            }
             
             let matchesTier = true;
             if (tierFilter !== 'all') {
