@@ -114,7 +114,7 @@ export default function PersonalizedNationStory({ nation, leagues, clubs, season
             );
         } else {
             paragraphs.push(
-                `Football in ${nation.name} isn't just sport - it's culture, community, and identity. ${isTuruliand ? 'The TFA system provides structure to some, while others fight in the shadows below.' : 'From the top flight to the lower tiers, every club carries the dreams of their supporters.'} This is a nation where football matters.`
+                `Football in ${nation.name} isn't just sport - it's culture, community, and identity. ${isTuruliand ? 'The TFA system provides structure to some, while others fight in the shadows below.' : 'From the top flight to the lower tiers, every active club carries the dreams of their supporters.'} This is a nation where football matters.`
             );
         }
 
