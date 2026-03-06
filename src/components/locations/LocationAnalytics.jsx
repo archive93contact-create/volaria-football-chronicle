@@ -147,7 +147,12 @@ export default function LocationAnalytics({ locationClubs, leagues, locationType
                     <CardContent className="p-4 text-center">
                         <Shield className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
                         <div className="text-2xl font-bold">{analytics.clubCount}</div>
-                        <div className="text-xs text-slate-500">Football Clubs</div>
+                        <div className="text-xs text-slate-500">Active Clubs</div>
+                        {(analytics.defunctCount > 0 || analytics.formerNameCount > 0) && (
+                            <div className="text-xs text-slate-400 mt-0.5">
+                                +{analytics.defunctCount + analytics.formerNameCount} defunct/renamed
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
                 <Card className="border-0 shadow-sm bg-amber-50">
