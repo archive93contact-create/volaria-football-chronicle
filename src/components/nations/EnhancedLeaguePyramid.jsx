@@ -598,7 +598,7 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
                 </div>
             </div>
 
-            </>}
+            </div>}
         </div>
     );
 }
