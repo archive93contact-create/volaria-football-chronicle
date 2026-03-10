@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Trophy, Shield, Users, ArrowUp, ArrowDown, ChevronRight, Settings, Target, X } from 'lucide-react';
+import { Trophy, Shield, Users, ArrowUp, ArrowDown, ChevronRight, Settings, Target, X, List, LayoutTemplate } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
