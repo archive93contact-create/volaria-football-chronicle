@@ -893,6 +893,7 @@ export default function LeagueDetail() {
                             seasons={seasons}
                             allTables={leagueTables}
                             clubs={allNationClubs}
+                            allLeagues={allNationLeagues}
                         />
                     </TabsContent>
 
