@@ -166,6 +166,9 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
                                                 {club.currentConsecutive} {club.currentConsecutive === 1 ? 'season' : 'seasons'}
                                             </Badge>
                                         </TableCell>
+                                        <TableCell className="text-center text-slate-600 text-sm">
+                                            {club.stintStartYear || '-'}
+                                        </TableCell>
                                         <TableCell className="text-center">
                                             {club.titles > 0 ? (
                                                 <span className="flex items-center justify-center gap-1 text-amber-600 font-semibold">
