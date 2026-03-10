@@ -8,7 +8,7 @@ import { createPageUrl } from '@/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LeagueClubHistory from '../leagues/LeagueClubHistory';
 
-export default function LeagueAnalyticsDashboard({ league, seasons = [], allTables = [], clubs = [] }) {
+export default function LeagueAnalyticsDashboard({ league, seasons = [], allTables = [], clubs = [], allLeagues = [] }) {
     const analytics = useMemo(() => {
         if (!league || seasons.length === 0) return null;
 
