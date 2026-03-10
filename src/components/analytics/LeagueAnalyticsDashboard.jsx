@@ -577,10 +577,13 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                     <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Trophy className="w-4 h-4 text-amber-500" /> Most Points (Single Season)</CardTitle></CardHeader>
                                     <CardContent>
                                         <div className="space-y-2">
-                                            {topPoints.map((t, idx) => (
+                                            {topPoints.map((t, idx) => {
+                                                const c = clubs.find(c => c.id === t.club_id || c.name === t.club_name);
+                                                return (
                                                 <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-bold text-slate-400 w-5">{idx + 1}</span>
+                                                        {c?.logo_url && <img src={c.logo_url} alt="" className="w-6 h-6 object-contain bg-white rounded" />}
                                                         <div>
                                                             <div className="font-medium text-sm">{t.club_name}</div>
                                                             <div className="text-xs text-slate-500">{t.year}</div>
@@ -588,7 +591,8 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                                     </div>
                                                     <Badge variant="outline" className="font-bold">{t.points} pts</Badge>
                                                 </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </CardContent>
                                 </Card>
