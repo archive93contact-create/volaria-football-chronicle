@@ -6,7 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Calendar, TrendingUp, BarChart2 } from 'lucide-react';
 
-export default function LeagueClubHistory({ league, leagueTables, clubs }) {
+export default function LeagueClubHistory({ league, leagueTables, clubs, allLeagues = [] }) {
+    // Build a map of club_id -> current league name
+    const clubCurrentLeagueMap = useMemo(() => {
+        const map = {};
+        (clubs || []).forEach(c => {
+            if (c.id && c.league_id) {
+                const l = allLeagues.find(l => l.id === c.league_id);
+                if (l) map[c.id] = l.name;
+            }
+        });
+        return map;
+    }, [clubs, allLeagues]);
+
     const clubHistory = useMemo(() => {
         if (!leagueTables || leagueTables.length === 0) return { allClubs: [], currentClubs: [] };
 
