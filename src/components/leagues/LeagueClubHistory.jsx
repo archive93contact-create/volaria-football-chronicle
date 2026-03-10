@@ -137,6 +137,7 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
                                     <TableHead className="w-12">#</TableHead>
                                     <TableHead>Club</TableHead>
                                     <TableHead className="text-center">Consecutive</TableHead>
+                                    <TableHead className="text-center">Since</TableHead>
                                     <TableHead className="text-center">Titles</TableHead>
                                     <TableHead className="text-center">Best</TableHead>
                                 </TableRow>
