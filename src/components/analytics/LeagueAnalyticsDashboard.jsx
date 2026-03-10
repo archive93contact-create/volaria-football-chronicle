@@ -378,7 +378,11 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                 const club = clubs.find(c => c.name === dynasty.club);
                                 return (
                                     <div key={idx} className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
-                                        <div>
+                                        <div className="flex items-center gap-3">
+                                            {club?.logo_url && (
+                                                <img src={club.logo_url} alt="" className="w-10 h-10 object-contain bg-white rounded shadow-sm" />
+                                            )}
+                                            <div>
                                             {club ? (
                                                 <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="font-bold text-lg text-amber-700 hover:text-amber-800">
                                                     {dynasty.club}
