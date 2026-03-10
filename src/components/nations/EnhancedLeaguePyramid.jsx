@@ -252,7 +252,7 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
 
             {viewMode === 'list' && <div className="text-xs text-slate-400 italic text-center">Switch to Pyramid view to see the visual structure.</div>}
 
-            {viewMode === 'pyramid' && <>
+            {viewMode === 'pyramid' && <div className="space-y-6">
 
             {/* Timeline Slider */}
             {availableYears.length > 1 && (
