@@ -195,21 +195,63 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
 
     return (
         <div className="space-y-6">
-            <AdminOnly>
-                {!showManager ? (
-                    <Button onClick={() => setShowManager(true)} variant="outline" size="sm">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Manage Pyramid Structure
-                    </Button>
-                ) : (
-                    <div>
-                        <Button onClick={() => setShowManager(false)} variant="outline" size="sm" className="mb-4">
-                            Hide Manager
-                        </Button>
-                        <PyramidStructureManager leagues={professionalLeagues} nationId={nationId} />
-                    </div>
-                )}
-            </AdminOnly>
+            {/* View toggle + admin tools */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+                    <button
+                        onClick={() => setViewMode('pyramid')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                            viewMode === 'pyramid' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        <LayoutTemplate className="w-4 h-4" /> Pyramid
+                    </button>
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                            viewMode === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        <List className="w-4 h-4" /> Bulk Edit
+                    </button>
+                </div>
+
+                <AdminOnly>
+                    {viewMode === 'pyramid' && (
+                        !showManager ? (
+                            <Button onClick={() => setShowManager(true)} variant="outline" size="sm">
+                                <Settings className="w-4 h-4 mr-2" />
+                                Manage Connections
+                            </Button>
+                        ) : (
+                            <Button onClick={() => setShowManager(false)} variant="outline" size="sm">
+                                Hide Manager
+                            </Button>
+                        )
+                    )}
+                </AdminOnly>
+            </div>
+
+            {/* Bulk List Editor */}
+            {viewMode === 'list' && (
+                <AdminOnly>
+                    <BulkLeagueEditor
+                        leagues={professionalLeagues}
+                        nationId={nationId}
+                        onSaved={() => setViewMode('pyramid')}
+                    />
+                </AdminOnly>
+            )}
+
+            {/* Pyramid Structure Manager (connections only) */}
+            {viewMode === 'pyramid' && showManager && (
+                <AdminOnly>
+                    <PyramidStructureManager leagues={professionalLeagues} nationId={nationId} />
+                </AdminOnly>
+            )}
+
+            {viewMode === 'list' && <div className="text-xs text-slate-400 italic text-center">Switch to Pyramid view to see the visual structure.</div>}
+            {viewMode === 'pyramid' && <></> /* fall through to existing pyramid render below */}
 
             {/* Timeline Slider */}
             {availableYears.length > 1 && (
