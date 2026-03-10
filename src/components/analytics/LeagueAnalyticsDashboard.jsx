@@ -383,16 +383,16 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                                 <img src={club.logo_url} alt="" className="w-10 h-10 object-contain bg-white rounded shadow-sm" />
                                             )}
                                             <div>
-                                            {club ? (
-                                                <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="font-bold text-lg text-amber-700 hover:text-amber-800">
-                                                    {dynasty.club}
-                                                </Link>
-                                            ) : (
-                                                <div className="font-bold text-lg text-amber-700">{dynasty.club}</div>
-                                            )}
-                                            <div className="text-sm text-slate-600">
-                                                {dynasty.startYear} - {dynasty.endYear}
-                                            </div>
+                                                {club ? (
+                                                    <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="font-bold text-lg text-amber-700 hover:text-amber-800">
+                                                        {dynasty.club}
+                                                    </Link>
+                                                ) : (
+                                                    <div className="font-bold text-lg text-amber-700">{dynasty.club}</div>
+                                                )}
+                                                <div className="text-sm text-slate-600">
+                                                    {dynasty.startYear} - {dynasty.endYear}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="text-center">
