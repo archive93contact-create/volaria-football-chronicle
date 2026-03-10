@@ -115,6 +115,17 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
             .sort((a, b) => b.points - a.points || b.won - a.won || (b.goals_for - b.goals_against) - (a.goals_for - a.goals_against))
             .map((c, idx) => ({ ...c, rank: idx + 1, gd: c.goals_for - c.goals_against }));
 
+        // Compute years since last stint for non-current clubs
+        const latestYearNum = parseInt(latestYear) || 0;
+        Object.values(clubStats).forEach(club => {
+            if (!club.isCurrentlyInLeague) {
+                const lastYearNum = parseInt(club.lastSeason) || 0;
+                club.yearsSinceLastStint = latestYearNum > 0 && lastYearNum > 0 ? latestYearNum - lastYearNum : null;
+            } else {
+                club.yearsSinceLastStint = null;
+            }
+        });
+
         const allClubs = Object.values(clubStats).sort((a, b) => b.totalSeasons - a.totalSeasons);
         const currentClubs = allClubs
             .filter(c => c.isCurrentlyInLeague)
