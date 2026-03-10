@@ -247,25 +247,34 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {clubHistory.allClubs.map((club, idx) => (
-                                    <TableRow key={club.club_id || club.club_name}>
+                                {clubHistory.allClubs.map((club, idx) => {
+                                    const clubObj = clubs?.find(c => c.id === club.club_id);
+                                    const isDefunct = clubObj?.is_defunct || clubObj?.is_former_name || clubObj?.is_active === false;
+                                    const currentLeagueName = club.club_id ? clubCurrentLeagueMap[club.club_id] : null;
+                                    return (
+                                    <TableRow key={club.club_id || club.club_name} className={isDefunct ? 'opacity-50 bg-slate-50' : ''}>
                                         <TableCell className="font-medium">{idx + 1}</TableCell>
                                         <TableCell>
                                             <Link 
                                                 to={createPageUrl('ClubDetail') + `?id=${club.club_id}`}
-                                                className="flex items-center gap-3 hover:underline"
+                                                className={`flex items-center gap-3 hover:underline ${isDefunct ? 'italic text-slate-500' : ''}`}
                                             >
                                                 {club.club_id && getClubLogo(club.club_id) && (
                                                     <img 
                                                         src={getClubLogo(club.club_id)} 
                                                         alt={`${club.club_name} crest`}
-                                                        className="w-6 h-6 object-contain bg-white rounded"
+                                                        className={`w-6 h-6 object-contain bg-white rounded ${isDefunct ? 'grayscale' : ''}`}
                                                     />
                                                 )}
                                                 <span className="font-medium">{club.club_name}</span>
                                                 {club.isCurrentlyInLeague && (
                                                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                                                         Current
+                                                    </Badge>
+                                                )}
+                                                {isDefunct && (
+                                                    <Badge variant="outline" className="bg-slate-100 text-slate-500 border-slate-300 text-xs">
+                                                        {clubObj?.is_defunct ? 'Defunct' : clubObj?.is_former_name ? 'Former Name' : 'Inactive'}
                                                     </Badge>
                                                 )}
                                             </Link>
@@ -296,8 +305,31 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
                                         <TableCell className="text-sm text-slate-600">
                                             {club.firstSeason} - {club.lastSeason}
                                         </TableCell>
+                                        <TableCell className="text-center hidden md:table-cell">
+                                            {club.isCurrentlyInLeague ? (
+                                                <span className="text-slate-400 text-xs">—</span>
+                                            ) : club.yearsSinceLastStint != null ? (
+                                                <span className={`text-sm font-medium ${club.yearsSinceLastStint >= 10 ? 'text-red-500' : club.yearsSinceLastStint >= 5 ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                    {club.yearsSinceLastStint}y
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400 text-xs">—</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="hidden lg:table-cell text-sm text-slate-600">
+                                            {club.isCurrentlyInLeague ? (
+                                                <span className="text-emerald-600 font-medium text-xs">This league</span>
+                                            ) : isDefunct ? (
+                                                <span className="text-slate-400 italic text-xs">Disbanded</span>
+                                            ) : currentLeagueName ? (
+                                                <span className="text-xs">{currentLeagueName}</span>
+                                            ) : (
+                                                <span className="text-slate-400 text-xs">—</span>
+                                            )}
+                                        </TableCell>
                                     </TableRow>
-                                ))}
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     ) : (
