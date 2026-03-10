@@ -69,6 +69,7 @@ export default function LeagueClubHistory({ league, leagueTables, clubs }) {
                     }
                 }
                 club.currentConsecutive = consecutive;
+                club.stintStartYear = sortedClubSeasons[consecutive - 1].year;
             }
         });
 
