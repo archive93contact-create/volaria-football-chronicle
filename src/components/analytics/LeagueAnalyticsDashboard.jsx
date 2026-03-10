@@ -393,6 +393,7 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                             <div className="text-sm text-slate-600">
                                                 {dynasty.startYear} - {dynasty.endYear}
                                             </div>
+                                            </div>
                                         </div>
                                         <div className="text-center">
                                             <div className="text-3xl font-bold text-amber-600">{dynasty.count}</div>
