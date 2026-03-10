@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent } from "@/components/ui/card";
 import AdminOnly from '@/components/common/AdminOnly';
 import PyramidStructureManager from './PyramidStructureManager';
+import BulkLeagueEditor from './BulkLeagueEditor';
 
 export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueTables = [], nationId }) {
     // Filter out youth and reserve leagues - only show professional leagues
