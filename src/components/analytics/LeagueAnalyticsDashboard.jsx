@@ -838,6 +838,7 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                     league={league}
                     leagueTables={allTables}
                     clubs={clubs}
+                    allLeagues={allLeagues}
                 />
             </TabsContent>
         </Tabs>
