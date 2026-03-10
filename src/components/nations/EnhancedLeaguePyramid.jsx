@@ -15,6 +15,7 @@ export default function EnhancedLeaguePyramid({ leagues, seasons, clubs, leagueT
     const professionalLeagues = leagues.filter(l => l.league_type !== 'youth' && l.league_type !== 'reserve');
     
     const [showManager, setShowManager] = useState(false);
+    const [viewMode, setViewMode] = useState('pyramid'); // 'pyramid' | 'list'
     const [hoveredLeague, setHoveredLeague] = useState(null);
     const [selectedPathway, setSelectedPathway] = useState(null);
     const [selectedYear, setSelectedYear] = useState(null);
