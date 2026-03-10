@@ -446,12 +446,17 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-2">
-                        {analytics.mostFrequentClubs.map((club, idx) => (
+                        {analytics.mostFrequentClubs.map((club, idx) => {
+                            const clubObj = clubs.find(c => c.id === club.clubId || c.name === club.name);
+                            return (
                             <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm">
                                         {idx + 1}
                                     </div>
+                                    {clubObj?.logo_url && (
+                                        <img src={clubObj.logo_url} alt="" className="w-6 h-6 object-contain bg-white rounded" />
+                                    )}
                                     {club.clubId ? (
                                         <Link to={createPageUrl(`ClubDetail?id=${club.clubId}`)} className="font-semibold hover:text-blue-600">
                                             {club.name}
@@ -462,7 +467,8 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                                 </div>
                                 <Badge variant="outline">{club.count} seasons</Badge>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </CardContent>
             </Card>
