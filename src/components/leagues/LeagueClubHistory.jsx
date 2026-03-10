@@ -236,12 +236,14 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-12">#</TableHead>
-                                    <TableHead>Club</TableHead>
-                                    <TableHead className="text-center">Seasons</TableHead>
-                                    <TableHead className="text-center">Titles</TableHead>
-                                    <TableHead className="text-center">Best</TableHead>
-                                    <TableHead className="text-center">Worst</TableHead>
-                                    <TableHead>Period</TableHead>
+                                     <TableHead>Club</TableHead>
+                                     <TableHead className="text-center">Seasons</TableHead>
+                                     <TableHead className="text-center">Titles</TableHead>
+                                     <TableHead className="text-center">Best</TableHead>
+                                     <TableHead className="text-center">Worst</TableHead>
+                                     <TableHead>Period</TableHead>
+                                     <TableHead className="text-center hidden md:table-cell">Yrs Absent</TableHead>
+                                     <TableHead className="hidden lg:table-cell">Current League</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
