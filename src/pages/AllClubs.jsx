@@ -34,21 +34,29 @@ export default function AllClubs() {
     const { data: clubs = [], isLoading: clubsLoading } = useQuery({
         queryKey: ['allClubs'],
         queryFn: () => base44.entities.Club.list(),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        cacheTime: 10 * 60 * 1000, // 10 minutes
     });
 
     const { data: nations = [] } = useQuery({
         queryKey: ['allNations'],
         queryFn: () => base44.entities.Nation.list(),
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
     });
 
     const { data: leagues = [] } = useQuery({
         queryKey: ['allLeagues'],
         queryFn: () => base44.entities.League.list(),
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
     });
 
     const { data: players = [] } = useQuery({
         queryKey: ['allPlayers'],
         queryFn: () => base44.entities.Player.list(),
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
     });
 
     // Create lookup maps

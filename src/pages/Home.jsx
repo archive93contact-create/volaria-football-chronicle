@@ -15,26 +15,36 @@ export default function Home() {
     const { data: nations = [], isLoading: nationsLoading } = useQuery({
         queryKey: ['nations'],
         queryFn: () => base44.entities.Nation.list(),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        cacheTime: 10 * 60 * 1000, // 10 minutes
     });
 
     const { data: coefficients = [] } = useQuery({
         queryKey: ['coefficients'],
         queryFn: () => base44.entities.CountryCoefficient.list(),
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
     });
 
     const { data: leagues = [] } = useQuery({
         queryKey: ['leagues'],
         queryFn: () => base44.entities.League.list(),
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
     });
 
     const { data: clubs = [] } = useQuery({
         queryKey: ['clubs'],
         queryFn: () => base44.entities.Club.list(),
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
     });
 
     const { data: seasons = [] } = useQuery({
         queryKey: ['allSeasons'],
         queryFn: () => base44.entities.Season.list(),
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
     });
 
     // Categorize nations based on whether they have seasons (complete) or not
