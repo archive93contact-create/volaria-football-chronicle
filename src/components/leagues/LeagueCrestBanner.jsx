@@ -13,8 +13,10 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
         })
         .filter(Boolean);
 
-    // Fall back to all clubs if no season table
-    const displayClubs = orderedClubs.length > 0 ? orderedClubs : clubs;
+    // Fall back to all clubs if no season table, then sort alphabetically
+    const displayClubs = (orderedClubs.length > 0 ? orderedClubs : clubs)
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name));
 
     const primary = league.primary_color || '#1e3a5f';
     const secondary = league.secondary_color || '#0f2440';
