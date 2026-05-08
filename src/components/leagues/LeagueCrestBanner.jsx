@@ -25,7 +25,7 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
             className="relative w-full overflow-hidden rounded-2xl"
             style={{
                 background: `radial-gradient(ellipse at 30% 50%, ${primary}ee, ${secondary}dd 60%, #0a0a1a)`,
-                minHeight: '280px',
+                minHeight: '340px',
             }}
         >
             {/* Decorative background pattern */}
@@ -99,7 +99,7 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
                 </div>
 
                 {/* Crest Grid */}
-                <div className="flex flex-wrap gap-4 justify-center">
+                <div className="flex flex-wrap gap-5 justify-center">
                     {displayClubs.map((club) => {
                         const isChampion = club.position === 1 || club.status === 'champion';
                         return (
@@ -112,13 +112,13 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
                                 <div
                                     className="relative flex items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-2xl"
                                     style={{
-                                        width: isChampion ? '80px' : '64px',
-                                        height: isChampion ? '80px' : '64px',
+                                        width: isChampion ? '110px' : '88px',
+                                        height: isChampion ? '110px' : '88px',
                                         backgroundColor: 'white',
-                                        padding: isChampion ? '8px' : '6px',
+                                        padding: isChampion ? '10px' : '8px',
                                         boxShadow: isChampion
-                                            ? `0 0 0 3px ${accent}, 0 8px 24px rgba(0,0,0,0.4)`
-                                            : '0 4px 12px rgba(0,0,0,0.3)',
+                                            ? `0 0 0 3px ${accent}, 0 8px 24px rgba(0,0,0,0.5)`
+                                            : '0 4px 16px rgba(0,0,0,0.4)',
                                     }}
                                 >
                                     {club.logo_url ? (
@@ -128,18 +128,18 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
                                             className="w-full h-full object-contain"
                                         />
                                     ) : (
-                                        <Shield className="w-8 h-8 text-slate-300" />
+                                        <Shield className="w-10 h-10 text-slate-300" />
                                     )}
                                     {isChampion && (
                                         <div
-                                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
+                                            className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg"
                                             style={{ backgroundColor: accent }}
                                         >
-                                            <Trophy className="w-3 h-3 text-white" />
+                                            <Trophy className="w-4 h-4 text-white" />
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-white/80 text-xs text-center font-medium max-w-[72px] line-clamp-2 group-hover:text-white transition-colors leading-tight">
+                                <span className="text-white/80 text-xs text-center font-medium max-w-[96px] line-clamp-2 group-hover:text-white transition-colors leading-tight">
                                     {club.shortened_name || club.name}
                                 </span>
                             </Link>

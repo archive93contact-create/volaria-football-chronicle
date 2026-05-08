@@ -19,22 +19,6 @@ export default function AddNation() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    if (authLoading) {
-        return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
-    }
-    if (!isAdmin) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <Card className="max-w-md"><CardContent className="text-center py-8">
-                    <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold mb-2">Admin Access Required</h2>
-                    <p className="text-slate-500 mb-4">Only administrators can add content.</p>
-                    <Link to={createPageUrl('Home')}><Button>Back to Home</Button></Link>
-                </CardContent></Card>
-            </div>
-        );
-    }
-
     const [formData, setFormData] = useState({
         name: '',
         flag_url: '',
@@ -53,6 +37,22 @@ export default function AddNation() {
             navigate(createPageUrl(`NationDetail?id=${newNation.id}`));
         },
     });
+
+    if (authLoading) {
+        return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
+    }
+    if (!isAdmin) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <Card className="max-w-md"><CardContent className="text-center py-8">
+                    <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-bold mb-2">Admin Access Required</h2>
+                    <p className="text-slate-500 mb-4">Only administrators can add content.</p>
+                    <Link to={createPageUrl('Home')}><Button>Back to Home</Button></Link>
+                </CardContent></Card>
+            </div>
+        );
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
