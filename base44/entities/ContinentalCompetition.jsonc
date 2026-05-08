@@ -1,0 +1,76 @@
+{
+  "name": "ContinentalCompetition",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the competition"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "Short name (e.g., VCC, CCC)"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to the competition logo"
+    },
+    "description": {
+      "type": "string",
+      "description": "Competition description"
+    },
+    "history": {
+      "type": "string",
+      "description": "Competition history"
+    },
+    "founded_year": {
+      "type": "number",
+      "description": "Year the competition was founded"
+    },
+    "format": {
+      "type": "string",
+      "description": "Competition format"
+    },
+    "number_of_teams": {
+      "type": "number",
+      "description": "Number of teams"
+    },
+    "current_champion": {
+      "type": "string",
+      "description": "Current champion"
+    },
+    "most_titles_club": {
+      "type": "string",
+      "description": "Club with most titles"
+    },
+    "most_titles_count": {
+      "type": "number",
+      "description": "Number of titles for most successful club"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Primary brand color"
+    },
+    "secondary_color": {
+      "type": "string",
+      "description": "Secondary brand color"
+    },
+    "tier": {
+      "type": "number",
+      "description": "Competition tier (1=top, 2=secondary)"
+    },
+    "participating_nation_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of nation IDs that participate in this competition"
+    },
+    "round_names": {
+      "type": "object",
+      "description": "Custom round name mappings (e.g., {\"Round of 32\": \"Qualifying Round\", \"Round of 16\": \"Round One\"})"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

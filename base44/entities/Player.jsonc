@@ -1,0 +1,133 @@
+{
+  "name": "Player",
+  "type": "object",
+  "properties": {
+    "first_name": {
+      "type": "string",
+      "description": "Player's first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Player's last name"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Player's full display name"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date",
+      "description": "Player's date of birth"
+    },
+    "age": {
+      "type": "number",
+      "description": "Current age"
+    },
+    "nationality": {
+      "type": "string",
+      "description": "Player's nationality (nation name)"
+    },
+    "birth_place": {
+      "type": "string",
+      "description": "Place of birth (city, region)"
+    },
+    "nation_id": {
+      "type": "string",
+      "description": "ID of the nation"
+    },
+    "club_id": {
+      "type": "string",
+      "description": "Current club ID"
+    },
+    "club_history": {
+      "type": "string",
+      "description": "Previous clubs with years (e.g., 'FC Example (2020-2023), Another FC (2018-2020)')"
+    },
+    "position": {
+      "type": "string",
+      "enum": [
+        "GK",
+        "CB",
+        "LB",
+        "RB",
+        "CDM",
+        "CM",
+        "CAM",
+        "LW",
+        "RW",
+        "ST"
+      ],
+      "description": "Primary position"
+    },
+    "shirt_number": {
+      "type": "number",
+      "description": "Squad shirt number"
+    },
+    "overall_rating": {
+      "type": "number",
+      "description": "Overall rating (1-99)"
+    },
+    "potential": {
+      "type": "number",
+      "description": "Potential rating (1-99)"
+    },
+    "contract_until": {
+      "type": "string",
+      "description": "Contract end year (e.g., 2026)"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Player photo URL"
+    },
+    "preferred_foot": {
+      "type": "string",
+      "enum": [
+        "Left",
+        "Right",
+        "Both"
+      ],
+      "description": "Preferred foot"
+    },
+    "height_cm": {
+      "type": "number",
+      "description": "Height in centimeters"
+    },
+    "is_youth_player": {
+      "type": "boolean",
+      "description": "Whether player is in youth academy"
+    },
+    "is_legend": {
+      "type": "boolean",
+      "description": "Club legend status"
+    },
+    "is_national_team": {
+      "type": "boolean",
+      "description": "Currently in national team squad"
+    },
+    "national_team_caps": {
+      "type": "number",
+      "description": "Total international appearances"
+    },
+    "national_team_goals": {
+      "type": "number",
+      "description": "Total international goals"
+    },
+    "appearances": {
+      "type": "number",
+      "description": "Total career appearances"
+    },
+    "goals": {
+      "type": "number",
+      "description": "Total career goals"
+    },
+    "assists": {
+      "type": "number",
+      "description": "Total career assists"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "position"
+  ]
+}

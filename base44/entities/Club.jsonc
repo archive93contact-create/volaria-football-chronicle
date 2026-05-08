@@ -1,0 +1,386 @@
+{
+  "name": "Club",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the club"
+    },
+    "shortened_name": {
+      "type": "string",
+      "description": "Shortened/abbreviated name for use in tables (e.g., 'Man Utd' for 'Manchester United')"
+    },
+    "nation_id": {
+      "type": "string",
+      "description": "ID of the nation this club belongs to"
+    },
+    "league_id": {
+      "type": "string",
+      "description": "ID of the current league"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to the club logo/crest"
+    },
+    "city": {
+      "type": "string",
+      "description": "City where the club is based"
+    },
+    "region": {
+      "type": "string",
+      "description": "Region (largest area)"
+    },
+    "district": {
+      "type": "string",
+      "description": "District (medium area)"
+    },
+    "settlement": {
+      "type": "string",
+      "description": "Settlement/town (smallest area)"
+    },
+    "stadium": {
+      "type": "string",
+      "description": "Name of the home stadium"
+    },
+    "stadium_capacity": {
+      "type": "number",
+      "description": "Stadium capacity"
+    },
+    "founded_year": {
+      "type": "number",
+      "description": "Year the club was founded"
+    },
+    "nickname": {
+      "type": "string",
+      "description": "Club nickname"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Primary kit color"
+    },
+    "secondary_color": {
+      "type": "string",
+      "description": "Secondary kit color"
+    },
+    "accent_color": {
+      "type": "string",
+      "description": "Accent/highlight color for branding"
+    },
+    "pattern_preference": {
+      "type": "string",
+      "enum": [
+        "solid",
+        "vertical_stripes",
+        "horizontal_hoops",
+        "sash",
+        "diagonal_stripe",
+        "halves",
+        "quarters"
+      ],
+      "description": "Preferred kit pattern style"
+    },
+    "text_style": {
+      "type": "string",
+      "enum": [
+        "modern",
+        "classic",
+        "bold"
+      ],
+      "description": "Text and typography style"
+    },
+    "home_kit_url": {
+      "type": "string",
+      "description": "Generated home kit image URL"
+    },
+    "away_kit_url": {
+      "type": "string",
+      "description": "Generated away kit image URL"
+    },
+    "third_kit_url": {
+      "type": "string",
+      "description": "Generated third kit image URL"
+    },
+    "history": {
+      "type": "string",
+      "description": "Detailed club history"
+    },
+    "honours": {
+      "type": "string",
+      "description": "List of major honours/trophies"
+    },
+    "notable_players": {
+      "type": "string",
+      "description": "Notable players in club history"
+    },
+    "rivals": {
+      "type": "string",
+      "description": "Main rival clubs (legacy field)"
+    },
+    "rival_club_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of rival club IDs (up to 10)"
+    },
+    "manager": {
+      "type": "string",
+      "description": "Current manager name"
+    },
+    "stability_points": {
+      "type": "number",
+      "description": "Club stability points - determines financial health and facilities"
+    },
+    "stability_status": {
+      "type": "string",
+      "enum": [
+        "stable",
+        "at_risk",
+        "critical"
+      ],
+      "description": "Club stability status based on points"
+    },
+    "professional_status": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "semi-professional",
+        "amateur"
+      ],
+      "description": "Club professional status"
+    },
+    "has_youth_academy": {
+      "type": "boolean",
+      "description": "Whether the club has a youth academy"
+    },
+    "youth_academy_rating": {
+      "type": "number",
+      "description": "Youth academy rating (1-5 stars)"
+    },
+    "training_ground_rating": {
+      "type": "number",
+      "description": "Training ground facilities rating (1-5 stars)"
+    },
+    "stadium_rating": {
+      "type": "number",
+      "description": "Stadium facilities rating (1-5 stars)"
+    },
+    "commercial_rating": {
+      "type": "number",
+      "description": "Commercial/sponsorship capacity (1-5 stars)"
+    },
+    "league_titles": {
+      "type": "number",
+      "description": "Total number of top-tier league titles won"
+    },
+    "title_years": {
+      "type": "string",
+      "description": "Years when top-tier titles were won (comma separated)"
+    },
+    "lower_tier_titles": {
+      "type": "number",
+      "description": "Total number of lower-tier league titles won"
+    },
+    "lower_tier_title_years": {
+      "type": "string",
+      "description": "Years when lower-tier titles were won (comma separated)"
+    },
+    "best_finish": {
+      "type": "number",
+      "description": "Best league finish position in highest tier played"
+    },
+    "best_finish_year": {
+      "type": "string",
+      "description": "Year of best finish"
+    },
+    "best_finish_tier": {
+      "type": "number",
+      "description": "The tier level of the best finish (1=top tier)"
+    },
+    "worst_finish": {
+      "type": "number",
+      "description": "Worst league finish position"
+    },
+    "worst_finish_year": {
+      "type": "string",
+      "description": "Year of worst finish"
+    },
+    "worst_finish_tier": {
+      "type": "number",
+      "description": "The tier level of the worst finish"
+    },
+    "last_season_year": {
+      "type": "string",
+      "description": "Most recent season year for determining current league"
+    },
+    "seasons_played": {
+      "type": "number",
+      "description": "Total seasons played in tracked history"
+    },
+    "seasons_top_flight": {
+      "type": "number",
+      "description": "Number of seasons in top flight (tier 1)"
+    },
+    "seasons_in_tfa": {
+      "type": "number",
+      "description": "Number of seasons in TFA system (tiers 1-4, Turuliand only)"
+    },
+    "total_wins": {
+      "type": "number",
+      "description": "Total wins across all tracked seasons"
+    },
+    "total_draws": {
+      "type": "number",
+      "description": "Total draws across all tracked seasons"
+    },
+    "total_losses": {
+      "type": "number",
+      "description": "Total losses across all tracked seasons"
+    },
+    "total_goals_scored": {
+      "type": "number",
+      "description": "Total goals scored across all tracked seasons"
+    },
+    "total_goals_conceded": {
+      "type": "number",
+      "description": "Total goals conceded across all tracked seasons"
+    },
+    "promotions": {
+      "type": "number",
+      "description": "Number of promotions"
+    },
+    "relegations": {
+      "type": "number",
+      "description": "Number of relegations"
+    },
+    "vcc_titles": {
+      "type": "number",
+      "description": "Number of VCC (Champions Cup) titles won"
+    },
+    "vcc_title_years": {
+      "type": "string",
+      "description": "Years when VCC titles were won (comma separated)"
+    },
+    "vcc_runner_up": {
+      "type": "number",
+      "description": "Number of VCC finals lost"
+    },
+    "vcc_best_finish": {
+      "type": "string",
+      "description": "Best finish in VCC (e.g., Winner, Final, Semi-final, Quarter-final)"
+    },
+    "vcc_best_finish_year": {
+      "type": "string",
+      "description": "Year of best VCC finish"
+    },
+    "vcc_appearances": {
+      "type": "number",
+      "description": "Total VCC competition appearances"
+    },
+    "ccc_titles": {
+      "type": "number",
+      "description": "Number of CCC (Continental Cup) titles won"
+    },
+    "ccc_title_years": {
+      "type": "string",
+      "description": "Years when CCC titles were won (comma separated)"
+    },
+    "ccc_runner_up": {
+      "type": "number",
+      "description": "Number of CCC finals lost"
+    },
+    "ccc_best_finish": {
+      "type": "string",
+      "description": "Best finish in CCC (e.g., Winner, Final, Semi-final, Quarter-final)"
+    },
+    "ccc_best_finish_year": {
+      "type": "string",
+      "description": "Year of best CCC finish"
+    },
+    "ccc_appearances": {
+      "type": "number",
+      "description": "Total CCC competition appearances"
+    },
+    "domestic_cup_titles": {
+      "type": "number",
+      "description": "Number of domestic cup titles won"
+    },
+    "domestic_cup_title_years": {
+      "type": "string",
+      "description": "Years when domestic cup titles were won"
+    },
+    "domestic_cup_runner_up": {
+      "type": "number",
+      "description": "Number of domestic cup finals lost"
+    },
+    "domestic_cup_best_finish": {
+      "type": "string",
+      "description": "Best finish in domestic cup (Winner, Final, Semi-final, etc.)"
+    },
+    "domestic_cup_best_finish_year": {
+      "type": "string",
+      "description": "Year of best domestic cup finish"
+    },
+    "predecessor_club_id": {
+      "type": "string",
+      "description": "ID of the predecessor club (if this club was renamed/restarted from another)"
+    },
+    "predecessor_club_2_id": {
+      "type": "string",
+      "description": "ID of second predecessor club (if this club was formed from a merger)"
+    },
+    "former_name_club_id": {
+      "type": "string",
+      "description": "ID of a former name record (same club, just renamed - not reformation)"
+    },
+    "former_name_club_2_id": {
+      "type": "string",
+      "description": "ID of a second former name record (for clubs with multiple name changes)"
+    },
+    "is_former_name": {
+      "type": "boolean",
+      "description": "True if this record represents a former name of an active club"
+    },
+    "current_name_club_id": {
+      "type": "string",
+      "description": "ID of the current name club (if this is a former name record)"
+    },
+    "renamed_year": {
+      "type": "number",
+      "description": "Year the club was renamed to/from this name"
+    },
+    "reverted_to_original": {
+      "type": "boolean",
+      "description": "True if this club reverted back to an earlier name"
+    },
+    "is_defunct": {
+      "type": "boolean",
+      "description": "True if this club is defunct/disbanded and has a successor"
+    },
+    "successor_club_id": {
+      "type": "string",
+      "description": "ID of the successor club (if this club was renamed/restarted as another)"
+    },
+    "defunct_year": {
+      "type": "number",
+      "description": "Year the club became defunct"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Whether the club is currently active (false for inactive/disbanded clubs without pulling league data)",
+      "default": true
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Latitude coordinate on fictional world map (0-1000)"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitude coordinate on fictional world map (0-1000)"
+    }
+  },
+  "required": [
+    "name",
+    "nation_id"
+  ]
+}

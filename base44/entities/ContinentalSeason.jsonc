@@ -1,0 +1,50 @@
+{
+  "name": "ContinentalSeason",
+  "type": "object",
+  "properties": {
+    "competition_id": {
+      "type": "string",
+      "description": "ID of the continental competition"
+    },
+    "year": {
+      "type": "string",
+      "description": "Season year (e.g., 2023-24)"
+    },
+    "champion_name": {
+      "type": "string",
+      "description": "Winning club name"
+    },
+    "champion_nation": {
+      "type": "string",
+      "description": "Nation of the champion"
+    },
+    "runner_up": {
+      "type": "string",
+      "description": "Runner-up club"
+    },
+    "runner_up_nation": {
+      "type": "string",
+      "description": "Nation of the runner-up"
+    },
+    "final_score": {
+      "type": "string",
+      "description": "Final score"
+    },
+    "final_venue": {
+      "type": "string",
+      "description": "Final venue"
+    },
+    "top_scorer": {
+      "type": "string",
+      "description": "Top scorer of the competition"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "competition_id",
+    "year"
+  ]
+}

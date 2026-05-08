@@ -1,0 +1,76 @@
+{
+  "name": "DomesticCupMatch",
+  "type": "object",
+  "properties": {
+    "season_id": {
+      "type": "string",
+      "description": "ID of the cup season"
+    },
+    "round": {
+      "type": "string",
+      "description": "Round name (e.g., First Round, Quarter-final, Semi-final, Final)"
+    },
+    "match_number": {
+      "type": "number",
+      "description": "Match number within the round for ordering"
+    },
+    "home_club_id": {
+      "type": "string",
+      "description": "Home club ID"
+    },
+    "home_club_name": {
+      "type": "string",
+      "description": "Home club name"
+    },
+    "away_club_id": {
+      "type": "string",
+      "description": "Away club ID"
+    },
+    "away_club_name": {
+      "type": "string",
+      "description": "Away club name"
+    },
+    "home_score": {
+      "type": "number",
+      "description": "Home team score"
+    },
+    "away_score": {
+      "type": "number",
+      "description": "Away team score"
+    },
+    "extra_time": {
+      "type": "boolean",
+      "description": "Match went to extra time"
+    },
+    "penalties": {
+      "type": "string",
+      "description": "Penalty shootout result if applicable"
+    },
+    "replay": {
+      "type": "boolean",
+      "description": "This match is a replay"
+    },
+    "winner_id": {
+      "type": "string",
+      "description": "ID of winning club"
+    },
+    "winner": {
+      "type": "string",
+      "description": "Name of winning club"
+    },
+    "venue": {
+      "type": "string",
+      "description": "Match venue"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "season_id",
+    "round",
+    "home_club_name",
+    "away_club_name"
+  ]
+}

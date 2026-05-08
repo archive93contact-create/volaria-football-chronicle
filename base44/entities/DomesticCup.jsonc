@@ -1,0 +1,97 @@
+{
+  "name": "DomesticCup",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the cup competition"
+    },
+    "nation_id": {
+      "type": "string",
+      "description": "ID of the nation this cup belongs to"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "Short name (e.g., FA Cup)"
+    },
+    "is_main_cup": {
+      "type": "boolean",
+      "description": "True if this is the nation's main/premier cup competition"
+    },
+    "description": {
+      "type": "string",
+      "description": "Cup competition description"
+    },
+    "history": {
+      "type": "string",
+      "description": "Cup competition history"
+    },
+    "founded_year": {
+      "type": "number",
+      "description": "Year the competition was founded"
+    },
+    "format": {
+      "type": "string",
+      "description": "Competition format description"
+    },
+    "eligible_tiers": {
+      "type": "string",
+      "description": "Which league tiers can participate (e.g., 1-4)"
+    },
+    "current_champion": {
+      "type": "string",
+      "description": "Current champion"
+    },
+    "most_titles_club": {
+      "type": "string",
+      "description": "Club with most titles"
+    },
+    "most_titles_count": {
+      "type": "number",
+      "description": "Number of titles for most successful club"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Primary brand color"
+    },
+    "secondary_color": {
+      "type": "string",
+      "description": "Secondary brand color"
+    },
+    "entry_rounds_by_tier": {
+      "type": "object",
+      "description": "Defines which tier enters at which round (e.g., {\"1\": \"Round 3\", \"2\": \"Round 3\", \"3-4\": \"Round 1\", \"5-10\": \"Preliminary Round\"})"
+    },
+    "draw_style": {
+      "type": "string",
+      "enum": [
+        "random",
+        "seeded"
+      ],
+      "default": "random",
+      "description": "Draw mechanism - random (any team can face any) or seeded (higher tiers protected)"
+    },
+    "uses_replays": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether drawn matches go to replay at away ground"
+    },
+    "neutral_venue_final": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether final is played at neutral venue"
+    },
+    "prize_money_by_round": {
+      "type": "object",
+      "description": "Prize money for reaching each round (e.g., {\"Round 1\": 5000, \"Quarter-Final\": 50000})"
+    },
+    "european_qualification_spots": {
+      "type": "number",
+      "description": "Number of cup finalists that qualify for continental competition"
+    }
+  },
+  "required": [
+    "name",
+    "nation_id"
+  ]
+}

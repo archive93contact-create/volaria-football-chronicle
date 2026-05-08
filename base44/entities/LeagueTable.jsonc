@@ -1,0 +1,88 @@
+{
+  "name": "LeagueTable",
+  "type": "object",
+  "properties": {
+    "season_id": {
+      "type": "string",
+      "description": "ID of the season"
+    },
+    "league_id": {
+      "type": "string",
+      "description": "ID of the league"
+    },
+    "year": {
+      "type": "string",
+      "description": "Season year"
+    },
+    "tier": {
+      "type": "number",
+      "description": "Override tier for this table entry (preserves historical tier if league moved)"
+    },
+    "division_name": {
+      "type": "string",
+      "description": "Division name if league was split (e.g., North, South)"
+    },
+    "position": {
+      "type": "number",
+      "description": "Final league position"
+    },
+    "club_id": {
+      "type": "string",
+      "description": "ID of the club"
+    },
+    "youth_team_id": {
+      "type": "string",
+      "description": "ID of the youth team (if this is a youth league entry)"
+    },
+    "club_name": {
+      "type": "string",
+      "description": "Name of the club"
+    },
+    "played": {
+      "type": "number",
+      "description": "Games played"
+    },
+    "won": {
+      "type": "number",
+      "description": "Games won"
+    },
+    "drawn": {
+      "type": "number",
+      "description": "Games drawn"
+    },
+    "lost": {
+      "type": "number",
+      "description": "Games lost"
+    },
+    "goals_for": {
+      "type": "number",
+      "description": "Goals scored"
+    },
+    "goals_against": {
+      "type": "number",
+      "description": "Goals conceded"
+    },
+    "goal_difference": {
+      "type": "number",
+      "description": "Goal difference"
+    },
+    "points": {
+      "type": "number",
+      "description": "Total points"
+    },
+    "status": {
+      "type": "string",
+      "description": "Position status (champion, promoted, relegated, playoff, playoff_winner, european)"
+    },
+    "highlight_color": {
+      "type": "string",
+      "description": "Custom highlight color for this position"
+    }
+  },
+  "required": [
+    "league_id",
+    "year",
+    "position",
+    "club_name"
+  ]
+}

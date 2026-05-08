@@ -1,0 +1,134 @@
+{
+  "name": "Nation",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the nation"
+    },
+    "flag_url": {
+      "type": "string",
+      "description": "URL to the nation's flag image"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the nation"
+    },
+    "football_history": {
+      "type": "string",
+      "description": "Football history and background of the nation"
+    },
+    "founded_year": {
+      "type": "number",
+      "description": "Year football was established in this nation"
+    },
+    "federation_name": {
+      "type": "string",
+      "description": "Name of the national football federation"
+    },
+    "region": {
+      "type": "string",
+      "description": "Region within Volaria"
+    },
+    "top_division": {
+      "type": "string",
+      "description": "Name of the top division league"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Primary color from flag (hex code)"
+    },
+    "secondary_color": {
+      "type": "string",
+      "description": "Secondary color from flag (hex code)"
+    },
+    "membership": {
+      "type": "string",
+      "enum": [
+        "VCC",
+        "CCC"
+      ],
+      "description": "Continental membership - VCC (Full Member) or CCC (Associate Member)"
+    },
+    "capital": {
+      "type": "string",
+      "description": "Capital city of the nation"
+    },
+    "language": {
+      "type": "string",
+      "description": "Primary language spoken in the nation"
+    },
+    "nation_strength": {
+      "type": "number",
+      "description": "Nation football strength rating (1-10, affects club stability)"
+    },
+    "max_professional_clubs": {
+      "type": "number",
+      "description": "Maximum number of professional clubs the nation can sustain"
+    },
+    "culture": {
+      "type": "string",
+      "description": "Cultural characteristics, traditions, and identity"
+    },
+    "geography": {
+      "type": "string",
+      "description": "Geographic features, terrain, climate, and natural resources"
+    },
+    "national_media": {
+      "type": "string",
+      "description": "Major national newspapers, broadcasters, sports networks"
+    },
+    "cuisine": {
+      "type": "string",
+      "description": "Traditional foods and culinary culture"
+    },
+    "famous_for": {
+      "type": "string",
+      "description": "What the nation is known for (exports, achievements, characteristics)"
+    },
+    "government_type": {
+      "type": "string",
+      "description": "Type of government system"
+    },
+    "naming_styles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Naming convention styles for this nation (up to 4)"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Center latitude coordinate on fictional world map (0-1000)"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Center longitude coordinate on fictional world map (0-1000)"
+    },
+    "map_bounds": {
+      "type": "object",
+      "description": "Geographic boundaries for this nation on the map",
+      "properties": {
+        "north": {
+          "type": "number"
+        },
+        "south": {
+          "type": "number"
+        },
+        "east": {
+          "type": "number"
+        },
+        "west": {
+          "type": "number"
+        }
+      }
+    },
+    "map_url": {
+      "type": "string",
+      "description": "URL to generated terrain/topographic map image for this nation"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

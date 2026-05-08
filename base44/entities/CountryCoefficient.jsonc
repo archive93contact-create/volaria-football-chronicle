@@ -1,0 +1,62 @@
+{
+  "name": "CountryCoefficient",
+  "type": "object",
+  "properties": {
+    "nation_id": {
+      "type": "string",
+      "description": "ID of the nation"
+    },
+    "nation_name": {
+      "type": "string",
+      "description": "Name of the nation"
+    },
+    "coefficient_year": {
+      "type": "string",
+      "description": "Coefficient year/cycle"
+    },
+    "rank": {
+      "type": "number",
+      "description": "Current ranking position"
+    },
+    "previous_rank": {
+      "type": "number",
+      "description": "Previous ranking position"
+    },
+    "total_points": {
+      "type": "number",
+      "description": "Total coefficient points"
+    },
+    "year_1_points": {
+      "type": "number",
+      "description": "Points from year 1"
+    },
+    "year_2_points": {
+      "type": "number",
+      "description": "Points from year 2"
+    },
+    "year_3_points": {
+      "type": "number",
+      "description": "Points from year 3"
+    },
+    "year_4_points": {
+      "type": "number",
+      "description": "Points from year 4"
+    },
+    "year_5_points": {
+      "type": "number",
+      "description": "Points from year 5"
+    },
+    "vcc_spots": {
+      "type": "number",
+      "description": "VCC qualification spots"
+    },
+    "ccc_spots": {
+      "type": "number",
+      "description": "CCC qualification spots"
+    }
+  },
+  "required": [
+    "nation_name",
+    "rank"
+  ]
+}

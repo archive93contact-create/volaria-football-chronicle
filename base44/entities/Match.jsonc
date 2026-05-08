@@ -1,0 +1,103 @@
+{
+  "name": "Match",
+  "type": "object",
+  "properties": {
+    "season_id": {
+      "type": "string",
+      "description": "ID of the season"
+    },
+    "league_id": {
+      "type": "string",
+      "description": "ID of the league"
+    },
+    "year": {
+      "type": "string",
+      "description": "Season year"
+    },
+    "matchday": {
+      "type": "number",
+      "description": "Matchday/round number"
+    },
+    "match_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Match date"
+    },
+    "home_club_id": {
+      "type": "string",
+      "description": "Home club ID"
+    },
+    "home_club_name": {
+      "type": "string",
+      "description": "Home club name"
+    },
+    "away_club_id": {
+      "type": "string",
+      "description": "Away club ID"
+    },
+    "away_club_name": {
+      "type": "string",
+      "description": "Away club name"
+    },
+    "home_score": {
+      "type": "number",
+      "description": "Home team goals"
+    },
+    "away_score": {
+      "type": "number",
+      "description": "Away team goals"
+    },
+    "attendance": {
+      "type": "number",
+      "description": "Match attendance"
+    },
+    "stadium": {
+      "type": "string",
+      "description": "Stadium name"
+    },
+    "goalscorers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "player_name": {
+            "type": "string"
+          },
+          "player_id": {
+            "type": "string"
+          },
+          "minute": {
+            "type": "number"
+          },
+          "is_home": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Array of goalscorers with details"
+    },
+    "match_report": {
+      "type": "string",
+      "description": "AI-generated match report for key games"
+    },
+    "is_derby": {
+      "type": "boolean",
+      "description": "True if this is a derby/rivalry match"
+    },
+    "is_title_decider": {
+      "type": "boolean",
+      "description": "True if match had title implications"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the match"
+    }
+  },
+  "required": [
+    "season_id",
+    "league_id",
+    "year",
+    "home_club_name",
+    "away_club_name"
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "name": "ContinentalMatch",
+  "type": "object",
+  "properties": {
+    "season_id": {
+      "type": "string",
+      "description": "ID of the continental season"
+    },
+    "round": {
+      "type": "string",
+      "description": "Round name (e.g., Round of 32, Round of 16, Quarter-final, Semi-final, Final)"
+    },
+    "match_number": {
+      "type": "number",
+      "description": "Match number within the round for ordering"
+    },
+    "home_club_name": {
+      "type": "string",
+      "description": "Home club name"
+    },
+    "home_club_nation": {
+      "type": "string",
+      "description": "Home club nation"
+    },
+    "home_club_id": {
+      "type": "string",
+      "description": "Home club ID (optional)"
+    },
+    "away_club_name": {
+      "type": "string",
+      "description": "Away club name"
+    },
+    "away_club_nation": {
+      "type": "string",
+      "description": "Away club nation"
+    },
+    "away_club_id": {
+      "type": "string",
+      "description": "Away club ID (optional)"
+    },
+    "home_score_leg1": {
+      "type": "number",
+      "description": "Home team score in first leg"
+    },
+    "away_score_leg1": {
+      "type": "number",
+      "description": "Away team score in first leg"
+    },
+    "home_score_leg2": {
+      "type": "number",
+      "description": "Home team score in second leg"
+    },
+    "away_score_leg2": {
+      "type": "number",
+      "description": "Away team score in second leg"
+    },
+    "home_aggregate": {
+      "type": "number",
+      "description": "Home team aggregate score"
+    },
+    "away_aggregate": {
+      "type": "number",
+      "description": "Away team aggregate score"
+    },
+    "penalties": {
+      "type": "string",
+      "description": "Penalty shootout result if applicable (e.g., 4-3)"
+    },
+    "winner": {
+      "type": "string",
+      "description": "Name of the winning club"
+    },
+    "is_single_leg": {
+      "type": "boolean",
+      "description": "True if single leg match (e.g., final)"
+    },
+    "venue": {
+      "type": "string",
+      "description": "Match venue (for single leg matches)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "home_lineup_leg1": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs in starting XI for home team (leg 1)"
+    },
+    "away_lineup_leg1": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs in starting XI for away team (leg 1)"
+    },
+    "home_subs_leg1": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs on bench for home team (leg 1)"
+    },
+    "away_subs_leg1": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs on bench for away team (leg 1)"
+    },
+    "goals_leg1": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "player_id": {
+            "type": "string"
+          },
+          "minute": {
+            "type": "number"
+          },
+          "is_home": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Array of goals scored in leg 1 with player ID, minute, and team"
+    },
+    "substitutions_leg1": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "player_in_id": {
+            "type": "string"
+          },
+          "player_out_id": {
+            "type": "string"
+          },
+          "minute": {
+            "type": "number"
+          },
+          "is_home": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Array of substitutions in leg 1 with players involved, minute, and team"
+    },
+    "home_lineup_leg2": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs in starting XI for home team (leg 2)"
+    },
+    "away_lineup_leg2": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs in starting XI for away team (leg 2)"
+    },
+    "home_subs_leg2": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs on bench for home team (leg 2)"
+    },
+    "away_subs_leg2": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of player IDs on bench for away team (leg 2)"
+    },
+    "goals_leg2": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "player_id": {
+            "type": "string"
+          },
+          "minute": {
+            "type": "number"
+          },
+          "is_home": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Array of goals scored in leg 2 with player ID, minute, and team"
+    },
+    "substitutions_leg2": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "player_in_id": {
+            "type": "string"
+          },
+          "player_out_id": {
+            "type": "string"
+          },
+          "minute": {
+            "type": "number"
+          },
+          "is_home": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Array of substitutions in leg 2 with players involved, minute, and team"
+    }
+  },
+  "required": [
+    "season_id",
+    "round",
+    "home_club_name",
+    "away_club_name"
+  ]
+}

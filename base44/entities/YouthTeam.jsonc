@@ -1,0 +1,65 @@
+{
+  "name": "YouthTeam",
+  "type": "object",
+  "properties": {
+    "parent_club_id": {
+      "type": "string",
+      "description": "ID of the parent club"
+    },
+    "name": {
+      "type": "string",
+      "description": "Youth team name (e.g., 'Manchester United U-19')"
+    },
+    "age_group": {
+      "type": "string",
+      "description": "Age group (U-23, U-19, U-17, U-15, etc.)"
+    },
+    "league_id": {
+      "type": "string",
+      "description": "Current league ID"
+    },
+    "manager": {
+      "type": "string",
+      "description": "Youth team manager/coach"
+    },
+    "home_ground": {
+      "type": "string",
+      "description": "Training ground or stadium name"
+    },
+    "youth_league_titles": {
+      "type": "number",
+      "description": "Number of youth league titles won",
+      "default": 0
+    },
+    "youth_league_title_years": {
+      "type": "string",
+      "description": "Years when youth league titles were won (comma separated)"
+    },
+    "youth_cup_titles": {
+      "type": "number",
+      "description": "Number of youth cup titles won",
+      "default": 0
+    },
+    "youth_cup_title_years": {
+      "type": "string",
+      "description": "Years when youth cup titles were won (comma separated)"
+    },
+    "best_league_finish": {
+      "type": "number",
+      "description": "Best league finish position"
+    },
+    "best_league_finish_year": {
+      "type": "string",
+      "description": "Year of best league finish"
+    },
+    "notable_graduates": {
+      "type": "string",
+      "description": "Notable players who progressed to senior team (comma separated)"
+    }
+  },
+  "required": [
+    "parent_club_id",
+    "name",
+    "age_group"
+  ]
+}

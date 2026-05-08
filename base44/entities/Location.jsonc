@@ -1,0 +1,108 @@
+{
+  "name": "Location",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the location (region, district, or settlement)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "region",
+        "district",
+        "settlement"
+      ],
+      "description": "Type of location"
+    },
+    "nation_id": {
+      "type": "string",
+      "description": "ID of the nation this location belongs to"
+    },
+    "parent_region": {
+      "type": "string",
+      "description": "Parent region name (for districts and settlements)"
+    },
+    "parent_district": {
+      "type": "string",
+      "description": "Parent district name (for settlements)"
+    },
+    "is_capital": {
+      "type": "boolean",
+      "description": "True if this is the national capital"
+    },
+    "settlement_size": {
+      "type": "string",
+      "enum": [
+        "city",
+        "town",
+        "village"
+      ],
+      "description": "Size classification for settlements"
+    },
+    "population": {
+      "type": "number",
+      "description": "Estimated population"
+    },
+    "club_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of club IDs in this location"
+    },
+    "description": {
+      "type": "string",
+      "description": "Custom description of the location"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or historical context"
+    },
+    "culture_description": {
+      "type": "string",
+      "description": "AI-generated cultural description and local characteristics"
+    },
+    "geography": {
+      "type": "string",
+      "description": "Geographic features, terrain, climate"
+    },
+    "local_media": {
+      "type": "string",
+      "description": "Local newspapers, radio stations, TV channels (comma separated)"
+    },
+    "major_companies": {
+      "type": "string",
+      "description": "Major local businesses and employers (comma separated)"
+    },
+    "landmarks": {
+      "type": "string",
+      "description": "Notable landmarks and attractions"
+    },
+    "industries": {
+      "type": "string",
+      "description": "Primary local industries and economy"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "AI-generated photorealistic image of the location"
+    },
+    "map_url": {
+      "type": "string",
+      "description": "AI-generated cartographic map of the location"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Latitude coordinate on fictional world map (0-1000)"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitude coordinate on fictional world map (0-1000)"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "nation_id"
+  ]
+}

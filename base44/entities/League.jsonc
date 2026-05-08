@@ -1,0 +1,133 @@
+{
+  "name": "League",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the league"
+    },
+    "nation_id": {
+      "type": "string",
+      "description": "ID of the nation this league belongs to"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to the league logo"
+    },
+    "tier": {
+      "type": "number",
+      "description": "League tier/level (1 = top division)"
+    },
+    "league_type": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "youth",
+        "reserve"
+      ],
+      "default": "professional",
+      "description": "Type of league - professional, youth, or reserve teams"
+    },
+    "age_group": {
+      "type": "string",
+      "description": "Age group for youth leagues (e.g., U-23, U-19, U-17, U-15)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the league"
+    },
+    "history": {
+      "type": "string",
+      "description": "Detailed history of the league"
+    },
+    "founded_year": {
+      "type": "number",
+      "description": "Year the league was founded"
+    },
+    "number_of_teams": {
+      "type": "number",
+      "description": "Number of teams in the league"
+    },
+    "format": {
+      "type": "string",
+      "description": "League format (e.g., round-robin, playoffs)"
+    },
+    "promotion_spots": {
+      "type": "number",
+      "description": "Number of promotion spots"
+    },
+    "relegation_spots": {
+      "type": "number",
+      "description": "Number of relegation spots"
+    },
+    "current_champion": {
+      "type": "string",
+      "description": "Current champion club name"
+    },
+    "most_titles": {
+      "type": "string",
+      "description": "Club with most titles"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Primary brand color (hex)"
+    },
+    "secondary_color": {
+      "type": "string",
+      "description": "Secondary brand color (hex)"
+    },
+    "accent_color": {
+      "type": "string",
+      "description": "Accent/highlight color for branding"
+    },
+    "text_style": {
+      "type": "string",
+      "enum": [
+        "modern",
+        "classic",
+        "bold"
+      ],
+      "description": "Text and typography style for league branding"
+    },
+    "former_name": {
+      "type": "string",
+      "description": "Previous name of the league (if renamed)"
+    },
+    "renamed_year": {
+      "type": "number",
+      "description": "Year the league changed to current name"
+    },
+    "rename_reason": {
+      "type": "string",
+      "description": "Reason for the name change (e.g., sponsorship, restructuring, political)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Whether the league is currently active (false for defunct/discontinued leagues)",
+      "default": true
+    },
+    "governing_body": {
+      "type": "string",
+      "description": "Governing body/federation that oversees this league (e.g., TFA, Regional FA)"
+    },
+    "inactivity_reason": {
+      "type": "string",
+      "description": "Reason for league dormancy/inactivity (e.g., 'War suspended operations 1940-1945', 'Restructuring', 'Merged with X League')"
+    },
+    "parent_league_id": {
+      "type": "string",
+      "description": "ID of the league this league feeds into (promotion target)"
+    },
+    "feeder_league_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of league IDs that feed into this league (relegation/promotion sources)"
+    }
+  },
+  "required": [
+    "name",
+    "nation_id"
+  ]
+}

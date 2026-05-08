@@ -1,0 +1,114 @@
+{
+  "name": "Season",
+  "type": "object",
+  "properties": {
+    "league_id": {
+      "type": "string",
+      "description": "ID of the league"
+    },
+    "year": {
+      "type": "string",
+      "description": "Season year (e.g., 2023-24)"
+    },
+    "tier": {
+      "type": "number",
+      "description": "Override tier for this season (if league moved tier)"
+    },
+    "division_name": {
+      "type": "string",
+      "description": "Division name if league split (e.g., North, South, Group A)"
+    },
+    "division_group": {
+      "type": "string",
+      "description": "Parent division group (for multiple divisions at same tier)"
+    },
+    "number_of_teams": {
+      "type": "number",
+      "description": "Number of teams in this season"
+    },
+    "champion_id": {
+      "type": "string",
+      "description": "ID of the champion club"
+    },
+    "champion_name": {
+      "type": "string",
+      "description": "Name of the champion club"
+    },
+    "runner_up": {
+      "type": "string",
+      "description": "Runner-up club name"
+    },
+    "top_scorer": {
+      "type": "string",
+      "description": "Top scorer name and goals"
+    },
+    "promoted_teams": {
+      "type": "string",
+      "description": "Teams promoted (comma separated)"
+    },
+    "relegated_teams": {
+      "type": "string",
+      "description": "Teams relegated (comma separated)"
+    },
+    "champion_color": {
+      "type": "string",
+      "description": "Highlight color for champion"
+    },
+    "promotion_color": {
+      "type": "string",
+      "description": "Highlight color for promoted teams"
+    },
+    "relegation_color": {
+      "type": "string",
+      "description": "Highlight color for relegated teams"
+    },
+    "playoff_color": {
+      "type": "string",
+      "description": "Highlight color for playoff spots"
+    },
+    "promotion_spots": {
+      "type": "number",
+      "description": "Number of automatic promotion spots"
+    },
+    "relegation_spots": {
+      "type": "number",
+      "description": "Number of relegation spots"
+    },
+    "playoff_spots_start": {
+      "type": "number",
+      "description": "Starting position for playoff places (e.g., 4 means 4th place enters playoffs)"
+    },
+    "playoff_spots_end": {
+      "type": "number",
+      "description": "Ending position for playoff places (e.g., 6 means up to 6th place)"
+    },
+    "playoff_format": {
+      "type": "string",
+      "description": "Playoff format description (e.g., Semi-finals then Final)"
+    },
+    "playoff_winner": {
+      "type": "string",
+      "description": "Club that won the promotion playoff"
+    },
+    "playoff_winner_id": {
+      "type": "string",
+      "description": "ID of the playoff winner club"
+    },
+    "playoff_runner_up": {
+      "type": "string",
+      "description": "Club that lost the playoff final"
+    },
+    "playoff_notes": {
+      "type": "string",
+      "description": "Additional notes about the playoff (scores, venues, etc.)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the season"
+    }
+  },
+  "required": [
+    "league_id",
+    "year"
+  ]
+}

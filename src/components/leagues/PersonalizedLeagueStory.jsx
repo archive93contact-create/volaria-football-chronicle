@@ -5,9 +5,8 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function PersonalizedLeagueStory({ league, nation, seasons, clubs, allLeagueTables }) {
-    if (!league || !seasons || seasons.length === 0 || !clubs || !allLeagueTables) return null;
-
     const story = useMemo(() => {
+        if (!league || !seasons || seasons.length === 0 || !clubs || !allLeagueTables) return [];
         const paragraphs = [];
         const sortedSeasons = [...seasons].sort((a, b) => a.year.localeCompare(b.year));
         const firstYear = sortedSeasons[0]?.year;
@@ -118,6 +117,8 @@ export default function PersonalizedLeagueStory({ league, nation, seasons, clubs
 
         return paragraphs;
     }, [league, seasons, clubs, allLeagueTables, nation]);
+
+    if (!story.length) return null;
 
     return (
         <Card 

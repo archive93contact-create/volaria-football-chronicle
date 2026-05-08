@@ -1,0 +1,54 @@
+{
+  "name": "DomesticCupSeason",
+  "type": "object",
+  "properties": {
+    "cup_id": {
+      "type": "string",
+      "description": "ID of the domestic cup competition"
+    },
+    "year": {
+      "type": "string",
+      "description": "Season year (e.g., 1878)"
+    },
+    "number_of_teams": {
+      "type": "number",
+      "description": "Total number of teams in this edition"
+    },
+    "champion_id": {
+      "type": "string",
+      "description": "ID of winning club"
+    },
+    "champion_name": {
+      "type": "string",
+      "description": "Winning club name"
+    },
+    "runner_up_id": {
+      "type": "string",
+      "description": "ID of runner-up club"
+    },
+    "runner_up": {
+      "type": "string",
+      "description": "Runner-up club"
+    },
+    "final_score": {
+      "type": "string",
+      "description": "Final score"
+    },
+    "final_venue": {
+      "type": "string",
+      "description": "Final venue"
+    },
+    "top_scorer": {
+      "type": "string",
+      "description": "Top scorer of the competition"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "cup_id",
+    "year"
+  ]
+}

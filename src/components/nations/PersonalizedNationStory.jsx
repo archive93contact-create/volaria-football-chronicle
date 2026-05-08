@@ -3,9 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Globe, BookOpen } from 'lucide-react';
 
 export default function PersonalizedNationStory({ nation, leagues, clubs, seasons, coefficients }) {
-    if (!nation || !leagues || leagues.length === 0) return null;
-
     const story = useMemo(() => {
+        if (!nation || !leagues || leagues.length === 0) return [];
         const paragraphs = [];
 
         // Only count active clubs (not defunct, not former-name records)
@@ -120,6 +119,8 @@ export default function PersonalizedNationStory({ nation, leagues, clubs, season
 
         return paragraphs;
     }, [nation, leagues, clubs, seasons, coefficients]);
+
+    if (!story.length) return null;
 
     return (
         <Card 
