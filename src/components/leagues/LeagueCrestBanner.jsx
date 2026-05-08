@@ -25,7 +25,7 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
             className="relative w-full overflow-hidden rounded-2xl"
             style={{
                 background: `radial-gradient(ellipse at 30% 50%, ${primary}ee, ${secondary}dd 60%, #0a0a1a)`,
-                minHeight: '340px',
+                minHeight: '420px',
             }}
         >
             {/* Decorative background pattern */}
@@ -99,25 +99,23 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
                 </div>
 
                 {/* Crest Grid */}
-                <div className="flex flex-wrap gap-5 justify-center">
+                <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${Math.min(displayClubs.length, 6)}, 1fr)` }}>
                     {displayClubs.map((club) => {
                         const isChampion = club.position === 1 || club.status === 'champion';
                         return (
                             <Link
                                 key={club.id}
                                 to={createPageUrl(`ClubDetail?id=${club.id}`)}
-                                className="group flex flex-col items-center gap-2"
+                                className="group flex flex-col items-center gap-3"
                                 title={club.name}
                             >
                                 <div
-                                    className="relative flex items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-2xl"
+                                    className="relative flex items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl w-full aspect-square"
                                     style={{
-                                        width: isChampion ? '110px' : '88px',
-                                        height: isChampion ? '110px' : '88px',
                                         backgroundColor: 'white',
-                                        padding: isChampion ? '10px' : '8px',
+                                        padding: '12px',
                                         boxShadow: isChampion
-                                            ? `0 0 0 3px ${accent}, 0 8px 24px rgba(0,0,0,0.5)`
+                                            ? `0 0 0 4px ${accent}, 0 8px 24px rgba(0,0,0,0.5)`
                                             : '0 4px 16px rgba(0,0,0,0.4)',
                                     }}
                                 >
@@ -128,18 +126,18 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
                                             className="w-full h-full object-contain"
                                         />
                                     ) : (
-                                        <Shield className="w-10 h-10 text-slate-300" />
+                                        <Shield className="w-12 h-12 text-slate-300" />
                                     )}
                                     {isChampion && (
                                         <div
-                                            className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg"
+                                            className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
                                             style={{ backgroundColor: accent }}
                                         >
                                             <Trophy className="w-4 h-4 text-white" />
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-white/80 text-xs text-center font-medium max-w-[96px] line-clamp-2 group-hover:text-white transition-colors leading-tight">
+                                <span className="text-white/80 text-xs text-center font-medium w-full line-clamp-2 group-hover:text-white transition-colors leading-tight">
                                     {club.shortened_name || club.name}
                                 </span>
                             </Link>
