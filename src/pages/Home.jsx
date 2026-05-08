@@ -78,7 +78,14 @@ export default function Home() {
             }
         });
 
-        complete.sort((a, b) => a.name.localeCompare(b.name));
+        // Sort by coefficient rank for complete - VCC before CCC
+        complete.sort((a, b) => {
+            if (a.membership !== b.membership) {
+                if (a.membership === 'VCC') return -1;
+                if (b.membership === 'VCC') return 1;
+            }
+            return a.rank - b.rank;
+        });
         inProgress.sort((a, b) => a.name.localeCompare(b.name));
         planned.sort((a, b) => a.name.localeCompare(b.name));
 
