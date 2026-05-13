@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users, ArrowLeft, LogIn } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users, ArrowLeft, LogIn, Activity } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -28,6 +28,7 @@ export default function Layout({ children, currentPageName }) {
                                         { name: 'Clubs', icon: Shield, page: 'AllClubs' },
                                         { name: 'Players', icon: Users, page: 'Players' },
                                         { name: 'Seasons', icon: Trophy, page: 'Seasons' },
+                                        { name: 'Live', icon: Activity, page: 'CurrentSeason' },
                                         { name: 'Continental', icon: Star, page: 'ContinentalCompetitions' },
                                     ];
 
