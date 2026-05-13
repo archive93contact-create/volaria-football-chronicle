@@ -41,6 +41,7 @@ import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatus';
 import YouthSetup from '@/components/youth/YouthSetup';
 import ClubDNA from '@/components/clubs/ClubDNA';
+import ClubMatchHistory from '@/components/clubs/ClubMatchHistory';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -538,6 +539,7 @@ export default function ClubDetail() {
                         <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
                         <TabsTrigger value="youth-setup">Sub Teams</TabsTrigger>
                         <TabsTrigger value="continental">Continental</TabsTrigger>
+                        <TabsTrigger value="matches">Results & Fixtures</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="info">Info</TabsTrigger>
                         </TabsList>
@@ -1331,6 +1333,11 @@ export default function ClubDetail() {
                     {/* YOUTH SETUP TAB */}
                     <TabsContent value="youth-setup">
                         <YouthSetup club={club} />
+                    </TabsContent>
+
+                    {/* RESULTS & FIXTURES TAB */}
+                    <TabsContent value="matches">
+                        <ClubMatchHistory club={club} leagues={allLeagues} />
                     </TabsContent>
 
                     {/* ANALYTICS TAB */}

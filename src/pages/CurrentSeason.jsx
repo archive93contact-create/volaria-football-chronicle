@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Trophy, Star, Shield, Globe, Zap, ChevronRight, Calendar, Activity } from 'lucide-react';
+import { Trophy, Star, Shield, Globe, Zap, ChevronRight, Calendar, Activity, CalendarDays } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -176,6 +176,11 @@ export default function CurrentSeason() {
                         <TabsTrigger value="fixtures">
                             <Calendar className="w-4 h-4 mr-2" /> Fixture Generator
                         </TabsTrigger>
+                        <Link to={createPageUrl('MatchdayCalendar')}>
+                            <Button variant="outline" size="sm" className="ml-2">
+                                <CalendarDays className="w-4 h-4 mr-1" /> Matchday Calendar
+                            </Button>
+                        </Link>
                     </TabsList>
 
                     {/* LEAGUE TABLES */}

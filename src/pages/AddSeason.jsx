@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -17,6 +17,7 @@ import PageHeader from '@/components/common/PageHeader';
 import { useIsAdmin } from '@/components/common/AdminOnly';
 import AIStatsGenerator from '@/components/seasons/AIStatsGenerator';
 import { recalculateStabilityAfterSeason } from '@/components/stability/autoUpdateStability';
+import PostSeasonFixturePrompt from '@/components/currentseason/PostSeasonFixturePrompt';
 
 export default function AddSeason() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -24,6 +25,8 @@ export default function AddSeason() {
     const queryClient = useQueryClient();
     const urlParams = new URLSearchParams(window.location.search);
     const leagueId = urlParams.get('league_id');
+    const [createdSeason, setCreatedSeason] = useState(null);
+    const [showFixturePrompt, setShowFixturePrompt] = useState(false);
 
     const { data: league } = useQuery({
         queryKey: ['league', leagueId],
@@ -534,13 +537,18 @@ export default function AddSeason() {
 
             return season;
         },
-        onSuccess: () => {
+        onSuccess: (season) => {
             queryClient.invalidateQueries(['leagueSeasons']);
             queryClient.invalidateQueries(['leagueTables']);
             queryClient.invalidateQueries(['clubs']);
             queryClient.invalidateQueries(['nationClubs']);
             queryClient.invalidateQueries(['allClubs']);
-            navigate(createPageUrl(`LeagueDetail?id=${leagueId}`));
+            if (season) {
+                setCreatedSeason(season);
+                setShowFixturePrompt(true);
+            } else {
+                navigate(createPageUrl(`LeagueDetail?id=${leagueId}`));
+            }
         },
     });
 
@@ -1133,19 +1141,31 @@ export default function AddSeason() {
                     </CardContent>
                 </Card>
 
+                {/* Fixture Prompt after save */}
+                {showFixturePrompt && createdSeason && (
+                    <PostSeasonFixturePrompt
+                        season={createdSeason}
+                        league={league}
+                        clubs={allNationClubs}
+                        onDismiss={() => navigate(createPageUrl(`LeagueDetail?id=${leagueId}`))}
+                    />
+                )}
+
                 {/* Actions */}
-                <div className="flex items-center justify-between">
-                    <Button variant="ghost" onClick={() => navigate(-1)}>
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Cancel
-                    </Button>
-                    <Button 
-                        onClick={handleSubmit} 
-                        disabled={createSeasonMutation.isPending || !seasonData.year} 
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                    >
-                        {createSeasonMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</> : <><Save className="w-4 h-4 mr-2" /> Create Season</>}
-                    </Button>
-                </div>
+                {!showFixturePrompt && (
+                    <div className="flex items-center justify-between">
+                        <Button variant="ghost" onClick={() => navigate(-1)}>
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleSubmit} 
+                            disabled={createSeasonMutation.isPending || !seasonData.year} 
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                            {createSeasonMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</> : <><Save className="w-4 h-4 mr-2" /> Create Season</>}
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
     );

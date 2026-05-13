@@ -49,6 +49,7 @@
  */
 import About from './pages/About';
 import CurrentSeason from './pages/CurrentSeason';
+import MatchdayCalendar from './pages/MatchdayCalendar';
 import AddClub from './pages/AddClub';
 import AddCompetitionSeason from './pages/AddCompetitionSeason';
 import AddDomesticCupSeason from './pages/AddDomesticCupSeason';
@@ -99,6 +100,7 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "About": About,
     "CurrentSeason": CurrentSeason,
+    "MatchdayCalendar": MatchdayCalendar,
     "AddClub": AddClub,
     "AddCompetitionSeason": AddCompetitionSeason,
     "AddDomesticCupSeason": AddDomesticCupSeason,
