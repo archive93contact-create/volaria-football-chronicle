@@ -1,29 +1,51 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Star, ChevronRight, Flag, Edit2, Users, Eye } from 'lucide-react';
-import { Badge } from "@/components/ui/badge";
+import { Trophy, Star, Edit2, Users, Eye } from 'lucide-react';
 import AdminOnly from '@/components/common/AdminOnly';
 import MatchLineupEditor from '@/components/continental/MatchLineupEditor';
 import MatchDetailView from '@/components/continental/MatchDetailView';
 
-const ROUND_ORDER = ['Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
-const DOMESTIC_CUP_ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
+// Higher rank = later round. Handles standard + custom round names so no
+// round is silently dropped from the bracket.
+const rankRound = (round) => {
+    if (!round) return 0;
+    const r = round.toLowerCase();
+    if (r.includes('final') && !r.includes('semi') && !r.includes('quarter')) return 1000;
+    if (r.includes('semi')) return 900;
+    if (r.includes('quarter')) return 800;
+    const ron = r.match(/round of (\d+)/);
+    if (ron) {
+        const n = parseInt(ron[1], 10);
+        return 700 - (Math.log2(n) - 4) * 10;
+    }
+    if (r.includes('last 16')) return 700;
+    if (r.includes('group') || r.includes('league')) return 500;
+    if (r.includes('preliminary')) return 400;
+    const words = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
+    for (let i = 0; i < words.length; i++) {
+        if (r.includes(words[i])) return 100 + i * 10;
+    }
+    const m = r.match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+};
+
+const gridFor = (n) => {
+    if (n <= 2) return 'grid-cols-1 md:grid-cols-2 max-w-3xl mx-auto';
+    if (n <= 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
+    if (n <= 8) return 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8';
+    return 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8';
+};
 
 export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition, onEditMatch, isDomesticCup = false }) {
     const [lineupEditMatch, setLineupEditMatch] = useState(null);
     const [detailViewMatch, setDetailViewMatch] = useState(null);
-    
-    // Get custom round names from competition
-    const getRoundDisplayName = (roundName) => {
-        if (competition?.round_names && competition.round_names[roundName]) {
-            return competition.round_names[roundName];
-        }
-        return roundName;
-    };
-    // Group matches by round
+
+    const getRoundDisplayName = (roundName) =>
+        (competition?.round_names && competition.round_names[roundName]) || roundName;
+
     const matchesByRound = useMemo(() => {
         return matches.reduce((acc, match) => {
             if (!acc[match.round]) acc[match.round] = [];
@@ -32,29 +54,27 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         }, {});
     }, [matches]);
 
-    // Use appropriate round order based on competition type
-    const roundOrder = isDomesticCup ? DOMESTIC_CUP_ROUND_ORDER : ROUND_ORDER;
+    // All rounds present, Final (latest) first.
+    const sortedRounds = useMemo(
+        () => Object.keys(matchesByRound).sort((a, b) => rankRound(b) - rankRound(a)),
+        [matchesByRound]
+    );
 
-    // Reverse order - Final first
-    const sortedRounds = roundOrder.filter(r => matchesByRound[r]).reverse();
+    const finalRound = sortedRounds[0];
+    const isFinalRound = (round) => round === finalRound && rankRound(round) >= 1000;
 
-    // Helper to find club
     const getClubByName = (name) => {
         if (!name) return null;
         return clubs.find(c => c.name.toLowerCase().trim() === name.toLowerCase().trim());
     };
 
-    // Helper to find nation
     const getNationByName = (name) => {
         if (!name) return null;
         return nations.find(n => n.name.toLowerCase().trim() === name.toLowerCase().trim());
     };
 
-    // Build path for each club - trace their journey through the tournament
     const clubPaths = useMemo(() => {
         const paths = {};
-        
-        // For each club that appears, find all their matches
         matches.forEach(match => {
             [match.home_club_name, match.away_club_name].forEach(clubName => {
                 if (!clubName) return;
@@ -67,14 +87,9 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                 });
             });
         });
-        
-        // Sort each club's path by round order
         Object.keys(paths).forEach(clubName => {
-            paths[clubName].sort((a, b) => 
-                roundOrder.indexOf(a.round) - roundOrder.indexOf(b.round)
-            );
+            paths[clubName].sort((a, b) => rankRound(a.round) - rankRound(b.round));
         });
-        
         return paths;
     }, [matches]);
 
@@ -95,14 +110,12 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         const awayClub = getClubByName(match.away_club_name);
         const homeIsWinner = match.winner === match.home_club_name;
         const awayIsWinner = match.winner === match.away_club_name;
-        
-        // For domestic cups, use home_score/away_score directly (single leg)
+
         const homeScore = isDomesticCup ? match.home_score : (match.is_single_leg ? match.home_score_leg1 : match.home_aggregate);
         const awayScore = isDomesticCup ? match.away_score : (match.is_single_leg ? match.away_score_leg1 : match.away_aggregate);
 
-        const ClubRow = ({ name, nation, club, isWinner, score, isHome }) => {
+        const ClubRow = ({ name, nation, club, isWinner, score }) => {
             const flag = getNationFlag(nation);
-            
             return (
                 <div className={`flex items-center gap-3 p-3 ${isWinner ? 'bg-emerald-50' : 'hover:bg-slate-50'} transition-colors`}>
                     <div className="w-6 text-center">
@@ -112,7 +125,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                         <img src={club.logo_url} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
                     )}
                     {club ? (
-                        <Link 
+                        <Link
                             to={createPageUrl(`ClubDetail?id=${club.id}`)}
                             className={`flex-1 truncate hover:underline ${isWinner ? 'font-bold text-emerald-700' : 'text-slate-700'}`}
                         >
@@ -143,23 +156,9 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                         {getRoundDisplayName(match.round)}
                     </div>
                 )}
-                <ClubRow 
-                    name={match.home_club_name} 
-                    nation={match.home_club_nation}
-                    club={homeClub}
-                    isWinner={homeIsWinner}
-                    score={homeScore}
-                    isHome={true}
-                />
+                <ClubRow name={match.home_club_name} nation={match.home_club_nation} club={homeClub} isWinner={homeIsWinner} score={homeScore} />
                 <div className="border-t border-slate-200" />
-                <ClubRow 
-                    name={match.away_club_name} 
-                    nation={match.away_club_nation}
-                    club={awayClub}
-                    isWinner={awayIsWinner}
-                    score={awayScore}
-                    isHome={false}
-                />
+                <ClubRow name={match.away_club_name} nation={match.away_club_nation} club={awayClub} isWinner={awayIsWinner} score={awayScore} />
                 {!match.is_single_leg && (match.home_score_leg1 != null || match.away_score_leg1 != null) && (
                     <div className="bg-slate-50 px-3 py-2 text-xs text-slate-600 border-t flex justify-center gap-4">
                         <span>1st: {match.home_score_leg1 ?? '-'}-{match.away_score_leg1 ?? '-'}</span>
@@ -178,31 +177,16 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                     </div>
                 )}
                 <div className="border-t border-slate-100 flex">
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="flex-1 text-xs text-slate-500 hover:text-slate-700 h-8"
-                        onClick={() => setDetailViewMatch(match)}
-                    >
+                    <Button variant="ghost" size="sm" className="flex-1 text-xs text-slate-500 hover:text-slate-700 h-8" onClick={() => setDetailViewMatch(match)}>
                         <Eye className="w-3 h-3 mr-1" /> View Details
                     </Button>
                     {onEditMatch && (
                         <AdminOnly>
                             <div className="flex border-l">
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-xs text-slate-500 hover:text-slate-700 h-8"
-                                    onClick={() => setLineupEditMatch(match)}
-                                >
+                                <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-slate-700 h-8" onClick={() => setLineupEditMatch(match)}>
                                     <Users className="w-3 h-3 mr-1" /> Lineups
                                 </Button>
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-xs text-slate-500 hover:text-slate-700 h-8"
-                                    onClick={() => onEditMatch(match)}
-                                >
+                                <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-slate-700 h-8" onClick={() => onEditMatch(match)}>
                                     <Edit2 className="w-3 h-3 mr-1" /> Edit
                                 </Button>
                             </div>
@@ -213,109 +197,25 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         );
     };
 
-    // Get matches for all rounds dynamically
-    const finalMatch = matchesByRound['Final']?.[0];
-    const semiMatches = matchesByRound['Semi-final'] || [];
-    const quarterMatches = matchesByRound['Quarter-final'] || [];
-    const r16Matches = matchesByRound['Round of 16'] || [];
-    const r32Matches = matchesByRound['Round of 32'] || [];
-    const r64Matches = matchesByRound['Round of 64'] || [];
-    const r128Matches = matchesByRound['Round of 128'] || [];
-
     return (
         <div className="space-y-8">
-            {/* Final - Most Prominent */}
-            {finalMatch && (
-                <div className="max-w-md mx-auto">
-                    <MatchCard match={finalMatch} isFinal={true} />
-                </div>
-            )}
-
-            {/* Semi-finals */}
-            {semiMatches.length > 0 && (
-                <div>
-                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        {getRoundDisplayName('Semi-final')}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-                        {semiMatches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
-                            <MatchCard key={match.id} match={match} />
-                        ))}
+            {sortedRounds.map(round => {
+                const roundMatches = matchesByRound[round].sort((a, b) => (a.match_number || 0) - (b.match_number || 0));
+                const final = isFinalRound(round);
+                return (
+                    <div key={round}>
+                        <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+                            {getRoundDisplayName(round)}
+                        </h3>
+                        <div className={final ? 'max-w-md mx-auto' : `grid gap-3 ${gridFor(roundMatches.length)}`}>
+                            {roundMatches.map(match => (
+                                <MatchCard key={match.id} match={match} isFinal={final} showRound />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })}
 
-            {/* Quarter-finals */}
-            {quarterMatches.length > 0 && (
-                <div>
-                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        {getRoundDisplayName('Quarter-final')}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {quarterMatches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
-                            <MatchCard key={match.id} match={match} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Round of 16 */}
-            {r16Matches.length > 0 && (
-                <div>
-                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        {getRoundDisplayName('Round of 16')}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {r16Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
-                            <MatchCard key={match.id} match={match} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Round of 32 */}
-            {r32Matches.length > 0 && (
-                <div>
-                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        {getRoundDisplayName('Round of 32')}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {r32Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
-                            <MatchCard key={match.id} match={match} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Round of 64 */}
-            {r64Matches.length > 0 && (
-                <div>
-                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        {getRoundDisplayName('Round of 64')}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2">
-                        {r64Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
-                            <MatchCard key={match.id} match={match} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Round of 128 */}
-            {r128Matches.length > 0 && (
-                <div>
-                    <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                        {getRoundDisplayName('Round of 128')}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2">
-                        {r128Matches.sort((a, b) => (a.match_number || 0) - (b.match_number || 0)).map(match => (
-                            <MatchCard key={match.id} match={match} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Legend */}
             <div className="flex items-center justify-center gap-6 text-sm text-slate-500 pt-4 border-t">
                 <span className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-emerald-100 border-2 border-emerald-300 rounded" />
@@ -327,17 +227,8 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
                 </span>
             </div>
 
-            <MatchLineupEditor 
-                match={lineupEditMatch}
-                isOpen={!!lineupEditMatch}
-                onClose={() => setLineupEditMatch(null)}
-            />
-
-            <MatchDetailView 
-                match={detailViewMatch}
-                isOpen={!!detailViewMatch}
-                onClose={() => setDetailViewMatch(null)}
-            />
+            <MatchLineupEditor match={lineupEditMatch} isOpen={!!lineupEditMatch} onClose={() => setLineupEditMatch(null)} />
+            <MatchDetailView match={detailViewMatch} isOpen={!!detailViewMatch} onClose={() => setDetailViewMatch(null)} />
         </div>
     );
 }

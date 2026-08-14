@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -20,6 +20,30 @@ import EnhancedBracketView from '@/components/continental/EnhancedBracketView';
 
 const ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
+// Higher rank = later round. Handles standard + custom round names so no
+// round is silently dropped, and so rounds display in chronological order.
+const rankRound = (round) => {
+    if (!round) return 0;
+    const r = round.toLowerCase();
+    if (r.includes('final') && !r.includes('semi') && !r.includes('quarter')) return 1000;
+    if (r.includes('semi')) return 900;
+    if (r.includes('quarter')) return 800;
+    const ron = r.match(/round of (\d+)/);
+    if (ron) {
+        const n = parseInt(ron[1], 10);
+        return 700 - (Math.log2(n) - 4) * 10;
+    }
+    if (r.includes('last 16')) return 700;
+    if (r.includes('group') || r.includes('league')) return 500;
+    if (r.includes('preliminary')) return 400;
+    const words = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
+    for (let i = 0; i < words.length; i++) {
+        if (r.includes(words[i])) return 100 + i * 10;
+    }
+    const m = r.match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+};
+
 export default function DomesticCupSeasonDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const seasonId = urlParams.get('id');
@@ -29,6 +53,8 @@ export default function DomesticCupSeasonDetail() {
     const [editingMatch, setEditingMatch] = useState(null);
     const [matchFormData, setMatchFormData] = useState({});
     const [isAddMatchOpen, setIsAddMatchOpen] = useState(false);
+    const [renamingRound, setRenamingRound] = useState(null);
+    const [renameValue, setRenameValue] = useState('');
 
     const { data: season } = useQuery({
         queryKey: ['cupSeason', seasonId],
@@ -131,6 +157,30 @@ export default function DomesticCupSeasonDetail() {
         onSuccess: () => queryClient.invalidateQueries(['cupMatches']),
     });
 
+    const renameRoundMutation = useMutation({
+        mutationFn: async ({ oldName, newName }) => {
+            await base44.entities.DomesticCupMatch.updateMany(
+                { season_id: seasonId, round: oldName },
+                { $set: { round: newName } }
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['cupMatches']);
+            setRenamingRound(null);
+        },
+    });
+
+    // Unique clubs that actually took part (excluding byes/TBD).
+    const participantCount = useMemo(() => {
+        const set = new Set();
+        matches.forEach(m => {
+            [m.home_club_name, m.away_club_name].forEach(n => {
+                if (n && n !== 'TBD' && n.toLowerCase() !== 'bye') set.add(n);
+            });
+        });
+        return set.size;
+    }, [matches]);
+
     const getClubByName = (name) => clubs.find(c => c.name?.toLowerCase().trim() === name?.toLowerCase().trim());
 
     const getClubTier = (clubName) => {
@@ -163,7 +213,8 @@ export default function DomesticCupSeasonDetail() {
         return acc;
     }, {});
 
-    const sortedRounds = ROUND_ORDER.filter(r => matchesByRound[r]);
+    // Include every round that has matches (including custom names), earliest first.
+    const sortedRounds = Object.keys(matchesByRound).sort((a, b) => rankRound(a) - rankRound(b));
 
     if (!season || !cup) {
         return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" /></div>;
@@ -332,7 +383,7 @@ export default function DomesticCupSeasonDetail() {
                     <div className="flex items-center justify-between">
                         <TabsList>
                             <TabsTrigger value="bracket">Tournament Bracket</TabsTrigger>
-                            <TabsTrigger value="participants">Participants ({clubs.length})</TabsTrigger>
+                            <TabsTrigger value="participants">Participants ({season.number_of_teams || participantCount})</TabsTrigger>
                             <TabsTrigger value="rounds">By Round</TabsTrigger>
                         </TabsList>
                         <AdminOnly>
@@ -425,7 +476,9 @@ export default function DomesticCupSeasonDetail() {
                                     return (
                                         <div className="space-y-4">
                                             <p className="text-sm text-slate-600">
-                                                {participantArray.length} clubs participated in this edition
+                                                {season.number_of_teams
+                                                    ? `${season.number_of_teams} teams in this edition • ${participantArray.length} played`
+                                                    : `${participantArray.length} clubs participated in this edition`}
                                             </p>
                                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                                 {participantArray.map(club => (
@@ -470,10 +523,23 @@ export default function DomesticCupSeasonDetail() {
                                 sortedRounds.map(round => (
                                     <Card key={round} className="border-0 shadow-sm">
                                         <CardHeader className="pb-2">
-                                            <CardTitle className={`text-lg ${round === 'Final' ? 'text-amber-700' : ''}`}>
-                                                {round === 'Final' && <Trophy className="w-4 h-4 inline mr-2" />}
-                                                {round}
-                                            </CardTitle>
+                                            <div className="flex items-center justify-between">
+                                                <CardTitle className={`text-lg ${round === 'Final' ? 'text-amber-700' : ''}`}>
+                                                    {round === 'Final' && <Trophy className="w-4 h-4 inline mr-2" />}
+                                                    {round}
+                                                    <span className="text-sm font-normal text-slate-400 ml-2">({matchesByRound[round].length} {matchesByRound[round].length === 1 ? 'match' : 'matches'})</span>
+                                                </CardTitle>
+                                                <AdminOnly>
+                                                    <div className="flex gap-2">
+                                                        <Button size="sm" variant="outline" onClick={() => { setMatchFormData({ round, match_number: matchesByRound[round].length + 1 }); setIsAddMatchOpen(true); }}>
+                                                            <Plus className="w-4 h-4 mr-1" /> Add Result
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" onClick={() => { setRenamingRound(round); setRenameValue(round); }}>
+                                                            <Edit2 className="w-4 h-4 mr-1" /> Rename
+                                                        </Button>
+                                                    </div>
+                                                </AdminOnly>
+                                            </div>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -501,12 +567,16 @@ export default function DomesticCupSeasonDetail() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Round *</Label>
-                                <Select value={matchFormData.round || ''} onValueChange={(v) => setMatchFormData({...matchFormData, round: v})}>
-                                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select round" /></SelectTrigger>
-                                    <SelectContent>
-                                        {ROUND_ORDER.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                <Input
+                                    list="round-suggestions"
+                                    value={matchFormData.round || ''}
+                                    onChange={(e) => setMatchFormData({...matchFormData, round: e.target.value})}
+                                    placeholder="e.g. Round of 32, Quarter-final"
+                                    className="mt-1"
+                                />
+                                <datalist id="round-suggestions">
+                                    {[...new Set([...ROUND_ORDER, ...Object.keys(matchesByRound)])].map(r => <option key={r} value={r} />)}
+                                </datalist>
                             </div>
                             <div>
                                 <Label>Match #</Label>
@@ -569,6 +639,40 @@ export default function DomesticCupSeasonDetail() {
                 </DialogContent>
             </Dialog>
 
+            {/* Rename Round Dialog */}
+            <Dialog open={!!renamingRound} onOpenChange={(open) => { if (!open) setRenamingRound(null); }}>
+                <DialogContent className="max-w-sm">
+                    <DialogHeader><DialogTitle>Rename Round</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm text-slate-500">
+                            Renaming <strong>{renamingRound}</strong> updates all {renamingRound ? matchesByRound[renamingRound]?.length : 0} matches in this round.
+                        </p>
+                        <div>
+                            <Label>New Round Name</Label>
+                            <Input
+                                list="round-suggestions"
+                                value={renameValue}
+                                onChange={(e) => setRenameValue(e.target.value)}
+                                className="mt-1"
+                            />
+                            <datalist id="round-suggestions">
+                                {[...new Set([...ROUND_ORDER, ...Object.keys(matchesByRound)])].map(r => <option key={r} value={r} />)}
+                            </datalist>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button variant="outline" onClick={() => setRenamingRound(null)}>Cancel</Button>
+                            <Button
+                                onClick={() => renameRoundMutation.mutate({ oldName: renamingRound, newName: renameValue.trim() })}
+                                disabled={!renameValue.trim() || renameValue.trim() === renamingRound}
+                                className="bg-emerald-600"
+                            >
+                                Rename Round
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             {/* Add Match Dialog */}
             <Dialog open={isAddMatchOpen} onOpenChange={setIsAddMatchOpen}>
                 <DialogContent className="max-w-md">
@@ -577,12 +681,16 @@ export default function DomesticCupSeasonDetail() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Round</Label>
-                                <Select value={matchFormData.round || ''} onValueChange={(v) => setMatchFormData({...matchFormData, round: v})}>
-                                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        {ROUND_ORDER.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                <Input
+                                    list="round-suggestions"
+                                    value={matchFormData.round || ''}
+                                    onChange={(e) => setMatchFormData({...matchFormData, round: e.target.value})}
+                                    placeholder="e.g. Round of 32, Quarter-final"
+                                    className="mt-1"
+                                />
+                                <datalist id="round-suggestions">
+                                    {[...new Set([...ROUND_ORDER, ...Object.keys(matchesByRound)])].map(r => <option key={r} value={r} />)}
+                                </datalist>
                             </div>
                             <div>
                                 <Label>Match #</Label>
