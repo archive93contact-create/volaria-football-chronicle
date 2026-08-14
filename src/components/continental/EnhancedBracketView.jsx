@@ -54,14 +54,23 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         }, {});
     }, [matches]);
 
-    // All rounds present, Final (latest) first.
+    // Order each round by its explicit round_order (lower = earlier), falling back
+    // to the name heuristic when no order is stored. Earliest round first so the
+    // bracket progresses naturally toward the Final.
+    const roundOrderOf = (roundName) => {
+        const rms = matchesByRound[roundName] || [];
+        for (const m of rms) {
+            if (m.round_order != null) return m.round_order;
+        }
+        return rankRound(roundName);
+    };
     const sortedRounds = useMemo(
-        () => Object.keys(matchesByRound).sort((a, b) => rankRound(b) - rankRound(a)),
+        () => Object.keys(matchesByRound).sort((a, b) => roundOrderOf(a) - roundOrderOf(b)),
         [matchesByRound]
     );
 
-    const finalRound = sortedRounds[0];
-    const isFinalRound = (round) => round === finalRound && rankRound(round) >= 1000;
+    const finalRound = sortedRounds[sortedRounds.length - 1];
+    const isFinalRound = (round) => round === finalRound;
 
     const getClubByName = (name) => {
         if (!name) return null;
@@ -88,7 +97,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
             });
         });
         Object.keys(paths).forEach(clubName => {
-            paths[clubName].sort((a, b) => rankRound(a.round) - rankRound(b.round));
+            paths[clubName].sort((a, b) => roundOrderOf(a.round) - roundOrderOf(b.round));
         });
         return paths;
     }, [matches]);

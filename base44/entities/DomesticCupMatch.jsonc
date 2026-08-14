@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Round name (e.g., First Round, Quarter-final, Semi-final, Final)"
     },
+    "round_order": {
+      "type": "number",
+      "description": "Sequence/order number for this round - lower = earlier rounds (qualifying), higher = later (final). Used to sort rounds so renamed/custom rounds keep a stable position."
+    },
     "match_number": {
       "type": "number",
       "description": "Match number within the round for ordering"

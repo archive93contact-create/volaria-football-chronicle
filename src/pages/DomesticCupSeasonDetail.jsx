@@ -55,6 +55,7 @@ export default function DomesticCupSeasonDetail() {
     const [isAddMatchOpen, setIsAddMatchOpen] = useState(false);
     const [renamingRound, setRenamingRound] = useState(null);
     const [renameValue, setRenameValue] = useState('');
+    const [renameOrder, setRenameOrder] = useState(null);
 
     const { data: season } = useQuery({
         queryKey: ['cupSeason', seasonId],
@@ -142,7 +143,9 @@ export default function DomesticCupSeasonDetail() {
 
     const createMatchMutation = useMutation({
         mutationFn: async (data) => {
-            await base44.entities.DomesticCupMatch.create({ ...data, season_id: seasonId });
+            const existingOrder = matchesByRound[data.round]?.[0]?.round_order;
+            const order = data.round_order ?? existingOrder ?? nextRoundOrder();
+            await base44.entities.DomesticCupMatch.create({ ...data, round_order: order, season_id: seasonId });
             await updateSeasonFromFinal(data);
         },
         onSuccess: () => {
@@ -158,10 +161,11 @@ export default function DomesticCupSeasonDetail() {
     });
 
     const renameRoundMutation = useMutation({
-        mutationFn: async ({ oldName, newName }) => {
+        mutationFn: async ({ oldName, newName, order }) => {
+            const set = Number.isFinite(order) ? { round: newName, round_order: order } : { round: newName };
             await base44.entities.DomesticCupMatch.updateMany(
                 { season_id: seasonId, round: oldName },
-                { $set: { round: newName } }
+                { $set: set }
             );
         },
         onSuccess: () => {
@@ -213,8 +217,27 @@ export default function DomesticCupSeasonDetail() {
         return acc;
     }, {});
 
-    // Include every round that has matches (including custom names), earliest first.
-    const sortedRounds = Object.keys(matchesByRound).sort((a, b) => rankRound(a) - rankRound(b));
+    // Order each round by its explicit round_order (lower = earlier round),
+    // falling back to the name heuristic when no order is stored. Custom/renamed
+    // rounds keep a stable position because the user controls the number directly.
+    const roundOrder = (name) => {
+        const rms = matchesByRound[name] || [];
+        for (const m of rms) {
+            if (m.round_order != null) return m.round_order;
+        }
+        return rankRound(name);
+    };
+    const nextRoundOrder = () => {
+        const max = Object.keys(matchesByRound).reduce((acc, r) => {
+            const o = roundOrder(r);
+            return Math.max(acc, Number.isFinite(o) ? o : 0);
+        }, 0);
+        return max + 1;
+    };
+    const sortedRounds = Object.keys(matchesByRound).sort((a, b) => {
+        const da = roundOrder(a), db = roundOrder(b);
+        return da - db || a.localeCompare(b);
+    });
 
     if (!season || !cup) {
         return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" /></div>;
@@ -524,17 +547,18 @@ export default function DomesticCupSeasonDetail() {
                                     <Card key={round} className="border-0 shadow-sm">
                                         <CardHeader className="pb-2">
                                             <div className="flex items-center justify-between">
-                                                <CardTitle className={`text-lg ${round === 'Final' ? 'text-amber-700' : ''}`}>
-                                                    {round === 'Final' && <Trophy className="w-4 h-4 inline mr-2" />}
+                                                <CardTitle className={`text-lg flex items-center gap-2 flex-wrap ${round === 'Final' ? 'text-amber-700' : ''}`}>
+                                                    {round === 'Final' && <Trophy className="w-4 h-4" />}
                                                     {round}
-                                                    <span className="text-sm font-normal text-slate-400 ml-2">({matchesByRound[round].length} {matchesByRound[round].length === 1 ? 'match' : 'matches'})</span>
+                                                    <Badge variant="outline" className="text-xs font-normal text-slate-500">#{roundOrder(round)}</Badge>
+                                                    <span className="text-sm font-normal text-slate-400">({matchesByRound[round].length} {matchesByRound[round].length === 1 ? 'match' : 'matches'})</span>
                                                 </CardTitle>
                                                 <AdminOnly>
                                                     <div className="flex gap-2">
-                                                        <Button size="sm" variant="outline" onClick={() => { setMatchFormData({ round, match_number: matchesByRound[round].length + 1 }); setIsAddMatchOpen(true); }}>
+                                                        <Button size="sm" variant="outline" onClick={() => { setMatchFormData({ round, round_order: roundOrder(round), match_number: matchesByRound[round].length + 1 }); setIsAddMatchOpen(true); }}>
                                                             <Plus className="w-4 h-4 mr-1" /> Add Result
                                                         </Button>
-                                                        <Button size="sm" variant="outline" onClick={() => { setRenamingRound(round); setRenameValue(round); }}>
+                                                        <Button size="sm" variant="outline" onClick={() => { setRenamingRound(round); setRenameValue(round); setRenameOrder(roundOrder(round)); }}>
                                                             <Edit2 className="w-4 h-4 mr-1" /> Rename
                                                         </Button>
                                                     </div>
@@ -564,8 +588,8 @@ export default function DomesticCupSeasonDetail() {
                         <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
                             💡 You can change the round name here if it was incorrectly assigned
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div className="col-span-2 sm:col-span-1">
                                 <Label>Round *</Label>
                                 <Input
                                     list="round-suggestions"
@@ -577,6 +601,10 @@ export default function DomesticCupSeasonDetail() {
                                 <datalist id="round-suggestions">
                                     {[...new Set([...ROUND_ORDER, ...Object.keys(matchesByRound)])].map(r => <option key={r} value={r} />)}
                                 </datalist>
+                            </div>
+                            <div>
+                                <Label>Round #</Label>
+                                <Input type="number" value={matchFormData.round_order ?? ''} onChange={(e) => setMatchFormData({...matchFormData, round_order: e.target.value ? parseInt(e.target.value) : null})} placeholder="Lower = earlier" className="mt-1" />
                             </div>
                             <div>
                                 <Label>Match #</Label>
@@ -659,11 +687,21 @@ export default function DomesticCupSeasonDetail() {
                                 {[...new Set([...ROUND_ORDER, ...Object.keys(matchesByRound)])].map(r => <option key={r} value={r} />)}
                             </datalist>
                         </div>
+                        <div>
+                            <Label>Round # (order)</Label>
+                            <Input
+                                type="number"
+                                value={renameOrder ?? ''}
+                                onChange={(e) => setRenameOrder(e.target.value ? parseInt(e.target.value) : null)}
+                                placeholder="Lower = earlier round"
+                                className="mt-1"
+                            />
+                        </div>
                         <div className="flex justify-end gap-2 pt-2">
                             <Button variant="outline" onClick={() => setRenamingRound(null)}>Cancel</Button>
                             <Button
-                                onClick={() => renameRoundMutation.mutate({ oldName: renamingRound, newName: renameValue.trim() })}
-                                disabled={!renameValue.trim() || renameValue.trim() === renamingRound}
+                                onClick={() => renameRoundMutation.mutate({ oldName: renamingRound, newName: renameValue.trim(), order: renameOrder })}
+                                disabled={!renameValue.trim()}
                                 className="bg-emerald-600"
                             >
                                 Rename Round
@@ -678,8 +716,8 @@ export default function DomesticCupSeasonDetail() {
                 <DialogContent className="max-w-md">
                     <DialogHeader><DialogTitle>Add Match</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div className="col-span-2 sm:col-span-1">
                                 <Label>Round</Label>
                                 <Input
                                     list="round-suggestions"
@@ -691,6 +729,10 @@ export default function DomesticCupSeasonDetail() {
                                 <datalist id="round-suggestions">
                                     {[...new Set([...ROUND_ORDER, ...Object.keys(matchesByRound)])].map(r => <option key={r} value={r} />)}
                                 </datalist>
+                            </div>
+                            <div>
+                                <Label>Round #</Label>
+                                <Input type="number" value={matchFormData.round_order ?? ''} onChange={(e) => setMatchFormData({...matchFormData, round_order: e.target.value ? parseInt(e.target.value) : null})} placeholder="Lower = earlier" className="mt-1" />
                             </div>
                             <div>
                                 <Label>Match #</Label>
