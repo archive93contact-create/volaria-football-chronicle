@@ -1118,7 +1118,8 @@ export default function ClubDetail() {
                                                 <TableHead className="text-center hidden md:table-cell">GF</TableHead>
                                                 <TableHead className="text-center hidden md:table-cell">GA</TableHead>
                                                 <TableHead className="text-center">Pts</TableHead>
-                                                <TableHead className="text-center hidden lg:table-cell">Cup / Cont.</TableHead>
+                                                <TableHead className="text-center hidden lg:table-cell">Dom. Cup</TableHead>
+                                                <TableHead className="text-center hidden lg:table-cell">Cont.</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1169,7 +1170,10 @@ export default function ClubDetail() {
                                                         <TableCell className="text-center hidden md:table-cell">{season.goals_against}</TableCell>
                                                         <TableCell className="text-center font-bold">{season.points}</TableCell>
                                                         <TableCell className="text-center hidden lg:table-cell">
-                                                            <ClubSeasonCupBadges clubId={season.club_id} clubName={season.club_name} year={season.year} />
+                                                            <ClubSeasonCupBadges clubId={season.club_id} clubName={season.club_name} year={season.year} type="cup" />
+                                                        </TableCell>
+                                                        <TableCell className="text-center hidden lg:table-cell">
+                                                            <ClubSeasonCupBadges clubId={season.club_id} clubName={season.club_name} year={season.year} type="continental" />
                                                         </TableCell>
                                                     </TableRow>
                                                 );
