@@ -1,9 +1,9 @@
-import React, { useMemo, useState, Fragment } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Star, Edit2, Users, Eye, ChevronRight, Crown } from 'lucide-react';
+import { Trophy, Star, Edit2, Users, Eye, Crown } from 'lucide-react';
 import AdminOnly from '@/components/common/AdminOnly';
 import MatchLineupEditor from '@/components/continental/MatchLineupEditor';
 import MatchDetailView from '@/components/continental/MatchDetailView';
@@ -32,9 +32,54 @@ const rankRound = (round) => {
     return m ? parseInt(m[1], 10) : 0;
 };
 
+// Build the correct bracket order by working backward from the Final: each
+// next-round match's home/away club came from a feeder match in the previous
+// round (the match whose winner equals that club). This guarantees match 2k and
+// 2k+1 in a round feed into match k of the next round, so the bracket reads as a
+// true progression you can follow club-by-club.
+const buildBracketOrder = (sortedRounds, matchesByRound) => {
+    const ordered = {};
+    const lastRound = sortedRounds[sortedRounds.length - 1];
+    ordered[lastRound] = [...(matchesByRound[lastRound] || [])];
+
+    for (let i = sortedRounds.length - 2; i >= 0; i--) {
+        const round = sortedRounds[i];
+        const nextRound = sortedRounds[i + 1];
+        const nextOrdered = ordered[nextRound];
+        const thisMatches = [...(matchesByRound[round] || [])];
+        const used = new Set();
+        const result = [];
+
+        const findFeeder = (targetName) => {
+            if (!targetName) return null;
+            let f = thisMatches.find(m => !used.has(m.id) && m.winner === targetName);
+            if (f) return f;
+            f = thisMatches.find(m => !used.has(m.id) && (m.home_club_name === targetName || m.away_club_name === targetName));
+            return f || null;
+        };
+
+        for (const nm of nextOrdered) {
+            const homeFeeder = findFeeder(nm.home_club_name);
+            if (homeFeeder) used.add(homeFeeder.id);
+            const awayFeeder = findFeeder(nm.away_club_name);
+            if (awayFeeder) used.add(awayFeeder.id);
+            if (homeFeeder) result.push(homeFeeder);
+            if (awayFeeder) result.push(awayFeeder);
+        }
+        // Append any leftover matches (unplayed/bye matches not linked to a played next round)
+        thisMatches.forEach(m => { if (!used.has(m.id)) result.push(m); });
+        ordered[round] = result;
+    }
+    return ordered;
+};
+
 export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition, onEditMatch, isDomesticCup = false }) {
     const [lineupEditMatch, setLineupEditMatch] = useState(null);
     const [detailViewMatch, setDetailViewMatch] = useState(null);
+
+    const containerRef = useRef(null);
+    const [paths, setPaths] = useState([]);
+    const [svgSize, setSvgSize] = useState({ w: 0, h: 0 });
 
     const getRoundDisplayName = (roundName) =>
         (competition?.round_names && competition.round_names[roundName]) || roundName;
@@ -48,8 +93,7 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
     }, [matches]);
 
     // Order each round by its explicit round_order (lower = earlier), falling back
-    // to the name heuristic when no order is stored. Earliest round first so the
-    // bracket progresses naturally toward the Final.
+    // to the name heuristic when no order is stored.
     const roundOrderOf = (roundName) => {
         const rms = matchesByRound[roundName] || [];
         for (const m of rms) {
@@ -62,6 +106,12 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         [matchesByRound]
     );
 
+    // Correct per-round match ordering so the bracket connects properly.
+    const orderedRounds = useMemo(
+        () => buildBracketOrder(sortedRounds, matchesByRound),
+        [sortedRounds, matchesByRound]
+    );
+
     const finalRound = sortedRounds[sortedRounds.length - 1];
     const isFinalRound = (round) => round === finalRound;
 
@@ -69,6 +119,58 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         if (!name) return null;
         return clubs.find(c => c.name.toLowerCase().trim() === name.toLowerCase().trim());
     };
+
+    // Measure rendered cards and draw connector lines from each feeder pair to
+    // its target match in the next round.
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        const measure = () => {
+            const cont = el.getBoundingClientRect();
+            setSvgSize({ w: el.scrollWidth, h: el.scrollHeight });
+            const pos = {};
+            el.querySelectorAll('[data-pos]').forEach(node => {
+                const [ri, mi] = node.dataset.pos.split('-').map(Number);
+                const r = node.getBoundingClientRect();
+                pos[`${ri}-${mi}`] = {
+                    left: r.left - cont.left,
+                    right: r.right - cont.left,
+                    cy: (r.top + r.bottom) / 2 - cont.top,
+                    winner: node.dataset.winner === '1',
+                };
+            });
+            const segs = [];
+            for (let ri = 0; ri < sortedRounds.length - 1; ri++) {
+                const nextRound = sortedRounds[ri + 1];
+                const nextMatches = orderedRounds[nextRound] || [];
+                for (let ti = 0; ti < nextMatches.length; ti++) {
+                    const f0 = pos[`${ri}-${2 * ti}`];
+                    const f1 = pos[`${ri}-${2 * ti + 1}`];
+                    const tgt = pos[`${ri + 1}-${ti}`];
+                    if (!f0 || !tgt) continue;
+                    const midX = (f0.right + tgt.left) / 2;
+                    const decided = f0.winner && (!f1 || f1.winner);
+                    const stroke = decided ? '#10b981' : '#cbd5e1';
+                    if (f1) {
+                        segs.push({ d: `M ${f0.right} ${f0.cy} H ${midX}`, stroke });
+                        segs.push({ d: `M ${f1.right} ${f1.cy} H ${midX}`, stroke });
+                        segs.push({ d: `M ${midX} ${f0.cy} V ${f1.cy}`, stroke });
+                        segs.push({ d: `M ${midX} ${(f0.cy + f1.cy) / 2} H ${tgt.left}`, stroke });
+                    } else {
+                        segs.push({ d: `M ${f0.right} ${f0.cy} H ${midX} V ${tgt.cy} H ${tgt.left}`, stroke });
+                    }
+                }
+            }
+            setPaths(segs);
+        };
+
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(el);
+        const t = setTimeout(measure, 350);
+        return () => { ro.disconnect(); clearTimeout(t); };
+    }, [sortedRounds, orderedRounds, matches]);
 
     if (sortedRounds.length === 0) {
         return (
@@ -183,45 +285,48 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
             </div>
 
             <div className="overflow-x-auto rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/70">
-                <div className="flex items-stretch min-w-max p-5 md:p-8">
+                <div ref={containerRef} className="relative flex items-stretch min-w-max p-5 md:p-8 gap-6">
+                    <svg className="absolute inset-0 z-0 pointer-events-none" width={svgSize.w} height={svgSize.h}>
+                        {paths.map((p, i) => (
+                            <path key={i} d={p.d} stroke={p.stroke} strokeWidth={1.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        ))}
+                    </svg>
+
                     {sortedRounds.map((round, ri) => {
-                        const roundMatches = matchesByRound[round].sort((a, b) => (a.match_number || 0) - (b.match_number || 0));
+                        const roundMatches = orderedRounds[round] || [];
                         const final = isFinalRound(round);
                         const rms = matchesByRound[round] || [];
                         const order = rms.find(m => m.round_order != null)?.round_order;
                         return (
-                            <Fragment key={round}>
-                                <div className="flex flex-col" style={{ width: final ? 308 : 248 }}>
-                                    <div className="flex flex-col items-center mb-4">
-                                        <div className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-2 ${
-                                            final
-                                                ? 'bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 shadow-sm'
-                                                : 'bg-slate-800 text-white'
-                                        }`}>
-                                            {final && <Trophy className="w-3.5 h-3.5" />}
-                                            {getRoundDisplayName(round)}
-                                            {order != null && (
-                                                <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-full ${final ? 'bg-amber-200/70 text-amber-800' : 'bg-slate-700 text-slate-200'}`}>
-                                                    #{order}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <span className="text-[11px] text-slate-400 mt-1">{roundMatches.length} match{roundMatches.length !== 1 ? 'es' : ''}</span>
+                            <div key={round} className="relative z-10 flex flex-col" style={{ width: final ? 308 : 248 }}>
+                                <div className="flex flex-col items-center mb-4">
+                                    <div className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-2 ${
+                                        final
+                                            ? 'bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 shadow-sm'
+                                            : 'bg-slate-800 text-white'
+                                    }`}>
+                                        {final && <Trophy className="w-3.5 h-3.5" />}
+                                        {getRoundDisplayName(round)}
+                                        {order != null && (
+                                            <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-full ${final ? 'bg-amber-200/70 text-amber-800' : 'bg-slate-700 text-slate-200'}`}>
+                                                #{order}
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="flex-1 flex flex-col justify-around gap-2">
-                                        {roundMatches.map(match => (
-                                            <MatchCard key={match.id} match={match} isFinal={final} />
-                                        ))}
-                                    </div>
+                                    <span className="text-[11px] text-slate-400 mt-1">{roundMatches.length} match{roundMatches.length !== 1 ? 'es' : ''}</span>
                                 </div>
-                                {!final && (
-                                    <div className="flex flex-col items-center justify-center w-8 mx-1">
-                                        <div className="w-px flex-1 bg-gradient-to-b from-transparent via-slate-300 to-transparent" />
-                                        <ChevronRight className="w-4 h-4 text-slate-300 my-1" />
-                                        <div className="w-px flex-1 bg-gradient-to-b from-transparent via-slate-300 to-transparent" />
-                                    </div>
-                                )}
-                            </Fragment>
+                                <div className="flex-1 flex flex-col justify-around gap-2">
+                                    {roundMatches.map((match, mi) => (
+                                        <div
+                                            key={match.id}
+                                            data-pos={`${ri}-${mi}`}
+                                            data-winner={match.winner ? '1' : '0'}
+                                        >
+                                            <MatchCard match={match} isFinal={final} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         );
                     })}
                 </div>
