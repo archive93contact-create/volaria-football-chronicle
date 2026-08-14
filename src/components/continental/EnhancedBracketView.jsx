@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Star, Edit2, Users, Eye } from 'lucide-react';
+import { Trophy, Star, Edit2, Users, Eye, ChevronRight, Crown } from 'lucide-react';
 import AdminOnly from '@/components/common/AdminOnly';
 import MatchLineupEditor from '@/components/continental/MatchLineupEditor';
 import MatchDetailView from '@/components/continental/MatchDetailView';
@@ -30,13 +30,6 @@ const rankRound = (round) => {
     }
     const m = r.match(/(\d+)/);
     return m ? parseInt(m[1], 10) : 0;
-};
-
-const gridFor = (n) => {
-    if (n <= 2) return 'grid-cols-1 md:grid-cols-2 max-w-3xl mx-auto';
-    if (n <= 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
-    if (n <= 8) return 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8';
-    return 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8';
 };
 
 export default function EnhancedBracketView({ matches, getNationFlag, clubs = [], nations = [], competition, onEditMatch, isDomesticCup = false }) {
@@ -77,31 +70,6 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         return clubs.find(c => c.name.toLowerCase().trim() === name.toLowerCase().trim());
     };
 
-    const getNationByName = (name) => {
-        if (!name) return null;
-        return nations.find(n => n.name.toLowerCase().trim() === name.toLowerCase().trim());
-    };
-
-    const clubPaths = useMemo(() => {
-        const paths = {};
-        matches.forEach(match => {
-            [match.home_club_name, match.away_club_name].forEach(clubName => {
-                if (!clubName) return;
-                if (!paths[clubName]) paths[clubName] = [];
-                paths[clubName].push({
-                    round: match.round,
-                    match,
-                    isHome: match.home_club_name === clubName,
-                    won: match.winner === clubName
-                });
-            });
-        });
-        Object.keys(paths).forEach(clubName => {
-            paths[clubName].sort((a, b) => roundOrderOf(a.round) - roundOrderOf(b.round));
-        });
-        return paths;
-    }, [matches]);
-
     if (sortedRounds.length === 0) {
         return (
             <Card className="border-dashed border-2 border-slate-300">
@@ -114,7 +82,38 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         );
     }
 
-    const MatchCard = ({ match, isFinal, showRound = false }) => {
+    const ClubRow = ({ name, nation, club, isWinner, score }) => {
+        const flag = getNationFlag(nation);
+        return (
+            <div className={`flex items-center gap-2 px-3 py-2 ${isWinner ? 'bg-emerald-50/70' : ''}`}>
+                <div className="w-5 flex justify-center">
+                    {flag && <img src={flag} alt="" className="w-5 h-3.5 object-cover rounded-sm" />}
+                </div>
+                {club?.logo_url && (
+                    <img src={club.logo_url} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+                )}
+                {club ? (
+                    <Link
+                        to={createPageUrl(`ClubDetail?id=${club.id}`)}
+                        className={`flex-1 truncate text-sm hover:underline ${isWinner ? 'font-semibold text-emerald-700' : 'text-slate-600'}`}
+                    >
+                        {name}
+                    </Link>
+                ) : (
+                    <span className={`flex-1 truncate text-sm ${isWinner ? 'font-semibold text-emerald-700' : 'text-slate-600'}`}>
+                        {name}
+                    </span>
+                )}
+                <span className={`w-7 h-7 flex items-center justify-center rounded text-sm font-bold flex-shrink-0 ${
+                    isWinner ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>
+                    {score ?? '-'}
+                </span>
+            </div>
+        );
+    };
+
+    const MatchCard = ({ match, isFinal }) => {
         const homeClub = getClubByName(match.home_club_name);
         const awayClub = getClubByName(match.away_club_name);
         const homeIsWinner = match.winner === match.home_club_name;
@@ -123,80 +122,47 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
         const homeScore = isDomesticCup ? match.home_score : (match.is_single_leg ? match.home_score_leg1 : match.home_aggregate);
         const awayScore = isDomesticCup ? match.away_score : (match.is_single_leg ? match.away_score_leg1 : match.away_aggregate);
 
-        const ClubRow = ({ name, nation, club, isWinner, score }) => {
-            const flag = getNationFlag(nation);
-            return (
-                <div className={`flex items-center gap-3 p-3 ${isWinner ? 'bg-emerald-50' : 'hover:bg-slate-50'} transition-colors`}>
-                    <div className="w-6 text-center">
-                        {flag && <img src={flag} alt="" className="w-6 h-4 object-cover rounded-sm inline-block" />}
-                    </div>
-                    {club?.logo_url && (
-                        <img src={club.logo_url} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
-                    )}
-                    {club ? (
-                        <Link
-                            to={createPageUrl(`ClubDetail?id=${club.id}`)}
-                            className={`flex-1 truncate hover:underline ${isWinner ? 'font-bold text-emerald-700' : 'text-slate-700'}`}
-                        >
-                            {name}
-                        </Link>
-                    ) : (
-                        <span className={`flex-1 truncate ${isWinner ? 'font-bold text-emerald-700' : 'text-slate-700'}`}>
-                            {name}
-                        </span>
-                    )}
-                    <span className={`text-xl font-mono min-w-[28px] text-center ${isWinner ? 'font-bold text-emerald-700' : 'text-slate-500'}`}>
-                        {score ?? '-'}
-                    </span>
-                    {isWinner && <Trophy className="w-4 h-4 text-amber-500 flex-shrink-0" />}
-                </div>
-            );
-        };
+        const hasLegs = !isDomesticCup && !match.is_single_leg && (match.home_score_leg1 != null || match.away_score_leg1 != null);
 
         return (
-            <div className={`bg-white rounded-xl shadow-sm border-2 overflow-hidden ${isFinal ? 'border-amber-400 ring-2 ring-amber-200' : 'border-slate-200'}`}>
+            <div className={`relative bg-white rounded-lg shadow-sm border overflow-hidden ${isFinal ? 'w-72 border-amber-400 ring-2 ring-amber-300/40' : 'w-56'}`}>
                 {isFinal && (
-                    <div className="bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 text-sm font-bold text-center py-2 flex items-center justify-center gap-2">
-                        <Star className="w-4 h-4" /> FINAL <Star className="w-4 h-4" />
-                    </div>
-                )}
-                {showRound && !isFinal && (
-                    <div className="bg-slate-100 text-slate-600 text-xs font-medium text-center py-1.5">
-                        {getRoundDisplayName(match.round)}
+                    <div className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 text-amber-900 text-xs font-bold text-center py-1.5 flex items-center justify-center gap-1.5">
+                        <Star className="w-3.5 h-3.5" /> FINAL <Star className="w-3.5 h-3.5" />
                     </div>
                 )}
                 <ClubRow name={match.home_club_name} nation={match.home_club_nation} club={homeClub} isWinner={homeIsWinner} score={homeScore} />
-                <div className="border-t border-slate-200" />
+                <div className="border-t border-slate-100" />
                 <ClubRow name={match.away_club_name} nation={match.away_club_nation} club={awayClub} isWinner={awayIsWinner} score={awayScore} />
-                {!match.is_single_leg && (match.home_score_leg1 != null || match.away_score_leg1 != null) && (
-                    <div className="bg-slate-50 px-3 py-2 text-xs text-slate-600 border-t flex justify-center gap-4">
+                {hasLegs && (
+                    <div className="px-3 py-1 text-[10px] text-slate-500 border-t border-slate-100 flex justify-center gap-3 bg-slate-50/50">
                         <span>1st: {match.home_score_leg1 ?? '-'}-{match.away_score_leg1 ?? '-'}</span>
                         <span className="text-slate-300">|</span>
                         <span>2nd: {match.away_score_leg2 ?? '-'}-{match.home_score_leg2 ?? '-'}</span>
                     </div>
                 )}
                 {match.penalties && (
-                    <div className="bg-blue-50 px-3 py-2 text-xs text-blue-700 text-center border-t font-semibold">
-                        Penalties: {match.penalties}
+                    <div className="px-3 py-1 text-[11px] text-blue-700 text-center border-t border-slate-100 font-medium bg-blue-50/60">
+                        Pens: {match.penalties}
                     </div>
                 )}
                 {match.venue && isFinal && (
-                    <div className="bg-slate-50 px-3 py-1.5 text-xs text-slate-500 text-center border-t">
+                    <div className="px-3 py-1 text-[11px] text-slate-500 text-center border-t border-slate-100">
                         📍 {match.venue}
                     </div>
                 )}
                 <div className="border-t border-slate-100 flex">
-                    <Button variant="ghost" size="sm" className="flex-1 text-xs text-slate-500 hover:text-slate-700 h-8" onClick={() => setDetailViewMatch(match)}>
-                        <Eye className="w-3 h-3 mr-1" /> View Details
+                    <Button variant="ghost" size="sm" className="flex-1 h-7 text-[11px] text-slate-400 hover:text-slate-700" onClick={() => setDetailViewMatch(match)}>
+                        <Eye className="w-3 h-3 mr-1" /> Details
                     </Button>
                     {onEditMatch && (
                         <AdminOnly>
-                            <div className="flex border-l">
-                                <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-slate-700 h-8" onClick={() => setLineupEditMatch(match)}>
-                                    <Users className="w-3 h-3 mr-1" /> Lineups
+                            <div className="flex border-l border-slate-100">
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-slate-400 hover:text-slate-700" onClick={() => setLineupEditMatch(match)} title="Lineups">
+                                    <Users className="w-3 h-3" />
                                 </Button>
-                                <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-slate-700 h-8" onClick={() => onEditMatch(match)}>
-                                    <Edit2 className="w-3 h-3 mr-1" /> Edit
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-slate-400 hover:text-slate-700 border-l border-slate-100" onClick={() => onEditMatch(match)} title="Edit">
+                                    <Edit2 className="w-3 h-3" />
                                 </Button>
                             </div>
                         </AdminOnly>
@@ -207,32 +173,70 @@ export default function EnhancedBracketView({ matches, getNationFlag, clubs = []
     };
 
     return (
-        <div className="space-y-8">
-            {sortedRounds.map(round => {
-                const roundMatches = matchesByRound[round].sort((a, b) => (a.match_number || 0) - (b.match_number || 0));
-                const final = isFinalRound(round);
-                return (
-                    <div key={round}>
-                        <h3 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                            {getRoundDisplayName(round)}
-                        </h3>
-                        <div className={final ? 'max-w-md mx-auto' : `grid gap-3 ${gridFor(roundMatches.length)}`}>
-                            {roundMatches.map(match => (
-                                <MatchCard key={match.id} match={match} isFinal={final} showRound />
-                            ))}
-                        </div>
-                    </div>
-                );
-            })}
+        <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+                <span className="flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5 text-amber-500" />
+                    {sortedRounds.length} rounds · {matches.length} matches
+                </span>
+                <span className="hidden sm:inline">Scroll horizontally to follow the path to the final →</span>
+            </div>
 
-            <div className="flex items-center justify-center gap-6 text-sm text-slate-500 pt-4 border-t">
+            <div className="overflow-x-auto rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/70">
+                <div className="flex items-stretch min-w-max p-5 md:p-8">
+                    {sortedRounds.map((round, ri) => {
+                        const roundMatches = matchesByRound[round].sort((a, b) => (a.match_number || 0) - (b.match_number || 0));
+                        const final = isFinalRound(round);
+                        const rms = matchesByRound[round] || [];
+                        const order = rms.find(m => m.round_order != null)?.round_order;
+                        return (
+                            <Fragment key={round}>
+                                <div className="flex flex-col" style={{ width: final ? 308 : 248 }}>
+                                    <div className="flex flex-col items-center mb-4">
+                                        <div className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-2 ${
+                                            final
+                                                ? 'bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 shadow-sm'
+                                                : 'bg-slate-800 text-white'
+                                        }`}>
+                                            {final && <Trophy className="w-3.5 h-3.5" />}
+                                            {getRoundDisplayName(round)}
+                                            {order != null && (
+                                                <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-full ${final ? 'bg-amber-200/70 text-amber-800' : 'bg-slate-700 text-slate-200'}`}>
+                                                    #{order}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="text-[11px] text-slate-400 mt-1">{roundMatches.length} match{roundMatches.length !== 1 ? 'es' : ''}</span>
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-around gap-2">
+                                        {roundMatches.map(match => (
+                                            <MatchCard key={match.id} match={match} isFinal={final} />
+                                        ))}
+                                    </div>
+                                </div>
+                                {!final && (
+                                    <div className="flex flex-col items-center justify-center w-8 mx-1">
+                                        <div className="w-px flex-1 bg-gradient-to-b from-transparent via-slate-300 to-transparent" />
+                                        <ChevronRight className="w-4 h-4 text-slate-300 my-1" />
+                                        <div className="w-px flex-1 bg-gradient-to-b from-transparent via-slate-300 to-transparent" />
+                                    </div>
+                                )}
+                            </Fragment>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-6 text-xs text-slate-500 pt-2 border-t">
                 <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-emerald-100 border-2 border-emerald-300 rounded" />
-                    Winner
+                    <div className="w-5 h-5 rounded bg-emerald-500" />
+                    Winner advances
                 </span>
                 <span className="flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-amber-500" />
-                    Advanced
+                    <div className="w-5 h-5 rounded border-2 border-amber-400 bg-amber-100 flex items-center justify-center">
+                        <Trophy className="w-3 h-3 text-amber-500" />
+                    </div>
+                    Champion
                 </span>
             </div>
 
