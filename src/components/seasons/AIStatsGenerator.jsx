@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Loader2, Wand2, RefreshCw } from 'lucide-react';
+import { Loader2, Wand2, RefreshCw, Sliders } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { normalizeTables, checkConsistency } from '@/lib/matchBackfiller';
 import { toast } from "sonner";
@@ -20,6 +20,45 @@ export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, 
     const teamsInDivision = divisionTeamCount || numTeams;
     const gamesPerTeam = (teamsInDivision - 1) * 2;
     const hasStats = tableRows.some(r => (r.won || 0) > 0 || (r.drawn || 0) > 0 || (r.lost || 0) > 0);
+
+    const normalizeExisting = async () => {
+        if (numTeams < 2) return;
+        setLoading(true);
+        try {
+            const validRows = tableRows.filter(r => r.club_name && r.club_id);
+            const { rows: normalized, adjustments } = normalizeTables(validRows, gamesPerTeam);
+            const normalizedById = {};
+            normalized.forEach(r => { normalizedById[r.club_id] = r; });
+
+            const finalRows = tableRows.map(row => {
+                if (!row.club_id || !normalizedById[row.club_id]) return row;
+                const nr = normalizedById[row.club_id];
+                return {
+                    ...row,
+                    played: nr.played,
+                    won: nr.won,
+                    drawn: nr.drawn,
+                    lost: nr.lost,
+                    goals_for: nr.goals_for,
+                    goals_against: nr.goals_against,
+                    goal_difference: (nr.goals_for || 0) - (nr.goals_against || 0),
+                    points: (nr.won || 0) * 3 + (nr.drawn || 0),
+                };
+            });
+
+            setTableRows(finalRows);
+            if (adjustments.length === 0) {
+                toast.success('Table was already consistent — no changes needed.');
+            } else {
+                toast.success(`Normalized table with ${adjustments.length} small adjustments (W/L & goal balance).`);
+            }
+        } catch (err) {
+            console.error('Failed to normalize:', err);
+            toast.error(`Failed to normalize: ${err.message || err}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const generateStats = async (forceOverwrite) => {
         if (forceOverwrite && hasStats) {
@@ -204,6 +243,18 @@ Return realistic stats. No outlier scoreline inflation.`;
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Regenerating...</>
                 ) : (
                     <><RefreshCw className="w-4 h-4 mr-2" /> Regenerate Stats</>
+                )}
+            </Button>
+            <Button
+                onClick={normalizeExisting}
+                disabled={loading || numTeams < 2}
+                variant="outline"
+                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+                {loading ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Normalizing...</>
+                ) : (
+                    <><Sliders className="w-4 h-4 mr-2" /> Normalize Stats</>
                 )}
             </Button>
         </div>
