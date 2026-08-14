@@ -48,6 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import About from './pages/About';
+import BackfillMatches from './pages/BackfillMatches';
 import CurrentSeason from './pages/CurrentSeason';
 import MatchdayCalendar from './pages/MatchdayCalendar';
 import AddClub from './pages/AddClub';
@@ -99,6 +100,7 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "About": About,
+    "BackfillMatches": BackfillMatches,
     "CurrentSeason": CurrentSeason,
     "MatchdayCalendar": MatchdayCalendar,
     "AddClub": AddClub,

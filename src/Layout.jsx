@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users, ArrowLeft, LogIn, Activity } from 'lucide-react';
+import { Globe, Trophy, Shield, Star, BarChart3, Menu, X, Home, Info, Mail, ChevronDown, Sparkles, MapPin, Heart, Users, ArrowLeft, LogIn, Activity, Database } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -33,6 +33,7 @@ export default function Layout({ children, currentPageName }) {
                                     ];
 
             const toolsDropdown = [
+                { name: 'Backfill Matches', icon: Database, page: 'BackfillMatches' },
                 { name: 'Bulk Squad Builder', icon: Users, page: 'BulkSquadBuilder' },
                 { name: 'Coefficients', icon: BarChart3, page: 'Coefficients' },
                 { name: 'Stability Manager', icon: BarChart3, page: 'StabilityManager' },
