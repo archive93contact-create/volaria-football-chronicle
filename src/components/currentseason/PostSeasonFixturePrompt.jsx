@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Zap, Save, X, Shuffle, CheckCircle2 } from 'lucide-react';
+import { Zap, Save, X, Shuffle, CheckCircle2, Database } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import BackfillMatchesButton from '@/components/seasons/BackfillMatchesButton';
 
 function generateRoundRobin(teams) {
     const n = teams.length;
@@ -86,7 +87,7 @@ export default function PostSeasonFixturePrompt({ season, league, clubs, onDismi
                     <div className="flex-1">
                         <div className="font-semibold text-amber-800 mb-1">Generate Fixtures for {season?.year}?</div>
                         <div className="text-sm text-amber-700 mb-3">
-                            {leagueClubs.length} clubs found in {league?.name}. 
+                            {leagueClubs.length} clubs found in {league?.name}.
                             A full round-robin schedule will create {leagueClubs.length % 2 === 0 ? leagueClubs.length - 1 : leagueClubs.length} matchdays × {Math.floor(leagueClubs.length / 2)} fixtures each.
                         </div>
 
@@ -104,10 +105,10 @@ export default function PostSeasonFixturePrompt({ season, league, clubs, onDismi
                             </div>
                         )}
 
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex gap-2 flex-wrap items-center">
                             {generated.length === 0 ? (
                                 <Button size="sm" onClick={handleGenerate} className="bg-amber-500 hover:bg-amber-600 text-white">
-                                    <Shuffle className="w-4 h-4 mr-1" /> Generate Fixtures
+                                    <Shuffle className="w-4 h-4 mr-1" /> Generate Empty Fixtures
                                 </Button>
                             ) : (
                                 <>
@@ -119,6 +120,18 @@ export default function PostSeasonFixturePrompt({ season, league, clubs, onDismi
                                     </Button>
                                 </>
                             )}
+                            <div className="h-6 w-px bg-amber-300 mx-1" />
+                            <div className="flex items-center">
+                                <BackfillMatchesButton
+                                    seasonId={season?.id}
+                                    leagueId={league?.id}
+                                    year={season?.year}
+                                    fetchFromDB={true}
+                                    size="sm"
+                                    label="Backfill from Table"
+                                    onDone={() => setDone(true)}
+                                />
+                            </div>
                             <Button size="sm" variant="ghost" onClick={onDismiss} className="text-slate-500">
                                 <X className="w-4 h-4 mr-1" /> Skip
                             </Button>

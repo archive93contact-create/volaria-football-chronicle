@@ -15,6 +15,7 @@ import { useIsAdmin } from '@/components/common/AdminOnly';
 import { recalculateStabilityAfterSeason } from '@/components/stability/autoUpdateStability';
 import AIStatsGenerator from '@/components/seasons/AIStatsGenerator';
 import MatchResultsViewer from '@/components/seasons/MatchResultsViewer';
+import BackfillMatchesButton from '@/components/seasons/BackfillMatchesButton';
 
 export default function EditSeasonTable() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -259,6 +260,25 @@ export default function EditSeasonTable() {
                 </Card>
 
                 <MatchResultsViewer seasonId={seasonId} leagueId={leagueId} seasonYear={year} />
+
+                <Card className="border-0 shadow-sm mt-6">
+                    <CardHeader>
+                        <CardTitle>Generate Matches from Table</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-slate-500 mb-4">
+                            Generates a full round-robin fixture list with scores that reproduce this season's table stats (W/D/L, goals, points).
+                            Existing matches for this season will be replaced.
+                        </p>
+                        <BackfillMatchesButton
+                            tableRows={tableRows}
+                            seasonId={seasonId}
+                            leagueId={leagueId}
+                            year={year}
+                            onDone={() => queryClient.invalidateQueries(['matches'])}
+                        />
+                    </CardContent>
+                </Card>
 
                 <div className="flex items-center justify-between mt-6">
                     <Button variant="ghost" onClick={() => navigate(-1)}>
