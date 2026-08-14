@@ -188,9 +188,6 @@ export default function EditSeasonTable() {
                             league={league}
                             seasonId={seasonId}
                             leagueId={leagueId}
-                            onMatchesGenerated={() => {
-                                queryClient.invalidateQueries(['matches']);
-                            }}
                         />
                     </CardHeader>
                     <CardContent>

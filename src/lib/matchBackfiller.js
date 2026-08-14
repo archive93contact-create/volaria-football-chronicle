@@ -357,7 +357,7 @@ export function backfillSeason(tableRows, seasonId, leagueId, year) {
 // ── Normalize tables so totals are mathematically consistent ────────────────
 // sum(W) must equal sum(L); sum(GF) must equal sum(GA). Adjusts minimally,
 // preferring bottom-table teams to protect top standings.
-export function normalizeTables(tableRows) {
+export function normalizeTables(tableRows, targetGames) {
     const rows = tableRows
         .filter(r => r.club_name && r.club_id)
         .map(r => ({ ...r }));
@@ -365,6 +365,26 @@ export function normalizeTables(tableRows) {
 
     rows.sort((a, b) => (a.position || 99) - (b.position || 99));
     const adjustments = [];
+
+    const n = rows.length;
+    const tg = targetGames || rows[0].played || (2 * (n - 1));
+
+    // Fix each team's W+D+L to equal the target games per team
+    for (const r of rows) {
+        let sum = (r.won || 0) + (r.drawn || 0) + (r.lost || 0);
+        r.played = tg;
+        while (sum > tg) {
+            if ((r.won || 0) >= (r.drawn || 0) && (r.won || 0) >= (r.lost || 0)) { r.won = (r.won || 0) - 1; adjustments.push({ team: r.club_name, change: 'W−1 (trim)' }); }
+            else if ((r.lost || 0) >= (r.drawn || 0)) { r.lost = (r.lost || 0) - 1; adjustments.push({ team: r.club_name, change: 'L−1 (trim)' }); }
+            else { r.drawn = (r.drawn || 0) - 1; adjustments.push({ team: r.club_name, change: 'D−1 (trim)' }); }
+            sum--;
+        }
+        while (sum < tg) {
+            r.drawn = (r.drawn || 0) + 1;
+            adjustments.push({ team: r.club_name, change: 'D+1 (pad)' });
+            sum++;
+        }
+    }
 
     // W/L balance
     let sumW = rows.reduce((s, r) => s + (r.won || 0), 0);
