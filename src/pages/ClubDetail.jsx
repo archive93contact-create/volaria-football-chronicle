@@ -43,6 +43,7 @@ import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatu
 import YouthSetup from '@/components/youth/YouthSetup';
 import ClubDNA from '@/components/clubs/ClubDNA';
 import ClubMatchHistory from '@/components/clubs/ClubMatchHistory';
+import ClubSeasonCupBadges from '@/components/clubs/ClubSeasonCupBadges';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1117,6 +1118,7 @@ export default function ClubDetail() {
                                                 <TableHead className="text-center hidden md:table-cell">GF</TableHead>
                                                 <TableHead className="text-center hidden md:table-cell">GA</TableHead>
                                                 <TableHead className="text-center">Pts</TableHead>
+                                                <TableHead className="text-center hidden lg:table-cell">Cup / Cont.</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1166,6 +1168,9 @@ export default function ClubDetail() {
                                                         <TableCell className="text-center hidden md:table-cell">{season.goals_for}</TableCell>
                                                         <TableCell className="text-center hidden md:table-cell">{season.goals_against}</TableCell>
                                                         <TableCell className="text-center font-bold">{season.points}</TableCell>
+                                                        <TableCell className="text-center hidden lg:table-cell">
+                                                            <ClubSeasonCupBadges clubId={season.club_id} clubName={season.club_name} year={season.year} />
+                                                        </TableCell>
                                                     </TableRow>
                                                 );
                                             })}
