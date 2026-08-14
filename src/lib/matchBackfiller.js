@@ -155,18 +155,24 @@ function assignScores(matches, tableMap) {
         games[id] = row.played || 0;
     }
 
+    // Cap individual match scores so the repair can't manufacture 6-0 / 7-1
+    // hammerings even when a team's season goal total is high.
+    const MAX_MATCH_GOALS = 5;
     for (const m of matches) {
         const hGames = games[m.home.id] || 1;
         const aGames = games[m.away.id] || 1;
-        let hs = Math.round((gf[m.home.id] || 0) / hGames);
-        let as = Math.round((gf[m.away.id] || 0) / aGames);
+        // Floor (not round): base score sits at a low realistic 0-1, and the
+        // repair only adds goals where the season totals actually require it —
+        // so most matches land at 1-0 / 1-1 / 2-1 instead of 3-0 / 4-1.
+        let hs = Math.floor((gf[m.home.id] || 0) / hGames);
+        let as = Math.floor((gf[m.away.id] || 0) / aGames);
 
         if (m.result === 'H') { if (hs <= as) hs = as + 1; }
         else if (m.result === 'D') { hs = as = Math.max(hs, as); }
         else if (m.result === 'A') { if (as <= hs) as = hs + 1; }
 
-        hs = Math.max(0, hs);
-        as = Math.max(0, as);
+        hs = Math.max(0, Math.min(MAX_MATCH_GOALS, hs));
+        as = Math.max(0, Math.min(MAX_MATCH_GOALS, as));
 
         m.home_score = hs;
         m.away_score = as;
@@ -206,6 +212,7 @@ function repairScores(matches, tableMap) {
     const canAdjust = (m, dh, da) => {
         const nh = m.home_score + dh, na = m.away_score + da;
         if (nh < 0 || na < 0) return false;
+        if (nh > 5 || na > 5) return false; // keep scorelines realistic
         if (m.result === 'H' && !(nh > na)) return false;
         if (m.result === 'D' && !(nh === na)) return false;
         if (m.result === 'A' && !(nh < na)) return false;
@@ -389,7 +396,7 @@ export function normalizeTables(tableRows, targetGames) {
     // Clamp per-team goals to a realistic band (0.55x–2.0x games played) so
     // the LLM can't inject arcade scorelines even when it ignores the prompt.
     const gfMin = Math.floor(tg * 0.55);
-    const gfMax = Math.ceil(tg * 2.0);
+    const gfMax = Math.ceil(tg * 1.6);
     for (const r of rows) {
         const gf = r.goals_for || 0;
         if (gf > gfMax) {
@@ -416,14 +423,20 @@ export function normalizeTables(tableRows, targetGames) {
     let guard = 0;
     while (gap !== 0 && guard++ < 1000) {
         if (gap > 0) {
+            // Protect a 1-win floor: prefer reducing from teams that can spare a
+            // win (won >= 2) so the bottom sides aren't systematically zeroed out.
+            const pickWinnerToReduce = () => {
+                const pool = [...rows].reverse().filter(r => (r.won || 0) >= 2);
+                return pool[0] || [...rows].reverse().find(r => (r.won || 0) > 0);
+            };
             if (gap >= 2) {
-                const t = [...rows].reverse().find(r => (r.won || 0) > 0);
+                const t = pickWinnerToReduce();
                 if (!t) break;
                 t.won--; t.lost++;
                 adjustments.push({ team: t.club_name, change: 'W→L', points: -3 });
                 gap -= 2;
             } else {
-                const t = [...rows].reverse().find(r => (r.won || 0) > 0);
+                const t = pickWinnerToReduce();
                 if (!t) break;
                 t.won--; t.drawn++;
                 adjustments.push({ team: t.club_name, change: 'W→D', points: -2 });

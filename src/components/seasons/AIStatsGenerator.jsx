@@ -117,9 +117,9 @@ HARD REALISM RULES — follow exactly:
    - A healthy spread of draws (5-12 per team) — not everyone wins/loses.
 6. GOALS (per team, across the WHOLE season of ${gamesPerTeam} games):
    - Average team scores ~${avgTeamGoals} goals.
-   - Top scorer: ${Math.round(gamesPerTeam*1.5)}-${Math.round(gamesPerTeam*1.9)} goals. NO team above ${Math.round(gamesPerTeam*2.0)}.
+   - Top scorer: ${Math.round(gamesPerTeam*1.3)}-${Math.round(gamesPerTeam*1.5)} goals. NO team above ${Math.round(gamesPerTeam*1.6)}.
    - Weakest attack: ${Math.round(gamesPerTeam*0.7)}-${Math.round(gamesPerTeam*0.9)} goals. NO team below ${Math.round(gamesPerTeam*0.55)}.
-   - Defense (GA) ranges similarly; a tight defense concedes ~${Math.round(gamesPerTeam*0.8)}-${Math.round(gamesPerTeam*1.1)}, a leaky one ~${Math.round(gamesPerTeam*1.4)}-${Math.round(gamesPerTeam*1.8)}. NO team above ${Math.round(gamesPerTeam*2.0)} conceded.
+   - Defense (GA) ranges similarly; a tight defense concedes ~${Math.round(gamesPerTeam*0.8)}-${Math.round(gamesPerTeam*1.1)}, a leaky one ~${Math.round(gamesPerTeam*1.3)}-${Math.round(gamesPerTeam*1.5)}. NO team above ${Math.round(gamesPerTeam*1.6)} conceded.
    - Goals-per-game per team should average 0.9-1.6. Think 1-2 goals a match, NOT 4-5.
 7. Keep it believable: a 2nd-place team may have a better GD than the champion; a mid-table side can be the top scorers; a relegated team may outscore one above it. But the NUMBERS stay in the bands above.
 
