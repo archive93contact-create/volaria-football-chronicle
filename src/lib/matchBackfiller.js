@@ -386,6 +386,29 @@ export function normalizeTables(tableRows, targetGames) {
         }
     }
 
+    // Clamp per-team goals to a realistic band (0.55x–2.0x games played) so
+    // the LLM can't inject arcade scorelines even when it ignores the prompt.
+    const gfMin = Math.floor(tg * 0.55);
+    const gfMax = Math.ceil(tg * 2.0);
+    for (const r of rows) {
+        const gf = r.goals_for || 0;
+        if (gf > gfMax) {
+            r.goals_for = gfMax;
+            adjustments.push({ team: r.club_name, change: `GF ${gf}→${gfMax} (clamp)` });
+        } else if (gf < gfMin && gf > 0) {
+            r.goals_for = gfMin;
+            adjustments.push({ team: r.club_name, change: `GF ${gf}→${gfMin} (floor)` });
+        }
+        const ga = r.goals_against || 0;
+        if (ga > gfMax) {
+            r.goals_against = gfMax;
+            adjustments.push({ team: r.club_name, change: `GA ${ga}→${gfMax} (clamp)` });
+        } else if (ga < gfMin && ga > 0) {
+            r.goals_against = gfMin;
+            adjustments.push({ team: r.club_name, change: `GA ${ga}→${gfMin} (floor)` });
+        }
+    }
+
     // W/L balance
     let sumW = rows.reduce((s, r) => s + (r.won || 0), 0);
     let sumL = rows.reduce((s, r) => s + (r.lost || 0), 0);

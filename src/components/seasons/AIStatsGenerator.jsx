@@ -32,41 +32,59 @@ export default function AIStatsGenerator({ tableRows, setTableRows, seasonData, 
                 .map((r, idx) => `${idx + 1}. ${r.club_name}${r.points > 0 ? ` (${r.points} pts)` : ''}${r.goals_for > 0 ? ` GF:${r.goals_for}` : ''}`)
                 .join('\n');
 
-            const seasonTypes = ['close', 'dominant', 'chaotic', 'normal'];
-            const seasonType = seasonTypes[Math.floor(Math.random() * seasonTypes.length)];
+            // Weighted season flavour — mostly normal/close; "chaotic" is rare so freak
+            // scorelines don't dominate the generated history.
+            const flavourRoll = Math.random();
+            const seasonType = flavourRoll < 0.55 ? 'normal'
+                : flavourRoll < 0.80 ? 'close'
+                : flavourRoll < 0.95 ? 'dominant'
+                : 'chaotic';
 
-            const prompt = `Generate realistic and VARIED football league table statistics for a ${numTeams}-team league season.
+            const totalLeagueGames = (numTeams * gamesPerTeam) / 2;
+            // League-wide goals-per-game sits in a realistic ~2.5-2.9 band.
+            const leagueGpg = (2.5 + Math.random() * 0.4).toFixed(2);
+            const totalLeagueGoals = Math.round(totalLeagueGames * leagueGpg);
+            // Average goals a single team scores across the season.
+            const avgTeamGoals = (totalLeagueGoals / numTeams).toFixed(0);
+
+            const prompt = `Generate REALISTIC football league table statistics for a ${numTeams}-team league. Model this on real-world domestic leagues (think typical European top/second flights — NOT arcade or fantasy football).
 
 LEAGUE: ${league?.name || 'Football League'} (Tier ${league?.tier || 1})
 SEASON: ${seasonData?.year || 'Current'}
 GAMES PER TEAM: ${gamesPerTeam}
+TEAMS: ${numTeams}
+TOTAL LEAGUE MATCHES: ${totalLeagueGames}
+TARGET LEAGUE GOALS-PER-GAME: ~${leagueGpg} (so total goals scored across ALL teams ≈ ${totalLeagueGoals})
+AVERAGE GOALS PER TEAM (season): ~${avgTeamGoals}
 
-SEASON TYPE: ${seasonType.toUpperCase()}
-${seasonType === 'close' ? '- This was a TIGHT title race! Top 2-3 teams within 3-5 points. Relegation battle also close.' : ''}
-${seasonType === 'dominant' ? '- Champion was DOMINANT! Won by 10-15+ points. Mid-table competitive.' : ''}
-${seasonType === 'chaotic' ? '- UNPREDICTABLE season! Surprise results, unusual stats, maybe high-scoring team mid-table.' : ''}
-${seasonType === 'normal' ? '- Standard season with realistic gaps (2-4 points between positions).' : ''}
+SEASON FLAVOUR: ${seasonType.toUpperCase()}
+${seasonType === 'close' ? '- Tight title race: top 2-3 within 3-6 points. Relegation scrap also tight.' : ''}
+${seasonType === 'dominant' ? '- Champion is strong (wins by ~8-12 pts). The rest of the table is normal.' : ''}
+${seasonType === 'chaotic' ? '- Slightly unusual ordering, but STILL realistic numbers — no arcade scorelines.' : ''}
+${seasonType === 'normal' ? '- Standard realistic season: 2-4 points between adjacent positions.' : ''}
 
-TEAMS IN ORDER (1st to last):
+TEAMS IN FINAL ORDER (1st to last):
 ${knownData}
 
-CRITICAL REQUIREMENTS:
-1. W + D + L MUST equal exactly ${gamesPerTeam} for every team
-2. Points = (W × 3) + D - calculate correctly!
-3. GD = GF - GA
-4. The TOTAL wins across all teams MUST equal the TOTAL losses (every win has a corresponding loss)
-5. The TOTAL goals scored across all teams MUST equal the TOTAL goals conceded
-6. Add REALISTIC VARIETY:
-   - Some defensive teams (low GF, low GA)
-   - Some attacking but leaky (high GF, high GA)
-   - Some draw specialists
-   - Bottom teams still score 30-50 goals
-7. Create interesting storylines:
-   - Maybe 2nd has better GD but fewer points
-   - A high-scoring team finishes 4th-6th
-   - Relegated team might outscore team above them
+HARD REALISM RULES — follow exactly:
+1. W + D + L = ${gamesPerTeam} for EVERY team.
+2. Points = W*3 + D. GD = GF - GA.
+3. Sum of all W across the league = sum of all L (every win has a loss).
+4. Sum of all GF across the league = sum of all GA = ${totalLeagueGoals}.
+5. WIN/DRAW/LOSS distribution (per team, for ${gamesPerTeam} games):
+   - Top team: ~${Math.round(gamesPerTeam*0.6)}-${Math.round(gamesPerTeam*0.75)} wins, ~${Math.round(gamesPerTeam*0.15)} draws, rest losses.
+   - Mid-table: ~${Math.round(gamesPerTeam*0.4)}-${Math.round(gamesPerTeam*0.5)} wins.
+   - Relegated teams: ~${Math.round(gamesPerTeam*0.15)}-${Math.round(gamesPerTeam*0.3)} wins, ${Math.round(gamesPerTeam*0.2)}-${Math.round(gamesPerTeam*0.35)} draws — they still WIN GAMES. NO team should have 0, 1, or 2 wins.
+   - A healthy spread of draws (5-12 per team) — not everyone wins/loses.
+6. GOALS (per team, across the WHOLE season of ${gamesPerTeam} games):
+   - Average team scores ~${avgTeamGoals} goals.
+   - Top scorer: ${Math.round(gamesPerTeam*1.5)}-${Math.round(gamesPerTeam*1.9)} goals. NO team above ${Math.round(gamesPerTeam*2.0)}.
+   - Weakest attack: ${Math.round(gamesPerTeam*0.7)}-${Math.round(gamesPerTeam*0.9)} goals. NO team below ${Math.round(gamesPerTeam*0.55)}.
+   - Defense (GA) ranges similarly; a tight defense concedes ~${Math.round(gamesPerTeam*0.8)}-${Math.round(gamesPerTeam*1.1)}, a leaky one ~${Math.round(gamesPerTeam*1.4)}-${Math.round(gamesPerTeam*1.8)}. NO team above ${Math.round(gamesPerTeam*2.0)} conceded.
+   - Goals-per-game per team should average 0.9-1.6. Think 1-2 goals a match, NOT 4-5.
+7. Keep it believable: a 2nd-place team may have a better GD than the champion; a mid-table side can be the top scorers; a relegated team may outscore one above it. But the NUMBERS stay in the bands above.
 
-Generate UNIQUE stats - not linear progression!`;
+Return realistic stats. No outlier scoreline inflation.`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
