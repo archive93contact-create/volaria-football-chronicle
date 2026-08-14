@@ -36,6 +36,7 @@ import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 import PlayerProfile from '@/components/players/PlayerProfile';
 import UpdatePlayerImages from '@/components/players/UpdatePlayerImages';
 import ClubAnalyticsDashboard from '@/components/analytics/ClubAnalyticsDashboard';
+import HeadToHeadRecords from '@/components/clubs/HeadToHeadRecords';
 import TrophyHaul from '@/components/clubs/TrophyHaul';
 import DecadeBreakdown from '@/components/clubs/DecadeBreakdown';
 import TuruliandNonLeagueStatus from '@/components/clubs/TuruliandNonLeagueStatus';
@@ -1342,12 +1343,15 @@ export default function ClubDetail() {
 
                     {/* ANALYTICS TAB */}
                     <TabsContent value="analytics">
-                        <ClubAnalyticsDashboard 
-                            club={{...club, ...combinedStats}}
-                            seasons={combinedSeasons}
-                            allClubs={allClubs}
-                            allLeagues={allLeagues}
-                        />
+                        <div className="space-y-6">
+                            <HeadToHeadRecords club={club} />
+                            <ClubAnalyticsDashboard 
+                                club={{...club, ...combinedStats}}
+                                seasons={combinedSeasons}
+                                allClubs={allClubs}
+                                allLeagues={allLeagues}
+                            />
+                        </div>
                     </TabsContent>
 
                     {/* CONTINENTAL TAB */}

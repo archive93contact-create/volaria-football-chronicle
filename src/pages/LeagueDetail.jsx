@@ -39,6 +39,7 @@ import ThemedCard from '@/components/common/ThemedCard';
 import LeaguePlayerStats from '@/components/leagues/LeaguePlayerStats';
 import LeagueHistoricalStats from '@/components/leagues/LeagueHistoricalStats';
 import LeagueAnalyticsDashboard from '@/components/analytics/LeagueAnalyticsDashboard';
+import LeagueMatchAnalytics from '@/components/leagues/LeagueMatchAnalytics';
 import PersonalizedLeagueStory from '@/components/leagues/PersonalizedLeagueStory';
 import LeagueTierSwitcher from '@/components/leagues/LeagueTierSwitcher';
 import LeagueCrestBanner from '@/components/leagues/LeagueCrestBanner';
@@ -849,13 +850,16 @@ export default function LeagueDetail() {
 
                     {/* ANALYTICS TAB */}
                     <TabsContent value="analytics">
-                        <LeagueAnalyticsDashboard 
-                            league={league}
-                            seasons={seasons}
-                            allTables={leagueTables}
-                            clubs={allNationClubs}
-                            allLeagues={allNationLeagues}
-                        />
+                        <div className="space-y-6">
+                            <LeagueMatchAnalytics leagueId={leagueId} />
+                            <LeagueAnalyticsDashboard 
+                                league={league}
+                                seasons={seasons}
+                                allTables={leagueTables}
+                                clubs={allNationClubs}
+                                allLeagues={allNationLeagues}
+                            />
+                        </div>
                     </TabsContent>
 
                     {/* PREDICTIONS TAB */}

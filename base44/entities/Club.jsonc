@@ -377,6 +377,14 @@
     "longitude": {
       "type": "number",
       "description": "Longitude coordinate on fictional world map (0-1000)"
+    },
+    "local_dominance_score": {
+      "type": "number",
+      "description": "0-100 dominance score computed from derby matches against clubs in the same district/region (70% points rate + 30% win rate)"
+    },
+    "local_dominance_rank": {
+      "type": "number",
+      "description": "Rank within the local derby table (1 = local derby champion)"
     }
   },
   "required": [

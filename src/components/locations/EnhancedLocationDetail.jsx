@@ -22,6 +22,7 @@ import AILocationEnhancer from '@/components/locations/AILocationEnhancer';
 import AILocationImagery from '@/components/locations/AILocationImagery';
 import AdminOnly from '@/components/common/AdminOnly';
 import LocationAnalytics from '@/components/locations/LocationAnalytics';
+import DistrictDerbyBoard from '@/components/locations/DistrictDerbyBoard';
 import { estimateLocationPopulation } from '@/components/common/populationUtils';
 
 export default function EnhancedLocationDetail({ 
@@ -634,7 +635,12 @@ export default function EnhancedLocationDetail({
                     </div>
                 </TabsContent>
 
-                <TabsContent value="analytics">
+                <TabsContent value="analytics" className="space-y-6">
+                    <DistrictDerbyBoard 
+                        locationClubs={locationClubs}
+                        locationName={locationName}
+                        locationType={locationType}
+                    />
                     <LocationAnalytics 
                         locationClubs={locationClubs}
                         leagues={leagues}
