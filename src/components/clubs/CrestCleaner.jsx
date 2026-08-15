@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -151,13 +151,13 @@ async function canvasToFile(canvas, filename) {
 }
 
 export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
-    const previewRef = useRef(null);
     const [threshold, setThreshold] = useState(242);
     const [fillHoles, setFillHoles] = useState(true);
     const [trim, setTrim] = useState(true);
     const [sourceUrl, setSourceUrl] = useState(club?.logo_url || '');
     const [sourceName, setSourceName] = useState('current crest');
     const [workingCanvas, setWorkingCanvas] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
@@ -166,6 +166,8 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
         if (!open) return;
         setSourceUrl(club?.logo_url || '');
         setSourceName('current crest');
+        setWorkingCanvas(null);
+        setPreviewUrl('');
         setError('');
     }, [open, club?.logo_url]);
 
@@ -192,23 +194,48 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            imageData = removeEdgeConnectedWhite(imageData, threshold);
+
+            // If the source already has real transparency around its outer edge, do not run
+            // white-background removal at all. This protects clean PNG crests whose internal
+            // white areas may legitimately touch the badge boundary.
+            const borderAlpha = [];
+            const stepX = Math.max(1, Math.floor(canvas.width / 120));
+            const stepY = Math.max(1, Math.floor(canvas.height / 120));
+            for (let x = 0; x < canvas.width; x += stepX) {
+                borderAlpha.push(imageData.data[idx(x, 0, canvas.width) + 3]);
+                borderAlpha.push(imageData.data[idx(x, canvas.height - 1, canvas.width) + 3]);
+            }
+            for (let y = 0; y < canvas.height; y += stepY) {
+                borderAlpha.push(imageData.data[idx(0, y, canvas.width) + 3]);
+                borderAlpha.push(imageData.data[idx(canvas.width - 1, y, canvas.width) + 3]);
+            }
+            const transparentBorderRatio = borderAlpha.filter(a => a < 32).length / Math.max(1, borderAlpha.length);
+            const alreadyTransparent = transparentBorderRatio > 0.12;
+
+            if (!alreadyTransparent) {
+                imageData = removeEdgeConnectedWhite(imageData, threshold);
+            }
             if (fillHoles) imageData = fillEnclosedTransparency(imageData);
             ctx.putImageData(imageData, 0, 0);
 
             const finalCanvas = trim ? trimCanvas(canvas) : canvas;
-            setWorkingCanvas(finalCanvas);
-            const preview = previewRef.current;
-            if (preview) {
-                preview.width = finalCanvas.width;
-                preview.height = finalCanvas.height;
-                preview.getContext('2d').clearRect(0, 0, preview.width, preview.height);
-                preview.getContext('2d').drawImage(finalCanvas, 0, 0);
+
+            // Safety guard: never offer an effectively empty badge as a valid result.
+            const finalCtx = finalCanvas.getContext('2d', { willReadFrequently: true });
+            const finalData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height).data;
+            let visiblePixels = 0;
+            for (let i = 3; i < finalData.length; i += 4) if (finalData[i] > 24) visiblePixels += 1;
+            if (visiblePixels < Math.max(80, finalCanvas.width * finalCanvas.height * 0.008)) {
+                throw new Error('That setting removed too much of the crest. Raise the threshold or use the original transparent image.');
             }
+
+            setWorkingCanvas(finalCanvas);
+            setPreviewUrl(finalCanvas.toDataURL('image/png'));
         } catch (e) {
             console.error(e);
             setError(e.message || 'Could not clean crest');
             setWorkingCanvas(null);
+            setPreviewUrl('');
         } finally {
             setIsProcessing(false);
         }
@@ -263,8 +290,10 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
                     </div>
                     <div className="space-y-3">
                         <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Cleaned preview</div>
-                        <div className="aspect-square rounded-xl border border-slate-800 bg-[linear-gradient(45deg,#111827_25%,#1f2937_25%,#1f2937_75%,#111827_75%,#111827),linear-gradient(45deg,#111827_25%,#1f2937_25%,#1f2937_75%,#111827_75%,#111827)] bg-[length:24px_24px] bg-[position:0_0,12px_12px] flex items-center justify-center p-5 overflow-hidden">
-                            {isProcessing ? <Loader2 className="w-7 h-7 animate-spin text-white" /> : <canvas ref={previewRef} className="max-w-full max-h-full object-contain" />}
+                        <div className="relative aspect-square rounded-xl border border-slate-800 bg-[linear-gradient(45deg,#111827_25%,#1f2937_25%,#1f2937_75%,#111827_75%,#111827),linear-gradient(45deg,#111827_25%,#1f2937_25%,#1f2937_75%,#111827_75%,#111827)] bg-[length:24px_24px] bg-[position:0_0,12px_12px] flex items-center justify-center p-5 overflow-hidden">
+                            {previewUrl && <img src={previewUrl} alt="Cleaned crest preview" className="max-w-full max-h-full object-contain" />}
+                            {isProcessing && <div className="absolute inset-0 bg-slate-950/45 flex items-center justify-center"><Loader2 className="w-7 h-7 animate-spin text-white" /></div>}
+                            {!isProcessing && !previewUrl && <ShieldCheck className="w-20 h-20 text-white/20" />}
                         </div>
                     </div>
                 </div>
@@ -273,7 +302,7 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
                     <div className="space-y-2">
                         <div className="flex items-center justify-between"><Label>White-background threshold</Label><span className="text-xs font-mono text-slate-500">{threshold}</span></div>
                         <Slider value={[threshold]} onValueChange={(v) => setThreshold(v[0])} min={220} max={252} step={1} />
-                        <p className="text-xs text-slate-500">Lower = more aggressive. Because removal starts from the image edge, internal white lettering and panels are protected unless they physically connect to the outer background.</p>
+                        <p className="text-xs text-slate-500">Lower = more aggressive. If the source already has transparent outer edges, white removal is skipped automatically so genuine white parts of the badge are left alone.</p>
                     </div>
                     <div className="flex items-center justify-between gap-4">
                         <div><Label>Restore internal transparent holes to white</Label><p className="text-xs text-slate-500 mt-1">Useful for crests where an earlier transparency pass accidentally removed white parts.</p></div>
