@@ -413,22 +413,24 @@ export default function ClubDetail() {
 
             <ClubDNA club={club} league={league} nation={nation} allClubs={allClubs} />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7">
                 <Tabs defaultValue="overview" className="space-y-6">
-                    <TabsList>
-                        <TabsTrigger value="overview">Story & Honours</TabsTrigger>
-                        <TabsTrigger value="trophies">Trophies</TabsTrigger>
-                        <TabsTrigger value="statistics">History</TabsTrigger>
-                        <TabsTrigger value="decades">Decades</TabsTrigger>
-                        <TabsTrigger value="rivalries">Rivalries</TabsTrigger>
-                        <TabsTrigger value="squad">Squad ({players.filter(p => !p.is_youth_player).length})</TabsTrigger>
-                        <TabsTrigger value="youth">Youth ({players.filter(p => p.is_youth_player).length})</TabsTrigger>
-                        <TabsTrigger value="youth-setup">Sub Teams</TabsTrigger>
-                        <TabsTrigger value="continental">Continental</TabsTrigger>
-                        <TabsTrigger value="matches">Results & Fixtures</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                        <TabsTrigger value="info">Info</TabsTrigger>
+                    <div className="-mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="h-12 w-max min-w-full justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0">
+                            <TabsTrigger value="overview" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Overview</TabsTrigger>
+                            <TabsTrigger value="trophies" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Honours</TabsTrigger>
+                            <TabsTrigger value="statistics" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">History</TabsTrigger>
+                            <TabsTrigger value="squad" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Squad</TabsTrigger>
+                            <TabsTrigger value="matches" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Fixtures & Results</TabsTrigger>
+                            <TabsTrigger value="continental" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Continental</TabsTrigger>
+                            <TabsTrigger value="rivalries" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Rivalries</TabsTrigger>
+                            <TabsTrigger value="decades" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Decades</TabsTrigger>
+                            <TabsTrigger value="youth" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Youth</TabsTrigger>
+                            <TabsTrigger value="youth-setup" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Sub Teams</TabsTrigger>
+                            <TabsTrigger value="analytics" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Analytics</TabsTrigger>
+                            <TabsTrigger value="info" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Club Info</TabsTrigger>
                         </TabsList>
+                    </div>
 
                     {/* OVERVIEW TAB - Club Story, History & Honours */}
                     <TabsContent value="overview">
