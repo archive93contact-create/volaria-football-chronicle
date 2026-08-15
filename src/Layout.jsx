@@ -62,15 +62,16 @@ export default function Layout({ children, currentPageName }) {
     return (
         <div className="min-h-screen bg-slate-50">
             <style>{`
-                /* White backgrounds for all club crests and nation flags */
-                img[src*="logo"],
-                img[alt*="crest"],
+                /* Preserve image transparency. Crests/logos must never receive a forced white tile. */
                 img[alt*="flag"],
-                .club-crest,
                 .nation-flag {
-                    background-color: white;
-                    padding: 2px;
-                    border-radius: 4px;
+                    border-radius: 3px;
+                }
+
+                img[alt*="crest"],
+                .club-crest {
+                    background: transparent !important;
+                    padding: 0 !important;
                 }
             `}</style>
             {/* Top Navigation */}
