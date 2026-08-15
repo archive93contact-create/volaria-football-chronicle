@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, MapPin, Users, Calendar, Trophy, TrendingUp, TrendingDown, Target, Star, Award, Plus } from 'lucide-react';
+import { Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, MapPin, Users, Calendar, Trophy, TrendingUp, TrendingDown, Target, Star, Award, Plus, Sparkles } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,6 +44,7 @@ import YouthSetup from '@/components/youth/YouthSetup';
 import ClubDNA from '@/components/clubs/ClubDNA';
 import ClubMatchHistory from '@/components/clubs/ClubMatchHistory';
 import ClubSeasonCupBadges from '@/components/clubs/ClubSeasonCupBadges';
+import CrestCleaner from '@/components/clubs/CrestCleaner';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -53,6 +54,7 @@ export default function ClubDetail() {
 
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
+    const [crestCleanerOpen, setCrestCleanerOpen] = useState(false);
 
     const { data: club, isLoading: clubLoading, error: clubError } = useQuery({
         queryKey: ['club', clubId],
@@ -356,6 +358,7 @@ export default function ClubDetail() {
                         </nav>
                         <AdminOnly>
                             <div className="flex gap-2 shrink-0">
+                                <Button size="sm" variant="outline" className="bg-black/20 border-white/25 text-white hover:bg-white/15 hover:text-white" onClick={() => setCrestCleanerOpen(true)}><Sparkles className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Clean crest</span></Button>
                                 <Button size="sm" variant="outline" className="bg-black/20 border-white/25 text-white hover:bg-white/15 hover:text-white" onClick={handleEdit}><Edit2 className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Edit club</span></Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild><Button size="sm" variant="outline" className="bg-black/20 border-red-300/30 text-red-200 hover:bg-red-500/20 hover:text-red-100"><Trash2 className="w-4 h-4" /></Button></AlertDialogTrigger>
@@ -367,8 +370,10 @@ export default function ClubDetail() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-7 lg:gap-10 items-end">
                         <div className="flex flex-col sm:flex-row gap-5 sm:gap-7 items-start sm:items-center min-w-0">
-                            <div className="shrink-0 w-28 h-28 md:w-36 md:h-36 flex items-center justify-center drop-shadow-[0_15px_26px_rgba(0,0,0,0.45)]">
-                                {club.logo_url ? <img src={club.logo_url} alt={`${club.name} crest`} className="max-w-full max-h-full object-contain" /> : <div className="w-full h-full rounded-full border border-white/20 bg-black/20 flex items-center justify-center"><Shield className="w-16 h-16 text-white/35" /></div>}
+                            <div className="relative shrink-0 w-36 h-36 sm:w-40 sm:h-40 md:w-48 md:h-48 flex items-center justify-center -mb-1 sm:mb-0">
+                                <div className="absolute inset-[10%] rounded-full blur-2xl opacity-55" style={{ backgroundColor: club.accent_color || club.secondary_color || club.primary_color || '#ffffff' }} />
+                                <div className="absolute inset-[4%] rounded-full border border-white/10 bg-black/10 backdrop-blur-[1px]" />
+                                {club.logo_url ? <img src={club.logo_url} alt={`${club.name} crest`} className="relative z-10 max-w-[112%] max-h-[112%] object-contain drop-shadow-[0_18px_20px_rgba(0,0,0,0.48)]" /> : <div className="relative z-10 w-[82%] h-[82%] rounded-full border border-white/20 bg-black/20 flex items-center justify-center"><Shield className="w-20 h-20 text-white/35" /></div>}
                             </div>
                             <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -1474,6 +1479,16 @@ export default function ClubDetail() {
                                                         </TabsContent>
                                                         </Tabs>
                                                         </div>
+
+            <CrestCleaner
+                open={crestCleanerOpen}
+                onOpenChange={setCrestCleanerOpen}
+                club={club}
+                onSaved={() => {
+                    queryClient.invalidateQueries(['club', clubId]);
+                    queryClient.invalidateQueries(['clubs']);
+                }}
+            />
 
             {/* Edit Dialog */}
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
