@@ -379,7 +379,19 @@ export default function ClubDetail() {
                                 {club.nickname && <p className="mt-3 text-lg md:text-xl text-white/70 italic">{club.nickname}</p>}
                                 <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
                                     {club.founded_year && <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Founded {club.founded_year}</span>}
-                                    {(club.settlement || club.city || club.district) && <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {club.settlement || club.city || club.district}</span>}
+                                    {(club.settlement || club.district || club.region || club.city) && (
+                                        <span className="flex items-center gap-1.5 min-w-0">
+                                            <MapPin className="w-4 h-4 shrink-0" />
+                                            <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0">
+                                                {club.settlement && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.settlement)}&type=settlement&nation_id=${club.nation_id}`)} className="font-medium text-white/85 hover:text-white hover:underline underline-offset-2">{club.settlement}</Link>}
+                                                {club.settlement && club.district && <span className="text-white/35">·</span>}
+                                                {club.district && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.district)}&type=district&nation_id=${club.nation_id}`)} className="font-medium text-white/85 hover:text-white hover:underline underline-offset-2">{club.district}</Link>}
+                                                {(club.settlement || club.district) && club.region && <span className="text-white/35">·</span>}
+                                                {club.region && <Link to={createPageUrl(`LocationDetail?name=${encodeURIComponent(club.region)}&type=region&nation_id=${club.nation_id}`)} className="font-medium text-white/85 hover:text-white hover:underline underline-offset-2">{club.region}</Link>}
+                                                {!club.settlement && !club.district && !club.region && club.city && <span>{club.city}</span>}
+                                            </span>
+                                        </span>
+                                    )}
                                     {club.stadium && <span className="flex items-center gap-1.5"><Shield className="w-4 h-4" /> {club.stadium}{club.stadium_capacity ? ` · ${club.stadium_capacity.toLocaleString()}` : ''}</span>}
                                 </div>
                                 <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -399,36 +411,38 @@ export default function ClubDetail() {
                         </div>
                     </div>
 
-                    <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border border-white/15 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm">
+                    <div className="mt-7 grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 border border-white/15 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm">
                         <div className="px-4 py-3 border-r border-b lg:border-b-0 border-white/10"><div className="text-2xl font-black">{combinedStats?.league_titles || 0}</div><div className="text-[10px] uppercase tracking-wider text-white/50">League titles</div></div>
                         <div className="px-4 py-3 border-r border-b lg:border-b-0 border-white/10"><div className="text-2xl font-black">{combinedStats?.domestic_cup_titles || 0}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Domestic cups</div></div>
                         <div className="px-4 py-3 border-r border-b lg:border-b-0 border-white/10"><div className="text-2xl font-black">{(combinedStats?.vcc_titles || 0) + (combinedStats?.ccc_titles || 0)}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Continental titles</div></div>
-                        <div className="px-4 py-3 border-r border-white/10"><div className="text-2xl font-black">{combinedStats?.seasons_top_flight || 0}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Top-flight seasons</div></div>
-                        <div className="px-4 py-3 border-r border-white/10"><div className="text-2xl font-black">{combinedStats?.promotions || 0}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Promotions</div></div>
-                        <div className="px-4 py-3"><div className="text-sm font-bold leading-tight truncate">{club.manager || '—'}</div><div className="text-[10px] uppercase tracking-wider text-white/50 mt-1">Manager</div></div>
+                        <div className="hidden sm:block px-4 py-3 border-r border-white/10"><div className="text-2xl font-black">{combinedStats?.seasons_top_flight || 0}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Top-flight seasons</div></div>
+                        <div className="hidden sm:block px-4 py-3 border-r border-white/10"><div className="text-2xl font-black">{combinedStats?.promotions || 0}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Promotions</div></div>
+                        <div className="hidden sm:block px-4 py-3"><div className="text-sm font-bold leading-tight truncate">{club.manager || '—'}</div><div className="text-[10px] uppercase tracking-wider text-white/50 mt-1">Manager</div></div>
                     </div>
                 </div>
                 <div className="h-1.5 flex"><div className="flex-[3]" style={{ backgroundColor: club.primary_color || '#334155' }} /><div className="flex-[2]" style={{ backgroundColor: club.secondary_color || club.primary_color || '#111827' }} /><div className="flex-1" style={{ backgroundColor: club.accent_color || club.secondary_color || '#f8fafc' }} /></div>
             </section>
 
-            <ClubDNA club={club} league={league} nation={nation} allClubs={allClubs} />
+            <div className="hidden sm:block">
+                <ClubDNA club={club} league={league} nation={nation} allClubs={allClubs} />
+            </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7">
-                <Tabs defaultValue="overview" className="space-y-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-7">
+                <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
                     <div className="-mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        <TabsList className="h-12 w-max min-w-full justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0">
-                            <TabsTrigger value="overview" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Overview</TabsTrigger>
-                            <TabsTrigger value="trophies" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Honours</TabsTrigger>
-                            <TabsTrigger value="statistics" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">History</TabsTrigger>
-                            <TabsTrigger value="squad" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Squad</TabsTrigger>
-                            <TabsTrigger value="matches" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Fixtures & Results</TabsTrigger>
-                            <TabsTrigger value="continental" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Continental</TabsTrigger>
-                            <TabsTrigger value="rivalries" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Rivalries</TabsTrigger>
-                            <TabsTrigger value="decades" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Decades</TabsTrigger>
-                            <TabsTrigger value="youth" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Youth</TabsTrigger>
-                            <TabsTrigger value="youth-setup" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Sub Teams</TabsTrigger>
-                            <TabsTrigger value="analytics" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Analytics</TabsTrigger>
-                            <TabsTrigger value="info" className="h-12 rounded-none border-b-2 border-transparent px-4 font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Club Info</TabsTrigger>
+                        <TabsList className="h-11 sm:h-12 w-max min-w-full justify-start gap-0 sm:gap-1 rounded-none border-b border-slate-200 bg-transparent p-0">
+                            <TabsTrigger value="overview" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Overview</TabsTrigger>
+                            <TabsTrigger value="trophies" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Honours</TabsTrigger>
+                            <TabsTrigger value="statistics" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">History</TabsTrigger>
+                            <TabsTrigger value="squad" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Squad</TabsTrigger>
+                            <TabsTrigger value="matches" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Fixtures & Results</TabsTrigger>
+                            <TabsTrigger value="continental" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Continental</TabsTrigger>
+                            <TabsTrigger value="rivalries" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Rivalries</TabsTrigger>
+                            <TabsTrigger value="decades" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Decades</TabsTrigger>
+                            <TabsTrigger value="youth" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Youth</TabsTrigger>
+                            <TabsTrigger value="youth-setup" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Sub Teams</TabsTrigger>
+                            <TabsTrigger value="analytics" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Analytics</TabsTrigger>
+                            <TabsTrigger value="info" className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--club-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Club Info</TabsTrigger>
                         </TabsList>
                     </div>
 
@@ -437,7 +451,7 @@ export default function ClubDetail() {
                 {/* Stats - with subtle club theming */}
                 <div 
                     id="honours" 
-                    className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 p-4 rounded-xl" 
+                    className="hidden sm:grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 p-4 rounded-xl" 
                     style={{ backgroundColor: club.primary_color ? `${club.primary_color}05` : undefined }}
                 >
                     {/* Club OVR */}
