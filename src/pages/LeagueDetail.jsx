@@ -288,7 +288,7 @@ export default function LeagueDetail() {
     return (
         <div className="min-h-screen bg-[#f5f5f4]" style={{ '--league-primary': leagueTheme.ui, '--league-secondary': leagueTheme.secondary, '--league-accent': leagueTheme.accent }}>
             <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
-                <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${league.primary_color || '#334155'}e8 48%, ${league.secondary_color || league.primary_color || '#111827'}d8 100%)` }} />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${leagueTheme.heroPrimary}e8 48%, ${leagueTheme.heroSecondary}d8 100%)` }} />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
                 <div className="absolute inset-0 opacity-[0.10]" style={{ backgroundImage: `radial-gradient(circle at 17% 30%, rgba(255,255,255,.24), transparent 28%), linear-gradient(115deg, transparent 0 58%, rgba(255,255,255,.10) 58% 59%, transparent 59% 100%)` }} />
                 {league.logo_url && <img src={league.logo_url} alt="" aria-hidden="true" className="pointer-events-none absolute -right-14 sm:right-0 -bottom-20 sm:-bottom-32 w-[390px] sm:w-[590px] h-[390px] sm:h-[590px] object-contain opacity-[0.10] grayscale" />}
