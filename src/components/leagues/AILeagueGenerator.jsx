@@ -217,8 +217,9 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
             c.league_id === leagueId || 
             !c.is_defunct && !c.is_former_name
         ).sort((a, b) => {
-            // Prioritize clubs already in this league
-            if (c => c.league_id === leagueId) return -1;
+            // Prioritize clubs already in this league, then sort predictably by name.
+            if (a.league_id === leagueId && b.league_id !== leagueId) return -1;
+            if (b.league_id === leagueId && a.league_id !== leagueId) return 1;
             return a.name.localeCompare(b.name);
         });
     }, [clubs, leagueId]);
@@ -293,8 +294,13 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
             });
         }
 
-        queryClient.invalidateQueries(['seasons']);
-        queryClient.invalidateQueries(['leagueTables']);
+        queryClient.invalidateQueries({ queryKey: ['seasons'] });
+        queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+        queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
+        queryClient.invalidateQueries({ queryKey: ['leagueTables'] });
+        queryClient.invalidateQueries({ queryKey: ['clubSeasons'] });
+        queryClient.invalidateQueries({ queryKey: ['nationSeasons', league?.nation_id] });
+        queryClient.invalidateQueries({ queryKey: ['analyticsNationTables', league?.nation_id] });
         setIsSaving(false);
         if (onGenerated) onGenerated(season);
         onClose();
