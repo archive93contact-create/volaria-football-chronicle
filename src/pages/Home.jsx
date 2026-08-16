@@ -338,7 +338,7 @@ export default function Home() {
                                     to={createPageUrl(`NationDetail?id=${nation.id}`)}
                                     className="group"
                                 >
-                                    <Card className="overflow-hidden border-0 shadow-sm hover:shadow-2xl transition-all duration-500 bg-white group-hover:-translate-y-2 h-full">
+                                    <Card className="overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 bg-white group-hover:-translate-y-1 h-full" style={{ borderTop: `3px solid ${getEntityTheme({ primary: nation.primary_color, secondary: nation.secondary_color }).ui}` }}>
                                         <div className="aspect-[3/2] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center p-8 relative overflow-hidden">
                                             {nation.flag_url ? (
                                                 <img 
@@ -358,14 +358,14 @@ export default function Home() {
                                             )}
                                             {nation.membership && (
                                                 <div className="absolute top-2 left-2">
-                                                    <Badge className={nation.membership === 'VCC' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'}>
+                                                    <Badge className="text-white" style={{ backgroundColor: nation.membership === 'VCC' ? vccTheme.primary : cccTheme.primary }}>
                                                         {nation.membership}
                                                     </Badge>
                                                 </div>
                                             )}
                                         </div>
                                         <CardContent className="p-5">
-                                            <h3 className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                                            <h3 className="text-xl font-bold text-slate-900 transition-colors">
                                                 {nation.name}
                                             </h3>
                                             {nation.region && (
@@ -373,11 +373,11 @@ export default function Home() {
                                             )}
                                             <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
                                                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                                                    <Trophy className="w-4 h-4 text-amber-500" />
+                                                    <Trophy className="w-4 h-4" style={{ color: getEntityTheme({ primary: nation.primary_color, secondary: nation.secondary_color }).ui }} />
                                                     <span className="font-medium">{nation.leagueCount}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                                                    <Shield className="w-4 h-4 text-blue-500" />
+                                                    <Shield className="w-4 h-4" style={{ color: getEntityTheme({ primary: nation.primary_color, secondary: nation.secondary_color }).ui }} />
                                                     <span className="font-medium">{nation.clubCount}</span>
                                                 </div>
                                             </div>
@@ -451,7 +451,7 @@ export default function Home() {
                     <CardContent className="p-8 md:p-12">
                         <div className="flex flex-col md:flex-row items-center gap-8">
                             <div className="flex-1">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium mb-4">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/75 text-sm font-medium mb-4">
                                     <Heart className="w-4 h-4" /> Support Volaria
                                 </div>
                                 <h2 className="text-2xl md:text-3xl font-bold mb-4">Help Keep Volaria Growing</h2>
@@ -478,7 +478,7 @@ export default function Home() {
                                 </div>
                             </div>
                             <div className="hidden md:block">
-                                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                                <div className="w-32 h-32 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
                                     <Globe className="w-16 h-16 text-white" />
                                 </div>
                             </div>
