@@ -495,10 +495,10 @@ export default function ClubDetail() {
                     )}
                     {/* Cup Best Finish - show for all clubs that have any cup history */}
                     {(combinedStats?.domestic_cup_best_finish || combinedStats?.domestic_cup_titles > 0 || combinedStats?.domestic_cup_runner_up > 0) && (
-                        <Card className="border-0 shadow-sm bg-orange-50">
+                        <Card className="border-0 shadow-sm" style={{ backgroundColor: clubTheme.tint }}>
                             <CardContent className="p-4 text-center">
-                                <Award className="w-6 h-6 text-orange-500 mx-auto mb-2" />
-                                <div className="text-lg font-bold text-orange-700">
+                                <Award className="w-6 h-6 mx-auto mb-2" style={{ color: clubTheme.ui }} />
+                                <div className="text-lg font-bold" style={{ color: clubTheme.ui }}>
                                     {combinedStats?.domestic_cup_titles > 0 
                                         ? 'Winner' 
                                         : combinedStats?.domestic_cup_best_finish || 'Final'}
