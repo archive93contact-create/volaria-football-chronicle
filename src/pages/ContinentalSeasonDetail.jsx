@@ -274,88 +274,31 @@ export default function ContinentalSeasonDetail() {
                     </TabsContent>
 
                     <TabsContent value="crests">
-                        <Card className="border-0 shadow-sm">
+                        <Card className="border shadow-sm overflow-hidden" style={{ borderColor: competitionTheme.border, background: `linear-gradient(135deg, ${competitionTheme.tint}, #fff 38%)` }}>
+                            <div className="h-[3px]" style={{ background: `linear-gradient(90deg, ${competitionTheme.ui}, ${competitionTheme.accent}, transparent 82%)` }} />
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Shield className="w-5 h-5" />
-                                    Competing Clubs
-                                </CardTitle>
+                                <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5" style={{ color: competitionTheme.ui }} /> Competing Clubs</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                {(() => {
-                                    // Collect all unique clubs from matches
-                                    const participantClubs = new Map();
-                                    matches.forEach(m => {
-                                        if (m.home_club_name && m.home_club_name !== 'TBD') {
-                                            const club = clubs.find(c => c.name === m.home_club_name);
-                                            if (club) {
-                                                participantClubs.set(club.id, { 
-                                                    ...club, 
-                                                    nation: m.home_club_nation,
-                                                    isChampion: m.home_club_name === season.champion_name 
-                                                });
-                                            }
-                                        }
-                                        if (m.away_club_name && m.away_club_name !== 'TBD') {
-                                            const club = clubs.find(c => c.name === m.away_club_name);
-                                            if (club) {
-                                                participantClubs.set(club.id, { 
-                                                    ...club, 
-                                                    nation: m.away_club_nation,
-                                                    isChampion: m.away_club_name === season.champion_name 
-                                                });
-                                            }
-                                        }
-                                    });
-
-                                    const participantArray = Array.from(participantClubs.values())
-                                        .sort((a, b) => {
-                                            if (a.isChampion) return -1;
-                                            if (b.isChampion) return 1;
-                                            return a.name.localeCompare(b.name);
-                                        });
-
-                                    if (participantArray.length === 0) {
-                                        return <p className="text-center py-8 text-slate-500">No participating clubs yet</p>;
-                                    }
-
-                                    return (
-                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-6">
-                                            {participantArray.map(club => (
-                                                <Link 
-                                                    key={club.id} 
-                                                    to={createPageUrl(`ClubDetail?id=${club.id}`)}
-                                                    className="group flex flex-col items-center gap-2"
-                                                >
-                                                    <div className="w-full aspect-square bg-white rounded-xl p-4 shadow-md hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border border-slate-200 flex items-center justify-center relative">
-                                                        {club.logo_url ? (
-                                                            <img 
-                                                                src={club.logo_url} 
-                                                                alt={club.name} 
-                                                                className="w-full h-full object-contain"
-                                                            />
-                                                        ) : (
-                                                            <Shield className="w-12 h-12 text-slate-300" />
-                                                        )}
-                                                        {club.isChampion && (
-                                                            <Trophy className="absolute -top-2 -right-2 w-6 h-6 text-amber-500 bg-white rounded-full p-1 shadow-lg" />
-                                                        )}
+                                {participantClubs.length === 0 ? (
+                                    <p className="text-center py-8 text-slate-500">No participating clubs yet</p>
+                                ) : (
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-5">
+                                        {participantClubs.map(club => {
+                                            const nation = nations.find(n => n.id === club.nation_id) || nations.find(n => n.name === club.nation);
+                                            return (
+                                                <Link key={club.id} to={createPageUrl(`ClubDetail?id=${club.id}`)} className="group flex flex-col items-center gap-2 min-w-0">
+                                                    <div className="relative w-full aspect-square rounded-2xl border flex items-center justify-center p-4 transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-md" style={{ borderColor: competitionTheme.border, background: `radial-gradient(circle at 50% 35%, ${competitionTheme.tintStrong}, rgba(255,255,255,.9) 64%)` }}>
+                                                        {club.logo_url ? <img src={club.logo_url} alt={`${club.name} crest`} className="w-full h-full object-contain drop-shadow-sm" /> : <Shield className="w-12 h-12 text-slate-300" />}
+                                                        {club.isChampion && <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-sm border border-white" style={{ backgroundColor: competitionTheme.ui }}><Trophy className="w-4 h-4 text-white" /></span>}
                                                     </div>
-                                                    {getNationFlag(club.nation) && (
-                                                        <img 
-                                                            src={getNationFlag(club.nation)} 
-                                                            alt={club.nation} 
-                                                            className="w-8 h-5 object-contain rounded shadow-sm"
-                                                        />
-                                                    )}
-                                                    <span className="text-xs text-center text-slate-700 group-hover:text-emerald-600 font-medium transition-colors line-clamp-2">
-                                                        {club.name}
-                                                    </span>
+                                                    {nation?.flag_url && <img src={nation.flag_url} alt="" className="w-7 h-5 object-contain" />}
+                                                    <span className="text-xs text-center text-slate-700 font-semibold line-clamp-2">{club.name}</span>
                                                 </Link>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>
