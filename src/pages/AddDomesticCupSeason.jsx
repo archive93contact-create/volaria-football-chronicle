@@ -196,8 +196,10 @@ export default function AddDomesticCupSeason() {
             return season;
         },
         onSuccess: (season) => {
-            queryClient.invalidateQueries(['cupSeasons']);
-            queryClient.invalidateQueries(['domesticCup']);
+            queryClient.invalidateQueries({ queryKey: ['cupSeasons', cupId] });
+            queryClient.invalidateQueries({ queryKey: ['domesticCup', cupId] });
+            queryClient.invalidateQueries({ queryKey: ['domesticCups', cup?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['nation', cup?.nation_id] });
             navigate(createPageUrl(`DomesticCupSeasonDetail?id=${season.id}`));
         },
     });
