@@ -127,6 +127,7 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
         queryClient.invalidateQueries({ queryKey: ['continentalSeasons'] });
         queryClient.invalidateQueries({ queryKey: ['continentalCompetitions'] });
         queryClient.invalidateQueries({ queryKey: ['clubs'] });
+        queryClient.invalidateQueries({ queryKey: ['club'] });
         queryClient.invalidateQueries({ queryKey: ['allClubs'] });
     };
 
