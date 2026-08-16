@@ -93,6 +93,12 @@ export default function ClubDetail() {
         staleTime: 10 * 60 * 1000,
     });
 
+    const { data: continentalCompetitions = [] } = useQuery({
+        queryKey: ['continentalCompetitionsForBranding'],
+        queryFn: async () => await base44.entities.ContinentalCompetition.list() || [],
+        staleTime: 30 * 60 * 1000,
+    });
+
     const { data: leagues = [] } = useQuery({
         queryKey: ['leaguesByNation', club?.nation_id],
         queryFn: async () => {
@@ -343,6 +349,10 @@ export default function ClubDetail() {
     }
 
     const clubTheme = getEntityTheme({ primary: club.primary_color, secondary: club.secondary_color, accent: club.accent_color });
+    const vcc = continentalCompetitions.find(c => c.short_name === 'VCC' || c.name?.includes("Champions"));
+    const ccc = continentalCompetitions.find(c => c.short_name === 'CCC' || c.name?.includes("Challenge"));
+    const vccTheme = getEntityTheme({ primary: vcc?.primary_color || '#1a472a', secondary: vcc?.secondary_color || '#d4af37' });
+    const cccTheme = getEntityTheme({ primary: ccc?.primary_color || '#4169e1', secondary: ccc?.secondary_color || '#c0c0c0' });
     const clubTabs = [
         ['overview', 'Overview'], ['trophies', 'Honours'], ['statistics', 'History'], ['squad', 'Squad'],
         ['matches', 'Fixtures & Results'], ['continental', 'Continental'], ['rivalries', 'Rivalries'], ['decades', 'Decades'],
