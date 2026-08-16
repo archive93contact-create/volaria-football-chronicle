@@ -72,30 +72,42 @@ export default function CompetitionDetail() {
         return nations.filter(n => competition.participating_nation_ids.includes(n.id));
     }, [competition, nations]);
 
-    // Count titles per nation and club
+    // Count titles using canonical IDs first so renamed entities stay one record.
     const titlesByNation = React.useMemo(() => {
-        const counts = {};
+        const counts = new Map();
         seasons.forEach(s => {
-            if (s.champion_nation) {
-                counts[s.champion_nation] = (counts[s.champion_nation] || 0) + 1;
-            }
+            const nation = nations.find(n => n.id === s.champion_nation_id) || nations.find(n => n.name === s.champion_nation);
+            const key = nation?.id || (s.champion_nation ? `name:${s.champion_nation}` : null);
+            if (!key) return;
+            const current = counts.get(key) || { name: nation?.name || s.champion_nation, count: 0 };
+            current.count++;
+            counts.set(key, current);
         });
-        return Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    }, [seasons]);
+        return [...counts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)).map(entry => [entry.name, entry.count]);
+    }, [seasons, nations]);
 
     const titlesByClub = React.useMemo(() => {
-        const counts = {};
+        const counts = new Map();
         seasons.forEach(s => {
-            if (s.champion_name) {
-                counts[s.champion_name] = {
-                    count: (counts[s.champion_name]?.count || 0) + 1,
-                    nation: s.champion_nation,
-                    years: [...(counts[s.champion_name]?.years || []), s.year]
-                };
-            }
+            const club = clubs.find(c => c.id === s.champion_id) || clubs.find(c => c.name === s.champion_name);
+            const key = club?.id || (s.champion_name ? `name:${s.champion_name}` : null);
+            if (!key) return;
+            const nation = nations.find(n => n.id === (club?.nation_id || s.champion_nation_id)) || nations.find(n => n.name === s.champion_nation);
+            const current = counts.get(key) || {
+                count: 0,
+                clubId: club?.id || null,
+                nation: nation?.name || s.champion_nation,
+                years: [],
+                name: club?.name || s.champion_name,
+            };
+            current.count++;
+            if (s.year) current.years.push(s.year);
+            counts.set(key, current);
         });
-        return Object.entries(counts).sort((a, b) => b[1].count - a[1].count);
-    }, [seasons]);
+        return [...counts.values()]
+            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+            .map(entry => [entry.name, entry]);
+    }, [seasons, clubs, nations]);
 
     const invalidateCompetitionData = () => {
         queryClient.invalidateQueries({ queryKey: ['competitionSeasons', compId] });
