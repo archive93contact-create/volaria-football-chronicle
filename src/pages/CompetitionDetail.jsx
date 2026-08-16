@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Edit2, Trash2, ChevronRight, Star, Calendar } from 'lucide-react';
+import { Plus, Trophy, Edit2, Trash2, ChevronRight, Star, Calendar, Crown, Globe2, Target, Repeat2 } from 'lucide-react';
 import ContinentalNarratives from '@/components/continental/ContinentalNarratives';
 import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import AdminOnly from '@/components/common/AdminOnly';
 import { getEntityTheme } from '@/utils/entityTheme';
 import { syncContinentalCompetition } from '@/lib/continentalSync';
+import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
+import EntitySectionHeader from '@/components/common/EntitySectionHeader';
 
 export default function CompetitionDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -197,8 +199,25 @@ export default function CompetitionDetail() {
     const competitionTheme = getEntityTheme({ primary: competition.primary_color, secondary: competition.secondary_color });
     const participatingNationIds = new Set(participatingNations.map(n => n.id));
     const eligibleClubs = clubs
-        .filter(c => participatingNationIds.size === 0 || participatingNationIds.has(c.nation_id))
+        .filter(c => !c.is_defunct && !c.is_former_name && (participatingNationIds.size === 0 || participatingNationIds.has(c.nation_id)))
         .sort((a, b) => a.name.localeCompare(b.name));
+
+    const completedSeasons = seasons.filter(s => s.champion_id || s.champion_name);
+    const titleLeader = titlesByClub[0];
+    const titleConcentration = completedSeasons.length && titleLeader ? (titleLeader[1].count / completedSeasons.length) * 100 : 0;
+    const chronologicalWinners = [...completedSeasons]
+        .sort((a, b) => String(a.year || '').localeCompare(String(b.year || ''), undefined, { numeric: true }))
+        .map(s => s.champion_id || `name:${s.champion_name}`);
+    const repeatChampionCount = chronologicalWinners.slice(1).filter((winner, index) => winner === chronologicalWinners[index]).length;
+    const repeatChampionRate = chronologicalWinners.length > 1 ? (repeatChampionCount / (chronologicalWinners.length - 1)) * 100 : 0;
+    const uniqueWinningNations = new Set(completedSeasons.map(s => s.champion_nation_id || s.champion_nation).filter(Boolean)).size;
+    const competitionInsights = [
+        { label: 'Title concentration', value: completedSeasons.length ? `${titleConcentration.toFixed(0)}%` : '—', detail: titleLeader ? `${titleLeader[0]} holds ${titleLeader[1].count} of ${completedSeasons.length} recorded titles` : 'No completed editions yet', icon: Crown },
+        { label: 'Winning nations', value: uniqueWinningNations || '—', detail: participatingNations.length ? `Across ${participatingNations.length} participating nations` : 'Participant list not set', icon: Globe2 },
+        { label: 'Repeat champions', value: chronologicalWinners.length > 1 ? `${repeatChampionRate.toFixed(0)}%` : '—', detail: chronologicalWinners.length > 1 ? `${repeatChampionCount} back-to-back retained titles` : 'More editions needed', icon: Repeat2 },
+        { label: 'Winner diversity', value: titlesByClub.length || '—', detail: completedSeasons.length ? `${titlesByClub.length} different champions in ${completedSeasons.length} completed editions` : 'No completed editions yet', icon: Trophy },
+        competition.number_of_teams && { label: 'Field size', value: competition.number_of_teams, detail: competition.format || 'Current competition field', icon: Target },
+    ].filter(Boolean);
 
     const seasonFormContent = (
         <div className="space-y-4 py-4">
