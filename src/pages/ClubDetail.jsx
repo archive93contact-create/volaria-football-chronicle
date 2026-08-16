@@ -1118,25 +1118,17 @@ export default function ClubDetail() {
                                         FWD: 'Forwards'
                                     };
                                     return (
-                                        <Card key={pos} className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
-                                            <CardHeader>
-                                                <CardTitle className="flex items-center gap-2">
-                                                    <Users className="w-5 h-5 text-blue-600" />
-                                                    {positionNames[pos]}
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-2">
-                                                    {plrs.sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(player => (
-                                                        <PlayerProfile 
-                                                            key={player.id} 
-                                                            player={player}
-                                                            onUpdate={() => queryClient.invalidateQueries(['players'])}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                        <ThemedCard key={pos} title={positionNames[pos]} icon={Users} primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                            <div className="space-y-2">
+                                                {plrs.sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(player => (
+                                                    <PlayerProfile 
+                                                        key={player.id} 
+                                                        player={player}
+                                                        onUpdate={() => queryClient.invalidateQueries(['players'])}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </ThemedCard>
                                     );
                                 })}
                             </div>
