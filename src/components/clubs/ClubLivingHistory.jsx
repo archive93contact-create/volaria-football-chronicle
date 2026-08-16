@@ -47,7 +47,7 @@ export default function ClubLivingHistory({ club, seasons = [], leagues = [], al
             </ThemedCard>
 
             {eras.length > 0 && (
-                <ThemedCard title="Detected Eras" icon={Clock3} primaryColor={accentColor} accentColor={accentColor}>
+                <ThemedCard title="Club Eras" icon={Clock3} primaryColor={accentColor} accentColor={accentColor}>
                     <div className="relative ml-2 sm:ml-3 border-l border-slate-200 pl-5 sm:pl-7 space-y-5">
                         {eras.map((item, index) => (
                             <div key={`${item.type}-${item.startYear}-${index}`} className="relative">
@@ -75,12 +75,11 @@ export default function ClubLivingHistory({ club, seasons = [], leagues = [], al
             )}
 
             {historicalInsights.length > 0 && (
-                <ThemedCard title="Why This Matters" icon={Trophy} primaryColor={accentColor} accentColor={accentColor}>
+                <ThemedCard title="Historical Significance" icon={Trophy} primaryColor={accentColor} accentColor={accentColor}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                         {historicalInsights.map((item, index) => (
                             <div key={`${item.headline}-${index}`} className="py-3 border-b border-slate-200/70 last:border-b-0 md:[&:nth-last-child(-n+2)]:border-b-0">
-                                <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{item.category}</div>
-                                <div className="mt-1 font-bold text-slate-900">{item.headline}</div>
+                                <div className="font-bold text-slate-900">{item.headline}</div>
                                 <div className="mt-1 text-sm leading-6 text-slate-600">{item.detail}</div>
                             </div>
                         ))}
