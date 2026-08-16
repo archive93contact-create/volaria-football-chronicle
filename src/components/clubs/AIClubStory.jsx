@@ -15,7 +15,7 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
     const latestYear = [...seasons].sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }))[0]?.year || '';
     const detectedEras = detectClubEras(seasons, allLeagues);
     const comparativeInsights = buildComparativeInsights(club, allClubs, seasons, allLeagues);
-    const livingNarrative = buildLivingNarrative(club, seasons, allLeagues);
+    const livingNarrative = buildLivingNarrative(club, seasons, allLeagues, allClubs);
 
     const { data: originRows = [] } = useQuery({
         queryKey: ['clubOrigin', club?.id],
