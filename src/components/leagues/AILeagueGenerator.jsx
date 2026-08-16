@@ -214,10 +214,7 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
 
     // Filter clubs that are in this league or could be
     const eligibleClubs = useMemo(() => {
-        return clubs.filter(c => 
-            c.league_id === leagueId || 
-            !c.is_defunct && !c.is_former_name
-        ).sort((a, b) => {
+        return clubs.filter(c => !c.is_defunct && !c.is_former_name).sort((a, b) => {
             // Prioritize clubs already in this league, then sort predictably by name.
             if (a.league_id === leagueId && b.league_id !== leagueId) return -1;
             if (b.league_id === leagueId && a.league_id !== leagueId) return 1;
