@@ -290,20 +290,20 @@ export default function Home() {
                                         className="block p-3 rounded-lg bg-white/60 hover:bg-white transition-colors group"
                                     >
                                         <div className="flex items-center gap-2">
-                                            <Badge className="bg-amber-500 text-white text-xs">VCC</Badge>
-                                            <span className="font-medium text-slate-800 group-hover:text-purple-700">Volarian Champions Cup</span>
+                                            <Badge className="text-white text-xs" style={{ backgroundColor: vccTheme.primary }}>VCC</Badge>
+                                            <span className="font-medium text-slate-800">{vcc?.name || "VFC Champions' Cup"}</span>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">The pinnacle of continental club football</p>
+                                        <p className="text-xs text-slate-500 mt-1">{vcc?.description || 'The premier continental club competition'}</p>
                                     </Link>
                                     <Link 
                                         to={createPageUrl('ContinentalCompetitions')}
                                         className="block p-3 rounded-lg bg-white/60 hover:bg-white transition-colors group"
                                     >
                                         <div className="flex items-center gap-2">
-                                            <Badge className="bg-blue-500 text-white text-xs">CCC</Badge>
-                                            <span className="font-medium text-slate-800 group-hover:text-purple-700">Continental Challenge Cup</span>
+                                            <Badge className="text-white text-xs" style={{ backgroundColor: cccTheme.primary }}>CCC</Badge>
+                                            <span className="font-medium text-slate-800">{ccc?.name || 'Continental Challenge Cup'}</span>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">For associates and second-tier qualifiers</p>
+                                        <p className="text-xs text-slate-500 mt-1">{ccc?.description || 'The secondary continental club competition'}</p>
                                     </Link>
                                 </div>
                                 <Link to={createPageUrl('Coefficients')} className="inline-flex items-center text-sm text-slate-700 hover:text-slate-950 font-semibold mt-4">
