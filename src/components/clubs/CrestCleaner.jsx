@@ -152,7 +152,7 @@ async function canvasToFile(canvas, filename) {
 
 export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
     const [threshold, setThreshold] = useState(242);
-    const [fillHoles, setFillHoles] = useState(true);
+    const [fillHoles, setFillHoles] = useState(false);
     const [trim, setTrim] = useState(true);
     const [sourceUrl, setSourceUrl] = useState(club?.logo_url || '');
     const [sourceName, setSourceName] = useState('current crest');
@@ -278,7 +278,7 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
             <DialogContent className="sm:max-w-3xl max-h-[92vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2"><Wand2 className="w-5 h-5" /> Clean {club?.name} crest</DialogTitle>
-                    <DialogDescription>Removes only light background pixels connected to the outside edge, preserving white details inside the badge. Enclosed transparent holes can be restored to white.</DialogDescription>
+                    <DialogDescription>Transparent PNGs are left transparent. For crests with a baked-in white background, only light pixels connected to the outside edge are removed. Use the restore option only when genuine white detail was lost in an older crest file.</DialogDescription>
                 </DialogHeader>
 
                 <div className="grid md:grid-cols-2 gap-5">
