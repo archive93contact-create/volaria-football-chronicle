@@ -215,21 +215,25 @@ const uniqueClubs = (clubs = []) => [...new Map(clubs.filter(Boolean).map(c => [
 export function buildClubLineage(club, allClubs = []) {
     const byId = id => allClubs.find(c => c.id === id);
 
-    const directFormerNames = [club?.former_name_club_id, club?.former_name_club_2_id].map(byId).filter(Boolean);
-    const reverseFormerNames = allClubs.filter(c =>
+    const directFormerCandidates = [club?.former_name_club_id, club?.former_name_club_2_id].map(byId).filter(Boolean);
+    const reverseFormerCandidates = allClubs.filter(c =>
         c.id !== club?.id && c.is_former_name && c.current_name_club_id === club?.id
     );
-    const formerNames = uniqueClubs([...directFormerNames, ...reverseFormerNames]);
+    const allFormerCandidates = uniqueClubs([...directFormerCandidates, ...reverseFormerCandidates]);
+    // A historic record explicitly marked defunct is a predecessor/successor transition even if
+    // an older import also left is_former_name=true on it. Defunct status is the stronger signal.
+    const formerNames = allFormerCandidates.filter(candidate => !candidate.is_defunct);
+    const defunctFormerCandidates = allFormerCandidates.filter(candidate => candidate.is_defunct);
 
     const directPredecessors = [club?.predecessor_club_id, club?.predecessor_club_2_id].map(byId).filter(Boolean);
     const reversePredecessors = allClubs.filter(c =>
         c.id !== club?.id && c.is_defunct && c.successor_club_id === club?.id
     );
     // If a linked record is explicitly a former name, continuity takes precedence over predecessor semantics.
-    const predecessors = uniqueClubs([...directPredecessors, ...reversePredecessors])
+    const predecessors = uniqueClubs([...directPredecessors, ...reversePredecessors, ...defunctFormerCandidates])
         .filter(candidate => !formerNames.some(former => former.id === candidate.id));
 
-    const isFormerName = Boolean(club?.is_former_name);
+    const isFormerName = Boolean(club?.is_former_name && !club?.is_defunct);
     const directCurrentName = isFormerName && club?.current_name_club_id ? byId(club.current_name_club_id) : null;
     const reverseCurrentName = isFormerName ? allClubs.find(c =>
         c.id !== club?.id && !c.is_former_name && (c.former_name_club_id === club?.id || c.former_name_club_2_id === club?.id)
