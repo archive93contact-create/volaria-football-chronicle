@@ -156,7 +156,7 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
     const [fillHoles, setFillHoles] = useState(false);
     const [trim, setTrim] = useState(true);
     const [sourceUrl, setSourceUrl] = useState(subject?.[imageField] || '');
-    const [sourceName, setSourceName] = useState('current crest');
+    const [sourceName, setSourceName] = useState(`current ${assetLabel}`);
     const [workingCanvas, setWorkingCanvas] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -166,7 +166,7 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
     useEffect(() => {
         if (!open) return;
         setSourceUrl(subject?.[imageField] || '');
-        setSourceName('current crest');
+        setSourceName(`current ${assetLabel}`);
         setWorkingCanvas(null);
         setPreviewUrl('');
         setError('');
@@ -263,7 +263,13 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
             const safeName = (subject.name || entityType).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
             const file = await canvasToFile(workingCanvas, `${safeName}-${assetLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-clean.png`);
             const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            const updated = await base44.entities[entityType].update(subject.id, { [imageField]: file_url });
+            const entityApi = {
+                Club: base44.entities.Club,
+                Nation: base44.entities.Nation,
+                League: base44.entities.League,
+            }[entityType];
+            if (!entityApi) throw new Error(`Unsupported asset type: ${entityType}`);
+            const updated = await entityApi.update(subject.id, { [imageField]: file_url });
             onSaved?.(updated, file_url);
             onOpenChange(false);
         } catch (e) {
