@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { BookOpen, Check, Factory, Loader2, Sparkles } from 'lucide-react';
 import AdminOnly from '@/components/common/AdminOnly';
 import ThemedCard from '@/components/common/ThemedCard';
+import { buildClubLineage } from '@/lib/clubImmersion';
 
 const FORMATION_LABELS = {
     workplace: 'Workplace club', church: 'Church / parish club', school: 'School / college club', neighbourhood: 'Neighbourhood club',
@@ -36,25 +37,40 @@ export default function ClubOriginPanel({ club, nation, league, seasons = [], al
     });
     const location = locations[0] || null;
 
-    const lineage = useMemo(() => {
-        const predecessor = allClubs.find(c => c.id === club?.predecessor_club_id);
-        const predecessor2 = allClubs.find(c => c.id === club?.predecessor_club_2_id);
-        const former = allClubs.find(c => c.id === club?.former_name_club_id);
-        const former2 = allClubs.find(c => c.id === club?.former_name_club_2_id);
-        const currentName = allClubs.find(c => c.id === club?.current_name_club_id);
-        return { predecessor, predecessor2, former, former2, currentName };
-    }, [allClubs, club]);
+    const lineage = useMemo(() => buildClubLineage(club, allClubs), [allClubs, club]);
 
     const lineageContext = useMemo(() => {
         const describe = (linked, relationship) => linked ? `${relationship}: ${linked.name}; founded ${linked.founded_year || 'unknown'}; location ${[linked.settlement, linked.district, linked.region].filter(Boolean).join(', ') || linked.city || 'unknown'}; nickname ${linked.nickname || 'none recorded'}; colours ${linked.primary_color || '?'} / ${linked.secondary_color || '?'}; defunct/renamed year ${linked.defunct_year || linked.renamed_year || 'not recorded'}; existing history ${linked.history || 'none'}` : null;
         return [
-            describe(lineage.former, 'Earlier name of the same club'),
-            describe(lineage.former2, 'Another earlier name of the same club'),
-            describe(lineage.predecessor, 'Predecessor club'),
-            describe(lineage.predecessor2, 'Second predecessor club'),
-            describe(lineage.currentName, 'Current-name continuation'),
+            ...lineage.formerNames.map((linked, index) => describe(linked, index === 0 ? 'Earlier name of the same club' : 'Another earlier name of the same club')),
+            ...lineage.predecessors.map((linked, index) => describe(linked, index === 0 ? 'Predecessor club' : 'Additional predecessor club')),
+            describe(lineage.currentName, 'Current-name continuation of this same club'),
+            describe(lineage.successor, 'Successor club after this club ceased operating'),
+            lineage.isDefunct ? `STATUS: ${club.name} was disbanded/ceased operating${club.defunct_year ? ` in ${club.defunct_year}` : ''}${lineage.successor ? ` and was succeeded by ${lineage.successor.name}` : '; no successor club is recorded'}.` : null,
+            lineage.isFormerName && lineage.currentName ? `STATUS: ${club.name} is a former name of the same club now known as ${lineage.currentName.name}${club.renamed_year ? ` from ${club.renamed_year}` : ''}; this was a rename, not a disbandment.` : null,
+            lineage.isInactive ? `STATUS: ${club.name} is inactive but is not recorded as a defunct predecessor with a successor.` : null,
         ].filter(Boolean).join('\n');
-    }, [lineage]);
+    }, [lineage, club]);
+
+    const lineageEpilogue = useMemo(() => {
+        if (lineage.isDefunct) {
+            return lineage.successor
+                ? `${club.name}${club.defunct_year ? ` ceased operating in ${club.defunct_year}` : ' eventually ceased operating'}; the footballing line then continued through ${lineage.successor.name}, its successor club.`
+                : `${club.name}${club.defunct_year ? ` ceased operating in ${club.defunct_year}` : ' eventually ceased operating'}, with no successor club recorded.`;
+        }
+        if (lineage.isFormerName && lineage.currentName) {
+            return `${club.name} was not disbanded: ${club.renamed_year ? `from ${club.renamed_year}, ` : ''}the same club continued as ${lineage.currentName.name}.`;
+        }
+        if (lineage.predecessors.length) {
+            const names = lineage.predecessors.map(c => c.name).join(lineage.predecessors.length > 1 ? ' and ' : '');
+            return `${club.name} stands in succession to ${names}, whose earlier histories form the roots of the present club.`;
+        }
+        if (lineage.formerNames.length) {
+            const names = lineage.formerNames.map(c => c.name).join(lineage.formerNames.length > 1 ? ' and ' : '');
+            return `The club previously competed under the ${names} name${lineage.formerNames.length > 1 ? 's' : ''} before adopting the ${club.name} identity.`;
+        }
+        return null;
+    }, [lineage, club]);
 
     const seasonContext = useMemo(() => {
         const ordered = [...seasons].sort((a, b) => String(a.year || '').localeCompare(String(b.year || ''), undefined, { numeric: true }));
@@ -90,6 +106,7 @@ Local companies/employers: ${location?.major_companies || 'none supplied'}
 Local landmarks: ${location?.landmarks || 'none supplied'}
 Existing club history: ${club.history || 'none'}
 Admin canon notes: ${canonNotes || origin?.canon_notes || 'none'}
+Current identity status: ${lineage.isDefunct ? `DEFUNCT${club.defunct_year ? ` since ${club.defunct_year}` : ''}${lineage.successor ? `; succeeded by ${lineage.successor.name}` : '; no successor recorded'}` : lineage.isFormerName && lineage.currentName ? `FORMER NAME; same club now known as ${lineage.currentName.name}` : lineage.isInactive ? 'INACTIVE' : 'ACTIVE'}
 
 FULL CLUB LINEAGE:
 ${lineageContext || 'No linked former-name or predecessor records.'}
@@ -107,8 +124,11 @@ ${seasonContext}
 
 REALISM RULES:
 - Choose formation_type from workplace, church, school, neighbourhood, social_club, military, railway, industrial, community, merger, breakaway, unknown.
-- Treat FORMER NAME records as the same institution at another point in its identity. A rename is not a new founding.
-- Treat PREDECESSOR records carefully: if the present club is a merger/successor, describe the earlier organisations as roots feeding into the modern club rather than pretending they were always identical.
+- Treat FORMER NAME records as the same institution at another point in its identity. A rename is not a new founding or a disbandment. Use the exact linked club names above.
+- Treat PREDECESSOR records carefully: if the present club is a merger/successor, describe the exact earlier organisations named above as roots feeding into the modern club rather than pretending they were always identical.
+- If this club is DEFUNCT, the narrative MUST eventually acknowledge that it ceased operating, give the defunct year when supplied, and name the exact successor club when one exists. Do not write about a defunct club as if it remains active today.
+- If this record is a FORMER NAME, make clear that the identity changed into the exact current club name above and that the institution itself continued.
+- If a successor/predecessor relationship exists, never substitute a similar-sounding club name. Use the exact linked entity name.
 - Use the founding year, settlement scale, economic context, language/naming style, nickname, colours, lineage and existing history together. Do not build the origin from one field alone.
 - A village or small-town club should start at an appropriate social scale; an old club should not sound like a modern franchise.
 - If a named local employer/industry is supplied, it may genuinely shape the formation. If not, do not invent a named company just to make a works-club story.
@@ -195,6 +215,7 @@ Return JSON with formation_type, story, founder_context, original_ground_context
                         {proposal && <Badge className="bg-amber-100 text-amber-800 border border-amber-200">Proposal — not canon yet</Badge>}
                     </div>
                     <p className="text-[15px] sm:text-base leading-7 text-slate-700 max-w-4xl">{displayed.formation_story}</p>
+                    {lineageEpilogue && <p className="text-[15px] sm:text-base leading-7 text-slate-700 max-w-4xl">{lineageEpilogue}</p>}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200">
                         <div className="bg-white/90 p-4"><div className="text-[10px] uppercase tracking-wider font-black text-slate-400">Name origin</div><div className="mt-1 text-sm text-slate-700">{displayed.name_origin || 'Unrecorded'}</div></div>
                         <div className="bg-white/90 p-4"><div className="text-[10px] uppercase tracking-wider font-black text-slate-400">Colours</div><div className="mt-1 text-sm text-slate-700">{displayed.colour_origin || 'Unrecorded'}</div></div>
