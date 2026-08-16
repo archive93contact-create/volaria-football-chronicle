@@ -227,6 +227,7 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
         const season = await base44.entities.Season.create({
             league_id: leagueId,
             year,
+            tier: league?.tier || null,
             number_of_teams: generatedTable.length,
             champion_name: generatedTable[0]?.club_name,
             champion_id: generatedTable[0]?.club_id,
