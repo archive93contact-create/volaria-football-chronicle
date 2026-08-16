@@ -68,15 +68,13 @@ const calculateFacilities = (club, league, nation) => {
 // Deterministic fallback if AI generation is unavailable.
 const fallbackStadiumName = (club) => {
     const place = club.settlement || club.city || club.district || club.region || club.name.split(' ')[0];
-    const options = [
-        `${place} Recreation Ground`,
-        `Old ${place} Ground`,
-        `${place} Athletic Ground`,
-        `${place} Park`,
-        `The ${place} Ground`,
-    ];
-    const hash = club.name.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return options[hash % options.length];
+    const hash = club.name.split('').reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 3), 0);
+    const rootsA = ['Ash','Birch','Cinder','Crow','Fallow','Fern','Fox','Gorse','Grey','Hawthorn','Hazel','Mere','Moor','Oak','Rook','Stone','Thorn','Willow'];
+    const rootsB = ['bank','bridge','croft','end','field','fold','hollow','mead','side','wick','yard'];
+    const suffixes = ['', ' Park', ' Ground', ' Lane', ' Enclosure'];
+    const microtoponym = `${rootsA[hash % rootsA.length]}${rootsB[Math.floor(hash / rootsA.length) % rootsB.length]}`;
+    // Keep a small chance of a place-led traditional name, but default to a unique local-sounding identity.
+    return hash % 5 === 0 ? `${place} Recreation Ground` : `${microtoponym}${suffixes[Math.floor(hash / 17) % suffixes.length]}`;
 };
 
 // Generate a grounded stadium name using the club's actual cultural/location context.
@@ -105,14 +103,15 @@ Known local landmarks: ${location?.landmarks || 'none supplied'}
 
 RULES:
 - The name must feel like a real football ground that could have evolved organically in this place and era.
-- Use the nation's language/naming style only where the supplied data supports it. Do not invent fake translations or pseudo-language.
-- Older/lower-league clubs should usually favour traditional forms such as Recreation Ground, Athletic Ground, Park, Field, Lane or a locally plausible equivalent rather than modern 'Arena' branding.
-- Prefer a genuinely local-feeling construction over '[place] Ground'. If supplied industries, employers or landmarks support a stronger name, use them naturally.
-- Do NOT invent a named person, sponsor, company, street, battle, monarch, historical event or local landmark that is not in the supplied data.
-- Do NOT claim a reason/history for the name that is not known.
-- Avoid the lazy pattern '[full club name] Stadium' unless it genuinely fits better than a location-led name.
-- Keep it distinctive but believable, normally 2-5 words.
-- Return only a stadium_name plus a short rationale explaining which supplied facts drove the choice. The rationale is for the admin preview and must not invent facts.`;
+- Do NOT default to the club, town, district or region name. Real ground names are often inherited from a tiny lane, old field, bank, estate, works enclosure, meadow, common, end, fold, croft, wharf or other microtoponym that becomes famous in its own right.
+- You MAY create one low-stakes local microtoponym as proposed canon. It should sound linguistically natural for the nation and slightly arbitrary/inherited rather than fantasy-poetic.
+- Use the nation's language/naming style only where the supplied data supports it. Do not invent fake translations.
+- Older/lower-league clubs should favour traditional forms such as Park, Field, Lane, Road, Enclosure, Recreation Ground or a locally plausible equivalent rather than modern 'Arena' branding.
+- If supplied industries, employers or landmarks support a stronger name, use them naturally; otherwise do not invent a named company or famous landmark.
+- Do NOT invent a named person, sponsor, battle, monarch or major historic event.
+- Avoid the lazy patterns '[full club name] Stadium' and '[town] Ground'.
+- Keep it short enough that supporters would actually say it, normally 1-4 words.
+- Return only stadium_name plus a short admin rationale. The public UI should only ever show the accepted name.`;
 
     try {
         const result = await base44.integrations.Core.InvokeLLM({
