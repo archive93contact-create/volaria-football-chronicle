@@ -8,6 +8,7 @@ import ContinentalNarratives from '@/components/continental/ContinentalNarrative
 import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AdminOnly from '@/components/common/AdminOnly';
+import { getEntityTheme } from '@/utils/entityTheme';
+import { syncContinentalCompetition } from '@/lib/continentalSync';
 
 export default function CompetitionDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -24,7 +27,8 @@ export default function CompetitionDetail() {
     
     const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
     const [seasonFormData, setSeasonFormData] = useState({
-        year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '',
+        year: '', champion_id: '', champion_name: '', champion_nation_id: '', champion_nation: '',
+        runner_up_id: '', runner_up: '', runner_up_nation_id: '', runner_up_nation: '',
         final_score: '', final_venue: '', top_scorer: '', notes: ''
     });
     const [editingSeason, setEditingSeason] = useState(null);
@@ -91,31 +95,55 @@ export default function CompetitionDetail() {
         return Object.entries(counts).sort((a, b) => b[1].count - a[1].count);
     }, [seasons]);
 
+    const invalidateCompetitionData = () => {
+        queryClient.invalidateQueries({ queryKey: ['competitionSeasons', compId] });
+        queryClient.invalidateQueries({ queryKey: ['continentalSeasons'] });
+        queryClient.invalidateQueries({ queryKey: ['competition', compId] });
+        queryClient.invalidateQueries({ queryKey: ['continentalCompetitions'] });
+        queryClient.invalidateQueries({ queryKey: ['clubs'] });
+        queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+    };
+
     const createSeasonMutation = useMutation({
-        mutationFn: (data) => base44.entities.ContinentalSeason.create({ ...data, competition_id: compId }),
+        mutationFn: async (data) => {
+            const created = await base44.entities.ContinentalSeason.create({ ...data, competition_id: compId });
+            await syncContinentalCompetition(compId);
+            return created;
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries(['competitionSeasons']);
+            invalidateCompetitionData();
             setIsAddSeasonOpen(false);
             resetSeasonForm();
         },
     });
 
     const updateSeasonMutation = useMutation({
-        mutationFn: ({ id, data }) => base44.entities.ContinentalSeason.update(id, data),
+        mutationFn: async ({ id, data }) => {
+            const updated = await base44.entities.ContinentalSeason.update(id, data);
+            await syncContinentalCompetition(compId);
+            return updated;
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries(['competitionSeasons']);
+            invalidateCompetitionData();
             setEditingSeason(null);
             resetSeasonForm();
         },
     });
 
     const deleteSeasonMutation = useMutation({
-        mutationFn: (id) => base44.entities.ContinentalSeason.delete(id),
-        onSuccess: () => queryClient.invalidateQueries(['competitionSeasons']),
+        mutationFn: async (id) => {
+            await base44.entities.ContinentalSeason.delete(id);
+            await syncContinentalCompetition(compId);
+        },
+        onSuccess: invalidateCompetitionData,
     });
 
     const resetSeasonForm = () => {
-        setSeasonFormData({ year: '', champion_name: '', champion_nation: '', runner_up: '', runner_up_nation: '', final_score: '', final_venue: '', top_scorer: '', notes: '' });
+        setSeasonFormData({
+            year: '', champion_id: '', champion_name: '', champion_nation_id: '', champion_nation: '',
+            runner_up_id: '', runner_up: '', runner_up_nation_id: '', runner_up_nation: '',
+            final_score: '', final_venue: '', top_scorer: '', notes: ''
+        });
     };
 
     const updateSeasonField = (field, value) => {
@@ -123,8 +151,35 @@ export default function CompetitionDetail() {
     };
 
     const openEditSeason = (season) => {
-        setSeasonFormData(season);
+        const champion = clubs.find(c => c.id === season.champion_id) || clubs.find(c => c.name === season.champion_name);
+        const runnerUp = clubs.find(c => c.id === season.runner_up_id) || clubs.find(c => c.name === season.runner_up);
+        setSeasonFormData({
+            ...season,
+            champion_id: champion?.id || season.champion_id || '',
+            champion_nation_id: champion?.nation_id || season.champion_nation_id || '',
+            runner_up_id: runnerUp?.id || season.runner_up_id || '',
+            runner_up_nation_id: runnerUp?.nation_id || season.runner_up_nation_id || '',
+        });
         setEditingSeason(season);
+    };
+
+    const updateFinalist = (role, clubId) => {
+        const club = clubs.find(c => c.id === clubId);
+        const nation = nations.find(n => n.id === club?.nation_id);
+        if (!club) return;
+        setSeasonFormData(prev => role === 'champion' ? {
+            ...prev,
+            champion_id: club.id,
+            champion_name: club.name,
+            champion_nation_id: nation?.id || club.nation_id || '',
+            champion_nation: nation?.name || '',
+        } : {
+            ...prev,
+            runner_up_id: club.id,
+            runner_up: club.name,
+            runner_up_nation_id: nation?.id || club.nation_id || '',
+            runner_up_nation: nation?.name || '',
+        });
     };
 
     const handleSeasonSubmit = () => {
