@@ -350,7 +350,7 @@ export default function ContinentalSeasonDetail() {
                                                                 {getNationFlag(match.home_club_nation) && (
                                                                     <img src={getNationFlag(match.home_club_nation)} alt="" className="w-5 h-3 object-contain" />
                                                                 )}
-                                                                <span className={`font-medium ${match.winner === match.home_club_name ? 'text-emerald-700' : ''}`}>
+                                                                <span className="font-medium" style={{ color: match.winner === match.home_club_name ? competitionTheme.ui : undefined }}>
                                                                     {match.home_club_name}
                                                                 </span>
                                                             </div>
@@ -369,7 +369,7 @@ export default function ContinentalSeasonDetail() {
                                                                 {match.penalties && <div className="text-xs text-slate-500">(pen: {match.penalties})</div>}
                                                             </div>
                                                             <div className="flex-1 flex items-center justify-end gap-3">
-                                                                <span className={`font-medium ${match.winner === match.away_club_name ? 'text-emerald-700' : ''}`}>
+                                                                <span className="font-medium" style={{ color: match.winner === match.away_club_name ? competitionTheme.ui : undefined }}>
                                                                     {match.away_club_name}
                                                                 </span>
                                                                 {getNationFlag(match.away_club_nation) && (
@@ -481,7 +481,8 @@ export default function ContinentalSeasonDetail() {
                             <Button 
                                 onClick={saveRoundNames} 
                                 disabled={updateCompetitionMutation.isPending}
-                                className="bg-emerald-600 hover:bg-emerald-700"
+                                className="text-white"
+                                style={{ backgroundColor: competitionTheme.ui }}
                             >
                                 {updateCompetitionMutation.isPending ? 'Saving...' : 'Save'}
                             </Button>
