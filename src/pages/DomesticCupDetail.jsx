@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DomesticCupNarratives from '@/components/cups/DomesticCupNarratives';
-import SyncCupStatsButton from '@/components/common/SyncCupStats';
+import SyncCupStatsButton, { syncCupStatsToClubs } from '@/components/common/SyncCupStats';
 import CupHistory from '@/components/cups/CupHistory';
 import AdminOnly from '@/components/common/AdminOnly';
 import CupHistoricalStats from '@/components/cups/CupHistoricalStats';
@@ -65,14 +65,27 @@ export default function DomesticCupDetail() {
                 await base44.entities.DomesticCupMatch.delete(m.id);
             }
             await base44.entities.DomesticCupSeason.delete(seasonId);
+            if (cup?.nation_id) await syncCupStatsToClubs(cup.nation_id);
         },
-        onSuccess: () => queryClient.invalidateQueries(['cupSeasons']),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cupSeasons', cupId] });
+            queryClient.invalidateQueries({ queryKey: ['domesticCup', cupId] });
+            queryClient.invalidateQueries({ queryKey: ['clubs', cup?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        },
     });
 
     const updateSeasonMutation = useMutation({
-        mutationFn: ({ id, data }) => base44.entities.DomesticCupSeason.update(id, data),
+        mutationFn: async ({ id, data }) => {
+            const updated = await base44.entities.DomesticCupSeason.update(id, data);
+            if (cup?.nation_id) await syncCupStatsToClubs(cup.nation_id);
+            return updated;
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries(['cupSeasons']);
+            queryClient.invalidateQueries({ queryKey: ['cupSeasons', cupId] });
+            queryClient.invalidateQueries({ queryKey: ['domesticCup', cupId] });
+            queryClient.invalidateQueries({ queryKey: ['clubs', cup?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
             setEditingSeason(null);
         },
     });
