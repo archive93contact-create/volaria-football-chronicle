@@ -65,9 +65,13 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
             setFormData({
                 round: 'Round of 16',
                 match_number: 1,
+                home_club_id: '',
                 home_club_name: '',
+                home_nation_id: '',
                 home_club_nation: '',
+                away_club_id: '',
                 away_club_name: '',
+                away_nation_id: '',
                 away_club_nation: '',
                 home_score_leg1: '',
                 away_score_leg1: '',
@@ -80,33 +84,60 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
                 notes: ''
             });
         }
-    }, [editingMatch, isOpen]);
+    }, [editingMatch, isOpen, clubs]);
+
+    const updateFinalSummaryAndSync = async (data) => {
+        const seasonRows = await base44.entities.ContinentalSeason.filter({ id: seasonId });
+        const season = seasonRows[0];
+        if (!season) return;
+
+        if (data.round === 'Final' && data.winner) {
+            const winnerIsHome = data.winner_id
+                ? data.winner_id === data.home_club_id
+                : data.winner === data.home_club_name;
+            const winnerClub = clubs.find(c => c.id === (winnerIsHome ? data.home_club_id : data.away_club_id));
+            const loserClub = clubs.find(c => c.id === (winnerIsHome ? data.away_club_id : data.home_club_id));
+            const winnerNation = nations.find(n => n.id === winnerClub?.nation_id);
+            const loserNation = nations.find(n => n.id === loserClub?.nation_id);
+            const finalScore = data.is_single_leg
+                ? `${data.home_score_leg1 ?? '-'}-${data.away_score_leg1 ?? '-'}${data.penalties ? ` (${data.penalties} pens)` : ''}`
+                : `${data.home_aggregate ?? '-'}-${data.away_aggregate ?? '-'} agg${data.penalties ? ` (${data.penalties} pens)` : ''}`;
+
+            await base44.entities.ContinentalSeason.update(seasonId, {
+                champion_id: winnerClub?.id || '',
+                champion_name: winnerClub?.name || data.winner,
+                champion_nation_id: winnerNation?.id || '',
+                champion_nation: winnerNation?.name || (winnerIsHome ? data.home_club_nation : data.away_club_nation),
+                runner_up_id: loserClub?.id || '',
+                runner_up: loserClub?.name || (winnerIsHome ? data.away_club_name : data.home_club_name),
+                runner_up_nation_id: loserNation?.id || '',
+                runner_up_nation: loserNation?.name || (winnerIsHome ? data.away_club_nation : data.home_club_nation),
+                final_score: finalScore,
+                final_venue: data.venue || null,
+            });
+        }
+
+        if (season.competition_id) await syncContinentalCompetition(season.competition_id);
+    };
+
+    const invalidateContinentalData = () => {
+        queryClient.invalidateQueries({ queryKey: ['continentalMatches', seasonId] });
+        queryClient.invalidateQueries({ queryKey: ['continentalSeason', seasonId] });
+        queryClient.invalidateQueries({ queryKey: ['allContinentalMatches'] });
+        queryClient.invalidateQueries({ queryKey: ['continentalSeasons'] });
+        queryClient.invalidateQueries({ queryKey: ['continentalCompetitions'] });
+        queryClient.invalidateQueries({ queryKey: ['clubs'] });
+        queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+    };
 
     const createMutation = useMutation({
         mutationFn: async (data) => {
             const match = await base44.entities.ContinentalMatch.create({ ...data, season_id: seasonId });
-            // If this is a Final match with a winner, update the season
-            if (data.round === 'Final' && data.winner) {
-                const loser = data.winner === data.home_club_name ? data.away_club_name : data.home_club_name;
-                const winnerNation = data.winner === data.home_club_name ? data.home_club_nation : data.away_club_nation;
-                const loserNation = data.winner === data.home_club_name ? data.away_club_nation : data.home_club_nation;
-                const finalScore = data.is_single_leg 
-                    ? `${data.home_score_leg1}-${data.away_score_leg1}${data.penalties ? ` (${data.penalties} pens)` : ''}`
-                    : `${data.home_aggregate}-${data.away_aggregate} agg${data.penalties ? ` (${data.penalties} pens)` : ''}`;
-                await base44.entities.ContinentalSeason.update(seasonId, {
-                    champion_name: data.winner,
-                    champion_nation: winnerNation,
-                    runner_up: loser,
-                    runner_up_nation: loserNation,
-                    final_score: finalScore,
-                    final_venue: data.venue || null
-                });
-            }
+            await updateFinalSummaryAndSync(data);
             return match;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['continentalMatches', seasonId]);
-            queryClient.invalidateQueries(['continentalSeason', seasonId]);
+            invalidateContinentalData();
             onClose();
         },
     });
@@ -114,28 +145,11 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
     const updateMutation = useMutation({
         mutationFn: async ({ id, data }) => {
             const match = await base44.entities.ContinentalMatch.update(id, data);
-            // If this is a Final match with a winner, update the season
-            if (data.round === 'Final' && data.winner) {
-                const loser = data.winner === data.home_club_name ? data.away_club_name : data.home_club_name;
-                const winnerNation = data.winner === data.home_club_name ? data.home_club_nation : data.away_club_nation;
-                const loserNation = data.winner === data.home_club_name ? data.away_club_nation : data.home_club_nation;
-                const finalScore = data.is_single_leg 
-                    ? `${data.home_score_leg1}-${data.away_score_leg1}${data.penalties ? ` (${data.penalties} pens)` : ''}`
-                    : `${data.home_aggregate}-${data.away_aggregate} agg${data.penalties ? ` (${data.penalties} pens)` : ''}`;
-                await base44.entities.ContinentalSeason.update(seasonId, {
-                    champion_name: data.winner,
-                    champion_nation: winnerNation,
-                    runner_up: loser,
-                    runner_up_nation: loserNation,
-                    final_score: finalScore,
-                    final_venue: data.venue || null
-                });
-            }
+            await updateFinalSummaryAndSync(data);
             return match;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['continentalMatches', seasonId]);
-            queryClient.invalidateQueries(['continentalSeason', seasonId]);
+            invalidateContinentalData();
             onClose();
         },
     });
@@ -153,13 +167,23 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
             awayAgg = awayL1 + homeL2;
         }
 
+        const homeClub = clubs.find(c => c.id === formData.home_club_id) || clubs.find(c => c.name === formData.home_club_name);
+        const awayClub = clubs.find(c => c.id === formData.away_club_id) || clubs.find(c => c.name === formData.away_club_name);
+        const homeNation = nations.find(n => n.id === (formData.home_nation_id || homeClub?.nation_id));
+        const awayNation = nations.find(n => n.id === (formData.away_nation_id || awayClub?.nation_id));
+        const winnerClub = formData.winner === homeClub?.name ? homeClub : formData.winner === awayClub?.name ? awayClub : null;
+
         const submitData = {
             round: formData.round,
             match_number: parseInt(formData.match_number) || 1,
-            home_club_name: formData.home_club_name,
-            home_club_nation: formData.home_club_nation,
-            away_club_name: formData.away_club_name,
-            away_club_nation: formData.away_club_nation,
+            home_club_id: homeClub?.id || '',
+            home_club_name: homeClub?.name || formData.home_club_name,
+            home_nation_id: homeNation?.id || homeClub?.nation_id || '',
+            home_club_nation: homeNation?.name || formData.home_club_nation,
+            away_club_id: awayClub?.id || '',
+            away_club_name: awayClub?.name || formData.away_club_name,
+            away_nation_id: awayNation?.id || awayClub?.nation_id || '',
+            away_club_nation: awayNation?.name || formData.away_club_nation,
             home_score_leg1: homeL1,
             away_score_leg1: awayL1,
             home_score_leg2: homeL2,
@@ -167,7 +191,8 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
             home_aggregate: homeAgg,
             away_aggregate: awayAgg,
             penalties: formData.penalties,
-            winner: formData.winner,
+            winner: winnerClub?.name || formData.winner,
+            winner_id: winnerClub?.id || '',
             is_single_leg: formData.is_single_leg,
             venue: formData.venue,
             notes: formData.notes
