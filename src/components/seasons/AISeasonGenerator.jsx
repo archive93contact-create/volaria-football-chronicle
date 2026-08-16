@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,12 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
         },
         enabled: !!leagueId,
     });
+
+    useEffect(() => {
+        if (!league) return;
+        setPromotionSpots(Number(league.tier) === 1 ? 0 : (league.promotion_spots ?? 2));
+        setRelegationSpots(league.relegation_spots ?? 2);
+    }, [league?.id, league?.tier, league?.promotion_spots, league?.relegation_spots]);
 
     const { data: nation } = useQuery({
         queryKey: ['nation', league?.nation_id],
@@ -173,7 +179,7 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
             // Determine status
             let status = null;
             if (position === 1) status = 'champion';
-            else if (position <= promotionSpots) status = 'promoted';
+            else if (Number(league?.tier) > 1 && position <= promotionSpots) status = 'promoted';
             else if (position > numTeams - relegationSpots) status = 'relegated';
 
             return {
@@ -209,7 +215,7 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
         generatedRows.forEach((row, idx) => {
             row.position = idx + 1;
             if (row.position === 1) row.status = 'champion';
-            else if (row.position <= promotionSpots) row.status = 'promoted';
+            else if (Number(league?.tier) > 1 && row.position <= promotionSpots) row.status = 'promoted';
             else if (row.position > numTeams - relegationSpots) row.status = 'relegated';
             else row.status = null;
         });
@@ -232,9 +238,9 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
             champion_name: generatedTable[0]?.club_name,
             champion_id: generatedTable[0]?.club_id,
             runner_up: generatedTable[1]?.club_name,
-            promotion_spots: promotionSpots,
+            promotion_spots: Number(league?.tier) === 1 ? 0 : promotionSpots,
             relegation_spots: relegationSpots,
-            promoted_teams: generatedTable.filter(r => r.status === 'promoted').map(r => r.club_name).join(', '),
+            promoted_teams: Number(league?.tier) === 1 ? '' : generatedTable.filter(r => r.status === 'promoted').map(r => r.club_name).join(', '),
             relegated_teams: generatedTable.filter(r => r.status === 'relegated').map(r => r.club_name).join(', '),
         });
 
