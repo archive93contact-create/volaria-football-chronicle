@@ -96,7 +96,7 @@ export async function syncLeagueStatsForNation(nationId) {
 
             if (tier === 1) seasonsTopFlight++;
             if (nation?.name === 'Turuliand' && tier && tier <= 4) seasonsInTfa++;
-            if (row.status === 'promoted' || row.status === 'playoff_winner') promotions++;
+            if (tier && tier > 1 && (row.status === 'promoted' || row.status === 'playoff_winner')) promotions++;
             if (row.status === 'relegated') relegations++;
 
             if (position === 1 || row.status === 'champion') {
