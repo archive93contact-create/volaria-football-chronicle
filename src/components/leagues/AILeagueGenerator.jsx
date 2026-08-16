@@ -148,8 +148,8 @@ const generateSeasonTable = (clubs, league, previousSeasonTables, allLeagues) =>
     });
 
     // Assign positions and status
-    const promotionSpots = league.promotion_spots || 2;
-    const relegationSpots = league.relegation_spots || 3;
+    const promotionSpots = Number(tier) === 1 ? 0 : (league.promotion_spots ?? 2);
+    const relegationSpots = league.relegation_spots ?? 3;
 
     return stats.map((team, index) => {
         const position = index + 1;
@@ -266,7 +266,9 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
             champion_id: generatedTable[0].club_id,
             champion_name: generatedTable[0].club_name,
             runner_up: generatedTable[1]?.club_name,
-            promoted_teams: generatedTable.filter(t => t.status === 'promoted').map(t => t.club_name).join(', '),
+            promotion_spots: Number(league?.tier) === 1 ? 0 : (league?.promotion_spots ?? 2),
+            relegation_spots: league?.relegation_spots ?? 3,
+            promoted_teams: Number(league?.tier) === 1 ? '' : generatedTable.filter(t => t.status === 'promoted').map(t => t.club_name).join(', '),
             relegated_teams: generatedTable.filter(t => t.status === 'relegated').map(t => t.club_name).join(', '),
         };
 
