@@ -132,6 +132,21 @@ export default function LeagueDetail() {
         enabled: allNationLeagues.length > 0,
     });
 
+    // Cross-tier table history is only needed for analytics (e.g. what happened after promotion).
+    // Load it lazily rather than making every league-page visit fetch the entire national pyramid.
+    const { data: analyticsNationTables = [] } = useQuery({
+        queryKey: ['analyticsNationTables', league?.nation_id],
+        queryFn: async () => {
+            if (!allNationLeagues.length) return [];
+            const tableSets = await Promise.all(
+                allNationLeagues.map(l => base44.entities.LeagueTable.filter({ league_id: l.id }))
+            );
+            return tableSets.flat();
+        },
+        enabled: selectedTab === 'analytics' && allNationLeagues.length > 0,
+        staleTime: 10 * 60 * 1000,
+    });
+
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.League.update(leagueId, data),
         onSuccess: () => {
@@ -842,7 +857,7 @@ export default function LeagueDetail() {
                             <LeagueAnalyticsDashboard 
                                 league={league}
                                 seasons={seasons}
-                                allTables={leagueTables}
+                                allTables={analyticsNationTables.length ? analyticsNationTables : leagueTables}
                                 clubs={allNationClubs}
                                 allLeagues={allNationLeagues}
                             />
