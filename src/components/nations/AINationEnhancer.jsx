@@ -25,14 +25,17 @@ export default function AINationEnhancer({ nation, onUpdate }) {
         try {
             const context = `
 ${nation.name} is a nation in the ${nation.region || 'fictional'} region of Volaria.
-Language: ${nation.language || 'English'}
+Language: ${nation.language || 'not specified'}
+Naming styles: ${Array.isArray(nation.naming_styles) ? nation.naming_styles.join(', ') : nation.naming_styles || 'not specified'}
 Capital: ${nation.capital || 'unknown'}
 Continental membership: ${nation.membership || 'unknown'}
 Existing description: ${nation.description || 'none'}
+Existing culture: ${nation.culture || 'none'}
+Existing geography: ${nation.geography || 'none'}
 Football federation: ${nation.federation_name || 'unknown'}
             `.trim();
 
-            const prompt = `Generate detailed, immersive national content for this fictional nation. CRITICAL: All media outlet names MUST sound authentic to the ${nation.language || 'local'} language - NOT English generic names.
+            const prompt = `Expand the canon for this fictional nation using the supplied facts as constraints. This is CREATIVE WORLD-BUILDING, not real-world research.
 
 Context:
 ${context}
@@ -47,10 +50,17 @@ Generate the following as a JSON object:
   "government_type": "Type of government (e.g., Constitutional Monarchy, Federal Republic, Parliamentary Democracy)"
 }
 
-CRITICAL: Research the language phonetics and naming patterns. Create authentic-sounding names that feel like they belong to that culture, NOT English translations.`;
+CANON RULES:
+- Preserve every supplied fact; do not overwrite or contradict established culture, geography, capital, federation or language.
+- New media outlets, dishes and institutions are PROPOSED NEW CANON. Make them specific and believable, but do not claim they previously existed in data you were not given.
+- Follow the stored language/naming styles when they are defined. If they are not defined well enough, prefer internally consistent invented names over randomly borrowing real-world language words.
+- Do not invent etymologies, historic dates, wars, rulers, famous people or named geographic features unless the request explicitly requires new canon for that field.
+- Avoid generic English constructions such as '[Nation] Times', '[Nation] Industries' or '[Nation] Broadcasting' unless English is explicitly the nation's language/naming style.
+- Return only the requested JSON fields.`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
+                add_context_from_internet: false,
                 response_json_schema: {
                     type: "object",
                     properties: {
