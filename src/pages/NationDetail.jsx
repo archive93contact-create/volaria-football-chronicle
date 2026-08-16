@@ -241,7 +241,7 @@ export default function NationDetail() {
     return (
         <div className="min-h-screen bg-[#f5f5f4]" style={{ '--nation-primary': nationTheme.ui, '--nation-secondary': nationTheme.secondary }}>
             <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
-                <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${nation.primary_color || '#334155'}e8 48%, ${nation.secondary_color || nation.primary_color || '#111827'}d8 100%)` }} />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${nationTheme.heroPrimary}e8 48%, ${nationTheme.heroSecondary}d8 100%)` }} />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
                 <div className="absolute inset-0 opacity-[0.10]" style={{ backgroundImage: `radial-gradient(circle at 16% 28%, rgba(255,255,255,.24), transparent 28%), linear-gradient(115deg, transparent 0 55%, rgba(255,255,255,.10) 55% 56%, transparent 56% 100%)` }} />
                 {nation.flag_url && <img src={nation.flag_url} alt="" aria-hidden="true" className="pointer-events-none absolute -right-24 sm:-right-12 -bottom-16 sm:-bottom-28 w-[430px] sm:w-[620px] h-[300px] sm:h-[430px] object-contain opacity-[0.11] saturate-125" />}
