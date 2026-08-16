@@ -29,12 +29,16 @@ export default function BulkNationEnhancer() {
         try {
             const context = `Nation: ${nation.name}
 Language: ${nation.language || 'Not specified'}
+Naming styles: ${Array.isArray(nation.naming_styles) ? nation.naming_styles.join(', ') : nation.naming_styles || 'Not specified'}
 Capital: ${nation.capital || 'Not specified'}
 Region: ${nation.region || 'Global'}
 Federation: ${nation.federation_name || 'Not specified'}
-Membership: ${nation.membership || 'Not specified'}`;
+Membership: ${nation.membership || 'Not specified'}
+Existing description: ${nation.description || 'None'}
+Existing culture: ${nation.culture || 'None'}
+Existing geography: ${nation.geography || 'None'}`;
 
-            const prompt = `Generate detailed, immersive national content for this fictional nation. CRITICAL: All media outlet names MUST sound authentic to the ${nation.language || 'local'} language - NOT English generic names.
+            const prompt = `Expand the canon for this fictional nation using the supplied facts as constraints. This is CREATIVE WORLD-BUILDING, not real-world research.
 
 Context:
 ${context}
@@ -49,10 +53,17 @@ Generate the following as a JSON object:
   "government_type": "Type of government (e.g., Constitutional Monarchy, Federal Republic, Parliamentary Democracy)"
 }
 
-CRITICAL: Research the language phonetics and naming patterns. Create authentic-sounding names that feel like they belong to that culture, NOT English translations.`;
+CANON RULES:
+- Preserve every supplied fact and never contradict established language, geography, capital, federation or identity.
+- New media outlets, foods and institutions are proposed new canon. Make them distinctive and internally consistent, but do not present them as pre-existing facts you somehow discovered.
+- Follow stored language/naming styles when present. If they are sparse, use internally consistent invented naming rather than borrowing random real-world words.
+- Do not invent historic dates, rulers, wars, named people or etymologies unless the requested field explicitly requires new canon for them.
+- Avoid generic English constructions such as '[Nation] Times', '[Nation] Industries' or '[Nation] Broadcasting' unless English is explicitly part of the nation's naming style.
+- Return only the requested JSON fields.`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
+                add_context_from_internet: false,
                 response_json_schema: {
                     type: "object",
                     properties: {
