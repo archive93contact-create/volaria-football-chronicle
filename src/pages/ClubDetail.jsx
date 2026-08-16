@@ -44,6 +44,9 @@ import YouthSetup from '@/components/youth/YouthSetup';
 import ClubDNA from '@/components/clubs/ClubDNA';
 import ClubMatchHistory from '@/components/clubs/ClubMatchHistory';
 import ClubSeasonCupBadges from '@/components/clubs/ClubSeasonCupBadges';
+import ClubLivingHistory from '@/components/clubs/ClubLivingHistory';
+import ClubOriginPanel from '@/components/clubs/ClubOriginPanel';
+import StadiumHistoryPanel from '@/components/clubs/StadiumHistoryPanel';
 import CompetitionRecordPanel from '@/components/clubs/CompetitionRecordPanel';
 import CrestCleaner from '@/components/clubs/CrestCleaner';
 import EntityStickyNav from '@/components/common/EntityStickyNav';
@@ -851,7 +854,26 @@ export default function ClubDetail() {
                     />
                 )}
 
+                <ClubOriginPanel
+                    club={club}
+                    nation={nation}
+                    league={league}
+                    allClubs={allClubs}
+                    accentColor={clubTheme.ui}
+                />
+
+                <div className="mt-6">
+                    <ClubLivingHistory
+                        club={{...club, ...combinedStats}}
+                        seasons={combinedSeasons}
+                        leagues={allLeagues}
+                        allClubs={allClubs}
+                        accentColor={clubTheme.ui}
+                    />
+                </div>
+
                 {/* AI-Generated Club Story */}
+                <div className="mt-6">
                 <AIClubStory
                     club={{...club, ...combinedStats}}
                     nation={nation}
@@ -861,6 +883,7 @@ export default function ClubDetail() {
                     allClubs={allClubs}
                     onStoryGenerated={() => queryClient.invalidateQueries(['club', clubId])}
                 />
+                </div>
 
                 {/* Personalized Club Story */}
                     <PersonalizedClubStory
@@ -1212,7 +1235,8 @@ export default function ClubDetail() {
                                                               )}
                                                           </AdminOnly>
 
-                                                          {/* Club Infrastructure */}
+                                                          {/* Ground history & infrastructure */}
+                                                          <StadiumHistoryPanel club={club} nation={nation} league={league} seasons={combinedSeasons} accentColor={clubTheme.ui} />
                                                           <ClubInfrastructure club={club} league={league} nation={nation} />
 
                                                           {/* Club facts use one continuous branded surface */}
