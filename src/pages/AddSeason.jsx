@@ -677,7 +677,7 @@ export default function AddSeason() {
                             </div>
                             <div>
                                 <Label>Promotion Spots</Label>
-                                <Input type="number" min="0" value={seasonData.promotion_spots} onChange={(e) => setSeasonData({...seasonData, promotion_spots: parseInt(e.target.value) || 0})} className="mt-1" />
+                                <Input type="number" min="0" value={currentTier === 1 ? 0 : seasonData.promotion_spots} onChange={(e) => setSeasonData({...seasonData, promotion_spots: parseInt(e.target.value) || 0})} className="mt-1" disabled={currentTier === 1} title={currentTier === 1 ? 'Top-flight clubs cannot be promoted upward' : undefined} />
                             </div>
                             <div>
                                 <Label>Relegation Spots</Label>
@@ -997,8 +997,10 @@ export default function AddSeason() {
                                                     <Input 
                                                         type="number" 
                                                         min="0"
-                                                        value={div.promotion_spots || 0} 
+                                                        value={currentTier === 1 ? 0 : (div.promotion_spots || 0)} 
                                                         onChange={(e) => updateDivision(divIdx, 'promotion_spots', parseInt(e.target.value) || 0)}
+                                                        disabled={currentTier === 1}
+                                                        title={currentTier === 1 ? 'Top-flight clubs cannot be promoted upward' : undefined}
                                                         className="mt-1"
                                                     />
                                                 </div>
