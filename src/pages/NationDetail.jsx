@@ -35,6 +35,9 @@ import NationGeographyTab from '@/components/nations/NationGeographyTab';
 import DominantEraTimeline from '@/components/nations/DominantEraTimeline';
 import LeaguePyramidFlow from '@/components/nations/LeaguePyramidFlow';
 import CrestCleaner from '@/components/clubs/CrestCleaner';
+import EntityStickyNav from '@/components/common/EntityStickyNav';
+import EntitySectionHeader from '@/components/common/EntitySectionHeader';
+import { getEntityTheme } from '@/utils/entityTheme';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {
@@ -106,6 +109,12 @@ export default function NationDetail() {
     const { data: coefficients = [] } = useQuery({
         queryKey: ['coefficients'],
         queryFn: () => base44.entities.CountryCoefficient.list(),
+    });
+
+    const { data: continentalCompetitions = [] } = useQuery({
+        queryKey: ['continentalCompetitionsForBranding'],
+        queryFn: () => base44.entities.ContinentalCompetition.list(),
+        staleTime: 30 * 60 * 1000,
     });
 
     const coefficient = coefficients.find(c => c.nation_id === nationId);
@@ -208,13 +217,29 @@ export default function NationDetail() {
         return acc;
     }, {});
 
-    // Build custom header style if nation has colors
-    const headerStyle = nation.primary_color ? {
-        background: `linear-gradient(135deg, ${nation.primary_color}, ${nation.secondary_color || nation.primary_color}90)`
-    } : null;
+    const nationTheme = getEntityTheme({ primary: nation.primary_color, secondary: nation.secondary_color });
+    const vcc = continentalCompetitions.find(c => c.short_name === 'VCC' || c.name?.includes('Champions'));
+    const ccc = continentalCompetitions.find(c => c.short_name === 'CCC' || c.name?.includes('Challenge'));
+    const membershipCompetition = nation.membership === 'VCC' ? vcc : ccc;
+    const membershipTheme = getEntityTheme({
+        primary: membershipCompetition?.primary_color || (nation.membership === 'VCC' ? '#1a472a' : '#4169e1'),
+        secondary: membershipCompetition?.secondary_color || (nation.membership === 'VCC' ? '#d4af37' : '#c0c0c0')
+    });
+    const nationTabs = [
+        ['overview', 'Overview'], ['pyramid', 'Pyramid'], ['youth-structure', 'Youth'], ['geo-stats', 'Geography'],
+        ['eras', 'Eras'], ['flow', 'Flow'], ['national-squad', 'Squad'], ['season-overview', 'Season'],
+        ['details', 'Details'], ['clubs', 'Success'], ['analytics', 'Analytics']
+    ];
+    const topLeague = professionalLeagues.find(l => l.tier === 1);
+    const topLeagueTheme = getEntityTheme({ primary: topLeague?.primary_color || nationTheme.primary, secondary: topLeague?.secondary_color || nationTheme.secondary, accent: topLeague?.accent_color });
+    const bestClub = clubs
+        .map(c => ({ ...c, score: (c.league_titles || 0) * 3 + (c.vcc_titles || 0) * 5 + (c.ccc_titles || 0) * 3 + (c.domestic_cup_titles || 0) }))
+        .filter(c => c.score > 0)
+        .sort((a, b) => b.score - a.score)[0];
+    const bestClubTheme = getEntityTheme({ primary: bestClub?.primary_color || nationTheme.primary, secondary: bestClub?.secondary_color || nationTheme.secondary, accent: bestClub?.accent_color });
 
     return (
-        <div className="min-h-screen bg-[#f4f5f6]" style={{ '--nation-primary': nation.primary_color || '#334155', '--nation-secondary': nation.secondary_color || '#111827' }}>
+        <div className="min-h-screen bg-[#f5f5f4]" style={{ '--nation-primary': nationTheme.ui, '--nation-secondary': nationTheme.secondary }}>
             <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
                 <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${nation.primary_color || '#334155'}e8 48%, ${nation.secondary_color || nation.primary_color || '#111827'}d8 100%)` }} />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
