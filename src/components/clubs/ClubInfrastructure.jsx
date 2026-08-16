@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,10 +69,10 @@ const calculateFacilities = (club, league, nation) => {
 const fallbackStadiumName = (club) => {
     const place = club.settlement || club.city || club.district || club.region || club.name.split(' ')[0];
     const options = [
-        `${place} Ground`,
-        `${place} Park`,
+        `${place} Recreation Ground`,
+        `Old ${place} Ground`,
         `${place} Athletic Ground`,
-        `${club.name.split(' ')[0]} Park`,
+        `${place} Park`,
         `The ${place} Ground`,
     ];
     const hash = club.name.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
@@ -80,7 +80,7 @@ const fallbackStadiumName = (club) => {
 };
 
 // Generate a grounded stadium name using the club's actual cultural/location context.
-const generateStadiumName = async (club, league, nation) => {
+const generateStadiumName = async (club, league, nation, location) => {
     const place = [club.settlement, club.district, club.region].filter(Boolean).join(', ') || club.city || 'unknown location';
     const namingStyles = Array.isArray(nation?.naming_styles) && nation.naming_styles.length
         ? nation.naming_styles.join(', ')
@@ -99,11 +99,15 @@ Nation naming styles: ${namingStyles}
 League: ${league?.name || 'unknown'}
 Tier: ${league?.tier || 'unknown'}
 Professional status: ${club.professional_status || 'unknown'}
+Known local industries: ${location?.industries || 'none supplied'}
+Known local employers: ${location?.major_companies || 'none supplied'}
+Known local landmarks: ${location?.landmarks || 'none supplied'}
 
 RULES:
 - The name must feel like a real football ground that could have evolved organically in this place and era.
 - Use the nation's language/naming style only where the supplied data supports it. Do not invent fake translations or pseudo-language.
-- Older/lower-league clubs should usually favour traditional forms such as Ground, Park, Field, Lane or a locally plausible equivalent rather than modern 'Arena' branding.
+- Older/lower-league clubs should usually favour traditional forms such as Recreation Ground, Athletic Ground, Park, Field, Lane or a locally plausible equivalent rather than modern 'Arena' branding.
+- Prefer a genuinely local-feeling construction over '[place] Ground'. If supplied industries, employers or landmarks support a stronger name, use them naturally.
 - Do NOT invent a named person, sponsor, company, street, battle, monarch, historical event or local landmark that is not in the supplied data.
 - Do NOT claim a reason/history for the name that is not known.
 - Avoid the lazy pattern '[full club name] Stadium' unless it genuinely fits better than a location-led name.
@@ -177,6 +181,14 @@ const StarRating = ({ rating, max = 5 }) => (
 
 export default function ClubInfrastructure({ club, league, nation }) {
     const queryClient = useQueryClient();
+    const locationName = club?.settlement || club?.district || club?.region || club?.city;
+    const { data: locationRows = [] } = useQuery({
+        queryKey: ['clubInfrastructureLocation', club?.nation_id, locationName],
+        queryFn: () => base44.entities.Location.filter({ nation_id: club.nation_id, name: locationName }),
+        enabled: !!club?.nation_id && !!locationName,
+        staleTime: 15 * 60 * 1000,
+    });
+    const location = locationRows[0] || null;
     const [isEditing, setIsEditing] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [editData, setEditData] = useState({});
@@ -208,7 +220,7 @@ export default function ClubInfrastructure({ club, league, nation }) {
         setIsGenerating(true);
         
         const facilities = calculateFacilities(club, league, nation);
-        const stadium = await generateStadiumName(club, league, nation);
+        const stadium = club.stadium || await generateStadiumName(club, league, nation, location);
         const capacity = generateCapacity(club, league, nation);
         
         await base44.entities.Club.update(club.id, {
