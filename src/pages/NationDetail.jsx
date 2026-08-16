@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star, Award, MapPin, Layers } from 'lucide-react';
+import { Plus, Trophy, Shield, Edit2, Trash2, ChevronRight, Save, X, Loader2, Star, Award, MapPin, Layers, Sparkles, Globe2, Languages, Building2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import GeographicSuccessMap from '@/components/nations/GeographicSuccessMap';
 import NationGeographyTab from '@/components/nations/NationGeographyTab';
 import DominantEraTimeline from '@/components/nations/DominantEraTimeline';
 import LeaguePyramidFlow from '@/components/nations/LeaguePyramidFlow';
+import CrestCleaner from '@/components/clubs/CrestCleaner';
 import { useNavigate } from 'react-router-dom';
 
 export default function NationDetail() {
@@ -44,6 +45,7 @@ export default function NationDetail() {
     
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({});
+    const [flagCleanerOpen, setFlagCleanerOpen] = useState(false);
 
     const { data: nation, isLoading } = useQuery({
         queryKey: ['nation', nationId],
