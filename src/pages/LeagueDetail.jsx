@@ -1160,7 +1160,7 @@ export default function LeagueDetail() {
                         </div>
                         <div><Label>Top Scorer</Label><Input value={seasonEditData.top_scorer || ''} onChange={(e) => setSeasonEditData({...seasonEditData, top_scorer: e.target.value})} placeholder="e.g., John Smith (25 goals)" className="mt-1" /></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div><Label>Promoted Teams</Label><Input value={seasonEditData.promoted_teams || ''} onChange={(e) => setSeasonEditData({...seasonEditData, promoted_teams: e.target.value})} placeholder="Comma separated" className="mt-1" /></div>
+                            <div><Label>Promoted Teams</Label><Input value={Number(seasonEditData.tier || league?.tier || 1) === 1 ? '' : (seasonEditData.promoted_teams || '')} onChange={(e) => setSeasonEditData({...seasonEditData, promoted_teams: e.target.value})} placeholder={Number(seasonEditData.tier || league?.tier || 1) === 1 ? 'Not applicable in Tier 1' : 'Comma separated'} className="mt-1" disabled={Number(seasonEditData.tier || league?.tier || 1) === 1} /></div>
                             <div><Label>Relegated Teams</Label><Input value={seasonEditData.relegated_teams || ''} onChange={(e) => setSeasonEditData({...seasonEditData, relegated_teams: e.target.value})} placeholder="Comma separated" className="mt-1" /></div>
                         </div>
                         <div><Label>Notes</Label><Textarea value={seasonEditData.notes || ''} onChange={(e) => setSeasonEditData({...seasonEditData, notes: e.target.value})} rows={3} className="mt-1" /></div>
