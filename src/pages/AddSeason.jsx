@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -140,7 +140,9 @@ export default function AddSeason() {
 
     const setDivisionRowStatus = (divIndex, rowIndex, status) => {
         const updated = [...divisions];
-        updated[divIndex].rows[rowIndex].status = status;
+        const safeStatus = currentTier === 1 && (status === 'promoted' || status === 'playoff_winner') ? '' : status;
+        updated[divIndex].rows[rowIndex].status = safeStatus;
+        status = safeStatus;
         if (status === 'champion') updated[divIndex].rows[rowIndex].highlight_color = seasonData.champion_color;
         else if (status === 'promoted' || status === 'playoff_winner') updated[divIndex].rows[rowIndex].highlight_color = seasonData.promotion_color;
         else if (status === 'relegated') updated[divIndex].rows[rowIndex].highlight_color = seasonData.relegation_color;
@@ -170,7 +172,7 @@ export default function AddSeason() {
     const applyDivisionAutoStatus = (divIndex) => {
         const updated = [...divisions];
         const div = updated[divIndex];
-        const promoSpots = div.promotion_spots || 0;
+        const promoSpots = currentTier === 1 ? 0 : (div.promotion_spots || 0);
         const relegSpots = div.relegation_spots || 0;
         
         div.rows = div.rows.map((row, idx) => {
@@ -181,7 +183,7 @@ export default function AddSeason() {
             if (pos === 1) {
                 status = 'champion';
                 color = seasonData.champion_color;
-            } else if (pos <= promoSpots) {
+            } else if (currentTier > 1 && pos <= promoSpots) {
                 status = 'promoted';
                 color = seasonData.promotion_color;
             } else if (pos > div.rows.length - relegSpots) {
@@ -223,7 +225,7 @@ export default function AddSeason() {
         if (pos === 1) {
             updated[index].status = 'champion';
             updated[index].highlight_color = seasonData.champion_color;
-        } else if (pos <= seasonData.promotion_spots) {
+        } else if (currentTier > 1 && pos <= seasonData.promotion_spots) {
             updated[index].status = 'promoted';
             updated[index].highlight_color = seasonData.promotion_color;
         } else if (pos > seasonData.number_of_teams - seasonData.relegation_spots) {
@@ -236,7 +238,9 @@ export default function AddSeason() {
 
     const setRowStatus = (index, status) => {
         const updated = [...tableRows];
-        updated[index].status = status;
+        const safeStatus = currentTier === 1 && (status === 'promoted' || status === 'playoff_winner') ? '' : status;
+        updated[index].status = safeStatus;
+        status = safeStatus;
         if (status === 'champion') updated[index].highlight_color = seasonData.champion_color;
         else if (status === 'promoted' || status === 'playoff_winner') updated[index].highlight_color = seasonData.promotion_color;
         else if (status === 'relegated') updated[index].highlight_color = seasonData.relegation_color;
@@ -245,7 +249,14 @@ export default function AddSeason() {
         setTableRows(updated);
     };
 
-    const currentTier = seasonData.tier || league?.tier || 1;
+    const currentTier = Number(seasonData.tier || league?.tier || 1);
+
+    useEffect(() => {
+        if (!league) return;
+        if (Number(seasonData.tier || league.tier) === 1 && seasonData.promotion_spots !== 0) {
+            setSeasonData(prev => ({ ...prev, promotion_spots: 0, playoff_spots_start: null, playoff_spots_end: null, playoff_winner: '' }));
+        }
+    }, [league?.id, league?.tier, seasonData.tier]);
 
     const createSeasonMutation = useMutation({
         mutationFn: async (data) => {
