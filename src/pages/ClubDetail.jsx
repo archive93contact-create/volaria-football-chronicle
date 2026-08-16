@@ -44,6 +44,7 @@ import YouthSetup from '@/components/youth/YouthSetup';
 import ClubDNA from '@/components/clubs/ClubDNA';
 import ClubMatchHistory from '@/components/clubs/ClubMatchHistory';
 import ClubSeasonCupBadges from '@/components/clubs/ClubSeasonCupBadges';
+import CompetitionRecordPanel from '@/components/clubs/CompetitionRecordPanel';
 import CrestCleaner from '@/components/clubs/CrestCleaner';
 import EntityStickyNav from '@/components/common/EntityStickyNav';
 import EntitySectionHeader from '@/components/common/EntitySectionHeader';
@@ -1167,83 +1168,30 @@ export default function ClubDetail() {
                             primaryColor={clubTheme.ui}
                             accentColor={clubTheme.ui}
                         >
-                            <CardContent className="p-0">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {/* VCC Stats */}
-                                    <div>
-                                       <div className="mb-4">
-                                           <div className="flex items-center gap-2 mb-1">
-                                               <Badge className="bg-amber-500 text-white">VCC</Badge>
-                                               <h3 className="font-semibold">Volarian Champions Cup</h3>
-                                           </div>
-                                           <p className="text-xs text-amber-700 italic">The premier continental competition</p>
-                                       </div>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                                <span className="text-slate-600">Appearances</span>
-                                                <span className="font-bold text-lg">{combinedStats?.vcc_appearances || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                                                <span className="text-amber-700">Titles Won</span>
-                                                <span className="font-bold text-lg text-amber-600">{combinedStats?.vcc_titles || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                                <span className="text-slate-600">Finals Lost</span>
-                                                <span className="font-bold text-lg">{combinedStats?.vcc_runner_up || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                                <span className="text-slate-600">Best Finish</span>
-                                                <div className="text-right">
-                                                    <span className="font-bold">{combinedStats?.vcc_best_finish || 'N/A'}</span>
-                                                    {combinedStats?.vcc_best_finish_year && <span className="text-sm text-slate-500 ml-1">({combinedStats.vcc_best_finish_year})</span>}
-                                                </div>
-                                            </div>
-                                            {combinedStats?.vcc_title_years && (
-                                                <div className="p-3 bg-amber-50 rounded-lg">
-                                                    <span className="text-amber-700 text-sm">Title Years: {combinedStats.vcc_title_years}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* CCC Stats */}
-                                    <div>
-                                       <div className="mb-4">
-                                           <div className="flex items-center gap-2 mb-1">
-                                               <Badge className="bg-blue-500 text-white">CCC</Badge>
-                                               <h3 className="font-semibold">Continental Challenge Cup</h3>
-                                           </div>
-                                           <p className="text-xs text-blue-700 italic">For associate member nations</p>
-                                       </div>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                                <span className="text-slate-600">Appearances</span>
-                                                <span className="font-bold text-lg">{combinedStats?.ccc_appearances || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                                                <span className="text-blue-700">Titles Won</span>
-                                                <span className="font-bold text-lg text-blue-600">{combinedStats?.ccc_titles || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                                <span className="text-slate-600">Finals Lost</span>
-                                                <span className="font-bold text-lg">{combinedStats?.ccc_runner_up || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                                <span className="text-slate-600">Best Finish</span>
-                                                <div className="text-right">
-                                                    <span className="font-bold">{combinedStats?.ccc_best_finish || 'N/A'}</span>
-                                                    {combinedStats?.ccc_best_finish_year && <span className="text-sm text-slate-500 ml-1">({combinedStats.ccc_best_finish_year})</span>}
-                                                </div>
-                                            </div>
-                                            {combinedStats?.ccc_title_years && (
-                                                <div className="p-3 bg-blue-50 rounded-lg">
-                                                    <span className="text-blue-700 text-sm">Title Years: {combinedStats.ccc_title_years}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                </CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <CompetitionRecordPanel
+                                    competition={vcc}
+                                    shortName="VCC"
+                                    theme={vccTheme}
+                                    appearances={combinedStats?.vcc_appearances || 0}
+                                    titles={combinedStats?.vcc_titles || 0}
+                                    runnerUp={combinedStats?.vcc_runner_up || 0}
+                                    bestFinish={combinedStats?.vcc_best_finish}
+                                    bestFinishYear={combinedStats?.vcc_best_finish_year}
+                                    titleYears={combinedStats?.vcc_title_years}
+                                />
+                                <CompetitionRecordPanel
+                                    competition={ccc}
+                                    shortName="CCC"
+                                    theme={cccTheme}
+                                    appearances={combinedStats?.ccc_appearances || 0}
+                                    titles={combinedStats?.ccc_titles || 0}
+                                    runnerUp={combinedStats?.ccc_runner_up || 0}
+                                    bestFinish={combinedStats?.ccc_best_finish}
+                                    bestFinishYear={combinedStats?.ccc_best_finish_year}
+                                    titleYears={combinedStats?.ccc_title_years}
+                                />
+                            </div>
                                 </ThemedCard>
                                 </TabsContent>
 
