@@ -71,6 +71,7 @@ export default function DomesticCupDetail() {
             queryClient.invalidateQueries({ queryKey: ['cupSeasons', cupId] });
             queryClient.invalidateQueries({ queryKey: ['domesticCup', cupId] });
             queryClient.invalidateQueries({ queryKey: ['clubs', cup?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['club'] });
             queryClient.invalidateQueries({ queryKey: ['allClubs'] });
         },
     });
@@ -85,6 +86,7 @@ export default function DomesticCupDetail() {
             queryClient.invalidateQueries({ queryKey: ['cupSeasons', cupId] });
             queryClient.invalidateQueries({ queryKey: ['domesticCup', cupId] });
             queryClient.invalidateQueries({ queryKey: ['clubs', cup?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['club'] });
             queryClient.invalidateQueries({ queryKey: ['allClubs'] });
             setEditingSeason(null);
         },
