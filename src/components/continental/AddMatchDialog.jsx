@@ -212,7 +212,33 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
     const getClubsForNation = (nationName) => {
         const nation = nations.find(n => n.name === nationName);
         if (!nation) return [];
-        return clubs.filter(c => c.nation_id === nation.id);
+        return clubs.filter(c => c.nation_id === nation.id && c.is_defunct !== true).sort((a, b) => a.name.localeCompare(b.name));
+    };
+
+    const updateNation = (side, nationName) => {
+        const nation = nations.find(n => n.name === nationName);
+        setFormData(prev => ({
+            ...prev,
+            [`${side}_club_nation`]: nation?.name || '',
+            [`${side}_nation_id`]: nation?.id || '',
+            [`${side}_club_id`]: '',
+            [`${side}_club_name`]: '',
+            winner: [prev[`${side}_club_name`]].includes(prev.winner) ? '' : prev.winner,
+        }));
+    };
+
+    const updateClub = (side, clubId) => {
+        const club = clubs.find(c => c.id === clubId);
+        const nation = nations.find(n => n.id === club?.nation_id);
+        if (!club) return;
+        setFormData(prev => ({
+            ...prev,
+            [`${side}_club_id`]: club.id,
+            [`${side}_club_name`]: club.name,
+            [`${side}_nation_id`]: nation?.id || club.nation_id || '',
+            [`${side}_club_nation`]: nation?.name || '',
+            winner: prev.winner && prev.winner !== prev.home_club_name && prev.winner !== prev.away_club_name ? '' : prev.winner,
+        }));
     };
 
     const isPending = createMutation.isPending || updateMutation.isPending;
@@ -259,7 +285,7 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Nation</Label>
-                                <Select value={formData.home_club_nation} onValueChange={(v) => updateField('home_club_nation', v)}>
+                                <Select value={formData.home_club_nation} onValueChange={(v) => updateNation('home', v)}>
                                     <SelectTrigger className="mt-1"><SelectValue placeholder="Select nation" /></SelectTrigger>
                                     <SelectContent>
                                         {nations.map(n => (
@@ -275,20 +301,14 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
                             </div>
                             <div>
                                 <Label>Club</Label>
-                                <Input 
-                                    value={formData.home_club_name} 
-                                    onChange={(e) => updateField('home_club_name', e.target.value)}
-                                    placeholder="Type club name"
-                                    className="mt-1"
-                                    list="home-clubs-list"
-                                />
-                                {formData.home_club_nation && (
-                                    <datalist id="home-clubs-list">
+                                <Select value={formData.home_club_id} onValueChange={(v) => updateClub('home', v)} disabled={!formData.home_club_nation}>
+                                    <SelectTrigger className="mt-1"><SelectValue placeholder={formData.home_club_nation ? 'Select club' : 'Choose nation first'} /></SelectTrigger>
+                                    <SelectContent>
                                         {getClubsForNation(formData.home_club_nation).map(c => (
-                                            <option key={c.id} value={c.name} />
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                                         ))}
-                                    </datalist>
-                                )}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </div>
@@ -299,7 +319,7 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Nation</Label>
-                                <Select value={formData.away_club_nation} onValueChange={(v) => updateField('away_club_nation', v)}>
+                                <Select value={formData.away_club_nation} onValueChange={(v) => updateNation('away', v)}>
                                     <SelectTrigger className="mt-1"><SelectValue placeholder="Select nation" /></SelectTrigger>
                                     <SelectContent>
                                         {nations.map(n => (
@@ -315,20 +335,14 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
                             </div>
                             <div>
                                 <Label>Club</Label>
-                                <Input 
-                                    value={formData.away_club_name} 
-                                    onChange={(e) => updateField('away_club_name', e.target.value)}
-                                    placeholder="Type club name"
-                                    className="mt-1"
-                                    list="away-clubs-list"
-                                />
-                                {formData.away_club_nation && (
-                                    <datalist id="away-clubs-list">
+                                <Select value={formData.away_club_id} onValueChange={(v) => updateClub('away', v)} disabled={!formData.away_club_nation}>
+                                    <SelectTrigger className="mt-1"><SelectValue placeholder={formData.away_club_nation ? 'Select club' : 'Choose nation first'} /></SelectTrigger>
+                                    <SelectContent>
                                         {getClubsForNation(formData.away_club_nation).map(c => (
-                                            <option key={c.id} value={c.name} />
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                                         ))}
-                                    </datalist>
-                                )}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </div>
