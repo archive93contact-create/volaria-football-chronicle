@@ -251,45 +251,63 @@ export default function LeagueDetail() {
     const previousYear = currentYearIndex > 0 ? sortedYears[currentYearIndex - 1] : null;
     const previousSeason = previousYear ? seasons.find(s => s.year === previousYear) : null;
     
-    // Get promoted teams from lower tier leagues (teams that got promoted TO this league)
-    const lowerTierLeagues = allNationLeagues.filter(l => l.tier === (league?.tier || 1) + 1);
-    const promotedToThisLeague = [];
+    // Previous-season carry-over indicators. Use canonical IDs wherever possible and
+    // exact normalised names only as a legacy fallback. Fuzzy substring matching caused
+    // false (P)/(R) badges for clubs with similar names.
+    const normaliseClubName = (value) => String(value || '').trim().toLowerCase();
+    const promotedClubIds = new Set();
+    const promotedClubNames = new Set();
+    const relegatedClubIds = new Set();
+    const relegatedClubNames = new Set();
+
+    const addMovementClub = (rawName, idSet, nameSet) => {
+        const name = normaliseClubName(rawName);
+        if (!name) return;
+        nameSet.add(name);
+        const matchingClub = allNationClubs.find(c => normaliseClubName(c.name) === name || normaliseClubName(c.shortened_name) === name);
+        if (matchingClub?.id) idSet.add(matchingClub.id);
+    };
+
+    // Teams promoted FROM the tier below into this league.
+    const lowerTierLeagues = allNationLeagues.filter(l => Number(l.tier) === Number(league?.tier || 1) + 1);
     lowerTierLeagues.forEach(lowerLeague => {
         const lowerPrevSeason = allNationSeasons.find(s => s.league_id === lowerLeague.id && s.year === previousYear);
-        if (lowerPrevSeason?.promoted_teams) {
-            lowerPrevSeason.promoted_teams.split(',').forEach(t => {
-                if (t.trim()) promotedToThisLeague.push(t.trim().toLowerCase());
-            });
+        if (!lowerPrevSeason) return;
+        if (lowerPrevSeason.promoted_teams) {
+            lowerPrevSeason.promoted_teams.split(',').forEach(name => addMovementClub(name, promotedClubIds, promotedClubNames));
         }
-        // Champions are also promoted
-        if (lowerPrevSeason?.champion_name) {
-            promotedToThisLeague.push(lowerPrevSeason.champion_name.trim().toLowerCase());
-        }
+        // A lower-tier champion is normally promoted even though its table status is 'champion',
+        // so include that winner explicitly — still ID-first/exact, never fuzzy.
+        if (lowerPrevSeason.champion_id) promotedClubIds.add(lowerPrevSeason.champion_id);
+        addMovementClub(lowerPrevSeason.champion_name, promotedClubIds, promotedClubNames);
+        if (lowerPrevSeason.playoff_winner_id) promotedClubIds.add(lowerPrevSeason.playoff_winner_id);
+        addMovementClub(lowerPrevSeason.playoff_winner, promotedClubIds, promotedClubNames);
     });
-    
-    // Get relegated teams from higher tier leagues (teams that got relegated TO this league)
-    const higherTierLeagues = allNationLeagues.filter(l => l.tier === (league?.tier || 1) - 1);
-    const relegatedToThisLeague = [];
+
+    // Teams relegated FROM the tier above into this league.
+    const higherTierLeagues = allNationLeagues.filter(l => Number(l.tier) === Number(league?.tier || 1) - 1);
     higherTierLeagues.forEach(higherLeague => {
         const higherPrevSeason = allNationSeasons.find(s => s.league_id === higherLeague.id && s.year === previousYear);
-        if (higherPrevSeason?.relegated_teams) {
-            higherPrevSeason.relegated_teams.split(',').forEach(t => {
-                if (t.trim()) relegatedToThisLeague.push(t.trim().toLowerCase());
-            });
-        }
+        if (!higherPrevSeason?.relegated_teams) return;
+        higherPrevSeason.relegated_teams.split(',').forEach(name => addMovementClub(name, relegatedClubIds, relegatedClubNames));
     });
-    
-    // Get previous champion of THIS league (for top tier)
-    const previousChampion = previousSeason?.champion_name?.trim().toLowerCase() || '';
-    
-    // Helper to check club status
-    const getClubIndicators = (clubName) => {
-        if (!clubName) return { isPromoted: false, isRelegated: false, isChampion: false };
-        const name = clubName.trim().toLowerCase();
+
+    const previousChampionId = previousSeason?.champion_id || null;
+    const previousChampionName = normaliseClubName(previousSeason?.champion_name);
+
+    const getClubIndicators = (row) => {
+        const name = normaliseClubName(row?.club_name);
+        const clubId = row?.club_id || null;
+        if (!clubId && !name) return { isPromoted: false, isRelegated: false, isChampion: false };
+        const idMatches = (set) => Boolean(clubId && set.has(clubId));
+        const nameMatches = (set) => Boolean(name && set.has(name));
         return {
-            isPromoted: promotedToThisLeague.some(t => t === name || name.includes(t) || t.includes(name)),
-            isRelegated: relegatedToThisLeague.some(t => t === name || name.includes(t) || t.includes(name)),
-            isChampion: league.tier === 1 && previousChampion && (previousChampion === name || name.includes(previousChampion) || previousChampion.includes(name))
+            isPromoted: idMatches(promotedClubIds) || nameMatches(promotedClubNames),
+            isRelegated: idMatches(relegatedClubIds) || nameMatches(relegatedClubNames),
+            isChampion: Number(league.tier) === 1 && (
+                Boolean(previousChampionId && clubId && previousChampionId === clubId) ||
+                Boolean(previousChampionName && name && previousChampionName === name)
+            )
         };
     };
 
@@ -475,7 +493,7 @@ export default function LeagueDetail() {
                                                         </TableCell>
                                                         <TableCell className="font-medium">
                                                             {(() => {
-                                                                const indicators = getClubIndicators(row.club_name);
+                                                                const indicators = getClubIndicators(row);
                                                                 const club = clubs.find(c => c.id === row.club_id);
                                                                 const displayName = club?.shortened_name || row.club_name;
                                                                 return (
