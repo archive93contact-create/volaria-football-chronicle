@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Trophy, TrendingUp, TrendingDown, RefreshCw, Save, Shield } from 'lucide-react';
 import StabilityBadge from '@/components/stability/StabilityBadge';
+import { syncLeagueStatsForNation } from '@/lib/leagueSync';
 
 // Calculate club strength based on stability, history, and tier
 const calculateClubStrength = (club, previousPosition, tier) => {
@@ -279,6 +280,7 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
                 season_id: season.id,
                 league_id: leagueId,
                 year: seasonYear,
+                tier: league?.tier || null,
                 position: entry.position,
                 club_id: entry.club_id,
                 club_name: entry.club_name,
@@ -293,6 +295,8 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
                 status: entry.status
             });
         }
+
+        if (league?.nation_id) await syncLeagueStatsForNation(league.nation_id);
 
         queryClient.invalidateQueries({ queryKey: ['seasons'] });
         queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
