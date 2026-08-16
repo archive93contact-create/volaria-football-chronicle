@@ -49,7 +49,9 @@ export default function StadiumHistoryPanel({ club, nation, league, seasons = []
         setGenerating(true);
         try {
             const existingNames = displayHistory.map(h => h.stadium_name).filter(Boolean).join(', ') || 'none';
+            const variationSeed = Math.floor(Math.random() * 1000000);
             const prompt = `Propose SIX distinctive but believable football ground names for this FICTIONAL club. These are proposals for new canon, not factual lookups.
+Variation seed: ${variationSeed} — use this only to force a fresh naming direction on repeated generations; never include it in output.
 
 KNOWN CANON:
 Club: ${club.name}
@@ -87,7 +89,22 @@ Return JSON { proposals: [{ stadium_name, name_type, rationale }] }. name_type m
                     type: 'object', properties: { proposals: { type: 'array', items: { type: 'object', properties: { stadium_name: { type: 'string' }, name_type: { type: 'string' }, rationale: { type: 'string' } }, required: ['stadium_name', 'name_type', 'rationale'] } } }, required: ['proposals']
                 }
             });
-            const next = (result?.proposals || []).filter(p => p.stadium_name).slice(0, 6);
+            const placeNames = [club.settlement, club.district, club.region, club.city].filter(Boolean).map(v => String(v).toLowerCase());
+            const seen = new Set();
+            let directPlaceCount = 0;
+            const next = [];
+            for (const p of (result?.proposals || [])) {
+                const name = String(p?.stadium_name || '').trim();
+                if (!name) continue;
+                const key = name.toLowerCase();
+                if (seen.has(key) || displayHistory.some(h => String(h.stadium_name || '').trim().toLowerCase() === key)) continue;
+                const usesDirectPlace = placeNames.some(place => place.length >= 4 && key.includes(place));
+                if (usesDirectPlace && directPlaceCount >= 1) continue;
+                if (usesDirectPlace) directPlaceCount++;
+                seen.add(key);
+                next.push({ ...p, stadium_name: name });
+                if (next.length === 6) break;
+            }
             setProposals(next);
             setSelectedName(next[0]?.stadium_name || '');
             await Promise.all(next.map(p => base44.entities.StadiumNameProposal.create({ club_id: club.id, proposed_name: p.stadium_name, name_type: p.name_type, rationale: p.rationale, generated_at: new Date().toISOString(), is_accepted: false })));
