@@ -45,6 +45,8 @@ import ClubDNA from '@/components/clubs/ClubDNA';
 import ClubMatchHistory from '@/components/clubs/ClubMatchHistory';
 import ClubSeasonCupBadges from '@/components/clubs/ClubSeasonCupBadges';
 import CrestCleaner from '@/components/clubs/CrestCleaner';
+import EntityStickyNav from '@/components/common/EntityStickyNav';
+import { getEntityTheme } from '@/utils/entityTheme';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -339,8 +341,15 @@ export default function ClubDetail() {
         );
     }
 
+    const clubTheme = getEntityTheme({ primary: club.primary_color, secondary: club.secondary_color, accent: club.accent_color });
+    const clubTabs = [
+        ['overview', 'Overview'], ['trophies', 'Honours'], ['statistics', 'History'], ['squad', 'Squad'],
+        ['matches', 'Fixtures & Results'], ['continental', 'Continental'], ['rivalries', 'Rivalries'], ['decades', 'Decades'],
+        ['youth', 'Youth'], ['youth-setup', 'Sub Teams'], ['analytics', 'Analytics'], ['info', 'Club Info']
+    ];
+
     return (
-        <div className="min-h-screen bg-[#f4f5f6]" style={{ '--club-primary': club.primary_color || '#334155', '--club-secondary': club.secondary_color || '#111827', '--club-accent': club.accent_color || club.secondary_color || '#f8fafc' }}>
+        <div className="min-h-screen bg-[#f5f5f4]" style={{ '--club-primary': clubTheme.ui, '--club-secondary': clubTheme.secondary, '--club-accent': clubTheme.accent }}>
             {/* Club identity masthead — driven entirely by the club's stored branding */}
             <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
                 <div className="absolute inset-0" style={{ background: `linear-gradient(105deg, #08090a 0%, ${club.primary_color || '#334155'}ee 48%, ${club.secondary_color || club.primary_color || '#111827'}cc 100%)` }} />
