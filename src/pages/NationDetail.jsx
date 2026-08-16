@@ -525,14 +525,14 @@ export default function NationDetail() {
                                                                         </div>
                                                                     </Link>
                                                                     {club && (
-                                                                        <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-2 hover:text-emerald-600">
+                                                                        <Link to={createPageUrl(`ClubDetail?id=${club.id}`)} className="flex items-center gap-2 hover:underline">
                                                                             {club.logo_url && <img src={club.logo_url} alt={club.name} className="w-8 h-8 object-contain" />}
                                                                             <span className="text-sm font-medium hidden md:block">{club.name}</span>
                                                                         </Link>
                                                                     )}
                                                                     <div className="flex gap-3">
                                                                         <div className="text-center">
-                                                                            <div className="text-lg font-bold text-emerald-600">{player.overall_rating}</div>
+                                                                            <div className="text-lg font-bold" style={{ color: nationTheme.ui }}>{player.overall_rating}</div>
                                                                             <div className="text-xs text-slate-500">OVR</div>
                                                                         </div>
                                                                         <div className="text-center">
@@ -619,10 +619,10 @@ export default function NationDetail() {
                                                         {((club.vcc_titles || 0) + (club.ccc_titles || 0)) > 0 && (
                                                             <div className="flex items-center gap-2">
                                                                 {club.vcc_titles > 0 && (
-                                                                    <Badge className="bg-purple-500 text-white text-xs">{club.vcc_titles} VCC</Badge>
+                                                                    <Badge className="text-white text-xs" style={{ backgroundColor: getEntityTheme({ primary: vcc?.primary_color || '#1a472a', secondary: vcc?.secondary_color || '#d4af37' }).primary }}>{club.vcc_titles} VCC</Badge>
                                                                 )}
                                                                 {club.ccc_titles > 0 && (
-                                                                    <Badge className="bg-blue-500 text-white text-xs">{club.ccc_titles} CCC</Badge>
+                                                                    <Badge className="text-white text-xs" style={{ backgroundColor: getEntityTheme({ primary: ccc?.primary_color || '#4169e1', secondary: ccc?.secondary_color || '#c0c0c0' }).primary }}>{club.ccc_titles} CCC</Badge>
                                                                 )}
                                                             </div>
                                                         )}
@@ -678,7 +678,7 @@ export default function NationDetail() {
                     {nation.region && (
                         <Card className="border-0 shadow-sm">
                             <CardContent className="p-4 text-center">
-                                <div className="text-lg font-bold text-emerald-600">{nation.region}</div>
+                                <div className="text-lg font-bold" style={{ color: nationTheme.ui }}>{nation.region}</div>
                                 <div className="text-sm text-slate-500">Region</div>
                             </CardContent>
                         </Card>
@@ -731,7 +731,7 @@ export default function NationDetail() {
                                                         <div className="flex-1">
                                                             <h4 className="font-bold text-slate-900">{cup.name}</h4>
                                                             {cup.current_champion && (
-                                                                <p className="text-sm text-emerald-600">🏆 {cup.current_champion}</p>
+                                                                <p className="text-sm text-amber-600">🏆 {cup.current_champion}</p>
                                                             )}
                                                         </div>
                                                         <ChevronRight className="w-5 h-5 text-slate-400" />
@@ -1014,7 +1014,7 @@ export default function NationDetail() {
                             <Button variant="outline" onClick={() => setIsEditing(false)}>
                                 <X className="w-4 h-4 mr-2" /> Cancel
                             </Button>
-                            <Button onClick={handleSave} disabled={updateMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">
+                            <Button onClick={handleSave} disabled={updateMutation.isPending} className="text-white" style={{ backgroundColor: nationTheme.ui }}>
                                 {updateMutation.isPending ? (
                                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</>
                                 ) : (
