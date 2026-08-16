@@ -285,89 +285,53 @@ export default function CompetitionDetail() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Hero */}
-            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${competition.primary_color || '#1e40af'}, ${competition.secondary_color || '#fbbf24'})` }}>
-                <div className="absolute inset-0 bg-black/20" />
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-                    <nav className="flex items-center gap-2 text-sm text-white/70 mb-4">
+        <div className="min-h-screen bg-[#f5f5f4]">
+            <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
+                <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${competitionTheme.heroPrimary}e8 52%, ${competitionTheme.heroSecondary}cc 100%)` }} />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
+                {competition.logo_url && <img src={competition.logo_url} alt="" aria-hidden="true" className="pointer-events-none absolute -right-16 -bottom-28 sm:right-0 sm:-bottom-36 w-[390px] sm:w-[580px] h-[390px] sm:h-[580px] object-contain opacity-[0.09] grayscale" />}
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8 sm:pb-10">
+                    <nav className="flex items-center gap-2 text-xs sm:text-sm text-white/55 mb-7 flex-wrap">
                         <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                         <Link to={createPageUrl('ContinentalCompetitions')} className="hover:text-white">Continental Competitions</Link>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                         <span className="text-white">{competition.short_name || competition.name}</span>
                     </nav>
-                    <div className="flex items-center gap-6 mb-6">
-                        <div className="w-20 h-20 md:w-28 md:h-28 bg-white/20 rounded-2xl flex items-center justify-center">
-                            {competition.tier === 1 ? <Star className="w-12 h-12 md:w-16 md:h-16 text-white" /> : <Trophy className="w-12 h-12 md:w-16 md:h-16 text-white" />}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-[170px_minmax(0,1fr)] md:grid-cols-[210px_minmax(0,1fr)] gap-6 sm:gap-8 items-center">
+                        <div className="relative w-36 h-36 sm:w-full sm:h-44 md:h-48 flex items-center justify-center">
+                            <div className="absolute inset-[10%] rounded-full blur-3xl opacity-45" style={{ backgroundColor: competition.secondary_color || competition.primary_color || '#fff' }} />
+                            {competition.logo_url ? <img src={competition.logo_url} alt={`${competition.name} logo`} className="relative z-10 max-w-[108%] max-h-[108%] object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,.52)]" /> : <div className="relative z-10 w-[82%] h-[82%] rounded-full border border-white/15 bg-black/20 flex items-center justify-center">{competition.tier === 1 ? <Star className="w-20 h-20 text-white/35" /> : <Trophy className="w-20 h-20 text-white/35" />}</div>}
                         </div>
-                        <div className="flex-1">
-                            <h1 className="text-3xl md:text-5xl font-bold text-white">{competition.name}</h1>
-                            {competition.description && <p className="mt-2 text-white/80 max-w-2xl">{competition.description}</p>}
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                {competition.short_name && <span className="text-[10px] uppercase tracking-[0.16em] font-black px-2 py-1 rounded border border-white/15 bg-white/8">{competition.short_name}</span>}
+                                <span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-white/55">{competition.tier === 1 ? 'Premier continental competition' : competition.tier === 2 ? 'Secondary continental competition' : `Continental tier ${competition.tier || '—'}`}</span>
+                            </div>
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] leading-[0.95] break-words">{competition.name}</h1>
+                            {competition.description && <p className="mt-4 text-base sm:text-lg text-white/68 max-w-3xl leading-relaxed">{competition.description}</p>}
+                            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/62">
+                                {competition.format && <span>{competition.format}</span>}
+                                {competition.founded_year && <span>Founded {competition.founded_year}</span>}
+                                {competition.current_champion && <span className="flex items-center gap-1.5"><Trophy className="w-4 h-4" /> Current champion: <strong className="text-white">{competition.current_champion}</strong></span>}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Stats in Banner */}
-                    <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-white/20">
-                        {competition.founded_year && (
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-white">{competition.founded_year}</div>
-                                <div className="text-white/60 text-sm">Founded</div>
-                            </div>
-                        )}
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-white">{seasons.length}</div>
-                            <div className="text-white/60 text-sm">Editions</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-white">{participatingNations.length}</div>
-                            <div className="text-white/60 text-sm">Nations</div>
-                        </div>
-                        {competition.number_of_teams && (
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-white">{competition.number_of_teams}</div>
-                                <div className="text-white/60 text-sm">Teams</div>
-                            </div>
-                        )}
-                        {titlesByClub.length > 0 && (
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-white">{titlesByClub.length}</div>
-                                <div className="text-white/60 text-sm">Different Winners</div>
-                            </div>
-                        )}
+                    <div className="mt-7 grid grid-cols-4 sm:grid-cols-5 border border-white/15 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm">
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{seasons.length}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Editions</div></div>
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{participatingNations.length}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Nations</div></div>
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{titlesByClub.length}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Winners</div></div>
+                        <div className="px-3 sm:px-4 py-3 sm:border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{competition.number_of_teams || '—'}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Teams</div></div>
+                        <div className="hidden sm:block px-4 py-3"><div className="text-xl sm:text-2xl font-black">{competition.most_titles_count || titleLeader?.[1]?.count || '—'}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Record titles</div></div>
                     </div>
+
+                    {participatingNations.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{participatingNations.slice(0, 22).map(nation => nation.flag_url ? <Link key={nation.id} to={createPageUrl(`NationDetail?id=${nation.id}`)} title={nation.name} className="w-8 h-6 rounded border border-white/15 bg-black/15 p-0.5 flex items-center justify-center hover:border-white/45 transition-colors"><img src={nation.flag_url} alt={`${nation.name} flag`} className="max-w-full max-h-full object-contain" /></Link> : null)}{participatingNations.length > 22 && <span className="text-xs text-white/50 self-center">+{participatingNations.length-22}</span>}</div>}
                 </div>
-
-                {/* Participating Nations Flags - Full Width */}
-                {participatingNations.length > 0 && (
-                    <div className="bg-black/30 py-4">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex flex-wrap justify-center gap-3">
-                                {participatingNations.map(nation => (
-                                    <Link 
-                                        key={nation.id}
-                                        to={createPageUrl(`NationDetail?id=${nation.id}`)}
-                                        className="group relative"
-                                        title={nation.name}
-                                    >
-                                        {nation.flag_url ? (
-                                            <img 
-                                                src={nation.flag_url} 
-                                                alt={nation.name}
-                                                className="w-14 h-10 object-cover rounded shadow-lg border-2 border-white/30 hover:border-white transition-all hover:scale-110"
-                                            />
-                                        ) : (
-                                            <div className="w-14 h-10 bg-white/20 rounded border-2 border-white/30 flex items-center justify-center">
-                                                <span className="text-xs text-white/60">{nation.name.substring(0, 3)}</span>
-                                            </div>
-                                        )}
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+                <div className="h-1.5 flex"><div className="flex-[3]" style={{ backgroundColor: competitionTheme.primary }} /><div className="flex-[2]" style={{ backgroundColor: competitionTheme.secondary }} /></div>
+            </section>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <Tabs defaultValue="overview" className="space-y-6">
