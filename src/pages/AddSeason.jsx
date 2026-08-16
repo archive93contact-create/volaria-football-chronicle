@@ -418,7 +418,7 @@ export default function AddSeason() {
                 if (existingClub) {
                     // Update existing club stats
                     const isChampion = row.status === 'champion';
-                    const isPromoted = row.status === 'promoted';
+                    const isPromoted = currentTier > 1 && row.status === 'promoted';
                     const isRelegated = row.status === 'relegated';
 
                     // Only count league titles if this is tier 1 (top tier)
@@ -496,7 +496,7 @@ export default function AddSeason() {
                 } else {
                     // Create new club
                     const isChampion = row.status === 'champion';
-                    const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
+                    const isPromoted = currentTier > 1 && (row.status === 'promoted' || row.status === 'playoff_winner');
                     const isRelegated = row.status === 'relegated';
 
                     const newClub = await base44.entities.Club.create({
