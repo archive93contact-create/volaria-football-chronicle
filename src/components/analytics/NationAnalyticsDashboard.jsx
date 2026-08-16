@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Trophy, TrendingUp, Shield, Users, Calendar, Award, Star, AlertCircle } from 'lucide-react';
 import StatsCard from '@/components/common/StatsCard';
+import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
 
 export default function NationAnalyticsDashboard({ 
     nation, 
@@ -184,6 +185,27 @@ export default function NationAnalyticsDashboard({
                 defunct: defunctByDecade[decade]
             }));
 
+        // Interpretation layer
+        const topFlightTitleTotal = Object.values(titleWinners).reduce((a, b) => a + b, 0);
+        const topThreeTitles = Object.values(titleWinners).sort((a, b) => b - a).slice(0, 3).reduce((a, b) => a + b, 0);
+        const topThreeShare = topFlightTitleTotal > 0 ? (topThreeTitles / topFlightTitleTotal) * 100 : 0;
+        const titleStructure = topFlightTitleTotal === 0 ? 'No history' : topThreeShare >= 75 ? 'Elite dominated' : topThreeShare >= 50 ? 'Top-heavy' : 'Broadly shared';
+        const continentalTitles = vccTitles + cccTitles;
+        const continentalAppearances = vccAppearances + cccAppearances;
+        const continentalEfficiency = continentalAppearances > 0 ? (continentalTitles / continentalAppearances) * 100 : 0;
+        const professionalisationRate = activeClubs > 0 ? ((professionalClubs + semiProClubs) / activeClubs) * 100 : 0;
+        const maxTier = leagues.reduce((max, l) => Math.max(max, Number(l.tier) || 0), 0);
+        const totalRegionalTitles = Object.values(titlesByRegion).reduce((a, b) => a + b, 0);
+        const strongestRegion = Object.entries(titlesByRegion).sort((a, b) => b[1] - a[1])[0];
+        const strongestRegionShare = strongestRegion && totalRegionalTitles > 0 ? (strongestRegion[1] / totalRegionalTitles) * 100 : 0;
+        const insights = [
+            { label: 'Title structure', value: titleStructure, detail: topFlightTitleTotal ? `Top 3 clubs hold ${topThreeShare.toFixed(0)}% of top-flight titles` : 'No top-flight title history recorded', icon: Trophy },
+            { label: 'Continental conversion', value: continentalAppearances ? `${continentalEfficiency.toFixed(1)}%` : 'No entries', detail: continentalAppearances ? `${continentalTitles} titles from ${continentalAppearances} club appearances` : 'Add continental records to measure efficiency', icon: Star },
+            { label: 'Professionalisation', value: `${professionalisationRate.toFixed(0)}%`, detail: `${professionalClubs} professional + ${semiProClubs} semi-professional active clubs`, icon: Shield },
+            { label: 'Pyramid depth', value: maxTier ? `${maxTier} tiers` : '—', detail: `${leagues.filter(l => l.is_active !== false).length} active leagues represented`, icon: TrendingUp },
+            strongestRegion && { label: 'Regional concentration', value: strongestRegion[0], detail: `${strongestRegionShare.toFixed(0)}% of recorded titles from the leading region`, icon: Award },
+        ].filter(Boolean);
+
         return {
             totalClubs,
             activeClubs,
@@ -211,7 +233,8 @@ export default function NationAnalyticsDashboard({
             youthPlayers,
             avgOVR,
             profStatusData,
-            defunctData
+            defunctData,
+            insights
         };
     }, [nation, leagues, clubs, seasons, leagueTables, domesticCups, domesticCupSeasons, players]);
 
@@ -221,6 +244,8 @@ export default function NationAnalyticsDashboard({
 
     return (
         <div className="space-y-6">
+            <AnalyticsInsightGrid items={analytics.insights} accentColor={nation.primary_color || nation.secondary_color || '#334155'} />
+
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <StatsCard icon={Shield} label="Total Clubs" value={analytics.totalClubs} color="blue" />
