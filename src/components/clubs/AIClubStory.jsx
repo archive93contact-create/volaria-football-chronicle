@@ -45,7 +45,11 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 const tier = allLeagues.find(l => l.id === s.league_id)?.tier;
                 return tier && tier > 4;
             });
-            const currentTier = league?.tier || 1;
+            const latestSeasonRecord = [...seasons].sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }))[0] || null;
+            const latestSeasonLeague = latestSeasonRecord ? allLeagues.find(l => l.id === latestSeasonRecord.league_id) : null;
+            const identityEnded = lineage.isDefunct || lineage.isFormerName || lineage.isInactive;
+            const levelLeague = identityEnded ? (latestSeasonLeague || league) : (league || latestSeasonLeague);
+            const currentTier = Number(identityEnded ? (latestSeasonRecord?.tier || latestSeasonLeague?.tier || league?.tier || 1) : (league?.tier || latestSeasonRecord?.tier || latestSeasonLeague?.tier || 1));
             const isTuruliand = nation?.name === 'Turuliand';
             
             // Get rivals
@@ -93,21 +97,26 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 } else if (tfaSeasons.length > 0 && currentTier > 4) {
                     const lastTfa = [...tfaSeasons].sort((a, b) => b.year.localeCompare(a.year))[0];
                     const seasonsAway = seasons.filter(s => s.year > lastTfa.year).length;
-                    tfaContext = `They had ${tfaSeasons.length} season${tfaSeasons.length > 1 ? 's' : ''} in the TFA but dropped out in ${lastTfa.year}. Now ${seasonsAway} seasons in non-league wilderness (Tier ${currentTier}). This is CRUCIAL - emphasize the stark difference between structured TFA football and sparse regional non-league matches.`;
+                    tfaContext = identityEnded
+                        ? `They had ${tfaSeasons.length} season${tfaSeasons.length > 1 ? 's' : ''} in the TFA but left it after ${lastTfa.year}; the final ${seasonsAway} season${seasonsAway === 1 ? '' : 's'} of this identity were spent outside the TFA, ending at Tier ${currentTier}.`
+                        : `They had ${tfaSeasons.length} season${tfaSeasons.length > 1 ? 's' : ''} in the TFA but dropped out in ${lastTfa.year}. Now ${seasonsAway} seasons in non-league wilderness (Tier ${currentTier}). This is CRUCIAL - emphasize the stark difference between structured TFA football and sparse regional non-league matches.`;
                 } else if (tfaSeasons.length > 0 && currentTier <= 4) {
-                    tfaContext = `Currently in the TFA (${league?.name}, Tier ${currentTier}). ${tfaSeasons.length} total TFA seasons${nonTfaSeasons.length > 0 ? `, but they spent ${nonTfaSeasons.length} seasons in non-league before climbing up` : ', always in organized football'}.`;
+                    tfaContext = identityEnded
+                        ? `The final recorded season under this identity was in the TFA (${levelLeague?.name || 'a TFA division'}, Tier ${currentTier}). Across its life it spent ${tfaSeasons.length} season${tfaSeasons.length === 1 ? '' : 's'} in the TFA${nonTfaSeasons.length > 0 ? ` and ${nonTfaSeasons.length} outside it` : ''}.`
+                        : `Currently in the TFA (${levelLeague?.name}, Tier ${currentTier}). ${tfaSeasons.length} total TFA seasons${nonTfaSeasons.length > 0 ? `, but they spent ${nonTfaSeasons.length} seasons in non-league before climbing up` : ', always in organized football'}.`;
                 } else if (currentTier <= 4 && tfaSeasons.length === seasons.length) {
                     tfaContext = `TFA stalwarts - ALL ${tfaSeasons.length} recorded seasons in the organized leagues. Non-league is alien to them.`;
                 }
                 
                 // Add tier context for non-TFA clubs
                 if (currentTier > 4) {
+                    const positionLabel = identityEnded ? 'FINAL RECORDED POSITION OF THIS IDENTITY' : 'CURRENT POSITION';
                     if (currentTier === 5) {
-                        tfaContext += `\n\nCURRENT POSITION: Tier 5 - they're on the doorstep of the TFA. One promotion away from organized football. This is crucial context - they're close but not quite there yet.`;
+                        tfaContext += `\n\n${positionLabel}: Tier 5 - ${identityEnded ? 'the club/identity ended one tier below the TFA.' : "they're on the doorstep of the TFA, one promotion away from organized football."}`;
                     } else if (currentTier >= 6 && currentTier <= 8) {
-                        tfaContext += `\n\nCURRENT POSITION: Tier ${currentTier} - deep in the regional leagues but not completely lost. Several tiers away from the TFA but still within reach with sustained success.`;
+                        tfaContext += `\n\n${positionLabel}: Tier ${currentTier} - ${identityEnded ? 'its final football was played several levels below the TFA.' : 'deep in the regional leagues but still within reach of the TFA with sustained success.'}`;
                     } else if (currentTier > 8) {
-                        tfaContext += `\n\nCURRENT POSITION: Tier ${currentTier} - the doldrums. Far removed from organized football, playing sporadic regional matches. The TFA feels like a different world entirely. Emphasize the isolation and struggle at this level.`;
+                        tfaContext += `\n\n${positionLabel}: Tier ${currentTier} - ${identityEnded ? 'the identity ended far removed from the TFA.' : 'far removed from organized football, with the TFA a distant level.'}`;
                     }
                 }
             } else if (isTuruliand && seasons.length === 0) {
@@ -165,7 +174,7 @@ CLUB DATA:
 - Founded: ${club.founded_year || 'Unknown'}
 - Nickname: ${club.nickname || 'None'}
 - Stadium: ${club.stadium || 'Unknown'} (${club.stadium_capacity ? `${club.stadium_capacity.toLocaleString()} capacity` : 'capacity unknown'})
-- Current League: ${league?.name || 'Unknown'} (Tier ${currentTier})
+- ${identityEnded ? 'Final recorded league under this identity' : 'Current League'}: ${levelLeague?.name || 'Unknown'} (Tier ${currentTier})
 - Rivals: ${rivals.length > 0 ? rivals.map(r => r.name).join(', ') : 'None specified'}
 ${successionContext}
 
@@ -208,7 +217,7 @@ REQUIREMENTS:
 
 2. **SECOND PARAGRAPH - Journey**: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements from the data above. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity). **You MUST accurately describe their current tier situation** (marked in TFA STATUS above).' : `For non-Turuliand clubs, focus on their journey through ${nation?.name}'s league system (${nation?.federation_name || 'the national federation'}). DO NOT mention TFA - it only exists in Turuliand.`}
 
-3. **THIRD PARAGRAPH - Present Day**: Explain their current position in the hierarchy and how it compares with the club's earlier heights and lows. ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is much further removed.' : ''} ${rivals.length > 0 ? 'Mention the known rivals (' + rivals.map(r => r.name).join(', ') + ') without inventing the reason for those rivalries.' : 'Do not invent a rivalry or supporter sentiment.'}
+3. **THIRD PARAGRAPH - HISTORICAL POSITION**: ${lineage.isDefunct ? `Explain the club's final position before it ceased operating and then name ${lineage.successor?.name || 'the fact that no successor is recorded'} as the correct succession outcome. Do NOT write a present-day active-club paragraph.` : lineage.isFormerName && lineage.currentName ? `Explain where the ${club.name} identity ended and how the same club continued as ${lineage.currentName.name}.` : lineage.isInactive ? 'Explain the club\'s final recorded position and that it is now inactive.' : 'Explain its current position in the hierarchy and how it compares with the club\'s earlier heights and lows.'} ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league context: be specific about the tier distance from the TFA.**' : ''} ${rivals.length > 0 ? 'Mention the known rivals (' + rivals.map(r => r.name).join(', ') + ') without inventing the reason for those rivalries.' : 'Do not invent a rivalry or supporter sentiment.'}
 
 4. **ERA PARAGRAPH(S)**: Use the detected eras above to give the history shape — golden periods, long stays, rises, falls, wilderness years or revivals — and anchor every claim to the season record.
 
