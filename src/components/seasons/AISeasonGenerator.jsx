@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles, Trophy, TrendingUp, TrendingDown, Shield, Check, X } from 'lucide-react';
 import { getStabilityStatus, calculateClubStability } from '@/components/clubs/StabilityCalculator';
+import { syncLeagueStatsForNation } from '@/lib/leagueSync';
 
 export default function AISeasonGenerator({ leagueId, onComplete }) {
     const queryClient = useQueryClient();
@@ -241,6 +242,7 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
             season_id: season.id,
             league_id: leagueId,
             year,
+            tier: league?.tier || null,
             position: row.position,
             club_id: row.club_id,
             club_name: row.club_name,
@@ -271,9 +273,16 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
             }
         }
 
-        queryClient.invalidateQueries(['seasons']);
-        queryClient.invalidateQueries(['leagueTables']);
-        queryClient.invalidateQueries(['allClubs']);
+        if (league?.nation_id) await syncLeagueStatsForNation(league.nation_id);
+
+        queryClient.invalidateQueries({ queryKey: ['seasons'] });
+        queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+        queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
+        queryClient.invalidateQueries({ queryKey: ['leagueTables'] });
+        queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        queryClient.invalidateQueries({ queryKey: ['clubs', league?.nation_id] });
+        queryClient.invalidateQueries({ queryKey: ['nation', league?.nation_id] });
+        queryClient.invalidateQueries({ queryKey: ['analyticsNationTables', league?.nation_id] });
         
         setIsGenerating(false);
         setGeneratedTable(null);
