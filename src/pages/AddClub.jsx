@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -46,10 +46,33 @@ export default function AddClub() {
         { name: '', region: '', district: '', settlement: '', founded_year: '', nickname: '' }
     ]);
 
+    // A league is the canonical parent of a club. If a league is preselected or changed,
+    // derive its nation automatically so the relationship cannot drift out of sync.
+    useEffect(() => {
+        if (!formData.league_id) return;
+        const selectedLeague = leagues.find(l => l.id === formData.league_id);
+        if (selectedLeague?.nation_id && selectedLeague.nation_id !== formData.nation_id) {
+            setFormData(prev => ({ ...prev, nation_id: selectedLeague.nation_id }));
+        }
+    }, [leagues, formData.league_id, formData.nation_id]);
+
+    const invalidateClubHierarchy = (nationId, leagueId) => {
+        queryClient.invalidateQueries({ queryKey: ['clubs'] });
+        queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        if (nationId) {
+            queryClient.invalidateQueries({ queryKey: ['clubs', nationId] });
+            queryClient.invalidateQueries({ queryKey: ['nation', nationId] });
+        }
+        if (leagueId) {
+            queryClient.invalidateQueries({ queryKey: ['leagueClubs', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
+        }
+    };
+
     const createMutation = useMutation({
         mutationFn: (data) => base44.entities.Club.create(data),
         onSuccess: (newClub) => {
-            queryClient.invalidateQueries(['clubs']);
+            invalidateClubHierarchy(newClub.nation_id, newClub.league_id);
             navigate(createPageUrl(`ClubDetail?id=${newClub.id}`));
         },
     });
@@ -57,9 +80,11 @@ export default function AddClub() {
     const bulkCreateMutation = useMutation({
         mutationFn: (data) => base44.entities.Club.bulkCreate(data),
         onSuccess: () => {
-            queryClient.invalidateQueries(['clubs']);
-            if (formData.nation_id) {
-                navigate(createPageUrl(`NationDetail?id=${formData.nation_id}`));
+            const selectedLeague = leagues.find(l => l.id === formData.league_id);
+            const nationId = selectedLeague?.nation_id || formData.nation_id;
+            invalidateClubHierarchy(nationId, formData.league_id);
+            if (nationId) {
+                navigate(createPageUrl(`NationDetail?id=${nationId}`));
             } else {
                 navigate(createPageUrl('Nations'));
             }
@@ -84,8 +109,10 @@ export default function AddClub() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        const selectedLeague = leagues.find(l => l.id === formData.league_id);
         const submitData = {
             ...formData,
+            nation_id: selectedLeague?.nation_id || formData.nation_id,
             founded_year: formData.founded_year ? parseInt(formData.founded_year) : null,
             stadium_capacity: formData.stadium_capacity ? parseInt(formData.stadium_capacity) : null,
         };
@@ -96,9 +123,11 @@ export default function AddClub() {
         const validClubs = bulkClubs.filter(c => c.name.trim());
         if (validClubs.length === 0) return;
 
+        const selectedLeague = leagues.find(l => l.id === formData.league_id);
+        const canonicalNationId = selectedLeague?.nation_id || formData.nation_id;
         const clubsData = validClubs.map(club => ({
             ...club,
-            nation_id: formData.nation_id,
+            nation_id: canonicalNationId,
             league_id: formData.league_id,
             founded_year: club.founded_year ? parseInt(club.founded_year) : null,
         }));
@@ -174,7 +203,7 @@ export default function AddClub() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
                                                     <Label>League</Label>
-                                                    <Select value={formData.league_id} onValueChange={(v) => setFormData({...formData, league_id: v})}>
+                                                    <Select value={formData.league_id} onValueChange={(v) => { const selectedLeague = leagues.find(l => l.id === v); setFormData({...formData, league_id: v, nation_id: selectedLeague?.nation_id || formData.nation_id}); }}>
                                                         <SelectTrigger className="mt-1"><SelectValue placeholder="Select league" /></SelectTrigger>
                                                         <SelectContent>
                                                             {filteredLeagues.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
@@ -291,7 +320,7 @@ export default function AddClub() {
                                     </div>
                                     <div>
                                         <Label>League (optional)</Label>
-                                        <Select value={formData.league_id} onValueChange={(v) => setFormData({...formData, league_id: v})}>
+                                        <Select value={formData.league_id} onValueChange={(v) => { const selectedLeague = leagues.find(l => l.id === v); setFormData({...formData, league_id: v, nation_id: selectedLeague?.nation_id || formData.nation_id}); }}>
                                             <SelectTrigger className="mt-1"><SelectValue placeholder="Select league" /></SelectTrigger>
                                             <SelectContent>
                                                 {filteredLeagues.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
