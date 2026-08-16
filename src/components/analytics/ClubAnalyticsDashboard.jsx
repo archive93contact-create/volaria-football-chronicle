@@ -6,6 +6,7 @@ import { Trophy, TrendingUp, TrendingDown, Home, Plane, Swords, Calendar, Users,
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
+import { buildComparativeInsights } from '@/lib/clubImmersion';
 
 export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = [], allLeagues = [] }) {
     const analytics = useMemo(() => {
@@ -155,6 +156,10 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
         const totalTrophies = Object.values(trophies).reduce((a, b) => a + b, 0);
         const trophyRate = seasons.length ? (totalTrophies / seasons.length) * 10 : 0;
         const goalDifferencePerGame = totalGames ? (totalGoalsScored - totalGoalsConceded) / totalGames : 0;
+        const comparativeInsights = buildComparativeInsights(club, allClubs, seasons, allLeagues).map((item, index) => ({
+            ...item,
+            icon: index === 0 ? Trophy : index === 1 ? Award : index === 3 ? Home : TrendingUp,
+        }));
         const insights = [
             trajectory && { label: 'Recent trajectory', value: trajectory, detail: trajectoryDetail, tone: trajectoryTone, icon: trajectory === 'Rising' ? TrendingUp : trajectory === 'Falling' ? TrendingDown : Target },
             { label: 'Pyramid stability', value: consistency, detail: `Season-to-season spread ${scoreStdDev.toFixed(1)}`, icon: Shield },
@@ -185,7 +190,8 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
             totalGoalsConceded,
             avgGoalsPerSeason,
             topFlightSeasons: topFlightSeasons.length,
-            insights
+            insights,
+            comparativeInsights
         };
     }, [club, seasons, allClubs, allLeagues]);
 
@@ -206,6 +212,13 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
     return (
         <div className="space-y-6">
             <AnalyticsInsightGrid items={analytics.insights} accentColor={club.primary_color || club.accent_color || '#334155'} />
+
+            {analytics.comparativeInsights?.length > 0 && (
+                <div>
+                    <div className="mb-3 text-xs font-black uppercase tracking-[0.15em] text-slate-500">Compared with the national club record</div>
+                    <AnalyticsInsightGrid items={analytics.comparativeInsights} accentColor={club.primary_color || club.accent_color || '#334155'} />
+                </div>
+            )}
 
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
