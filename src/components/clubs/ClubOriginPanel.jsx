@@ -84,7 +84,7 @@ Return JSON with formation_type, story, founder_context, original_ground_context
                 response_json_schema: {
                     type: 'object',
                     properties: {
-                        formation_type: { type: 'string' }, story: { type: 'string' }, founder_context: { type: 'string' },
+                        formation_type: { type: 'string', enum: ['workplace','church','school','neighbourhood','social_club','military','railway','industrial','community','merger','breakaway','unknown'] }, story: { type: 'string' }, founder_context: { type: 'string' },
                         original_ground_context: { type: 'string' }, name_origin: { type: 'string' }, colour_origin: { type: 'string' }, rationale: { type: 'string' }
                     },
                     required: ['formation_type', 'story', 'rationale']
