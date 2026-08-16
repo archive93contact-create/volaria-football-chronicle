@@ -285,7 +285,7 @@ export default function CompetitionDetail() {
     );
 
     return (
-        <div className="min-h-screen bg-[#f5f5f4]">
+        <div className="min-h-screen bg-[#f5f5f4]" style={{ '--competition-accent': competitionTheme.ui }}>
             <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
                 <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${competitionTheme.heroPrimary}e8 52%, ${competitionTheme.heroSecondary}cc 100%)` }} />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
