@@ -394,204 +394,81 @@ export default function ContinentalCompetitions() {
                         })}
                     </TabsContent>
 
-                    <TabsContent value="most-successful">
-                        <Card className="border-0 shadow-lg overflow-hidden">
-                            <CardContent className="p-8">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <Crown className="w-6 h-6 text-amber-500" />
-                                    <h2 className="text-2xl font-bold text-slate-900">Continental Royalty</h2>
-                                </div>
-                                
-                                <div className="grid md:grid-cols-2 gap-6 mb-8">
-                                    {/* VCC Winners */}
-                                    <div className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-300">
-                                        <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
-                                            <Trophy className="w-5 h-5" />
-                                            VCC Champions - Elite Status
-                                        </h3>
-                                        {(() => {
-                                            const vccSeasons = seasons.filter(s => {
-                                                const comp = competitions.find(c => c.id === s.competition_id);
-                                                return comp?.tier === 1;
-                                            });
-                                            const vccClubWins = {};
-                                            vccSeasons.forEach(s => {
-                                                if (s.champion_name) vccClubWins[s.champion_name] = (vccClubWins[s.champion_name] || 0) + 1;
-                                            });
-                                            const topVCCClubs = Object.entries(vccClubWins).sort((a, b) => b[1] - a[1]).slice(0, 10);
-                                            
-                                            return topVCCClubs.length > 0 ? (
-                                                <div className="space-y-2">
-                                                    {topVCCClubs.map(([clubName, count], idx) => {
-                                                        const clubObj = clubs.find(c => c.name === clubName);
-                                                        const nationObj = nations.find(n => n.id === clubObj?.nation_id);
-                                                        return (
-                                                            <Link 
-                                                                key={clubName}
-                                                                to={clubObj ? createPageUrl(`ClubDetail?id=${clubObj.id}`) : '#'}
-                                                                className="flex items-center justify-between p-3 rounded-lg bg-white hover:bg-amber-100 transition-colors border border-amber-200"
-                                                            >
-                                                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                                                                        idx === 0 ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-700'
-                                                                    }`}>
-                                                                        {idx + 1}
-                                                                    </span>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="font-semibold text-slate-900 truncate">{clubName}</div>
-                                                                        {nationObj && <div className="text-xs text-slate-500">{nationObj.name}</div>}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <Trophy className="w-4 h-4 text-amber-600" />
-                                                                    <span className="font-bold text-amber-700 text-lg">{count}</span>
-                                                                </div>
-                                                            </Link>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <p className="text-slate-500 text-sm">No VCC champions yet</p>
-                                            );
-                                        })()}
-                                    </div>
+                    <TabsContent value="most-successful" className="space-y-6">
+                        <div className="mb-6">
+                            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] font-black text-slate-400 mb-2"><Crown className="w-4 h-4" /> Record book</div>
+                            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">Continental royalty</h2>
+                            <p className="mt-2 text-sm text-slate-500">Title leaders are calculated independently for each competition from the recorded season winners.</p>
+                        </div>
 
-                                    {/* CCC Winners */}
-                                    <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
-                                        <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-                                            <Shield className="w-5 h-5" />
-                                            CCC Champions - Developing Nations
-                                        </h3>
-                                        {(() => {
-                                            const cccSeasons = seasons.filter(s => {
-                                                const comp = competitions.find(c => c.id === s.competition_id);
-                                                return comp?.tier === 2;
-                                            });
-                                            const cccClubWins = {};
-                                            cccSeasons.forEach(s => {
-                                                if (s.champion_name) cccClubWins[s.champion_name] = (cccClubWins[s.champion_name] || 0) + 1;
-                                            });
-                                            const topCCCClubs = Object.entries(cccClubWins).sort((a, b) => b[1] - a[1]).slice(0, 10);
-                                            
-                                            return topCCCClubs.length > 0 ? (
-                                                <div className="space-y-2">
-                                                    {topCCCClubs.map(([clubName, count], idx) => {
-                                                        const clubObj = clubs.find(c => c.name === clubName);
-                                                        const nationObj = nations.find(n => n.id === clubObj?.nation_id);
-                                                        return (
-                                                            <Link 
-                                                                key={clubName}
-                                                                to={clubObj ? createPageUrl(`ClubDetail?id=${clubObj.id}`) : '#'}
-                                                                className="flex items-center justify-between p-3 rounded-lg bg-white hover:bg-blue-100 transition-colors border border-blue-200"
-                                                            >
-                                                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                                    <span className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
-                                                                        {idx + 1}
-                                                                    </span>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="font-medium text-slate-900 truncate">{clubName}</div>
-                                                                        {nationObj && <div className="text-xs text-slate-500">{nationObj.name}</div>}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <Shield className="w-4 h-4 text-blue-600" />
-                                                                    <span className="font-bold text-blue-700">{count}</span>
-                                                                </div>
-                                                            </Link>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <p className="text-slate-500 text-sm">No CCC champions yet</p>
-                                            );
-                                        })()}
-                                    </div>
-                                </div>
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            {competitions.map(comp => {
+                                const theme = getEntityTheme({ primary: comp.primary_color, secondary: comp.secondary_color });
+                                const compSeasons = seasons.filter(s => s.competition_id === comp.id);
+                                const clubWins = new Map();
+                                const nationWins = new Map();
+                                compSeasons.forEach(season => {
+                                    if (season.champion_name || season.champion_id) {
+                                        const club = clubs.find(c => c.id === season.champion_id) || clubs.find(c => c.name === season.champion_name);
+                                        const key = club?.id || `name:${season.champion_name}`;
+                                        const current = clubWins.get(key) || { club, name: club?.name || season.champion_name, count: 0 };
+                                        current.count++;
+                                        clubWins.set(key, current);
+                                    }
+                                    if (season.champion_nation || season.champion_nation_id) {
+                                        const nation = nations.find(n => n.id === season.champion_nation_id) || nations.find(n => n.name === season.champion_nation);
+                                        const key = nation?.id || `name:${season.champion_nation}`;
+                                        const current = nationWins.get(key) || { nation, name: nation?.name || season.champion_nation, count: 0 };
+                                        current.count++;
+                                        nationWins.set(key, current);
+                                    }
+                                });
+                                const clubLeaders = [...clubWins.values()].sort((a,b) => b.count-a.count || a.name.localeCompare(b.name)).slice(0,10);
+                                const nationLeaders = [...nationWins.values()].sort((a,b) => b.count-a.count || a.name.localeCompare(b.name)).slice(0,6);
 
-                                {/* Nations comparison */}
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-900 mb-4">VCC Nations</h3>
-                                        {(() => {
-                                            const vccSeasons = seasons.filter(s => {
-                                                const comp = competitions.find(c => c.id === s.competition_id);
-                                                return comp?.tier === 1;
-                                            });
-                                            const vccNationWins = {};
-                                            vccSeasons.forEach(s => {
-                                                if (s.champion_nation) vccNationWins[s.champion_nation] = (vccNationWins[s.champion_nation] || 0) + 1;
-                                            });
-                                            const topVCCNations = Object.entries(vccNationWins).sort((a, b) => b[1] - a[1]).slice(0, 8);
-                                            
-                                            return topVCCNations.length > 0 ? (
-                                                <div className="space-y-2">
-                                                    {topVCCNations.map(([nationName, count]) => {
-                                                        const nationObj = nations.find(n => n.name === nationName);
-                                                        return (
-                                                            <Link 
-                                                                key={nationName}
-                                                                to={nationObj ? createPageUrl(`NationDetail?id=${nationObj.id}`) : '#'}
-                                                                className="flex items-center justify-between p-3 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors"
-                                                            >
-                                                                <div className="flex items-center gap-3">
-                                                                    {nationObj?.flag_url && (
-                                                                        <img src={nationObj.flag_url} alt={nationName} className="w-8 h-6 object-cover rounded" />
-                                                                    )}
-                                                                    <span className="font-medium text-slate-900">{nationName}</span>
-                                                                </div>
-                                                                <span className="font-bold text-amber-700">{count}</span>
-                                                            </Link>
-                                                        );
-                                                    })}
+                                return (
+                                    <Card key={comp.id} className="overflow-hidden border shadow-sm" style={{ borderColor: theme.border }}>
+                                        <div className="relative p-5 text-white overflow-hidden bg-[#090a0b]">
+                                            <div className="absolute inset-0" style={{ background: `linear-gradient(110deg, ${theme.heroPrimary}e8, ${theme.heroSecondary}c5)` }} />
+                                            {comp.logo_url && <img src={comp.logo_url} alt="" aria-hidden="true" className="absolute -right-8 -bottom-16 w-48 h-48 object-contain opacity-[0.08] grayscale" />}
+                                            <div className="relative flex items-center gap-4">
+                                                {comp.logo_url ? <img src={comp.logo_url} alt={`${comp.name} logo`} className="w-16 h-16 object-contain drop-shadow-xl" /> : <Trophy className="w-10 h-10 text-white/60" />}
+                                                <div>
+                                                    <div className="text-[10px] uppercase tracking-wider text-white/50">{comp.short_name || 'Continental competition'}</div>
+                                                    <h3 className="text-xl font-black">{comp.name}</h3>
+                                                    <div className="text-xs text-white/55 mt-1">{compSeasons.length} recorded editions</div>
                                                 </div>
-                                            ) : (
-                                                <p className="text-slate-500 text-sm">No data yet</p>
-                                            );
-                                        })()}
-                                    </div>
-
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-900 mb-4">CCC Nations</h3>
-                                        {(() => {
-                                            const cccSeasons = seasons.filter(s => {
-                                                const comp = competitions.find(c => c.id === s.competition_id);
-                                                return comp?.tier === 2;
-                                            });
-                                            const cccNationWins = {};
-                                            cccSeasons.forEach(s => {
-                                                if (s.champion_nation) cccNationWins[s.champion_nation] = (cccNationWins[s.champion_nation] || 0) + 1;
-                                            });
-                                            const topCCCNations = Object.entries(cccNationWins).sort((a, b) => b[1] - a[1]).slice(0, 8);
-                                            
-                                            return topCCCNations.length > 0 ? (
-                                                <div className="space-y-2">
-                                                    {topCCCNations.map(([nationName, count]) => {
-                                                        const nationObj = nations.find(n => n.name === nationName);
-                                                        return (
-                                                            <Link 
-                                                                key={nationName}
-                                                                to={nationObj ? createPageUrl(`NationDetail?id=${nationObj.id}`) : '#'}
-                                                                className="flex items-center justify-between p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
-                                                            >
-                                                                <div className="flex items-center gap-3">
-                                                                    {nationObj?.flag_url && (
-                                                                        <img src={nationObj.flag_url} alt={nationName} className="w-8 h-6 object-cover rounded" />
-                                                                    )}
-                                                                    <span className="font-medium text-slate-900">{nationName}</span>
-                                                                </div>
-                                                                <span className="font-bold text-blue-700">{count}</span>
-                                                            </Link>
-                                                        );
-                                                    })}
+                                            </div>
+                                        </div>
+                                        <CardContent className="p-0" style={{ background: `linear-gradient(135deg, ${theme.tint}, #fff 42%)` }}>
+                                            <div className="grid grid-cols-1 md:grid-cols-[1.2fr_.8fr] divide-y md:divide-y-0 md:divide-x divide-slate-200/80">
+                                                <div className="p-5">
+                                                    <div className="text-[10px] uppercase tracking-[0.14em] font-black text-slate-400 mb-3">Club title leaders</div>
+                                                    {clubLeaders.length ? <div className="space-y-2">{clubLeaders.map((entry, index) => (
+                                                        <Link key={`${entry.name}-${index}`} to={entry.club ? createPageUrl(`ClubDetail?id=${entry.club.id}`) : '#'} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-white/70 transition-colors">
+                                                            <span className="w-5 text-xs font-black text-slate-400">{index+1}</span>
+                                                            {entry.club?.logo_url ? <img src={entry.club.logo_url} alt="" className="w-8 h-8 object-contain" /> : <Trophy className="w-5 h-5 text-slate-300" />}
+                                                            <span className="flex-1 min-w-0 truncate text-sm font-semibold text-slate-700">{entry.name}</span>
+                                                            <span className="font-black" style={{ color: theme.ui }}>{entry.count}</span>
+                                                        </Link>
+                                                    ))}</div> : <p className="text-sm text-slate-500">No champions recorded yet.</p>}
                                                 </div>
-                                            ) : (
-                                                <p className="text-slate-500 text-sm">No data yet</p>
-                                            );
-                                        })()}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                                <div className="p-5">
+                                                    <div className="text-[10px] uppercase tracking-[0.14em] font-black text-slate-400 mb-3">Winning nations</div>
+                                                    {nationLeaders.length ? <div className="space-y-2">{nationLeaders.map((entry, index) => (
+                                                        <Link key={`${entry.name}-${index}`} to={entry.nation ? createPageUrl(`NationDetail?id=${entry.nation.id}`) : '#'} className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-white/70 transition-colors">
+                                                            {entry.nation?.flag_url ? <img src={entry.nation.flag_url} alt="" className="w-7 h-5 object-contain" /> : <Globe className="w-4 h-4 text-slate-300" />}
+                                                            <span className="flex-1 min-w-0 truncate text-sm text-slate-700">{entry.name}</span>
+                                                            <span className="font-black" style={{ color: theme.ui }}>{entry.count}</span>
+                                                        </Link>
+                                                    ))}</div> : <p className="text-sm text-slate-500">No nation records yet.</p>}
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="competitions">
