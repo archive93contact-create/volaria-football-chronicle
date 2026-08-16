@@ -764,28 +764,28 @@ export default function ClubDetail() {
 
                 {/* Predecessor Notice */}
                 {(predecessorClub || predecessorClub2) && (
-                    <Card className="border-0 shadow-sm mb-8 bg-blue-50 border-l-4 border-l-blue-500">
+                    <Card className="border shadow-sm mb-8" style={{ borderColor: clubTheme.border, background: `linear-gradient(135deg, ${clubTheme.tintStrong}, rgba(255,255,255,.98) 58%)` }}>
                         <CardContent className="p-4 flex items-center gap-3">
-                            <Shield className="w-6 h-6 text-blue-600" />
+                            <Shield className="w-6 h-6" style={{ color: clubTheme.ui }} />
                             <div>
-                                <span className="text-blue-800">
+                                <span className="text-slate-700">
                                     {predecessorClub && predecessorClub2 ? 'This club was formed from a merger of ' : 'This club continues the legacy of '}
                                 </span>
                                 {predecessorClub && (
                                     <>
-                                        <Link to={createPageUrl(`ClubDetail?id=${predecessorClub.id}`)} className="font-semibold text-blue-700 hover:underline">
+                                        <Link to={createPageUrl(`ClubDetail?id=${predecessorClub.id}`)} className="font-semibold hover:underline" style={{ color: clubTheme.ui }}>
                                             {predecessorClub.name}
                                         </Link>
-                                        {predecessorClub.defunct_year && <span className="text-blue-600"> ({predecessorClub.defunct_year})</span>}
+                                        {predecessorClub.defunct_year && <span className="text-slate-500"> ({predecessorClub.defunct_year})</span>}
                                     </>
                                 )}
-                                {predecessorClub && predecessorClub2 && <span className="text-blue-800"> and </span>}
+                                {predecessorClub && predecessorClub2 && <span className="text-slate-700"> and </span>}
                                 {predecessorClub2 && (
                                     <>
-                                        <Link to={createPageUrl(`ClubDetail?id=${predecessorClub2.id}`)} className="font-semibold text-blue-700 hover:underline">
+                                        <Link to={createPageUrl(`ClubDetail?id=${predecessorClub2.id}`)} className="font-semibold hover:underline" style={{ color: clubTheme.ui }}>
                                             {predecessorClub2.name}
                                         </Link>
-                                        {predecessorClub2.defunct_year && <span className="text-blue-600"> ({predecessorClub2.defunct_year})</span>}
+                                        {predecessorClub2.defunct_year && <span className="text-slate-500"> ({predecessorClub2.defunct_year})</span>}
                                     </>
                                 )}
                             </div>
@@ -795,29 +795,29 @@ export default function ClubDetail() {
 
                 {/* Former Name Notice */}
                 {(formerNameClub || formerNameClub2 || club.reverted_to_original) && (
-                    <Card className="border-0 shadow-sm mb-8 bg-purple-50 border-l-4 border-l-purple-500">
+                    <Card className="border shadow-sm mb-8" style={{ borderColor: clubTheme.border, background: `linear-gradient(135deg, ${clubTheme.tintStrong}, rgba(255,255,255,.98) 58%)` }}>
                         <CardContent className="p-4 flex items-center gap-3">
-                            <Shield className="w-6 h-6 text-purple-600" />
+                            <Shield className="w-6 h-6" style={{ color: clubTheme.ui }} />
                             <div>
                                 {club.reverted_to_original && (
-                                    <span className="text-purple-800 font-medium">Reverted to original name. </span>
+                                    <span className="text-slate-800 font-medium">Reverted to original name. </span>
                                 )}
                                 {(formerNameClub || formerNameClub2) && (
                                     <>
-                                        <span className="text-purple-800">Formerly known as </span>
+                                        <span className="text-slate-700">Formerly known as </span>
                                         {formerNameClub && (
-                                            <Link to={createPageUrl(`ClubDetail?id=${formerNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                            <Link to={createPageUrl(`ClubDetail?id=${formerNameClub.id}`)} className="font-semibold hover:underline" style={{ color: clubTheme.ui }}>
                                                 {formerNameClub.name}
                                             </Link>
                                         )}
-                                        {formerNameClub && formerNameClub2 && <span className="text-purple-800"> and </span>}
+                                        {formerNameClub && formerNameClub2 && <span className="text-slate-700"> and </span>}
                                         {formerNameClub2 && (
-                                            <Link to={createPageUrl(`ClubDetail?id=${formerNameClub2.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                            <Link to={createPageUrl(`ClubDetail?id=${formerNameClub2.id}`)} className="font-semibold hover:underline" style={{ color: clubTheme.ui }}>
                                                 {formerNameClub2.name}
                                             </Link>
                                         )}
-                                        {club.renamed_year && <span className="text-purple-600"> (current name since {club.renamed_year})</span>}
-                                        <span className="text-purple-600"> - same club, different name{formerNameClub && formerNameClub2 ? 's' : ''}.</span>
+                                        {club.renamed_year && <span className="text-slate-500"> (current name since {club.renamed_year})</span>}
+                                        <span className="text-slate-500"> - same club, different name{formerNameClub && formerNameClub2 ? 's' : ''}.</span>
                                     </>
                                 )}
                             </div>
@@ -827,15 +827,15 @@ export default function ClubDetail() {
 
                 {/* This is a Former Name Notice */}
                 {club.is_former_name && currentNameClub && (
-                    <Card className="border-0 shadow-sm mb-8 bg-purple-50 border-l-4 border-l-purple-500">
+                    <Card className="border shadow-sm mb-8" style={{ borderColor: clubTheme.border, background: `linear-gradient(135deg, ${clubTheme.tintStrong}, rgba(255,255,255,.98) 58%)` }}>
                         <CardContent className="p-4 flex items-center gap-3">
-                            <Shield className="w-6 h-6 text-purple-600" />
+                            <Shield className="w-6 h-6" style={{ color: clubTheme.ui }} />
                             <div>
-                                <span className="text-purple-800">This is a former name. The club is now known as </span>
-                                <Link to={createPageUrl(`ClubDetail?id=${currentNameClub.id}`)} className="font-semibold text-purple-700 hover:underline">
+                                <span className="text-slate-700">This is a former name. The club is now known as </span>
+                                <Link to={createPageUrl(`ClubDetail?id=${currentNameClub.id}`)} className="font-semibold hover:underline" style={{ color: clubTheme.ui }}>
                                     {currentNameClub.name}
                                 </Link>
-                                {club.renamed_year && <span className="text-purple-600"> (since {club.renamed_year})</span>}
+                                {club.renamed_year && <span className="text-slate-500"> (since {club.renamed_year})</span>}
                             </div>
                         </CardContent>
                     </Card>
