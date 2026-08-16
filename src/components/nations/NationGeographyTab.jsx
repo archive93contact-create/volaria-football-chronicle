@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Shield, Trophy, TrendingUp, Calendar, Building2, Map, Star, Award } from 'lucide-react';
+import { MapPin, Shield, Trophy, TrendingUp, Calendar, Building2, Map, Star, Award, Target } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { base44 } from '@/api/base44Client';
+import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1'];
 
@@ -63,8 +66,15 @@ function RankTable({ title, icon: Icon, rows, valueLabel }) {
     );
 }
 
-export default function NationGeographyTab({ clubs = [], leagues = [], leagueTables = [] }) {
+export default function NationGeographyTab({ nation, clubs = [], leagues = [], leagueTables = [] }) {
     const [geoLevel, setGeoLevel] = useState('region');
+
+    const { data: locations = [] } = useQuery({
+        queryKey: ['nationGeographyLocations', nation?.id],
+        queryFn: () => base44.entities.Location.filter({ nation_id: nation.id }),
+        enabled: !!nation?.id,
+        staleTime: 15 * 60 * 1000,
+    });
 
     const activeClubs = clubs.filter(c => !c.is_defunct && !c.is_former_name);
 
@@ -157,6 +167,52 @@ export default function NationGeographyTab({ clubs = [], leagues = [], leagueTab
         }).sort((a, b) => a.tier - b.tier);
     }, [activeClubs, geoLevel, leagueMap]);
 
+    const historicalHeartlands = useMemo(() => {
+        const map = {};
+        const locationMap = new Map(locations.filter(l => l.type === geoLevel).map(l => [l.name, l]));
+        leagueTables.forEach(entry => {
+            const club = clubs.find(c => (entry.club_id && c.id === entry.club_id) || (!entry.club_id && c.name === entry.club_name));
+            if (!club) return;
+            const key = club[geoLevel] || (geoLevel === 'settlement' ? club.city : null);
+            if (!key) return;
+            if (!map[key]) map[key] = { name: key, clubIds: new Set(), seasons: 0, topFlightSeasons: 0, titles: 0, promotions: 0, relegations: 0 };
+            const row = map[key];
+            if (club.id) row.clubIds.add(club.id);
+            row.seasons++;
+            const tier = Number(entry.tier || leagueMap[entry.league_id]?.tier || 0);
+            if (tier === 1) row.topFlightSeasons++;
+            if (tier === 1 && (entry.status === 'champion' || Number(entry.position) === 1)) row.titles++;
+            if (entry.status === 'promoted' || entry.status === 'playoff_winner') row.promotions++;
+            if (entry.status === 'relegated') row.relegations++;
+        });
+        return Object.values(map).map(row => {
+            const location = locationMap.get(row.name);
+            const population = Number(location?.population || 0);
+            const clubCount = row.clubIds.size;
+            const clubsPer100k = population > 0 ? (clubCount / population) * 100000 : null;
+            const strengthScore = row.titles * 100 + row.topFlightSeasons * 2 + row.seasons * 0.05;
+            return { ...row, clubCount, population, clubsPer100k, strengthScore };
+        }).sort((a, b) => b.strengthScore - a.strengthScore);
+    }, [leagueTables, clubs, leagueMap, locations, geoLevel]);
+
+    const geographyInsights = useMemo(() => {
+        if (!historicalHeartlands.length) return [];
+        const strongest = historicalHeartlands[0];
+        const topFlight = [...historicalHeartlands].sort((a, b) => b.topFlightSeasons - a.topFlightSeasons)[0];
+        const titleTotal = historicalHeartlands.reduce((sum, h) => sum + h.titles, 0);
+        const topFlightTotal = historicalHeartlands.reduce((sum, h) => sum + h.topFlightSeasons, 0);
+        const titleShare = titleTotal > 0 ? (strongest.titles / titleTotal) * 100 : 0;
+        const density = historicalHeartlands.filter(h => h.clubsPer100k != null && h.population >= 1000).sort((a, b) => b.clubsPer100k - a.clubsPer100k)[0];
+        const topFlightAreas = historicalHeartlands.filter(h => h.topFlightSeasons > 0).length;
+        return [
+            { label: 'Football heartland', value: strongest.name, detail: `${strongest.titles} top-flight titles · ${strongest.topFlightSeasons} top-flight club-seasons`, icon: Trophy },
+            topFlight && { label: 'Top-flight footprint', value: topFlight.name, detail: `${topFlight.topFlightSeasons} combined seasons at the highest level`, icon: TrendingUp },
+            titleTotal > 0 && { label: 'Geographic title concentration', value: `${titleShare.toFixed(0)}%`, detail: `${strongest.name}'s share of titles among mapped ${geoLevel}s`, icon: Target },
+            density && { label: 'Club density', value: density.name, detail: `${density.clubsPer100k.toFixed(1)} historically represented clubs per 100k residents`, icon: MapPin },
+            { label: 'Top-flight spread', value: `${topFlightAreas} ${geoLevel}${topFlightAreas === 1 ? '' : 's'}`, detail: topFlightTotal ? `${topFlightTotal} combined top-flight club-seasons across the map` : 'No mapped top-flight history yet', icon: Map },
+        ].filter(Boolean);
+    }, [historicalHeartlands, geoLevel]);
+
     const chartData = byClubCount.slice(0, 12).map(g => ({
         name: g.name.length > 12 ? g.name.slice(0, 12) + '…' : g.name,
         clubs: g.clubs.length,
@@ -190,6 +246,32 @@ export default function NationGeographyTab({ clubs = [], leagues = [], leagueTab
                     </button>
                 ))}
             </div>
+
+            {geographyInsights.length > 0 && (
+                <div>
+                    <div className="mb-3 text-xs font-black uppercase tracking-[0.15em] text-slate-500">What the football map says</div>
+                    <AnalyticsInsightGrid items={geographyInsights} accentColor={nation?.primary_color || nation?.secondary_color || '#334155'} />
+                </div>
+            )}
+
+            {historicalHeartlands.length > 0 && (
+                <Card className="border-0 shadow-sm">
+                    <CardHeader><CardTitle className="text-base">Historical Football Heartlands</CardTitle></CardHeader>
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-slate-100">
+                            {historicalHeartlands.slice(0, 12).map((area, index) => (
+                                <div key={area.name} className="grid grid-cols-[32px_minmax(0,1fr)_auto] md:grid-cols-[32px_minmax(0,1fr)_90px_90px_90px] gap-3 items-center px-4 py-3">
+                                    <div className="font-black text-slate-400">{index + 1}</div>
+                                    <div><div className="font-bold text-slate-900">{area.name}</div><div className="text-xs text-slate-500">{area.clubCount} historic clubs · {area.seasons} recorded club-seasons</div></div>
+                                    <div className="hidden md:block text-center"><div className="font-black">{area.topFlightSeasons}</div><div className="text-[10px] uppercase text-slate-400">Top flight</div></div>
+                                    <div className="hidden md:block text-center"><div className="font-black text-amber-700">{area.titles}</div><div className="text-[10px] uppercase text-slate-400">Titles</div></div>
+                                    <div className="text-right md:text-center"><div className="font-black">{area.clubsPer100k != null ? area.clubsPer100k.toFixed(1) : '—'}</div><div className="text-[10px] uppercase text-slate-400">Clubs/100k</div></div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Main chart */}
             {chartData.length > 0 && (
