@@ -343,116 +343,55 @@ export default function ContinentalCompetitions() {
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="history">
-                        <Card className="border-0 shadow-lg overflow-hidden">
-                            <CardContent className="p-8">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <Sparkles className="w-6 h-6 text-amber-500" />
-                                    <h2 className="text-2xl font-bold text-slate-900">The Story of Continental Football</h2>
-                                </div>
-                                
-                                <div className="space-y-8">
-                                    {/* VCC Section */}
-                                    <div className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <Crown className="w-8 h-8 text-amber-600" />
-                                            <div>
-                                                <h3 className="text-xl font-bold text-amber-900">Volarian Champions Cup</h3>
-                                                <p className="text-sm text-amber-600">The Pinnacle of Club Football</p>
+                    <TabsContent value="history" className="space-y-6">
+                        <div className="mb-6">
+                            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] font-black text-slate-400 mb-2">
+                                <BookOpen className="w-4 h-4" /> Continental archive
+                            </div>
+                            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">History & legacy</h2>
+                            <p className="mt-2 text-sm text-slate-500 max-w-3xl">Competition history comes from the records stored for each tournament rather than a generic hierarchy narrative.</p>
+                        </div>
+
+                        {competitions.map(comp => {
+                            const theme = getEntityTheme({ primary: comp.primary_color, secondary: comp.secondary_color });
+                            const compSeasons = seasons.filter(s => s.competition_id === comp.id);
+                            const participating = nations.filter(n => comp.participating_nation_ids?.includes(n.id));
+                            return (
+                                <Card key={comp.id} className="overflow-hidden border shadow-sm" style={{ borderColor: theme.border }}>
+                                    <div className="relative overflow-hidden bg-[#090a0b] text-white p-5 sm:p-7">
+                                        <div className="absolute inset-0" style={{ background: `linear-gradient(110deg, #070809 0%, ${theme.heroPrimary}df 55%, ${theme.heroSecondary}bf 100%)` }} />
+                                        {comp.logo_url && <img src={comp.logo_url} alt="" aria-hidden="true" className="absolute -right-10 -bottom-20 w-64 h-64 object-contain opacity-[0.08] grayscale" />}
+                                        <div className="relative flex items-center gap-5">
+                                            {comp.logo_url ? <img src={comp.logo_url} alt={`${comp.name} logo`} className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-xl shrink-0" /> : <Trophy className="w-14 h-14 text-white/50 shrink-0" />}
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap gap-2 items-center mb-1">
+                                                    {comp.short_name && <Badge className="bg-white/10 border border-white/15 text-white">{comp.short_name}</Badge>}
+                                                    {comp.founded_year && <span className="text-[10px] uppercase tracking-wider text-white/50">Founded {comp.founded_year}</span>}
+                                                </div>
+                                                <h3 className="text-2xl font-black tracking-tight">{comp.name}</h3>
+                                                <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-white/55">
+                                                    <span>{compSeasons.length} recorded editions</span>
+                                                    <span>{participating.length || comp.participating_nation_ids?.length || 0} participating nations</span>
+                                                    {comp.format && <span>{comp.format}</span>}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="space-y-4 text-slate-700">
-                                            <p>
-                                                The <strong>VCC</strong> represents the absolute pinnacle of club football in Volaria. Founded to unite the continent's 
-                                                strongest footballing nations, it features only clubs from <strong>full member nations</strong>—those with established 
-                                                league systems, professional infrastructure, and proven track records on the continental stage.
-                                            </p>
-                                            <p>
-                                                To lift the VCC trophy is to achieve immortality in Volarian football. The competition showcases the highest tactical 
-                                                sophistication, the most talented players, and the wealthiest clubs. VCC nights are when legends are born and dynasties 
-                                                are forged. The pressure, prestige, and spotlight far exceed any domestic competition.
-                                            </p>
-                                            <p className="font-semibold text-amber-800">
-                                                A VCC title is universally recognized as the greatest achievement in club football—worth more than any domestic league 
-                                                championship and considered the ultimate test of a club's greatness.
-                                            </p>
-                                        </div>
                                     </div>
-
-                                    {/* CCC Section */}
-                                    <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <Shield className="w-8 h-8 text-blue-600" />
-                                            <div>
-                                                <h3 className="text-xl font-bold text-blue-900">Continental Challenge Cup</h3>
-                                                <p className="text-sm text-blue-600">The Pathway for Developing Nations</p>
+                                    <CardContent className="p-5 sm:p-7" style={{ background: `linear-gradient(135deg, ${theme.tint}, #fff 40%)` }}>
+                                        {comp.description && <p className="text-base font-semibold text-slate-800 leading-relaxed mb-5">{comp.description}</p>}
+                                        {comp.history ? (
+                                            <div className="space-y-4">
+                                                {String(comp.history).split(/\n\n+/).filter(Boolean).map((paragraph, index) => (
+                                                    <p key={index} className="text-sm sm:text-base text-slate-600 leading-relaxed">{paragraph}</p>
+                                                ))}
                                             </div>
-                                        </div>
-                                        <div className="space-y-4 text-slate-700">
-                                            <p>
-                                                The <strong>CCC</strong> serves as a vital stepping stone for <strong>associate member nations</strong>—developing 
-                                                footballing countries working to strengthen their domestic leagues and continental competitiveness. While it provides 
-                                                crucial international experience and generates important revenue for participating clubs, the CCC operates in the shadow 
-                                                of the VCC.
-                                            </p>
-                                            <p>
-                                                CCC clubs face lower-quality opposition, receive less media coverage, and generate significantly smaller commercial revenues. 
-                                                The competition serves its purpose as a development platform, but <strong>CCC success does not carry the same weight</strong> 
-                                                as VCC achievement in footballing prestige or historical significance.
-                                            </p>
-                                            <p className="text-sm italic text-blue-700">
-                                                Many clubs that excel in the CCC dream of one day seeing their nation promoted to full VCC membership, where they can 
-                                                compete against the continent's true elite.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* The Origins */}
-                                    <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
-                                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                            <BookOpen className="w-5 h-5 text-slate-600" />
-                                            The Origins
-                                        </h3>
-                                        <div className="space-y-3 text-slate-700">
-                                            <p>
-                                                Continental competition emerged from a desire to determine the ultimate club champion across Volaria. As domestic leagues 
-                                                matured, the question arose: which nation truly produced the best football? The VCC was created to answer that question, 
-                                                bringing together the continent's most established footballing powers.
-                                            </p>
-                                            <p>
-                                                The two-tier system was established to balance competitive integrity with inclusivity. Full member nations earned their 
-                                                VCC status through years of consistent performance, infrastructure investment, and proven ability to compete at the highest level. 
-                                                Associate members were given their own platform to develop, with the long-term goal of eventual VCC promotion as their leagues mature.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* The Future */}
-                                    <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
-                                        <h3 className="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
-                                            <Sparkles className="w-5 h-5 text-emerald-600" />
-                                            The Future of Continental Football
-                                        </h3>
-                                        <div className="space-y-3 text-slate-700">
-                                            <p>
-                                                As Volarian football continues to evolve, the pathway from CCC to VCC membership remains the ultimate ambition for 
-                                                developing nations. Several associate members are building professional infrastructure, investing in youth development, 
-                                                and strengthening their domestic competitions with the goal of earning full VCC status.
-                                            </p>
-                                            <p>
-                                                The VCC itself continues to raise standards, with broadcast deals, sponsorships, and global viewership cementing its status 
-                                                as one of sport's premier competitions. The gap between VCC and CCC quality shows no signs of narrowing—if anything, the 
-                                                financial advantages enjoyed by VCC nations continue to grow.
-                                            </p>
-                                            <p className="font-semibold text-emerald-800">
-                                                The dual-competition structure ensures that while the VCC maintains its elite status and prestige, developing nations 
-                                                have a pathway to continental competition—and perhaps, one day, a chance to join the elite.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                        ) : (
+                                            <div className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">No dedicated history has been written for this competition yet.</div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                     </TabsContent>
 
                     <TabsContent value="most-successful">
