@@ -636,8 +636,8 @@ export default function ClubDetail() {
                     <ThemedCard 
                         title="Continental Honours" 
                         icon={Star}
-                        primaryColor={club.primary_color}
-                        accentColor={club.accent_color}
+                        primaryColor={clubTheme.ui}
+                        accentColor={clubTheme.ui}
                         className="mb-8"
                     >
                         <CardContent className="p-0">
@@ -727,8 +727,8 @@ export default function ClubDetail() {
                     {combinedStats?.seasons_played > 0 && (
                         <ThemedCard 
                             title="All-Time League Statistics"
-                            primaryColor={club.primary_color}
-                            accentColor={club.accent_color}
+                            primaryColor={clubTheme.ui}
+                            accentColor={clubTheme.ui}
                             className="mb-4"
                         >
                             <CardContent className="p-0">
@@ -791,8 +791,8 @@ export default function ClubDetail() {
                                         }}>{topFlightStats.seasons} seasons</Badge>
                                     </span>
                                 }
-                                primaryColor={club.primary_color}
-                                accentColor={club.accent_color}
+                                primaryColor={clubTheme.ui}
+                                accentColor={clubTheme.ui}
                                 className="mb-8"
                             >
                                 <CardContent className="p-0">
@@ -1028,7 +1028,7 @@ export default function ClubDetail() {
                                                                                                                                   // Use tier from league table first, then season, then league's current tier
                                                                                                                                   const displayTier = season.tier || seasonLeague.tier;
                                                                                                                                   return (
-                                                                                                                                      <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className={`hover:text-emerald-600 hover:underline ${displayTier === 1 ? 'font-bold' : ''}`}>
+                                                                                                                                      <Link to={createPageUrl(`LeagueDetail?id=${seasonLeague.id}`)} className={`hover:underline ${displayTier === 1 ? 'font-bold' : ''}`}>
                                                                                                                                           {seasonLeague.name}
                                                                                                                                           {season.division_name && <span className="text-slate-500"> - {season.division_name}</span>}
                                                                                                                                           <span className={`ml-1 text-xs ${displayTier === 1 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
@@ -1253,8 +1253,8 @@ export default function ClubDetail() {
                         <ThemedCard 
                             title="Continental Competition Record"
                             icon={Star}
-                            primaryColor={club.primary_color}
-                            accentColor={club.accent_color}
+                            primaryColor={clubTheme.ui}
+                            accentColor={clubTheme.ui}
                         >
                             <CardContent className="p-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1864,7 +1864,7 @@ export default function ClubDetail() {
                         
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setIsEditing(false)}><X className="w-4 h-4 mr-2" /> Cancel</Button>
-                            <Button onClick={handleSave} disabled={updateMutation.isPending} className="bg-emerald-600"><Save className="w-4 h-4 mr-2" /> Save</Button>
+                            <Button onClick={handleSave} disabled={updateMutation.isPending} className="text-white" style={{ backgroundColor: clubTheme.ui }}><Save className="w-4 h-4 mr-2" /> Save</Button>
                         </div>
                     </div>
                 </DialogContent>
