@@ -49,11 +49,18 @@ export async function syncCupStatsToClubs(nationId = null) {
     
     // Build stats per club
     const clubStats = {};
+
+    // Include clubs carrying previous aggregate values so corrections/deletions can reset stale stats.
+    clubs.filter(club => !nationId || club.nation_id === nationId).forEach(club => {
+        if ((club.domestic_cup_titles || 0) > 0 || (club.domestic_cup_runner_up || 0) > 0 || club.domestic_cup_best_finish) {
+            initClubStats(clubStats, club.id);
+        }
+    });
     
     relevantSeasons.forEach(season => {
         // Winner stats
         if (season.champion_name) {
-            const club = clubs.find(c => c.name === season.champion_name || c.id === season.champion_id);
+            const club = clubs.find(c => c.id === season.champion_id) || clubs.find(c => c.name === season.champion_name);
             if (club) {
                 initClubStats(clubStats, club.id);
                 clubStats[club.id].titles++;
@@ -67,7 +74,7 @@ export async function syncCupStatsToClubs(nationId = null) {
         
         // Runner-up stats
         if (season.runner_up) {
-            const club = clubs.find(c => c.name === season.runner_up || c.id === season.runner_up_id);
+            const club = clubs.find(c => c.id === season.runner_up_id) || clubs.find(c => c.name === season.runner_up);
             if (club) {
                 initClubStats(clubStats, club.id);
                 clubStats[club.id].runnerUp++;
@@ -93,7 +100,7 @@ export async function syncCupStatsToClubs(nationId = null) {
         // Determine the round the loser went out in
         const loser = match.winner === match.home_club_name ? match.away_club_name : match.home_club_name;
         const loserId = match.winner === match.home_club_name ? match.away_club_id : match.home_club_id;
-        const club = clubs.find(c => c.name === loser || c.id === loserId);
+        const club = clubs.find(c => c.id === loserId) || clubs.find(c => c.name === loser);
         
         if (club) {
             initClubStats(clubStats, club.id);
@@ -120,6 +127,27 @@ export async function syncCupStatsToClubs(nationId = null) {
     }
     
     await Promise.all(updates);
+
+    // Keep each domestic cup's headline fields derived from its own season history.
+    for (const cup of relevantCups) {
+        const cupHistory = relevantSeasons
+            .filter(season => season.cup_id === cup.id)
+            .sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }));
+        if (!cupHistory.length) continue;
+        const counts = new Map();
+        cupHistory.forEach(season => {
+            const club = clubs.find(c => c.id === season.champion_id) || clubs.find(c => c.name === season.champion_name);
+            const name = club?.name || season.champion_name;
+            if (name) counts.set(name, (counts.get(name) || 0) + 1);
+        });
+        const leader = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+        await base44.entities.DomesticCup.update(cup.id, {
+            current_champion: cupHistory[0]?.champion_name || '',
+            most_titles_club: leader?.[0] || '',
+            most_titles_count: leader?.[1] || 0,
+        });
+    }
+
     return Object.keys(clubStats).length;
 }
 
