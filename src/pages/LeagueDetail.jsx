@@ -132,6 +132,34 @@ export default function LeagueDetail() {
         enabled: allNationLeagues.length > 0,
     });
 
+    // For (P)/(R)/(C) badges, compare the selected season with the club's actual
+    // previous-season table row in the adjacent tiers. This is much more reliable than
+    // reconstructing movement from names stored in Season.promoted_teams/relegated_teams.
+    const movementYears = [...new Set(leagueTables.map(t => t.year).filter(Boolean))].sort();
+    const movementCurrentYear = selectedSeason || movementYears[movementYears.length - 1] || null;
+    const movementCurrentIndex = movementYears.indexOf(movementCurrentYear);
+    const movementPreviousYear = movementCurrentIndex > 0 ? movementYears[movementCurrentIndex - 1] : null;
+    const movementLeagueIds = allNationLeagues
+        .filter(l => {
+            const tier = Number(l.tier);
+            const currentTier = Number(league?.tier || 1);
+            return tier >= currentTier - 1 && tier <= currentTier + 1;
+        })
+        .map(l => l.id);
+
+    const { data: previousMovementTables = [] } = useQuery({
+        queryKey: ['previousMovementTables', league?.nation_id, leagueId, movementPreviousYear],
+        queryFn: async () => {
+            if (!movementPreviousYear || !movementLeagueIds.length) return [];
+            const tableSets = await Promise.all(
+                movementLeagueIds.map(id => base44.entities.LeagueTable.filter({ league_id: id, year: movementPreviousYear }))
+            );
+            return tableSets.flat();
+        },
+        enabled: !!movementPreviousYear && movementLeagueIds.length > 0,
+        staleTime: 5 * 60 * 1000,
+    });
+
     // Cross-tier table history is only needed for analytics (e.g. what happened after promotion).
     // Load it lazily rather than making every league-page visit fetch the entire national pyramid.
     const { data: analyticsNationTables = [] } = useQuery({
