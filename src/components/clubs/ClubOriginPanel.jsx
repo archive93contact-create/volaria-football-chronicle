@@ -72,6 +72,12 @@ export default function ClubOriginPanel({ club, nation, league, seasons = [], al
         return null;
     }, [lineage, club]);
 
+    const latestSeason = useMemo(() => [...seasons].sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }))[0] || null, [seasons]);
+    const latestSeasonLeague = latestSeason ? allLeagues.find(item => item.id === latestSeason.league_id) : null;
+    const levelContext = (lineage.isDefunct || lineage.isFormerName || lineage.isInactive)
+        ? `Final level under this identity: ${latestSeasonLeague?.name || league?.name || 'not recorded'}${latestSeason?.tier || latestSeasonLeague?.tier || league?.tier ? `, Tier ${latestSeason?.tier || latestSeasonLeague?.tier || league?.tier}` : ''}`
+        : `Current level: ${league?.name || latestSeasonLeague?.name || 'not recorded'}${league?.tier || latestSeason?.tier || latestSeasonLeague?.tier ? `, Tier ${league?.tier || latestSeason?.tier || latestSeasonLeague?.tier}` : ''}`;
+
     const seasonContext = useMemo(() => {
         const ordered = [...seasons].sort((a, b) => String(a.year || '').localeCompare(String(b.year || ''), undefined, { numeric: true }));
         if (!ordered.length) return 'No season history yet.';
@@ -99,7 +105,7 @@ Nation: ${nation?.name || 'not recorded'}
 Language/naming style: ${nation?.language || 'not recorded'}; ${Array.isArray(nation?.naming_styles) ? nation.naming_styles.join(', ') : nation?.naming_styles || 'not recorded'}
 Nickname: ${club.nickname || 'not recorded'}
 Colours: ${club.primary_color || 'not recorded'} / ${club.secondary_color || 'not recorded'}
-Current level: ${league?.name || 'not recorded'}${league?.tier ? `, Tier ${league.tier}` : ''}
+${levelContext}
 Settlement type/population: ${location?.settlement_size || 'not recorded'} / ${location?.population || 'not recorded'}
 Local industries: ${location?.industries || 'none supplied'}
 Local companies/employers: ${location?.major_companies || 'none supplied'}
