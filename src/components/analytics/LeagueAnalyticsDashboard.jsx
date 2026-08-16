@@ -10,6 +10,29 @@ import LeagueClubHistory from '../leagues/LeagueClubHistory';
 import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
 
 export default function LeagueAnalyticsDashboard({ league, seasons = [], allTables = [], clubs = [], allLeagues = [] }) {
+    // allTables can intentionally include the whole national pyramid for cross-tier analytics.
+    // Anything describing THIS league's club history must use only rows from this league.
+    const leagueOnlyTables = useMemo(
+        () => allTables.filter(t => t.league_id === league?.id),
+        [allTables, league?.id]
+    );
+
+    const leagueClubKeys = useMemo(() => {
+        const ids = new Set();
+        const names = new Set();
+        leagueOnlyTables.forEach(row => {
+            if (row.club_id) ids.add(row.club_id);
+            if (row.club_name) names.add(String(row.club_name).trim().toLowerCase());
+        });
+        return { ids, names };
+    }, [leagueOnlyTables]);
+
+    const leagueHistoryClubs = useMemo(() => clubs.filter(club =>
+        club.league_id === league?.id ||
+        (club.id && leagueClubKeys.ids.has(club.id)) ||
+        leagueClubKeys.names.has(String(club.name || '').trim().toLowerCase())
+    ), [clubs, league?.id, leagueClubKeys]);
+
     const analytics = useMemo(() => {
         if (!league || seasons.length === 0) return null;
 
@@ -154,7 +177,6 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
         
         // Most appearances by club in THIS league only (allTables may also contain other national tiers for cross-tier analytics).
         const clubAppearances = {};
-        const leagueOnlyTables = allTables.filter(t => t.league_id === league.id || seasons.some(s => s.id === t.season_id));
         leagueOnlyTables.forEach(t => {
             clubAppearances[t.club_name] = (clubAppearances[t.club_name] || 0) + 1;
         });
@@ -226,7 +248,7 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
             survivedPromoted,
             insights
         };
-    }, [league, seasons, allTables, clubs, allLeagues]);
+    }, [league, seasons, allTables, clubs, allLeagues, leagueOnlyTables]);
 
     if (!analytics) {
         return (
@@ -910,8 +932,8 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
             <TabsContent value="history" className="space-y-6">
                 <LeagueClubHistory 
                     league={league}
-                    leagueTables={allTables}
-                    clubs={clubs}
+                    leagueTables={leagueOnlyTables}
+                    clubs={leagueHistoryClubs}
                     allLeagues={allLeagues}
                 />
             </TabsContent>
