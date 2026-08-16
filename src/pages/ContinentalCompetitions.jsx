@@ -277,53 +277,49 @@ export default function ContinentalCompetitions() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920')] opacity-10 bg-cover bg-center" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent" />
-                
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-                    <nav className="flex items-center gap-2 text-sm text-white/70 mb-6">
+            {/* Continental archive masthead */}
+            <section className="relative overflow-hidden bg-[#0b0c0e] text-white border-b border-white/10">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,.08),transparent_28%),linear-gradient(120deg,#090a0b_0%,#15181c_55%,#08090a_100%)]" />
+                {competitions.slice(0, 2).map((comp, index) => comp.logo_url ? (
+                    <img
+                        key={comp.id}
+                        src={comp.logo_url}
+                        alt=""
+                        aria-hidden="true"
+                        className={`pointer-events-none absolute object-contain grayscale opacity-[0.055] ${index === 0 ? '-left-20 -bottom-24 w-80 h-80 sm:w-[430px] sm:h-[430px]' : '-right-20 -top-24 w-80 h-80 sm:w-[430px] sm:h-[430px]'}`}
+                    />
+                ) : null)}
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 sm:pb-12">
+                    <nav className="flex items-center gap-2 text-xs sm:text-sm text-white/55 mb-8">
                         <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                         <span className="text-white">Continental Competitions</span>
                     </nav>
-                    
-                    <div className="text-center mb-12">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-sm font-medium mb-6">
-                            <Crown className="w-4 h-4" />
-                            The Pinnacle of Club Football
+
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
+                        <div className="max-w-3xl">
+                            <div className="text-[10px] sm:text-xs font-black uppercase tracking-[0.22em] text-white/45 mb-3">VFC continental archive</div>
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] leading-[0.95]">Continental competitions</h1>
+                            <p className="mt-4 text-base sm:text-lg text-white/65 leading-relaxed max-w-2xl">Explore Volaria's cross-border club tournaments, their participating nations, recorded editions, finals and title histories.</p>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-4">
-                            Continental Competitions
-                        </h1>
-                        <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-                            Where the greatest clubs from across Volaria compete for continental glory. 
-                            The premier VCC showcases full member nations, while the CCC provides a pathway for developing nations.
-                        </p>
+                        <div className="flex items-center gap-3">
+                            {competitions.slice(0, 3).map(comp => comp.logo_url ? (
+                                <Link key={comp.id} to={createPageUrl(`CompetitionDetail?id=${comp.id}`)} className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border border-white/10 bg-white/5 p-2 flex items-center justify-center hover:bg-white/10 transition-colors" title={comp.name}>
+                                    <img src={comp.logo_url} alt={`${comp.name} logo`} className="max-w-full max-h-full object-contain drop-shadow-lg" />
+                                </Link>
+                            ) : null)}
+                        </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-                        <div className="text-center">
-                            <div className="text-3xl md:text-4xl font-bold text-white">{stats.totalSeasons}</div>
-                            <div className="text-slate-400 text-sm">Finals Played</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl md:text-4xl font-bold text-white">{stats.uniqueWinners}</div>
-                            <div className="text-slate-400 text-sm">Different Winners</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl md:text-4xl font-bold text-white">{stats.uniqueNations}</div>
-                            <div className="text-slate-400 text-sm">Winning Nations</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl md:text-4xl font-bold text-white">{competitions.length}</div>
-                            <div className="text-slate-400 text-sm">Competitions</div>
-                        </div>
+                    <div className="mt-8 grid grid-cols-4 border border-white/12 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm max-w-3xl">
+                        <div className="px-3 sm:px-5 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{stats.totalSeasons}</div><div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-white/45">Recorded editions</div></div>
+                        <div className="px-3 sm:px-5 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{stats.uniqueWinners}</div><div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-white/45">Winners</div></div>
+                        <div className="px-3 sm:px-5 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{stats.uniqueNations}</div><div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-white/45">Winning nations</div></div>
+                        <div className="px-3 sm:px-5 py-3"><div className="text-xl sm:text-2xl font-black">{competitions.length}</div><div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-white/45">Competitions</div></div>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Tabs for History & Competitions */}
