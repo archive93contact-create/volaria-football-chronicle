@@ -18,6 +18,7 @@ import { useIsAdmin } from '@/components/common/AdminOnly';
 import AIStatsGenerator from '@/components/seasons/AIStatsGenerator';
 import { recalculateStabilityAfterSeason } from '@/components/stability/autoUpdateStability';
 import PostSeasonFixturePrompt from '@/components/currentseason/PostSeasonFixturePrompt';
+import { syncLeagueStatsForNation } from '@/lib/leagueSync';
 
 export default function AddSeason() {
     const { isAdmin, isLoading: authLoading } = useIsAdmin();
@@ -361,6 +362,7 @@ export default function AddSeason() {
                         await base44.entities.LeagueTable.bulkCreate(tableEntries);
                     }
                 }
+                await syncLeagueStatsForNation(league.nation_id);
                 return allSeasons[0]?.season;
             }
 
@@ -535,14 +537,19 @@ export default function AddSeason() {
                 await recalculateStabilityAfterSeason(affectedClubIds);
             }
 
+            await syncLeagueStatsForNation(league.nation_id);
             return season;
         },
         onSuccess: (season) => {
-            queryClient.invalidateQueries(['leagueSeasons']);
-            queryClient.invalidateQueries(['leagueTables']);
-            queryClient.invalidateQueries(['clubs']);
-            queryClient.invalidateQueries(['nationClubs']);
-            queryClient.invalidateQueries(['allClubs']);
+            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
+            queryClient.invalidateQueries({ queryKey: ['leagueTables'] });
+            queryClient.invalidateQueries({ queryKey: ['clubs'] });
+            queryClient.invalidateQueries({ queryKey: ['nationClubs', league?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['clubs', league?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+            queryClient.invalidateQueries({ queryKey: ['nation', league?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['analyticsNationTables', league?.nation_id] });
             if (season) {
                 setCreatedSeason(season);
                 setShowFixturePrompt(true);
