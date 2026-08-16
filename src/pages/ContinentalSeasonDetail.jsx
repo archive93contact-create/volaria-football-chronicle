@@ -17,6 +17,8 @@ import SeasonStats from '@/components/continental/SeasonStats';
 import SeasonNarratives from '@/components/continental/SeasonNarratives';
 import ParticipantsList from '@/components/continental/ParticipantsList';
 import AdminOnly from '@/components/common/AdminOnly';
+import { getEntityTheme } from '@/utils/entityTheme';
+import { syncContinentalCompetition } from '@/lib/continentalSync';
 
 const ROUND_ORDER = ['Group Stage', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -75,8 +77,17 @@ export default function ContinentalSeasonDetail() {
     });
 
     const deleteMatchMutation = useMutation({
-        mutationFn: (id) => base44.entities.ContinentalMatch.delete(id),
-        onSuccess: () => queryClient.invalidateQueries(['continentalMatches', seasonId]),
+        mutationFn: async (id) => {
+            await base44.entities.ContinentalMatch.delete(id);
+            if (season?.competition_id) await syncContinentalCompetition(season.competition_id);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['continentalMatches', seasonId] });
+            queryClient.invalidateQueries({ queryKey: ['continentalSeason', seasonId] });
+            queryClient.invalidateQueries({ queryKey: ['continentalSeasons'] });
+            queryClient.invalidateQueries({ queryKey: ['clubs'] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        },
     });
 
     const updateCompetitionMutation = useMutation({
