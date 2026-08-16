@@ -252,18 +252,21 @@ export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs 
     if (lineage.formerNames.length) {
         const names = lineage.formerNames.map(c => c.name).join(lineage.formerNames.length > 1 ? ' and ' : '');
         const renameYear = club.renamed_year ? ` around ${club.renamed_year}` : '';
-        paragraphs.push(`Part of that history was lived under another identity. ${names} belongs to the same club lineage, with the present ${club.name} name emerging${renameYear}. Results from those earlier names form part of the same sporting story rather than a separate club career.`);
+        paragraphs.push(`Part of that history was lived under another identity. The club competed as ${names} before the present ${club.name} name emerged${renameYear}; the change of name sits within the same continuous footballing story.`);
     } else if (lineage.predecessors.length) {
         const names = lineage.predecessors.map(c => c.name).join(lineage.predecessors.length > 1 ? ' and ' : '');
         paragraphs.push(`${club.name} also carries footballing history inherited from ${names}. Their seasons sit before the present club in the lineage, giving the modern side a competitive ancestry that predates its current identity without pretending the organisations were always identical.`);
     }
 
-    if (titleSeasons.length || promotions.length || relegations.length) {
+    if (titleSeasons.length || promotions.length || relegations.length || club.domestic_cup_titles || club.vcc_titles || club.ccc_titles) {
         const achievementBits = [];
         if (titleSeasons.length) achievementBits.push(`${titleSeasons.length} top-flight championship${titleSeasons.length === 1 ? '' : 's'}, won in ${titleSeasons.map(s => s.year).join(', ')}`);
+        if (club.domestic_cup_titles) achievementBits.push(`${club.domestic_cup_titles} domestic cup triumph${club.domestic_cup_titles === 1 ? '' : 's'}${club.domestic_cup_title_years ? ` (${club.domestic_cup_title_years})` : ''}`);
+        if (club.vcc_titles) achievementBits.push(`${club.vcc_titles} VCC title${club.vcc_titles === 1 ? '' : 's'}${club.vcc_title_years ? ` (${club.vcc_title_years})` : ''}`);
+        if (club.ccc_titles) achievementBits.push(`${club.ccc_titles} CCC title${club.ccc_titles === 1 ? '' : 's'}${club.ccc_title_years ? ` (${club.ccc_title_years})` : ''}`);
         if (promotions.length) achievementBits.push(`${promotions.length} promotion${promotions.length === 1 ? '' : 's'}`);
         if (relegations.length) achievementBits.push(`${relegations.length} relegation${relegations.length === 1 ? '' : 's'}`);
-        paragraphs.push(`The shape of the club's history comes from ${achievementBits.join(', ')}. The championships mark its highest moments; the promotions and relegations show the periods when its status changed most sharply, carrying the club between very different levels of the game.`);
+        paragraphs.push(`The shape of the club's history comes from ${achievementBits.join(', ')}. League and cup success mark its highest moments, while promotion and relegation repeatedly altered the level at which those ambitions were played out.`);
     }
 
     if (eras.length) {
@@ -286,7 +289,12 @@ export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs 
     }
     if (latestTier && bestTier) {
         const levelText = latestTier === bestTier ? `By ${latest.year}, the club was again operating at the highest level it has known, Tier ${latestTier}.` : `By ${latest.year}, it stood at Tier ${latestTier}, below the Tier ${bestTier} heights reached earlier in its history.`;
-        paragraphs.push(`${levelText}${direction ? ` ${direction}` : ''}`);
+        const identityBits = [];
+        if (club.stadium) identityBits.push(`home matches centred on ${club.stadium}${club.stadium_capacity ? `, a ${Number(club.stadium_capacity).toLocaleString()}-capacity ground` : ''}`);
+        if (club.professional_status) identityBits.push(`${club.professional_status.replace('-', ' ')} status`);
+        if (club.nickname) identityBits.push(`the ${club.nickname} identity`);
+        const presentIdentity = identityBits.length ? ` Away from the table, the modern club is defined by ${identityBits.join(', ')}.` : '';
+        paragraphs.push(`${levelText}${direction ? ` ${direction}` : ''}${presentIdentity}`);
     }
 
     return paragraphs.join('\n\n');
