@@ -153,92 +153,47 @@ export default function ContinentalSeasonDetail() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Hero */}
-            <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${competition.primary_color || '#1e40af'}, ${competition.secondary_color || '#fbbf24'})` }}>
-                <div className="absolute inset-0 bg-black/20" />
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                    <nav className="flex items-center gap-2 text-sm text-white/70 mb-4 flex-wrap">
+        <div className="min-h-screen bg-[#f5f5f4]" style={{ '--competition-accent': competitionTheme.ui }}>
+            <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
+                <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${competitionTheme.heroPrimary}e8 52%, ${competitionTheme.heroSecondary}cc 100%)` }} />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
+                {competition.logo_url && <img src={competition.logo_url} alt="" aria-hidden="true" className="pointer-events-none absolute -right-12 -bottom-28 w-[380px] sm:w-[520px] h-[380px] sm:h-[520px] object-contain opacity-[0.08] grayscale" />}
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8 sm:pb-10">
+                    <nav className="flex items-center gap-2 text-xs sm:text-sm text-white/55 mb-7 flex-wrap">
                         <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                         <Link to={createPageUrl('ContinentalCompetitions')} className="hover:text-white">Continental Competitions</Link>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                         <Link to={createPageUrl(`CompetitionDetail?id=${competition.id}`)} className="hover:text-white">{competition.short_name || competition.name}</Link>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                         <span className="text-white">{season.year}</span>
                     </nav>
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 rounded-xl flex items-center justify-center">
-                            {competition.tier === 1 ? <Star className="w-10 h-10 text-white" /> : <Trophy className="w-10 h-10 text-white" />}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-[150px_minmax(0,1fr)] md:grid-cols-[180px_minmax(0,1fr)] gap-6 sm:gap-8 items-center">
+                        <div className="relative w-32 h-32 sm:w-full sm:h-40 flex items-center justify-center">
+                            <div className="absolute inset-[10%] rounded-full blur-3xl opacity-45" style={{ backgroundColor: competition.secondary_color || competition.primary_color || '#fff' }} />
+                            {competition.logo_url ? <img src={competition.logo_url} alt={`${competition.name} logo`} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,.52)]" /> : <Trophy className="relative z-10 w-16 h-16 text-white/35" />}
                         </div>
-                        <div className="flex-1">
-                            <div className="flex items-start gap-4">
-                                <div className="flex-1">
-                                    <h1 className="text-2xl md:text-4xl font-bold text-white">{competition.name} {season.year}</h1>
-                                </div>
-                                {/* Participant Club Crests */}
-                                {(() => {
-                                    const participants = new Map();
-                                    matches.forEach(m => {
-                                        if (m.home_club_name && m.home_club_name !== 'TBD') {
-                                            const club = clubs.find(c => c.name === m.home_club_name);
-                                            if (club?.logo_url && !participants.has(club.id)) {
-                                                participants.set(club.id, { ...club, isChampion: m.home_club_name === season.champion_name });
-                                            }
-                                        }
-                                        if (m.away_club_name && m.away_club_name !== 'TBD') {
-                                            const club = clubs.find(c => c.name === m.away_club_name);
-                                            if (club?.logo_url && !participants.has(club.id)) {
-                                                participants.set(club.id, { ...club, isChampion: m.away_club_name === season.champion_name });
-                                            }
-                                        }
-                                    });
-                                    const participantArray = Array.from(participants.values());
-                                    if (participantArray.length === 0) return null;
-                                    
-                                    return (
-                                        <div className="hidden lg:flex flex-wrap gap-1.5 max-w-md">
-                                            {participantArray.slice(0, 20).map((club) => (
-                                                <div 
-                                                    key={club.id} 
-                                                    className={`relative group ${club.isChampion ? 'w-12 h-12' : 'w-8 h-8'}`}
-                                                    title={club.name}
-                                                >
-                                                    <img 
-                                                        src={club.logo_url} 
-                                                        alt={club.name}
-                                                        className={`w-full h-full object-contain bg-white rounded-lg p-1 shadow-sm ${club.isChampion ? 'ring-2 ring-amber-400' : ''}`}
-                                                    />
-                                                    {club.isChampion && <Trophy className="absolute -top-1 -right-1 w-4 h-4 text-amber-400" />}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                            {season.champion_name && (
-                                <p className="mt-2 text-white/90 flex items-center gap-2">
-                                    <Trophy className="w-5 h-5 text-amber-300" />
-                                    <span className="font-semibold">{season.champion_name}</span>
-                                    {season.champion_nation && (
-                                        <>
-                                            {getNationFlag(season.champion_nation) && (
-                                                <img src={getNationFlag(season.champion_nation)} alt="" className="w-5 h-3 object-contain" />
-                                            )}
-                                            <span className="text-white/70">({season.champion_nation})</span>
-                                        </>
-                                    )}
-                                </p>
-                            )}
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2"><span className="text-[10px] uppercase tracking-[0.16em] font-black px-2 py-1 rounded border border-white/15 bg-white/8">{competition.short_name || 'Continental'}</span><span className="text-[10px] uppercase tracking-[0.16em] font-semibold text-white/55">{season.year} edition</span></div>
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-[-0.04em] leading-[0.98]">{competition.name} <span className="text-white/55">{season.year}</span></h1>
+                            {season.champion_name && <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-white/70"><Trophy className="w-4 h-4" style={{ color: competitionTheme.secondary }} /><span>Champion</span>{championClub?.logo_url && <img src={championClub.logo_url} alt="" className="w-7 h-7 object-contain" />}<Link to={championClub ? createPageUrl(`ClubDetail?id=${championClub.id}`) : '#'} className="font-black text-white hover:underline">{championClub?.name || season.champion_name}</Link>{championNation?.flag_url && <img src={championNation.flag_url} alt="" className="w-6 h-4 object-contain" />}</div>}
                         </div>
-                        <AdminOnly>
-                            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={openEditRounds}>
-                                <Settings className="w-4 h-4 mr-2" /> Edit Round Names
-                            </Button>
-                        </AdminOnly>
                     </div>
+
+                    <div className="mt-7 grid grid-cols-4 border border-white/15 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm max-w-3xl">
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{participantClubs.length}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Clubs</div></div>
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{matches.length}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Matches</div></div>
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-xl sm:text-2xl font-black">{sortedRounds.length}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Rounds</div></div>
+                        <div className="px-3 sm:px-4 py-3"><div className="text-base sm:text-xl font-black truncate">{season.final_score || '—'}</div><div className="text-[9px] uppercase tracking-wider text-white/45">Final score</div></div>
+                    </div>
+
+                    {participantClubs.length > 0 && <div className="mt-5 hidden sm:flex flex-wrap gap-2 items-center">{participantClubs.slice(0,20).map(club => <Link key={club.id} to={createPageUrl(`ClubDetail?id=${club.id}`)} title={club.name} className={`relative w-9 h-9 rounded-lg border flex items-center justify-center p-1 transition-colors ${club.isChampion ? 'border-white/50 bg-white/12' : 'border-white/12 bg-black/12 hover:border-white/35'}`}>{club.logo_url ? <img src={club.logo_url} alt="" className="max-w-full max-h-full object-contain" /> : <Shield className="w-5 h-5 text-white/35" />}{club.isChampion && <Trophy className="absolute -top-1.5 -right-1.5 w-4 h-4" style={{ color: competitionTheme.secondary }} />}</Link>)}</div>}
+                    <AdminOnly><div className="mt-5"><Button variant="outline" size="sm" className="border-white/20 bg-black/15 text-white hover:bg-white/10 hover:text-white" onClick={openEditRounds}><Settings className="w-4 h-4 mr-2" /> Edit round names</Button></div></AdminOnly>
                 </div>
-            </div>
+                <div className="h-1.5 flex"><div className="flex-[3]" style={{ backgroundColor: competitionTheme.primary }} /><div className="flex-[2]" style={{ backgroundColor: competitionTheme.secondary }} /></div>
+            </section>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
