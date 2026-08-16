@@ -167,8 +167,17 @@ export function buildHistoricalInsights(club, seasons = [], leagues = []) {
     const latestTier = getHistoricalTier(latest, leagues);
     const historicalTiers = ordered.map(s => getHistoricalTier(s, leagues)).filter(Boolean);
     const bestTier = historicalTiers.length ? Math.min(...historicalTiers) : null;
-    if (latestTier && bestTier && latestTier > bestTier) insights.push({ category: 'comparison', headline: 'Below its historical peak', detail: `Now at Tier ${latestTier}, after previously reaching Tier ${bestTier}.` });
-    if (latestTier && bestTier && latestTier === bestTier) insights.push({ category: 'comparison', headline: 'Back at its highest level', detail: `The latest season is at Tier ${latestTier}, matching the highest level the club has reached.` });
+    const identityEnded = Boolean(club?.is_defunct || club?.is_former_name || club?.is_active === false);
+    if (latestTier && bestTier && latestTier > bestTier) insights.push({
+        category: 'comparison',
+        headline: identityEnded ? 'Final level below its peak' : 'Below its historical peak',
+        detail: identityEnded ? `Its final season under this identity was at Tier ${latestTier}, after earlier reaching Tier ${bestTier}.` : `Now at Tier ${latestTier}, after previously reaching Tier ${bestTier}.`
+    });
+    if (latestTier && bestTier && latestTier === bestTier) insights.push({
+        category: 'comparison',
+        headline: identityEnded ? 'Ended at its highest level' : 'Back at its highest level',
+        detail: identityEnded ? `Its final season under this identity was at Tier ${latestTier}, matching its highest level.` : `The latest season is at Tier ${latestTier}, matching the highest level the club has reached.`
+    });
 
     return insights.slice(0, 6);
 }
