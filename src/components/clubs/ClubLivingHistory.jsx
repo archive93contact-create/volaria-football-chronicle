@@ -20,7 +20,7 @@ export default function ClubLivingHistory({ club, seasons = [], leagues = [], al
     const eras = useMemo(() => detectClubEras(seasons, leagues), [seasons, leagues]);
     const historicalInsights = useMemo(() => buildHistoricalInsights(club, seasons, leagues), [club, seasons, leagues]);
     const comparative = useMemo(() => buildComparativeInsights(club, allClubs, seasons, leagues), [club, allClubs, seasons, leagues]);
-    const narrative = useMemo(() => buildLivingNarrative(club, seasons, leagues), [club, seasons, leagues]);
+    const narrative = useMemo(() => buildLivingNarrative(club, seasons, leagues, allClubs), [club, seasons, leagues, allClubs]);
     const latestYear = useMemo(() => [...seasons].sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }))[0]?.year, [seasons]);
 
     const comparisonItems = comparative.map((item, index) => ({
@@ -36,7 +36,7 @@ export default function ClubLivingHistory({ club, seasons = [], leagues = [], al
                         <Clock3 className="w-3 h-3 mr-1" /> Through {latestYear || 'no recorded season'}
                     </Badge>
                     <Badge variant="outline" className="bg-white/65 border-slate-200 text-slate-600">
-                        <Sparkles className="w-3 h-3 mr-1" /> Recalculates from league data
+                        <Sparkles className="w-3 h-3 mr-1" /> Living archive
                     </Badge>
                 </div>
                 <div className="max-w-4xl">
