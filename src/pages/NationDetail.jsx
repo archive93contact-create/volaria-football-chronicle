@@ -214,111 +214,78 @@ export default function NationDetail() {
     } : null;
 
     return (
-        <div className="min-h-screen bg-slate-50">
-            {headerStyle ? (
-                <div className="relative overflow-hidden" style={headerStyle}>
-                    {/* Flag watermark */}
-                    {nation.flag_url && (
-                        <div
-                            className="absolute inset-0 opacity-[0.07] bg-center bg-no-repeat"
-                            style={{ backgroundImage: `url(${nation.flag_url})`, backgroundSize: '55%', backgroundPosition: 'right 10% center' }}
-                        />
-                    )}
-                    <div className="absolute inset-0 bg-black/25" />
-                    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-                        <nav className="flex items-center gap-2 text-sm text-white/70 mb-6">
-                            <Link to={createPageUrl('Home')} className="hover:text-white">Volaria</Link>
-                            <ChevronRight className="w-4 h-4" />
-                            <Link to={createPageUrl('Nations')} className="hover:text-white">Nations</Link>
-                            <ChevronRight className="w-4 h-4" />
-                            <span className="text-white">{nation.name}</span>
+        <div className="min-h-screen bg-[#f4f5f6]" style={{ '--nation-primary': nation.primary_color || '#334155', '--nation-secondary': nation.secondary_color || '#111827' }}>
+            <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
+                <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${nation.primary_color || '#334155'}e8 48%, ${nation.secondary_color || nation.primary_color || '#111827'}d8 100%)` }} />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
+                <div className="absolute inset-0 opacity-[0.10]" style={{ backgroundImage: `radial-gradient(circle at 16% 28%, rgba(255,255,255,.24), transparent 28%), linear-gradient(115deg, transparent 0 55%, rgba(255,255,255,.10) 55% 56%, transparent 56% 100%)` }} />
+                {nation.flag_url && <img src={nation.flag_url} alt="" aria-hidden="true" className="pointer-events-none absolute -right-24 sm:-right-12 -bottom-16 sm:-bottom-28 w-[430px] sm:w-[620px] h-[300px] sm:h-[430px] object-contain opacity-[0.11] saturate-125" />}
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8 md:pb-10">
+                    <div className="flex items-center justify-between gap-4 mb-7">
+                        <nav className="flex items-center gap-2 text-xs sm:text-sm text-white/60 min-w-0 overflow-hidden">
+                            <Link to={createPageUrl('Home')} className="hover:text-white transition-colors shrink-0">Volaria</Link>
+                            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                            <Link to={createPageUrl('Nations')} className="hover:text-white transition-colors shrink-0">Nations</Link>
+                            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                            <span className="text-white truncate">{nation.name}</span>
                         </nav>
-                        <div className="flex items-center gap-6">
-                            {nation.flag_url && (
-                                <div className="hidden sm:block w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl p-3 shadow-2xl">
-                                    <img src={nation.flag_url} alt={nation.name} className="w-full h-full object-contain" />
-                                </div>
-                            )}
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">{nation.name}</h1>
-                                    {nation.membership && (
-                                        <Badge className={nation.membership === 'VCC' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'}>
-                                            {nation.membership === 'VCC' ? 'Full Member' : 'Associate'}
-                                        </Badge>
-                                    )}
-                                </div>
-                                {(nation.description || nation.federation_name) && (
-                                    <p className="mt-3 text-lg text-white/80 max-w-2xl">{nation.description || nation.federation_name}</p>
-                                )}
+                        <AdminOnly>
+                            <div className="flex gap-2 shrink-0">
+                                <Button size="sm" variant="outline" className="bg-black/20 border-white/25 text-white hover:bg-white/15 hover:text-white" onClick={() => setFlagCleanerOpen(true)}><Sparkles className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Clean flag</span></Button>
+                                <Button size="sm" variant="outline" className="bg-black/20 border-white/25 text-white hover:bg-white/15 hover:text-white" onClick={handleEdit}><Edit2 className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Edit nation</span></Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild><Button size="sm" variant="outline" className="bg-black/20 border-red-300/30 text-red-200 hover:bg-red-500/20 hover:text-red-100"><Trash2 className="w-4 h-4" /></Button></AlertDialogTrigger>
+                                    <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this nation.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+                                </AlertDialog>
                             </div>
-                            <AdminOnly>
-                                <div className="flex gap-2">
-                                    <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                                        <Edit2 className="w-4 h-4 mr-2" /> Edit
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle>
-                                                <AlertDialogDescription>This will permanently delete this nation.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600">Delete</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </AdminOnly>
+                        </AdminOnly>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-[190px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)] gap-6 md:gap-9 items-center">
+                        <div className="relative w-40 h-28 sm:w-48 sm:h-32 md:w-full md:h-36 flex items-center justify-center">
+                            <div className="absolute inset-[8%] rounded-[40%] blur-3xl opacity-45" style={{ backgroundColor: nation.secondary_color || nation.primary_color || '#ffffff' }} />
+                            {nation.flag_url ? <img src={nation.flag_url} alt={`${nation.name} flag`} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.48)]" /> : <div className="relative z-10 w-full h-full rounded-xl border border-white/20 bg-black/20 flex items-center justify-center"><Globe2 className="w-16 h-16 text-white/35" /></div>}
+                        </div>
+
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                {nation.region && <span className="text-[11px] uppercase tracking-[0.18em] font-semibold text-white/65">{nation.region}</span>}
+                                {nation.membership && <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${nation.membership === 'VCC' ? 'bg-amber-400/15 border-amber-300/30 text-amber-100' : 'bg-blue-400/15 border-blue-300/30 text-blue-100'}`}>{nation.membership === 'VCC' ? 'VFC Full Member' : 'VFC Associate'}</span>}
+                            </div>
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] leading-[0.95] text-white break-words">{nation.name}</h1>
+                            {(nation.description || nation.federation_name) && <p className="mt-4 text-base sm:text-lg text-white/72 max-w-3xl leading-relaxed">{nation.description || nation.federation_name}</p>}
+                            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/70">
+                                {nation.capital && <span className="flex items-center gap-1.5"><Building2 className="w-4 h-4" /> {nation.capital}</span>}
+                                {nation.language && <span className="flex items-center gap-1.5"><Languages className="w-4 h-4" /> {nation.language}</span>}
+                                {nation.federation_name && <span className="flex items-center gap-1.5"><Shield className="w-4 h-4" /> {nation.federation_name}</span>}
+                            </div>
                         </div>
                     </div>
-                </div>
-            ) : (
-            <PageHeader 
-                title={nation.name}
-                subtitle={nation.description || nation.federation_name}
-                image={nation.flag_url}
-                breadcrumbs={[
-                    { label: 'Nations', url: createPageUrl('Nations') },
-                    { label: nation.name }
-                ]}
-            >
-                <AdminOnly>
-                    <div className="flex gap-2">
-                        <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={handleEdit}>
-                            <Edit2 className="w-4 h-4 mr-2" />
-                            Edit
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20">
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete {nation.name}?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        This will permanently delete this nation. This action cannot be undone.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-red-600 hover:bg-red-700">
-                                        Delete
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                </AdminOnly>
-            </PageHeader>
-            )}
 
+                    <div className="mt-7 grid grid-cols-3 sm:grid-cols-5 border border-white/15 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm">
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-2xl font-black">{clubs.length}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Clubs</div></div>
+                        <div className="px-3 sm:px-4 py-3 border-r border-white/10"><div className="text-2xl font-black">{professionalLeagues.length}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Leagues</div></div>
+                        <div className="px-3 sm:px-4 py-3 sm:border-r border-white/10"><div className="text-2xl font-black">{domesticCups.length}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Domestic cups</div></div>
+                        <div className="hidden sm:block px-4 py-3 border-r border-white/10"><div className="text-2xl font-black">{nation.nation_strength || '—'}</div><div className="text-[10px] uppercase tracking-wider text-white/50">Strength</div></div>
+                        <div className="hidden sm:block px-4 py-3"><div className="text-sm font-bold leading-tight">{nation.founded_year || '—'}</div><div className="text-[10px] uppercase tracking-wider text-white/50 mt-1">Football since</div></div>
+                    </div>
+                </div>
+                <div className="h-1.5 flex"><div className="flex-[3]" style={{ backgroundColor: nation.primary_color || '#334155' }} /><div className="flex-[2]" style={{ backgroundColor: nation.secondary_color || nation.primary_color || '#111827' }} /></div>
+            </section>
+
+            <CrestCleaner
+                open={flagCleanerOpen}
+                onOpenChange={setFlagCleanerOpen}
+                item={nation}
+                entityType="Nation"
+                imageField="flag_url"
+                assetLabel="flag"
+                onSaved={() => {
+                    queryClient.invalidateQueries({ queryKey: ['nation', nationId] });
+                    queryClient.invalidateQueries({ queryKey: ['nations'] });
+                }}
+            />
             {/* Fast Facts Strip */}
             {(nation.capital || nation.language || nation.federation_name || nation.founded_year || nation.region) && (
                 <div className="bg-slate-800 border-b border-slate-700">
