@@ -299,13 +299,22 @@ export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs 
     const latestLeague = leagues.find(l => l.id === latest.league_id);
     const firstIdentity = identityForSeason(club, first, allClubs);
     const latestIdentity = identityForSeason(club, latest, allClubs);
-    const titleSeasons = ordered.filter(s => getHistoricalTier(s, leagues) === 1 && (s.status === 'champion' || Number(s.position) === 1));
-    const promotions = ordered.filter(s => s.status === 'promoted' || s.status === 'playoff_winner');
-    const relegations = ordered.filter(s => s.status === 'relegated');
+    const predecessorIds = new Set(lineage.predecessors.map(c => c.id));
+    const sameIdentityIds = new Set([club.id, ...lineage.formerNames.map(c => c.id)].filter(Boolean));
+    const sameIdentitySeasons = ordered.filter(s => !s.club_id || sameIdentityIds.has(s.club_id));
+    const predecessorSeasons = ordered.filter(s => s.club_id && predecessorIds.has(s.club_id));
+    const titleSeasons = sameIdentitySeasons.filter(s => getHistoricalTier(s, leagues) === 1 && (s.status === 'champion' || Number(s.position) === 1));
+    const promotions = sameIdentitySeasons.filter(s => s.status === 'promoted' || s.status === 'playoff_winner');
+    const relegations = sameIdentitySeasons.filter(s => s.status === 'relegated');
 
     const paragraphs = [];
-    const openingIdentity = firstIdentity && firstIdentity !== club.name ? `then competing as ${firstIdentity}` : `under the ${club.name} name`;
-    paragraphs.push(`${club.name}'s league story opens in ${first.year}, ${openingIdentity}, with a ${ordinal(first.position)}-place finish in ${firstLeague?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}. What followed was not a single straight climb but a changing place in the football order, stretching through to ${latest.year}, when ${latestIdentity || club.name} finished the season in ${latestLeague?.name || `Tier ${getHistoricalTier(latest, leagues) || '?'}`}.`);
+    const firstIsPredecessor = Boolean(first.club_id && predecessorIds.has(first.club_id));
+    if (firstIsPredecessor) {
+        paragraphs.push(`${club.name}'s wider football lineage reaches back to ${first.year}, when ${firstIdentity} finished ${ordinal(first.position)} in ${firstLeague?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}. That earlier club belongs to the ancestry of the present identity rather than being treated as ${club.name} under another name.`);
+    } else {
+        const openingIdentity = firstIdentity && firstIdentity !== club.name ? `then competing as ${firstIdentity}` : `under the ${club.name} name`;
+        paragraphs.push(`${club.name}'s league story opens in ${first.year}, ${openingIdentity}, with a ${ordinal(first.position)}-place finish in ${firstLeague?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}. What followed was not a single straight climb but a changing place in the football order, stretching through to ${latest.year}, when ${latestIdentity || club.name} finished the season in ${latestLeague?.name || `Tier ${getHistoricalTier(latest, leagues) || '?'}`}.`);
+    }
 
     if (lineage.isFormerName && lineage.currentName) {
         const renameYear = club.renamed_year || lineage.currentName.renamed_year;
@@ -321,7 +330,13 @@ export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs 
         const orderedPredecessors = [...lineage.predecessors].sort((a, b) => (a.defunct_year || a.founded_year || 0) - (b.defunct_year || b.founded_year || 0));
         const names = orderedPredecessors.map(c => c.name).join(orderedPredecessors.length > 1 ? ' and ' : '');
         const relationship = orderedPredecessors.length > 1 ? 'the earlier clubs' : 'the earlier club';
-        paragraphs.push(`${club.name}'s roots also run through ${names}. ${relationship.charAt(0).toUpperCase() + relationship.slice(1)} sit before the present organisation in the lineage, so their footballing past forms part of its ancestry without being rewritten as seasons played under the ${club.name} name.`);
+        const predecessorHonours = orderedPredecessors.map(predecessor => {
+            const branch = predecessorSeasons.filter(s => s.club_id === predecessor.id);
+            const branchTitles = branch.filter(s => getHistoricalTier(s, leagues) === 1 && (s.status === 'champion' || Number(s.position) === 1));
+            const span = branch.length ? `${branch[0].year}–${branch[branch.length - 1].year}` : null;
+            return branch.length ? `${predecessor.name} contributes ${branch.length} season${branch.length === 1 ? '' : 's'}${span ? ` across ${span}` : ''}${branchTitles.length ? `, including ${branchTitles.length} top-flight title${branchTitles.length === 1 ? '' : 's'}` : ''}` : null;
+        }).filter(Boolean);
+        paragraphs.push(`${club.name}'s roots also run through ${names}. ${relationship.charAt(0).toUpperCase() + relationship.slice(1)} sit before the present organisation in the lineage, so their footballing past forms part of its ancestry without being rewritten as seasons played under the ${club.name} name.${predecessorHonours.length ? ` ${predecessorHonours.join('; ')}.` : ''}`);
     }
 
     if (titleSeasons.length || promotions.length || relegations.length || club.domestic_cup_titles || club.vcc_titles || club.ccc_titles) {
