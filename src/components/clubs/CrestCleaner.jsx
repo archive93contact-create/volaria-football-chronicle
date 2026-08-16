@@ -107,6 +107,143 @@ function fillEnclosedTransparency(imageData) {
     return imageData;
 }
 
+function repairMissingWhitePanels(imageData, strength = 5) {
+    const { width, height, data } = imageData;
+    const size = width * height;
+    const originalVisible = new Uint8Array(size);
+
+    for (let p = 0; p < size; p += 1) {
+        originalVisible[p] = data[p * 4 + 3] >= 32 ? 1 : 0;
+    }
+
+    // Bridge small breaks in the badge outline. A previous background-removal pass often
+    // leaves 1-50px gaps in what should have been a closed shield/roundel boundary.
+    const minSide = Math.min(width, height);
+    const gapRatio = 0.004 + Math.max(1, Math.min(12, strength)) * 0.0025;
+    const maxGap = Math.max(2, Math.round(minSide * gapRatio));
+    let mask = originalVisible.slice();
+
+    const bridgeRows = (source) => {
+        const out = source.slice();
+        for (let y = 0; y < height; y += 1) {
+            let last = -1;
+            for (let x = 0; x < width; x += 1) {
+                const p = y * width + x;
+                if (!source[p]) continue;
+                if (last >= 0) {
+                    const gap = x - last - 1;
+                    if (gap > 0 && gap <= maxGap) {
+                        for (let fx = last + 1; fx < x; fx += 1) out[y * width + fx] = 1;
+                    }
+                }
+                last = x;
+            }
+        }
+        return out;
+    };
+
+    const bridgeCols = (source) => {
+        const out = source.slice();
+        for (let x = 0; x < width; x += 1) {
+            let last = -1;
+            for (let y = 0; y < height; y += 1) {
+                const p = y * width + x;
+                if (!source[p]) continue;
+                if (last >= 0) {
+                    const gap = y - last - 1;
+                    if (gap > 0 && gap <= maxGap) {
+                        for (let fy = last + 1; fy < y; fy += 1) out[fy * width + x] = 1;
+                    }
+                }
+                last = y;
+            }
+        }
+        return out;
+    };
+
+    // Two passes catches tiny diagonal/anti-aliased breaks without globally expanding the badge.
+    mask = bridgeCols(bridgeRows(mask));
+    mask = bridgeRows(bridgeCols(mask));
+
+    // Flood the true exterior using the repaired silhouette as the boundary.
+    const exterior = new Uint8Array(size);
+    const queue = new Int32Array(size);
+    let qStart = 0;
+    let qEnd = 0;
+    const addExterior = (x, y) => {
+        if (x < 0 || y < 0 || x >= width || y >= height) return;
+        const p = y * width + x;
+        if (exterior[p] || mask[p]) return;
+        exterior[p] = 1;
+        queue[qEnd++] = p;
+    };
+
+    for (let x = 0; x < width; x += 1) {
+        addExterior(x, 0);
+        addExterior(x, height - 1);
+    }
+    for (let y = 0; y < height; y += 1) {
+        addExterior(0, y);
+        addExterior(width - 1, y);
+    }
+
+    while (qStart < qEnd) {
+        const p = queue[qStart++];
+        const x = p % width;
+        const y = Math.floor(p / width);
+        addExterior(x + 1, y);
+        addExterior(x - 1, y);
+        addExterior(x, y + 1);
+        addExterior(x, y - 1);
+    }
+
+    // At stronger settings, infer the interior silhouette from crossings in both directions.
+    // This helps when a white panel has been deleted all the way through a larger opening.
+    let rowMin = null;
+    let rowMax = null;
+    let colMin = null;
+    let colMax = null;
+    if (strength >= 8) {
+        rowMin = new Int32Array(height).fill(width);
+        rowMax = new Int32Array(height).fill(-1);
+        colMin = new Int32Array(width).fill(height);
+        colMax = new Int32Array(width).fill(-1);
+        for (let y = 0; y < height; y += 1) {
+            for (let x = 0; x < width; x += 1) {
+                const p = y * width + x;
+                if (!mask[p]) continue;
+                if (x < rowMin[y]) rowMin[y] = x;
+                if (x > rowMax[y]) rowMax[y] = x;
+                if (y < colMin[x]) colMin[x] = y;
+                if (y > colMax[x]) colMax[x] = y;
+            }
+        }
+    }
+
+    let repaired = 0;
+    for (let p = 0; p < size; p += 1) {
+        if (data[p * 4 + 3] >= 32) continue;
+        const x = p % width;
+        const y = Math.floor(p / width);
+        const enclosedAfterRepair = !exterior[p];
+        const inferredInterior = strength >= 8 &&
+            rowMax[y] >= 0 && colMax[x] >= 0 &&
+            x > rowMin[y] && x < rowMax[y] &&
+            y > colMin[x] && y < colMax[x];
+
+        if (enclosedAfterRepair || inferredInterior) {
+            const o = p * 4;
+            data[o] = 255;
+            data[o + 1] = 255;
+            data[o + 2] = 255;
+            data[o + 3] = 255;
+            repaired += 1;
+        }
+    }
+
+    return { imageData, repaired, maxGap };
+}
+
 function trimCanvas(sourceCanvas, paddingRatio = 0.045) {
     const ctx = sourceCanvas.getContext('2d');
     const { width, height } = sourceCanvas;
@@ -154,6 +291,9 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
     const subject = item || club;
     const [threshold, setThreshold] = useState(242);
     const [fillHoles, setFillHoles] = useState(false);
+    const [repairWhite, setRepairWhite] = useState(false);
+    const [repairStrength, setRepairStrength] = useState(5);
+    const [repairInfo, setRepairInfo] = useState(null);
     const [trim, setTrim] = useState(true);
     const [sourceUrl, setSourceUrl] = useState(subject?.[imageField] || '');
     const [sourceName, setSourceName] = useState(`current ${assetLabel}`);
@@ -169,6 +309,7 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
         setSourceName(`current ${assetLabel}`);
         setWorkingCanvas(null);
         setPreviewUrl('');
+        setRepairInfo(null);
         setError('');
     }, [open, subject?.[imageField], imageField]);
 
@@ -216,7 +357,17 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
             if (!alreadyTransparent) {
                 imageData = removeEdgeConnectedWhite(imageData, threshold);
             }
-            if (fillHoles) imageData = fillEnclosedTransparency(imageData);
+
+            if (repairWhite) {
+                const repaired = repairMissingWhitePanels(imageData, repairStrength);
+                imageData = repaired.imageData;
+                setRepairInfo({ pixels: repaired.repaired, maxGap: repaired.maxGap });
+            } else if (fillHoles) {
+                imageData = fillEnclosedTransparency(imageData);
+                setRepairInfo(null);
+            } else {
+                setRepairInfo(null);
+            }
             ctx.putImageData(imageData, 0, 0);
 
             const finalCanvas = trim ? trimCanvas(canvas) : canvas;
@@ -237,6 +388,7 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
             setError(e.message || 'Could not clean crest');
             setWorkingCanvas(null);
             setPreviewUrl('');
+            setRepairInfo(null);
         } finally {
             setIsProcessing(false);
         }
@@ -245,7 +397,7 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
     useEffect(() => {
         if (open && sourceUrl) processImage();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, sourceUrl, threshold, fillHoles, trim]);
+    }, [open, sourceUrl, threshold, fillHoles, repairWhite, repairStrength, trim]);
 
     const handleLocalFile = (event) => {
         const file = event.target.files?.[0];
@@ -312,8 +464,22 @@ export default function CrestCleaner({ open, onOpenChange, club, item, entityTyp
                         <p className="text-xs text-slate-500">Lower = more aggressive. If the source already has transparent outer edges, white removal is skipped automatically so genuine white parts of the badge are left alone.</p>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                        <div><Label>Restore internal transparent holes to white</Label><p className="text-xs text-slate-500 mt-1">Useful for crests where an earlier transparency pass accidentally removed white parts.</p></div>
-                        <Switch checked={fillHoles} onCheckedChange={setFillHoles} />
+                        <div><Label>Restore fully enclosed white holes</Label><p className="text-xs text-slate-500 mt-1">Conservative repair for transparent patches that are completely surrounded by the badge.</p></div>
+                        <Switch checked={fillHoles} onCheckedChange={(checked) => { setFillHoles(checked); if (checked) setRepairWhite(false); }} />
+                    </div>
+                    <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3">
+                        <div className="flex items-center justify-between gap-4">
+                            <div><Label>Repair missing white panels</Label><p className="text-xs text-slate-500 mt-1">For damaged transparent crests where white areas connect to the outside through broken outlines or gaps.</p></div>
+                            <Switch checked={repairWhite} onCheckedChange={(checked) => { setRepairWhite(checked); if (checked) setFillHoles(false); }} />
+                        </div>
+                        {repairWhite && (
+                            <div className="space-y-2 pt-1">
+                                <div className="flex items-center justify-between"><Label className="text-xs">Repair strength</Label><span className="text-xs font-mono text-slate-500">{repairStrength}/12</span></div>
+                                <Slider value={[repairStrength]} onValueChange={(v) => setRepairStrength(v[0])} min={1} max={12} step={1} />
+                                <p className="text-xs text-slate-500">Start around 4–6. Increase it only until the missing white returns. Levels 8–12 can reconstruct larger broken panels, so use the preview carefully on unusual open-shaped badges.</p>
+                                {repairInfo && <p className="text-[11px] text-slate-400">Preview repaired {repairInfo.pixels.toLocaleString()} transparent pixels; outline gaps up to about {repairInfo.maxGap}px are being bridged.</p>}
+                            </div>
+                        )}
                     </div>
                     <div className="flex items-center justify-between gap-4">
                         <div><Label>Trim empty outer padding</Label><p className="text-xs text-slate-500 mt-1">Makes the badge itself appear larger in headers without changing its proportions.</p></div>
