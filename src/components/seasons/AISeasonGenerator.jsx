@@ -334,6 +334,8 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
                                     value={promotionSpots} 
                                     onChange={(e) => setPromotionSpots(parseInt(e.target.value) || 0)}
                                     className="mt-1"
+                                    disabled={Number(league?.tier) === 1}
+                                    title={Number(league?.tier) === 1 ? 'Top-flight clubs cannot be promoted upward' : undefined}
                                 />
                             </div>
                             <div>
