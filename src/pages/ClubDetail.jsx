@@ -593,72 +593,40 @@ export default function ClubDetail() {
                     )}
                 </div>
 
-                {/* Title Years */}
-                {combinedStats?.title_years && (
-                    <Card 
-                        className="border-0 shadow-sm mb-4 bg-gradient-to-r from-amber-50 to-yellow-50"
-                        style={{ 
-                            borderLeft: club.accent_color ? `4px solid ${club.accent_color}` : '4px solid #f59e0b',
-                            backgroundColor: club.primary_color ? `${club.primary_color}08` : undefined
-                        }}
-                    >
-                        <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                                <Trophy className="w-8 h-8 text-amber-500" />
-                                <div>
-                                    <div className="font-semibold text-amber-800">League Championship Titles</div>
-                                    <div className="text-amber-700">{combinedStats.title_years}</div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Cup Title Years */}
-                {combinedStats?.domestic_cup_title_years && (
-                    <Card 
-                        className="border-0 shadow-sm mb-4 bg-gradient-to-r from-orange-50 to-amber-50"
-                        style={{ 
-                            borderLeft: club.secondary_color ? `4px solid ${club.secondary_color}` : '4px solid #fb923c'
-                        }}
-                    >
-                        <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                                <Award className="w-8 h-8 text-orange-500" />
-                                <div>
-                                    <div className="font-semibold text-orange-800">Domestic Cup Titles</div>
-                                    <div className="text-orange-700">{combinedStats.domestic_cup_title_years}</div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-
-
-                {/* Continental Title Years */}
-                {(combinedStats?.vcc_title_years || combinedStats?.ccc_title_years) && (
-                    <Card 
-                        className="border-0 shadow-sm mb-8 bg-gradient-to-r from-purple-50 to-indigo-50"
-                        style={{ 
-                            borderLeft: club.accent_color ? `4px solid ${club.accent_color}` : '4px solid #a855f7'
-                        }}
-                    >
-                        <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                                <Star className="w-8 h-8 text-purple-500" />
-                                <div>
-                                    <div className="font-semibold text-purple-800">Continental Titles</div>
-                                    {combinedStats.vcc_title_years && (
-                                        <div className="text-purple-700">VCC: {combinedStats.vcc_title_years}</div>
-                                    )}
-                                    {combinedStats.ccc_title_years && (
-                                        <div className="text-indigo-700">CCC: {combinedStats.ccc_title_years}</div>
-                                    )}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Honours timeline - one visual language, using the club palette */}
+                {(combinedStats?.title_years || combinedStats?.domestic_cup_title_years || combinedStats?.vcc_title_years || combinedStats?.ccc_title_years) && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+                        {combinedStats?.title_years && (
+                            <Card className="border border-slate-200 shadow-sm bg-white" style={{ borderTop: `3px solid ${clubTheme.ui}` }}>
+                                <CardContent className="p-4">
+                                    <Trophy className="w-6 h-6 mb-3" style={{ color: clubTheme.ui }} />
+                                    <div className="text-xs font-black uppercase tracking-wider text-slate-400">League championships</div>
+                                    <div className="mt-1 text-sm font-semibold text-slate-800 leading-relaxed">{combinedStats.title_years}</div>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {combinedStats?.domestic_cup_title_years && (
+                            <Card className="border border-slate-200 shadow-sm bg-white" style={{ borderTop: `3px solid ${clubTheme.ui}` }}>
+                                <CardContent className="p-4">
+                                    <Award className="w-6 h-6 mb-3" style={{ color: clubTheme.ui }} />
+                                    <div className="text-xs font-black uppercase tracking-wider text-slate-400">Domestic cups</div>
+                                    <div className="mt-1 text-sm font-semibold text-slate-800 leading-relaxed">{combinedStats.domestic_cup_title_years}</div>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {(combinedStats?.vcc_title_years || combinedStats?.ccc_title_years) && (
+                            <Card className="border border-slate-200 shadow-sm bg-white" style={{ borderTop: `3px solid ${clubTheme.ui}` }}>
+                                <CardContent className="p-4">
+                                    <Star className="w-6 h-6 mb-3" style={{ color: clubTheme.ui }} />
+                                    <div className="text-xs font-black uppercase tracking-wider text-slate-400">Continental titles</div>
+                                    <div className="mt-1 text-sm font-semibold text-slate-800 leading-relaxed">
+                                        {combinedStats.vcc_title_years && <div>VCC · {combinedStats.vcc_title_years}</div>}
+                                        {combinedStats.ccc_title_years && <div>CCC · {combinedStats.ccc_title_years}</div>}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
                 )}
 
 
