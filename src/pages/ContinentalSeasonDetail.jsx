@@ -209,52 +209,29 @@ export default function ContinentalSeasonDetail() {
 
                 {/* Final Info */}
                 {season.champion_name && (
-                    <Card className="border-0 shadow-sm mb-8 bg-gradient-to-r from-amber-50 to-yellow-50">
-                        <CardContent className="p-6">
-                            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-                                <div className="text-center">
-                                    <div className="text-sm text-slate-500 mb-1">Champion</div>
-                                    <div className="flex items-center gap-2">
-                                        {getNationFlag(season.champion_nation) && (
-                                            <img src={getNationFlag(season.champion_nation)} alt="" className="w-6 h-4 object-contain" />
-                                        )}
-                                        {(() => {
-                                            const champClub = clubs.find(c => c.name === season.champion_name);
-                                            return champClub ? (
-                                                <Link to={createPageUrl(`ClubDetail?id=${champClub.id}`)} className="text-xl font-bold text-emerald-700 hover:underline">{season.champion_name}</Link>
-                                            ) : (
-                                                <span className="text-xl font-bold text-emerald-700">{season.champion_name}</span>
-                                            );
-                                        })()}
-                                    </div>
+                    <Card className="relative overflow-hidden border shadow-sm mb-8" style={{ borderColor: competitionTheme.border, background: `radial-gradient(circle at 0% 0%, ${competitionTheme.tintStrong} 0%, transparent 46%), linear-gradient(135deg, ${competitionTheme.tint} 0%, #fff 40%)` }}>
+                        {competition.logo_url && <img src={competition.logo_url} alt="" aria-hidden="true" className="pointer-events-none absolute -right-10 -bottom-20 w-56 h-56 object-contain opacity-[0.035] grayscale" />}
+                        <div className="h-[3px]" style={{ background: `linear-gradient(90deg, ${competitionTheme.ui}, ${competitionTheme.accent}, transparent 82%)` }} />
+                        <CardContent className="relative p-5 sm:p-7">
+                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 sm:gap-8">
+                                <div className="text-center min-w-0">
+                                    {championClub?.logo_url && <img src={championClub.logo_url} alt={`${championClub.name} crest`} className="w-16 h-16 sm:w-20 sm:h-20 object-contain mx-auto mb-3" />}
+                                    <div className="text-[10px] uppercase tracking-wider font-black text-slate-400 mb-1">Champion</div>
+                                    {championClub ? <Link to={createPageUrl(`ClubDetail?id=${championClub.id}`)} className="text-lg sm:text-2xl font-black text-slate-950 hover:underline block truncate">{championClub.name}</Link> : <div className="text-lg sm:text-2xl font-black text-slate-950 truncate">{season.champion_name}</div>}
+                                    <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-slate-500">{championNation?.flag_url && <img src={championNation.flag_url} alt="" className="w-5 h-3.5 object-contain" />}<span>{championNation?.name || season.champion_nation}</span></div>
                                 </div>
-                                {season.final_score && (
-                                    <div className="text-3xl font-bold text-slate-700">{season.final_score}</div>
-                                )}
-                                {season.runner_up && (
-                                    <div className="text-center">
-                                        <div className="text-sm text-slate-500 mb-1">Runner-up</div>
-                                        <div className="flex items-center gap-2">
-                                            {getNationFlag(season.runner_up_nation) && (
-                                                <img src={getNationFlag(season.runner_up_nation)} alt="" className="w-6 h-4 object-contain" />
-                                            )}
-                                            {(() => {
-                                                const runnerClub = clubs.find(c => c.name === season.runner_up);
-                                                return runnerClub ? (
-                                                    <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="text-xl font-bold text-slate-600 hover:underline">{season.runner_up}</Link>
-                                                ) : (
-                                                    <span className="text-xl font-bold text-slate-600">{season.runner_up}</span>
-                                                );
-                                            })()}
-                                        </div>
-                                    </div>
-                                )}
+                                <div className="text-center min-w-20 sm:min-w-32">
+                                    <Trophy className="w-5 h-5 mx-auto mb-1" style={{ color: competitionTheme.ui }} />
+                                    <div className="text-2xl sm:text-3xl font-black text-slate-800">{season.final_score || 'vs'}</div>
+                                    {season.final_venue && <div className="mt-1 text-[10px] sm:text-xs text-slate-400 max-w-36 line-clamp-2">{season.final_venue}</div>}
+                                </div>
+                                <div className="text-center min-w-0">
+                                    {runnerClub?.logo_url && <img src={runnerClub.logo_url} alt={`${runnerClub.name} crest`} className="w-16 h-16 sm:w-20 sm:h-20 object-contain mx-auto mb-3" />}
+                                    <div className="text-[10px] uppercase tracking-wider font-black text-slate-400 mb-1">Runner-up</div>
+                                    {runnerClub ? <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="text-lg sm:text-2xl font-bold text-slate-700 hover:underline block truncate">{runnerClub.name}</Link> : <div className="text-lg sm:text-2xl font-bold text-slate-700 truncate">{season.runner_up}</div>}
+                                    <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-slate-500">{runnerNation?.flag_url && <img src={runnerNation.flag_url} alt="" className="w-5 h-3.5 object-contain" />}<span>{runnerNation?.name || season.runner_up_nation}</span></div>
+                                </div>
                             </div>
-                            {season.final_venue && (
-                                <div className="text-center mt-4 text-sm text-slate-500">
-                                    Final played at {season.final_venue}
-                                </div>
-                            )}
                         </CardContent>
                     </Card>
                 )}
