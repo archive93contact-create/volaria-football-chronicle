@@ -40,10 +40,10 @@ export async function syncCupStatsToClubs(nationId = null) {
     const cups = await base44.entities.DomesticCup.list();
     const clubs = await base44.entities.Club.list();
     
-    // Filter by nation if specified, and only main cups
-    const relevantCups = nationId 
-        ? cups.filter(c => c.nation_id === nationId && c.is_main_cup !== false)
-        : cups.filter(c => c.is_main_cup !== false);
+    // Club aggregate stats use the nation's main/premier cup(s), but every cup still
+    // gets its own current-champion/title-leader headline updated below.
+    const nationCups = nationId ? cups.filter(c => c.nation_id === nationId) : cups;
+    const relevantCups = nationCups.filter(c => c.is_main_cup !== false);
     const cupIds = relevantCups.map(c => c.id);
     const relevantSeasons = cupSeasons.filter(s => cupIds.includes(s.cup_id));
     
@@ -128,9 +128,10 @@ export async function syncCupStatsToClubs(nationId = null) {
     
     await Promise.all(updates);
 
-    // Keep each domestic cup's headline fields derived from its own season history.
-    for (const cup of relevantCups) {
-        const cupHistory = relevantSeasons
+    // Keep EVERY domestic cup's headline fields derived from its own season history,
+    // including secondary, regional and district cups that do not feed the main-cup aggregate.
+    for (const cup of nationCups) {
+        const cupHistory = cupSeasons
             .filter(season => season.cup_id === cup.id)
             .sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }));
         if (!cupHistory.length) continue;
