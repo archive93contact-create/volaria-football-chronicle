@@ -1,0 +1,43 @@
+{
+  "name": "ClubNarrativeSnapshot",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Club ID"
+    },
+    "through_year": {
+      "type": "string",
+      "description": "Latest season year included in this snapshot"
+    },
+    "formation_story": {
+      "type": "string",
+      "description": "Grounded formation/origin narrative"
+    },
+    "historical_narrative": {
+      "type": "string",
+      "description": "Ongoing data-derived club history through this season"
+    },
+    "era_summary": {
+      "type": "string",
+      "description": "Short structured summary of detected eras"
+    },
+    "insight_summary": {
+      "type": "string",
+      "description": "Short summary of comparative and historical insights"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the narrative snapshot was generated"
+    },
+    "generation_version": {
+      "type": "string",
+      "description": "Prompt/model logic version"
+    }
+  },
+  "required": [
+    "club_id",
+    "through_year"
+  ]
+}

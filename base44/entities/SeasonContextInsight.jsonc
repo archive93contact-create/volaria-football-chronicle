@@ -1,0 +1,23 @@
+{
+  "name": "SeasonContextInsight",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "year": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "importance": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "club_id",
+    "year",
+    "summary"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "ClubFormationProposal",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Club ID"
+    },
+    "formation_type": {
+      "type": "string",
+      "description": "Proposed founding context"
+    },
+    "story": {
+      "type": "string",
+      "description": "Proposed formation story"
+    },
+    "name_origin": {
+      "type": "string",
+      "description": "Proposed name origin"
+    },
+    "colour_origin": {
+      "type": "string",
+      "description": "Proposed colour origin"
+    },
+    "early_ground": {
+      "type": "string",
+      "description": "Proposed early ground context"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Grounding notes showing which stored facts informed the proposal"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "accepted": {
+      "type": "boolean",
+      "description": "Whether proposal was accepted into ClubOrigin"
+    }
+  },
+  "required": [
+    "club_id",
+    "story"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "ClubEraSummary",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "latest_year": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "club_id"
+  ]
+}

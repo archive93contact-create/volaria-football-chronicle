@@ -1,0 +1,57 @@
+{
+  "name": "ClubEra",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Club ID"
+    },
+    "start_year": {
+      "type": "string",
+      "description": "First season in detected era"
+    },
+    "end_year": {
+      "type": "string",
+      "description": "Last season in detected era"
+    },
+    "era_type": {
+      "type": "string",
+      "enum": [
+        "golden_era",
+        "rise",
+        "decline",
+        "yo_yo",
+        "top_flight_stability",
+        "lower_league_stability",
+        "revival",
+        "wilderness",
+        "dynasty",
+        "transition"
+      ],
+      "description": "Detected historical era type"
+    },
+    "label": {
+      "type": "string",
+      "description": "Human-readable era label"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Data-derived explanation of why this era was detected"
+    },
+    "score": {
+      "type": "number",
+      "description": "Relative strength/confidence score for the era"
+    },
+    "generated_from_year": {
+      "type": "string",
+      "description": "Latest season available when this era was calculated"
+    }
+  },
+  "required": [
+    "club_id",
+    "start_year",
+    "end_year",
+    "era_type",
+    "label"
+  ]
+}

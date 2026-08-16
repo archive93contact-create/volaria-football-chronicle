@@ -1,0 +1,55 @@
+{
+  "name": "StadiumHistory",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Owning club ID"
+    },
+    "stadium_name": {
+      "type": "string",
+      "description": "Ground/stadium name used during this period"
+    },
+    "start_year": {
+      "type": "number",
+      "description": "First year the club used this ground"
+    },
+    "end_year": {
+      "type": "number",
+      "description": "Final year the club used this ground; blank if current"
+    },
+    "capacity": {
+      "type": "number",
+      "description": "Recorded capacity during this period"
+    },
+    "ground_grade": {
+      "type": "number",
+      "description": "Ground grade 0-5 during this period"
+    },
+    "has_floodlights": {
+      "type": "boolean",
+      "description": "Whether floodlights were installed during this period"
+    },
+    "is_current": {
+      "type": "boolean",
+      "description": "Whether this is the club's current home ground",
+      "default": false
+    },
+    "move_reason": {
+      "type": "string",
+      "description": "Recorded reason for moving into or leaving the ground"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional verified or user-authored ground history"
+    },
+    "generated_context": {
+      "type": "string",
+      "description": "Short provenance/context note for AI-proposed names or descriptions"
+    }
+  },
+  "required": [
+    "club_id",
+    "stadium_name"
+  ]
+}

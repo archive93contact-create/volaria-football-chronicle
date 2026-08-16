@@ -1,0 +1,26 @@
+{
+  "name": "ClubNarrativeMetric",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "through_year": {
+      "type": "string"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "value": {
+      "type": "number"
+    },
+    "label": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "club_id",
+    "through_year",
+    "metric"
+  ]
+}

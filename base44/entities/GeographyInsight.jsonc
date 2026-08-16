@@ -1,0 +1,64 @@
+{
+  "name": "GeographyInsight",
+  "type": "object",
+  "properties": {
+    "nation_id": {
+      "type": "string",
+      "description": "Nation ID"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Region/district/settlement name"
+    },
+    "location_type": {
+      "type": "string",
+      "enum": [
+        "region",
+        "district",
+        "settlement"
+      ],
+      "description": "Geographic level"
+    },
+    "club_count": {
+      "type": "number",
+      "description": "Tracked clubs in this location"
+    },
+    "top_flight_club_count": {
+      "type": "number",
+      "description": "Clubs with top-flight history"
+    },
+    "top_flight_seasons": {
+      "type": "number",
+      "description": "Combined top-flight seasons"
+    },
+    "league_titles": {
+      "type": "number",
+      "description": "Combined top-tier league titles"
+    },
+    "domestic_cup_titles": {
+      "type": "number",
+      "description": "Combined main domestic cup titles"
+    },
+    "continental_titles": {
+      "type": "number",
+      "description": "Combined continental titles"
+    },
+    "clubs_per_100k": {
+      "type": "number",
+      "description": "Clubs per 100,000 population where population is known"
+    },
+    "football_strength_score": {
+      "type": "number",
+      "description": "Composite football strength score for geographic comparison"
+    },
+    "through_year": {
+      "type": "string",
+      "description": "Latest season included"
+    }
+  },
+  "required": [
+    "nation_id",
+    "location_name",
+    "location_type"
+  ]
+}

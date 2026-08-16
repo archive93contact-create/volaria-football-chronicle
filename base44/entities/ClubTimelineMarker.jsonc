@@ -1,0 +1,24 @@
+{
+  "name": "ClubTimelineMarker",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "year": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "club_id",
+    "year",
+    "kind",
+    "label"
+  ]
+}

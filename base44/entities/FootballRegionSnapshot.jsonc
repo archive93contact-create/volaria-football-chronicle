@@ -1,0 +1,26 @@
+{
+  "name": "FootballRegionSnapshot",
+  "type": "object",
+  "properties": {
+    "nation_id": {
+      "type": "string"
+    },
+    "location_name": {
+      "type": "string"
+    },
+    "location_type": {
+      "type": "string"
+    },
+    "through_year": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nation_id",
+    "location_name",
+    "location_type"
+  ]
+}

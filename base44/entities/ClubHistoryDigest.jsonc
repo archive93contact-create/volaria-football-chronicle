@@ -1,0 +1,19 @@
+{
+  "name": "ClubHistoryDigest",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "through_year": {
+      "type": "string"
+    },
+    "digest": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "club_id",
+    "through_year"
+  ]
+}

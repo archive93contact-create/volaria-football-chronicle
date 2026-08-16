@@ -1,0 +1,16 @@
+{
+  "name": "ClubHistoryNote",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "club_id",
+    "text"
+  ]
+}

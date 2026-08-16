@@ -1,0 +1,54 @@
+{
+  "name": "ClubComparisonSnapshot",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Club ID"
+    },
+    "through_year": {
+      "type": "string",
+      "description": "Latest season included"
+    },
+    "nation_rank_top_flight_seasons": {
+      "type": "number",
+      "description": "Rank in nation by top-flight seasons"
+    },
+    "nation_percentile_top_flight": {
+      "type": "number",
+      "description": "Percentile in nation by top-flight seasons"
+    },
+    "nation_rank_titles": {
+      "type": "number",
+      "description": "Rank in nation by top-tier titles"
+    },
+    "nation_rank_seasons_played": {
+      "type": "number",
+      "description": "Rank in nation by total tracked seasons"
+    },
+    "league_rank_current_stint": {
+      "type": "number",
+      "description": "Rank in current league by consecutive current seasons"
+    },
+    "promotion_conversion_percentile": {
+      "type": "number",
+      "description": "Percentile versus comparable clubs for promotion outcomes"
+    },
+    "recent_finish_delta": {
+      "type": "number",
+      "description": "Change in average finish between recent and previous windows"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Data-derived comparison summary"
+    },
+    "calculated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "club_id",
+    "through_year"
+  ]
+}

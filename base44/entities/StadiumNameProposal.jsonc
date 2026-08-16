@@ -1,0 +1,44 @@
+{
+  "name": "StadiumNameProposal",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Club ID"
+    },
+    "proposed_name": {
+      "type": "string",
+      "description": "Proposed stadium name"
+    },
+    "name_type": {
+      "type": "string",
+      "enum": [
+        "road",
+        "district",
+        "landmark",
+        "field",
+        "park",
+        "works",
+        "municipal",
+        "traditional"
+      ],
+      "description": "Naming pattern used"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why this name fits the club/location/canon"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_accepted": {
+      "type": "boolean",
+      "description": "Whether proposal was accepted"
+    }
+  },
+  "required": [
+    "club_id",
+    "proposed_name"
+  ]
+}

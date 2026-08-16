@@ -1,0 +1,60 @@
+{
+  "name": "ClubOrigin",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Club ID"
+    },
+    "formation_type": {
+      "type": "string",
+      "enum": [
+        "workplace",
+        "church",
+        "school",
+        "neighbourhood",
+        "social_club",
+        "military",
+        "railway",
+        "industrial",
+        "community",
+        "merger",
+        "breakaway",
+        "unknown"
+      ],
+      "description": "Origin type for the club"
+    },
+    "formation_story": {
+      "type": "string",
+      "description": "Approved immersive formation narrative"
+    },
+    "founder_context": {
+      "type": "string",
+      "description": "Approved context about the founding group, without fabricated named individuals unless explicitly supplied"
+    },
+    "original_ground_context": {
+      "type": "string",
+      "description": "Approved early-ground context"
+    },
+    "name_origin": {
+      "type": "string",
+      "description": "Approved explanation for the club name"
+    },
+    "colour_origin": {
+      "type": "string",
+      "description": "Approved explanation for club colours"
+    },
+    "is_ai_proposed": {
+      "type": "boolean",
+      "description": "Whether this origin was AI-proposed and reviewed",
+      "default": true
+    },
+    "canon_notes": {
+      "type": "string",
+      "description": "User notes/constraints that should override regeneration"
+    }
+  },
+  "required": [
+    "club_id"
+  ]
+}

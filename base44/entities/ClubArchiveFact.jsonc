@@ -1,0 +1,23 @@
+{
+  "name": "ClubArchiveFact",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "year": {
+      "type": "string"
+    },
+    "fact_type": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "club_id",
+    "fact_type",
+    "text"
+  ]
+}
