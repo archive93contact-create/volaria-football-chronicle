@@ -855,9 +855,11 @@ export default function ClubDetail() {
                 )}
 
                 <ClubOriginPanel
-                    club={club}
+                    club={{...club, ...combinedStats}}
                     nation={nation}
                     league={league}
+                    seasons={combinedSeasons}
+                    allLeagues={allLeagues}
                     allClubs={allClubs}
                     accentColor={clubTheme.ui}
                 />
