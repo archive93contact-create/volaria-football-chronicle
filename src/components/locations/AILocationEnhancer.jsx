@@ -25,14 +25,15 @@ export default function AILocationEnhancer({ location, nation, onUpdate }) {
             const locationType = location.type === 'settlement' ? (location.settlement_size || 'town') : location.type;
             const context = `
 ${location.name} is a ${locationType} in ${nation.name}, a nation in the ${nation.region || 'fictional'} region of Volaria.
-Nation language: ${nation.language || 'English'}
-Nation culture: ${nation.culture || 'diverse'}
+Nation language: ${nation.language || 'not specified'}
+Nation naming styles: ${Array.isArray(nation.naming_styles) ? nation.naming_styles.join(', ') : nation.naming_styles || 'not specified'}
+Nation culture: ${nation.culture || 'not specified'}
 ${location.type === 'settlement' ? `Part of ${location.parent_district || location.parent_region || 'the country'}` : ''}
 ${location.clubs?.length > 0 ? `Has ${location.clubs.length} football club(s)` : ''}
 Population: ~${location.population?.toLocaleString() || 'unknown'}
             `.trim();
 
-            const prompt = `Generate detailed, immersive local content for this location. CRITICAL: All names MUST sound authentic to the ${nation.language || 'local'} language - NOT English. Use the language's phonetics, word structure, and naming conventions.
+            const prompt = `Expand the canon for this fictional location using the supplied facts as constraints. This is CREATIVE WORLD-BUILDING, not real-world research.
 
 Context:
 ${context}
@@ -47,10 +48,18 @@ Generate the following as a JSON object:
   "industries": "Primary local industries and economic activities"
 }
 
-CRITICAL: Do NOT use English words in names. Research the language phonetics and create authentic-sounding names.`;
+CANON RULES:
+- Preserve all supplied location/nation facts and parent geography. Do not contradict the stored population, settlement type, nation culture or club count.
+- Media outlets, companies and landmarks you create are proposed NEW CANON. Make them plausible and useful, but do not imply they were already known facts.
+- Follow the nation's stored language/naming styles when they are defined. If they are sparse, use internally consistent invented names rather than randomly borrowing real-world words.
+- Do not invent a river, mountain, founder, historical event, industry or landmark and then refer to it as established history outside the field where you are explicitly proposing that new canon.
+- Avoid lazy English templates such as '[Town] Herald', '[Town] Industries' or '[Town] Radio' unless English is explicitly appropriate.
+- Keep the scale proportional to the recorded population and settlement type: a village should not receive a capital-city economy or infrastructure.
+- Return only the requested JSON fields.`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
+                add_context_from_internet: false,
                 response_json_schema: {
                     type: "object",
                     properties: {
