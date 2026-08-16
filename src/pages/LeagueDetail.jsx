@@ -43,6 +43,7 @@ import LeagueMatchAnalytics from '@/components/leagues/LeagueMatchAnalytics';
 import PersonalizedLeagueStory from '@/components/leagues/PersonalizedLeagueStory';
 import LeagueTierSwitcher from '@/components/leagues/LeagueTierSwitcher';
 import LeagueCrestBanner from '@/components/leagues/LeagueCrestBanner';
+import CrestCleaner from '@/components/clubs/CrestCleaner';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -58,6 +59,7 @@ export default function LeagueDetail() {
     const [seasonEditData, setSeasonEditData] = useState({});
     const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
     const [generatorYear, setGeneratorYear] = useState('');
+    const [logoCleanerOpen, setLogoCleanerOpen] = useState(false);
 
     const { data: league } = useQuery({
         queryKey: ['league', leagueId],
