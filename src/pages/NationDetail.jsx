@@ -288,7 +288,7 @@ export default function NationDetail() {
             />
             {/* Fast Facts Strip */}
             {(nation.capital || nation.language || nation.federation_name || nation.founded_year || nation.region) && (
-                <div className="bg-slate-800 border-b border-slate-700">
+                <div className="hidden md:block bg-slate-800 border-b border-slate-700">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
                         <div className="flex flex-wrap gap-4 md:gap-8 text-sm">
                             {nation.federation_name && (
@@ -437,19 +437,17 @@ export default function NationDetail() {
 
                 {/* Tabs for main content */}
                 <Tabs defaultValue="overview" className="mt-6">
-                    <TabsList className="mb-6 flex-wrap h-auto">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="pyramid">Pyramid</TabsTrigger>
-                        <TabsTrigger value="youth-structure">Youth Structure</TabsTrigger>
-                        <TabsTrigger value="geo-stats">Geography</TabsTrigger>
-                        <TabsTrigger value="eras">Eras</TabsTrigger>
-                        <TabsTrigger value="flow">Flow</TabsTrigger>
-                        <TabsTrigger value="national-squad">Squad</TabsTrigger>
-                        <TabsTrigger value="season-overview">Season</TabsTrigger>
-                        <TabsTrigger value="details">Details</TabsTrigger>
-                        <TabsTrigger value="clubs">Success</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                    </TabsList>
+                    <div className="-mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto mb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="h-11 sm:h-12 w-max min-w-full justify-start gap-0 sm:gap-1 rounded-none border-b border-slate-200 bg-transparent p-0">
+                            {[
+                                ['overview', 'Overview'], ['pyramid', 'Pyramid'], ['youth-structure', 'Youth'], ['geo-stats', 'Geography'],
+                                ['eras', 'Eras'], ['flow', 'Flow'], ['national-squad', 'Squad'], ['season-overview', 'Season'],
+                                ['details', 'Details'], ['clubs', 'Success'], ['analytics', 'Analytics']
+                            ].map(([value, label]) => (
+                                <TabsTrigger key={value} value={value} className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--nation-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">{label}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </div>
 
                     <TabsContent value="pyramid">
                         <EnhancedLeaguePyramid leagues={professionalLeagues} seasons={seasons} clubs={clubs} nationId={nationId} />
