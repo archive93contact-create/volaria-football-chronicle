@@ -466,7 +466,7 @@ export default function LeagueDetail() {
                                                                 return (
                                                                     <span className="flex items-center gap-1">
                                                                         {row.club_id ? (
-                                                                            <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:text-emerald-600 hover:underline">
+                                                                            <Link to={createPageUrl(`ClubDetail?id=${row.club_id}`)} className="hover:underline">
                                                                                 {displayName}
                                                                             </Link>
                                                                         ) : displayName}
@@ -583,13 +583,13 @@ export default function LeagueDetail() {
                         <ThemedCard 
                             title="Clubs"
                             icon={Shield}
-                            primaryColor={league.primary_color}
-                            accentColor={league.accent_color}
+                            primaryColor={leagueTheme.ui}
+                            accentColor={leagueTheme.ui}
                         >
                             <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
                                 <AdminOnly>
                                     <Link to={createPageUrl(`AddClub?nation_id=${league.nation_id}&league_id=${leagueId}`)}>
-                                        <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Club</Button>
+                                        <Button className="text-white" style={{ backgroundColor: leagueTheme.ui }}><Plus className="w-4 h-4 mr-2" /> Add Club</Button>
                                     </Link>
                                 </AdminOnly>
                             </CardHeader>
@@ -646,8 +646,8 @@ export default function LeagueDetail() {
                         <ThemedCard 
                             title="All-Time Title Winners"
                             icon={Trophy}
-                            primaryColor={league.primary_color}
-                            accentColor={league.accent_color}
+                            primaryColor={leagueTheme.ui}
+                            accentColor={leagueTheme.ui}
                         >
                             <CardHeader className="p-0 pb-4"></CardHeader>
                             <CardContent>
@@ -693,7 +693,7 @@ export default function LeagueDetail() {
                                                             </span>
                                                         </TableCell>
                                                         <TableCell className="text-center">
-                                                            <span className="font-bold text-emerald-600">{data.count}</span>
+                                                            <span className="font-bold" style={{ color: leagueTheme.ui }}>{data.count}</span>
                                                         </TableCell>
                                                         <TableCell className="hidden md:table-cell text-slate-500 text-sm">
                                                             {data.years.sort().join(', ')}
@@ -713,8 +713,8 @@ export default function LeagueDetail() {
                         <ThemedCard 
                             title="Season History"
                             icon={Calendar}
-                            primaryColor={league.primary_color}
-                            accentColor={league.accent_color}
+                            primaryColor={leagueTheme.ui}
+                            accentColor={leagueTheme.ui}
                         >
                             <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
                                 <div className="flex gap-2">
@@ -751,7 +751,7 @@ export default function LeagueDetail() {
                                             </Button>
                                         </div>
                                         <Link to={createPageUrl(`AddSeason?league_id=${leagueId}`)}>
-                                            <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                                            <Button className="text-white" style={{ backgroundColor: leagueTheme.ui }}><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
                                         </Link>
                                     </AdminOnly>
                                 </div>
@@ -774,7 +774,7 @@ export default function LeagueDetail() {
                                             {seasons.map(season => (
                                                 <TableRow key={season.id} className="hover:bg-slate-50">
                                                     <TableCell className="font-medium">{season.year}</TableCell>
-                                                    <TableCell className="text-emerald-600 font-semibold">
+                                                    <TableCell className="font-semibold" style={{ color: leagueTheme.ui }}>
                                                         <span className="flex items-center gap-1">
                                                             <Trophy className="w-4 h-4 text-amber-500" />
                                                             {season.champion_name}
