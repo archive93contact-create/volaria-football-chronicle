@@ -125,15 +125,15 @@ export default function Home() {
     const cccTheme = getEntityTheme({ primary: ccc?.primary_color || '#4169e1', secondary: ccc?.secondary_color || '#c0c0c0' });
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-[#f5f5f4]">
             {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1920')] opacity-20 bg-cover bg-center" />
+            <div className="relative overflow-hidden bg-[#0d0f11]">
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1920')] opacity-10 bg-cover bg-center grayscale" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
                 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
                     <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-6">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 border border-white/15 text-white/75 text-sm font-medium mb-6">
                             <Heart className="w-4 h-4" />
                             18+ Years of Fictional Football
                         </div>
@@ -154,7 +154,7 @@ export default function Home() {
                         
                         <div className="flex flex-wrap justify-center gap-4">
                             <Link to={createPageUrl('Nations')}>
-                                <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-lg px-8">
+                                <Button size="lg" className="bg-white text-slate-950 hover:bg-slate-100 text-lg px-8">
                                     Start Exploring
                                     <ChevronRight className="w-5 h-5 ml-2" />
                                 </Button>
@@ -175,8 +175,8 @@ export default function Home() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             {stats.map((stat) => (
                                 <div key={stat.label} className="text-center">
-                                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} mb-3`}>
-                                        <stat.icon className="w-6 h-6 text-white" />
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/8 border border-white/10 mb-3">
+                                        <stat.icon className="w-6 h-6 text-white/85" />
                                     </div>
                                     <div className="text-3xl md:text-4xl font-bold text-white">{stat.value.toLocaleString()}</div>
                                     <div className="text-slate-400">{stat.label}</div>
