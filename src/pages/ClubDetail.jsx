@@ -1202,16 +1202,13 @@ export default function ClubDetail() {
                                                           {/* AI Kit Generator */}
                                                           <AdminOnly>
                                                               {club.primary_color && (
-                                                                  <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50">
-                                                                      <CardHeader><CardTitle>AI Kit Generator</CardTitle></CardHeader>
-                                                                      <CardContent>
-                                                                          <AIKitGenerator 
-                                                                              club={club} 
-                                                                              onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
-                                                                              nation={nation}
-                                                                          />
-                                                                      </CardContent>
-                                                                  </Card>
+                                                                  <ThemedCard title="AI Kit Generator" icon={Sparkles} primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                                      <AIKitGenerator 
+                                                                          club={club} 
+                                                                          onKitsGenerated={(updatedClub) => queryClient.setQueryData(['club', clubId], updatedClub)}
+                                                                          nation={nation}
+                                                                      />
+                                                                  </ThemedCard>
                                                               )}
                                                           </AdminOnly>
 
@@ -1270,48 +1267,43 @@ export default function ClubDetail() {
 
                                                         {/* Stadium Card */}
                                                         {club.stadium && (
-                                                        <Card className="border-0 shadow-sm">
-                                                        <CardContent className="p-4 flex items-center gap-4">
-                                                        <MapPin className="w-8 h-8 text-blue-500" />
-                                                        <div>
-                                                        <div className="text-sm text-slate-500">Stadium</div>
-                                                        <div className="text-xl font-bold">{club.stadium}</div>
-                                                        {club.stadium_capacity && <div className="text-sm text-slate-500">Capacity: {club.stadium_capacity.toLocaleString()}</div>}
-                                                        </div>
-                                                        </CardContent>
-                                                        </Card>
+                                                        <ThemedCard primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: clubTheme.tintStrong }}><MapPin className="w-6 h-6" style={{ color: clubTheme.ui }} /></div>
+                                                                <div>
+                                                                    <div className="text-[10px] uppercase tracking-[0.14em] font-black text-slate-400">Stadium</div>
+                                                                    <div className="text-xl font-black text-slate-900">{club.stadium}</div>
+                                                                    {club.stadium_capacity && <div className="text-sm text-slate-500">Capacity: {club.stadium_capacity.toLocaleString()}</div>}
+                                                                </div>
+                                                            </div>
+                                                        </ThemedCard>
                                                         )}
                                                         {club.history && (
-                                                        <Card className="border-0 shadow-sm">
-                                                        <CardHeader><CardTitle>Club History</CardTitle></CardHeader>
-                                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.history}</p></CardContent>
-                                                        </Card>
+                                                        <ThemedCard title="Club History" primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                            <p className="text-slate-600 whitespace-pre-line leading-relaxed">{club.history}</p>
+                                                        </ThemedCard>
                                                         )}
                                                         {club.honours && (
-                                                        <Card className="border-0 shadow-sm">
-                                                        <CardHeader><CardTitle>Honours</CardTitle></CardHeader>
-                                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.honours}</p></CardContent>
-                                                        </Card>
+                                                        <ThemedCard title="Honours" icon={Trophy} primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                            <p className="text-slate-600 whitespace-pre-line leading-relaxed">{club.honours}</p>
+                                                        </ThemedCard>
                                                         )}
                                                         </div>
                                                         <div className="space-y-6">
                                                         {club.manager && (
-                                                        <Card className="border-0 shadow-sm">
-                                                        <CardHeader><CardTitle>Manager</CardTitle></CardHeader>
-                                                        <CardContent><p className="font-semibold">{club.manager}</p></CardContent>
-                                                        </Card>
+                                                        <ThemedCard title="Manager" primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                            <p className="font-semibold text-slate-800">{club.manager}</p>
+                                                        </ThemedCard>
                                                         )}
                                                         {club.notable_players && (
-                                                        <Card className="border-0 shadow-sm">
-                                                        <CardHeader><CardTitle>Notable Players</CardTitle></CardHeader>
-                                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.notable_players}</p></CardContent>
-                                                        </Card>
+                                                        <ThemedCard title="Notable Players" icon={Users} primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                            <p className="text-slate-600 whitespace-pre-line leading-relaxed">{club.notable_players}</p>
+                                                        </ThemedCard>
                                                         )}
                                                         {club.rivals && (
-                                                        <Card className="border-0 shadow-sm">
-                                                        <CardHeader><CardTitle>Rivals</CardTitle></CardHeader>
-                                                        <CardContent><p className="text-slate-600 whitespace-pre-line">{club.rivals}</p></CardContent>
-                                                        </Card>
+                                                        <ThemedCard title="Rivals" icon={Shield} primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                            <p className="text-slate-600 whitespace-pre-line leading-relaxed">{club.rivals}</p>
+                                                        </ThemedCard>
                                                         )}
                                                         </div>
                                                         </div>
