@@ -30,7 +30,7 @@ import ProfessionalStatusBadge from '@/components/clubs/ProfessionalStatusBadge'
 import AIKitGenerator from '@/components/clubs/AIKitGenerator';
 import ColorExtractor from '@/components/common/ColorExtractor';
 import ImmersiveHeader from '@/components/common/ImmersiveHeader';
-import StatsCard from '@/components/common/StatsCard';
+import EntityStatCell from '@/components/common/EntityStatCell';
 import ThemedCard from '@/components/common/ThemedCard';
 import AIPlayerGenerator from '@/components/players/AIPlayerGenerator';
 import PlayerProfile from '@/components/players/PlayerProfile';
@@ -349,6 +349,14 @@ export default function ClubDetail() {
     }
 
     const clubTheme = getEntityTheme({ primary: club.primary_color, secondary: club.secondary_color, accent: club.accent_color });
+    const totalTrophies = (combinedStats?.league_titles || 0) + (combinedStats?.domestic_cup_titles || 0) + (combinedStats?.vcc_titles || 0) + (combinedStats?.ccc_titles || 0);
+    const worstRecordedFinish = combinedSeasons.reduce((worst, season) => {
+        const tier = allLeagues.find(l => l.id === season.league_id)?.tier || 1;
+        const position = Number(season.position) || 0;
+        if (!position) return worst;
+        const score = tier * 100 + position;
+        return !worst || score > worst.score ? { tier, position, score } : worst;
+    }, null);
     const vcc = continentalCompetitions.find(c => c.short_name === 'VCC' || c.name?.includes("Champions"));
     const ccc = continentalCompetitions.find(c => c.short_name === 'CCC' || c.name?.includes("Challenge"));
     const vccTheme = getEntityTheme({ primary: vcc?.primary_color || '#1a472a', secondary: vcc?.secondary_color || '#d4af37' });
