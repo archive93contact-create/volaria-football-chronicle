@@ -73,24 +73,25 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
             }
         });
 
-        // Current membership comes from the Club's actual current league when that record exists.
-        // Only fall back to latest recorded participation for legacy/missing club metadata.
+        // Current membership is defined ONLY by the latest recorded LeagueTable for this league.
+        // Do not use Club.league_id here: that list can contain stale/defunct records and is not
+        // the authoritative membership snapshot for a historical league season.
+        const latestSeasonEntries = scopedLeagueTables.filter(entry => entry.year === latestYear);
+        const latestClubIds = new Set(latestSeasonEntries.map(entry => entry.club_id).filter(Boolean));
+        const latestClubNames = new Set(latestSeasonEntries.map(entry => normaliseName(entry.club_name)).filter(Boolean));
+
         Object.values(clubStats).forEach(club => {
-            const clubRecord = (clubs || []).find(c =>
-                (club.club_id && c.id === club.club_id) ||
-                normaliseName(c.name) === normaliseName(club.club_name)
+            const clubNameKey = normaliseName(club.club_name);
+            club.isCurrentlyInLeague = Boolean(
+                (club.club_id && latestClubIds.has(club.club_id)) ||
+                (clubNameKey && latestClubNames.has(clubNameKey))
             );
-            const hasCurrentMetadata = Boolean(clubRecord);
-            const isActiveClub = clubRecord ? !clubRecord.is_defunct && !clubRecord.is_former_name && clubRecord.is_active !== false : true;
-            club.isCurrentlyInLeague = hasCurrentMetadata
-                ? isActiveClub && clubRecord.league_id === league.id
-                : club.lastSeason === latestYear;
 
             if (club.isCurrentlyInLeague) {
-                // Count backwards through this league only to find the current unbroken stint.
+                // Count backwards through THIS league only, starting from the latest recorded table.
                 const sortedClubSeasons = [...club.seasons].sort((a, b) => b.year.localeCompare(a.year));
-                let consecutive = sortedClubSeasons.length > 0 ? 1 : 0;
-                for (let i = 1; i < sortedClubSeasons.length; i++) {
+                let consecutive = sortedClubSeasons.length > 0 && sortedClubSeasons[0].year === latestYear ? 1 : 0;
+                for (let i = 1; i < sortedClubSeasons.length && consecutive > 0; i++) {
                     const currentYear = parseInt(sortedClubSeasons[i - 1].year);
                     const prevYear = parseInt(sortedClubSeasons[i].year);
                     if (Number.isFinite(currentYear) && Number.isFinite(prevYear) && currentYear - prevYear === 1) {
