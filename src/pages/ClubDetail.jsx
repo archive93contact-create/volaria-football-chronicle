@@ -1215,55 +1215,51 @@ export default function ClubDetail() {
                                                           {/* Club Infrastructure */}
                                                           <ClubInfrastructure club={club} league={league} nation={nation} />
 
-                                                          {/* Location & Basic Info Card */}
-                                                          <Card className="border-0 shadow-sm">
-                                <CardHeader><CardTitle>Club Information</CardTitle></CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                            {club.founded_year && (
-                                                <div className="p-3 bg-slate-50 rounded-lg">
-                                                    <div className="text-xs text-slate-500 mb-1">Founded</div>
-                                                    <div className="font-bold text-lg">{club.founded_year}</div>
-                                                </div>
-                                            )}
-                                            {club.region && (
-                                                <div className="p-3 bg-slate-50 rounded-lg">
-                                                    <div className="text-xs text-slate-500 mb-1">Region</div>
-                                                    <div className="font-semibold">{club.region}</div>
-                                                </div>
-                                            )}
-                                            {club.district && (
-                                                <div className="p-3 bg-slate-50 rounded-lg">
-                                                    <div className="text-xs text-slate-500 mb-1">District</div>
-                                                    <div className="font-semibold">{club.district}</div>
-                                                </div>
-                                            )}
-                                            {club.settlement && (
-                                                <div className="p-3 bg-slate-50 rounded-lg">
-                                                    <div className="text-xs text-slate-500 mb-1">Settlement</div>
-                                                    <div className="font-semibold">{club.settlement}</div>
-                                                </div>
-                                            )}
-                                            {club.city && !club.settlement && (
-                                                <div className="p-3 bg-slate-50 rounded-lg">
-                                                    <div className="text-xs text-slate-500 mb-1">City</div>
-                                                    <div className="font-semibold">{club.city}</div>
-                                                </div>
-                                            )}
-                                            {club.primary_color && (
-                                                <div className="p-3 bg-slate-50 rounded-lg">
-                                                    <div className="text-xs text-slate-500 mb-1">Colors</div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-5 h-5 rounded-full border border-slate-300" style={{ backgroundColor: club.primary_color }} />
-                                                        {club.secondary_color && (
-                                                            <div className="w-5 h-5 rounded-full border border-slate-300" style={{ backgroundColor: club.secondary_color }} />
-                                                        )}
-                                                        </div>
-                                                        </div>
-                                                        )}
-                                                        </div>
-                                                        </CardContent>
-                                                        </Card>
+                                                          {/* Club facts use one continuous branded surface */}
+                                                          <ThemedCard title="Club Information" icon={Shield} primaryColor={clubTheme.ui} accentColor={clubTheme.ui}>
+                                                              <div className="grid grid-cols-2 md:grid-cols-3 rounded-xl border overflow-hidden [&>*]:border-r [&>*]:border-b [&>*]:border-slate-200/70" style={{ borderColor: clubTheme.border }}>
+                                                                  {club.founded_year && (
+                                                                      <div className="p-4 bg-white/45">
+                                                                          <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">Founded</div>
+                                                                          <div className="mt-1 font-black text-lg text-slate-900">{club.founded_year}</div>
+                                                                      </div>
+                                                                  )}
+                                                                  {club.region && (
+                                                                      <div className="p-4 bg-white/45">
+                                                                          <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">Region</div>
+                                                                          <div className="mt-1 font-semibold text-slate-800">{club.region}</div>
+                                                                      </div>
+                                                                  )}
+                                                                  {club.district && (
+                                                                      <div className="p-4 bg-white/45">
+                                                                          <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">District</div>
+                                                                          <div className="mt-1 font-semibold text-slate-800">{club.district}</div>
+                                                                      </div>
+                                                                  )}
+                                                                  {club.settlement && (
+                                                                      <div className="p-4 bg-white/45">
+                                                                          <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">Settlement</div>
+                                                                          <div className="mt-1 font-semibold text-slate-800">{club.settlement}</div>
+                                                                      </div>
+                                                                  )}
+                                                                  {club.city && !club.settlement && (
+                                                                      <div className="p-4 bg-white/45">
+                                                                          <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">City</div>
+                                                                          <div className="mt-1 font-semibold text-slate-800">{club.city}</div>
+                                                                      </div>
+                                                                  )}
+                                                                  {club.primary_color && (
+                                                                      <div className="p-4 bg-white/45">
+                                                                          <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">Colours</div>
+                                                                          <div className="mt-2 flex items-center gap-2">
+                                                                              <div className="w-6 h-6 rounded-full border border-black/10 shadow-sm" style={{ backgroundColor: club.primary_color }} />
+                                                                              {club.secondary_color && <div className="w-6 h-6 rounded-full border border-black/10 shadow-sm" style={{ backgroundColor: club.secondary_color }} />}
+                                                                              {club.accent_color && <div className="w-6 h-6 rounded-full border border-black/10 shadow-sm" style={{ backgroundColor: club.accent_color }} />}
+                                                                          </div>
+                                                                      </div>
+                                                                  )}
+                                                              </div>
+                                                          </ThemedCard>
 
                                                         {/* Stadium Card */}
                                                         {club.stadium && (
