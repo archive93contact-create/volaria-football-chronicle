@@ -238,9 +238,15 @@ IMPORTANT:
                 }
             }
             
-            queryClient.invalidateQueries(['nations']);
-            queryClient.invalidateQueries(['leagues']);
-            queryClient.invalidateQueries(['clubs']);
+            queryClient.invalidateQueries({ queryKey: ['nations'] });
+            queryClient.invalidateQueries({ queryKey: ['nation', nation.id] });
+            queryClient.invalidateQueries({ queryKey: ['leagues'] });
+            queryClient.invalidateQueries({ queryKey: ['leagues', nation.id] });
+            queryClient.invalidateQueries({ queryKey: ['leaguesByNation', nation.id] });
+            queryClient.invalidateQueries({ queryKey: ['clubs'] });
+            queryClient.invalidateQueries({ queryKey: ['clubs', nation.id] });
+            queryClient.invalidateQueries({ queryKey: ['nationClubs', nation.id] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
             
             navigate(createPageUrl(`NationDetail?id=${nation.id}`));
         } catch (err) {
