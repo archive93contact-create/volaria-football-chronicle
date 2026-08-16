@@ -503,14 +503,14 @@ export default function ClubDetail() {
                                         ? 'Winner' 
                                         : combinedStats?.domestic_cup_best_finish || 'Final'}
                                 </div>
-                                <div className="text-xs text-orange-600">Best Cup Finish</div>
+                                <div className="text-xs text-slate-500">Best Cup Finish</div>
                             </CardContent>
                         </Card>
                     )}
                     {combinedStats?.best_finish && (
                                                   <Card className="border-0 shadow-sm">
                                                       <CardContent className="p-4 text-center">
-                                                          <Target className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
+                                                          <Target className="w-6 h-6 mx-auto mb-2" style={{ color: clubTheme.ui }} />
                                                           <div className="text-2xl font-bold">{combinedStats.best_finish === 1 ? '1st' : combinedStats.best_finish === 2 ? '2nd' : combinedStats.best_finish === 3 ? '3rd' : `${combinedStats.best_finish}th`}</div>
                                                           <div className="text-xs text-slate-500">
                                                               Best Finish {combinedStats.best_finish_tier ? `(Tier ${combinedStats.best_finish_tier})` : ''}
@@ -548,7 +548,7 @@ export default function ClubDetail() {
                     {combinedStats?.seasons_played > 0 && (
                         <Card className="border-0 shadow-sm">
                             <CardContent className="p-4 text-center">
-                                <Calendar className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                                <Calendar className="w-6 h-6 mx-auto mb-2" style={{ color: clubTheme.ui }} />
                                 <div className="text-2xl font-bold">{combinedStats.seasons_played}</div>
                                 <div className="text-xs text-slate-500">Seasons</div>
                             </CardContent>
