@@ -73,9 +73,9 @@ export default function ClubOriginPanel({ club, nation, league, seasons = [], al
     const generateOrigin = async () => {
         setGenerating(true);
         try {
-            const prompt = `Propose a historically believable formation story for a FICTIONAL football club. This is new canon being proposed for review, not a fact lookup.
+            const prompt = `Create a historically believable ORIGIN CHAPTER for this FICTIONAL football club. This is proposed canon for admin review, but the story itself must read like finished football history — not like an AI proposal or a research note.
 
-ESTABLISHED CANON — DO NOT CONTRADICT:
+CLUB & PLACE CANON:
 Club: ${club.name}
 Founded: ${club.founded_year || 'not recorded'}
 Location: ${[club.settlement, club.district, club.region].filter(Boolean).join(', ') || club.city || 'not recorded'}
@@ -85,25 +85,45 @@ Nickname: ${club.nickname || 'not recorded'}
 Colours: ${club.primary_color || 'not recorded'} / ${club.secondary_color || 'not recorded'}
 Current level: ${league?.name || 'not recorded'}${league?.tier ? `, Tier ${league.tier}` : ''}
 Settlement type/population: ${location?.settlement_size || 'not recorded'} / ${location?.population || 'not recorded'}
-Recorded local industries: ${location?.industries || 'none supplied'}
-Recorded local companies/employers: ${location?.major_companies || 'none supplied'}
-Recorded landmarks: ${location?.landmarks || 'none supplied'}
+Local industries: ${location?.industries || 'none supplied'}
+Local companies/employers: ${location?.major_companies || 'none supplied'}
+Local landmarks: ${location?.landmarks || 'none supplied'}
 Existing club history: ${club.history || 'none'}
-Existing canon notes from admin: ${canonNotes || origin?.canon_notes || 'none'}
-Lineage: ${lineage.predecessor && lineage.predecessor2 ? `recorded merger successor of ${lineage.predecessor.name} and ${lineage.predecessor2.name}` : lineage.predecessor ? `recorded successor/continuation of ${lineage.predecessor.name}` : lineage.former ? `same club formerly known as ${lineage.former.name}` : 'no predecessor/merger recorded'}
+Admin canon notes: ${canonNotes || origin?.canon_notes || 'none'}
+
+FULL CLUB LINEAGE:
+${lineageContext || 'No linked former-name or predecessor records.'}
+
+LATER FOOTBALLING CONTEXT — USE ONLY FOR HISTORICAL FLAVOUR/FORESHADOWING, NEVER AS A CAUSE OF FORMATION:
+Seasons played: ${club.seasons_played || seasons.length || 0}
+Top-flight seasons: ${club.seasons_top_flight || 0}
+Top-flight titles: ${club.league_titles || 0}${club.title_years ? ` (${club.title_years})` : ''}
+Lower-tier titles: ${club.lower_tier_titles || 0}${club.lower_tier_title_years ? ` (${club.lower_tier_title_years})` : ''}
+Domestic cups: ${club.domestic_cup_titles || 0}${club.domestic_cup_title_years ? ` (${club.domestic_cup_title_years})` : ''}
+Continental titles: ${(club.vcc_titles || 0) + (club.ccc_titles || 0)}
+Promotions/relegations: ${club.promotions || 0} / ${club.relegations || 0}
+Selected identity/season milestones:
+${seasonContext}
 
 REALISM RULES:
-- Choose a formation_type from: workplace, church, school, neighbourhood, social_club, military, railway, industrial, community, merger, breakaway, unknown.
-- Make the origin plausible for the founding YEAR and the scale of the settlement. A small village club should not begin as a huge professional institution.
-- If a real local industry/company is supplied above, you MAY use it. If none is supplied, do not invent a named employer/company merely to justify a works club.
-- Do not invent named individual founders. Use groups such as railway clerks, apprentices, parish members, dock workers, school alumni, local tradesmen, or neighbourhood players only when the known context makes that archetype plausible.
-- Do not invent wars, disasters, political events, benefactors, streets, churches, schools, factories or companies as established local facts.
-- The name_origin and colour_origin may be plausible PROPOSED explanations, but must be restrained. If the club name/colours do not support a believable explanation, say the origin is unrecorded instead of forcing one.
-- Avoid modern corporate language for old clubs. Avoid romantic clichés. Think like a local football historian.
-- Early grounds before purpose-built stadia were often recreation fields, enclosed grounds, works fields, cricket grounds, commons or land beside existing institutions. Do not invent a precise named site unless it is already supplied.
-- Keep the story 170-260 words and distinguish established facts from proposed interpretation with wording such as 'The most plausible origin is...' where necessary.
+- Choose formation_type from workplace, church, school, neighbourhood, social_club, military, railway, industrial, community, merger, breakaway, unknown.
+- Treat FORMER NAME records as the same institution at another point in its identity. A rename is not a new founding.
+- Treat PREDECESSOR records carefully: if the present club is a merger/successor, describe the earlier organisations as roots feeding into the modern club rather than pretending they were always identical.
+- Use the founding year, settlement scale, economic context, language/naming style, nickname, colours, lineage and existing history together. Do not build the origin from one field alone.
+- A village or small-town club should start at an appropriate social scale; an old club should not sound like a modern franchise.
+- If a named local employer/industry is supplied, it may genuinely shape the formation. If not, do not invent a named company just to make a works-club story.
+- Do not invent named individual founders unless a name is supplied in canon. Groups of people can be described naturally where plausible.
+- Do not invent major wars, disasters, political events, benefactors or famous institutions as established facts.
+- Small pieces of low-stakes local texture may be proposed where needed — an informal field, meeting room, patch of common land, or unnamed works recreation area — but do not manufacture a grand landmark or exact address.
+- Name and colour origins should feel organic. Sometimes colours were simply available, inherited, changed after a merger, or have no surviving explanation; do not force symbolism.
+- The later career may be used in ONE restrained closing sentence to foreshadow what the modest beginnings eventually became, using only the supplied achievements.
 
-Return JSON with formation_type, story, founder_context, original_ground_context, name_origin, colour_origin, rationale. The rationale should explicitly say which supplied facts drove the proposal.`;
+CRITICAL WRITING RULE:
+- The story field must be PURE NARRATIVE. Never write 'the data suggests', 'the most plausible origin', 'based on the supplied information', 'recorded local industry', 'this proposal', or explain where facts came from.
+- Do not separate known facts from interpretation inside the story. The admin already knows this is a proposal because the UI labels it as one. Make the prose seamless and confident, while staying within the constraints above.
+- Write 220-340 words in the style of a serious local football historian: specific, understated, chronological and believable. Avoid melodrama and football clichés.
+
+Return JSON with formation_type, story, founder_context, original_ground_context, name_origin, colour_origin, rationale. ONLY the rationale may explain the grounding and which fields influenced the proposal; the story must never do so.`;
 
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
