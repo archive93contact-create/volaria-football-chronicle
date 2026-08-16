@@ -112,8 +112,26 @@ export default function ContinentalSeasonDetail() {
     };
 
     if (!season || !competition) {
-        return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
+        return <div className="min-h-screen bg-[#f5f5f4] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-700" /></div>;
     }
+
+    const competitionTheme = getEntityTheme({ primary: competition.primary_color, secondary: competition.secondary_color });
+    const resolveClub = (id, name) => clubs.find(c => c.id === id) || clubs.find(c => c.name === name);
+    const championClub = resolveClub(season.champion_id, season.champion_name);
+    const runnerClub = resolveClub(season.runner_up_id, season.runner_up);
+    const championNation = nations.find(n => n.id === season.champion_nation_id) || nations.find(n => n.name?.toLowerCase() === season.champion_nation?.toLowerCase());
+    const runnerNation = nations.find(n => n.id === season.runner_up_nation_id) || nations.find(n => n.name?.toLowerCase() === season.runner_up_nation?.toLowerCase());
+    const participantMap = new Map();
+    matches.forEach(match => {
+        const home = resolveClub(match.home_club_id, match.home_club_name);
+        const away = resolveClub(match.away_club_id, match.away_club_name);
+        if (home) participantMap.set(home.id, { ...home, nation: match.home_club_nation, isChampion: home.id === championClub?.id });
+        if (away) participantMap.set(away.id, { ...away, nation: match.away_club_nation, isChampion: away.id === championClub?.id });
+    });
+    const participantClubs = [...participantMap.values()].sort((a, b) => {
+        if (a.isChampion !== b.isChampion) return a.isChampion ? -1 : 1;
+        return a.name.localeCompare(b.name);
+    });
 
     // Group matches by round
     const matchesByRound = matches.reduce((acc, match) => {
