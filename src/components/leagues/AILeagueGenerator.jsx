@@ -297,10 +297,14 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
         if (league?.nation_id) await syncLeagueStatsForNation(league.nation_id);
 
         queryClient.invalidateQueries({ queryKey: ['seasons'] });
+        queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
         queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
         queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
         queryClient.invalidateQueries({ queryKey: ['leagueTables'] });
         queryClient.invalidateQueries({ queryKey: ['clubSeasons'] });
+        queryClient.invalidateQueries({ queryKey: ['club'] });
+        queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        queryClient.invalidateQueries({ queryKey: ['clubs', league?.nation_id] });
         queryClient.invalidateQueries({ queryKey: ['nationSeasons', league?.nation_id] });
         queryClient.invalidateQueries({ queryKey: ['analyticsNationTables', league?.nation_id] });
         setIsSaving(false);
