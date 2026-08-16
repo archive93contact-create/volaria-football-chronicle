@@ -156,19 +156,19 @@ export function buildHistoricalInsights(club, seasons = [], leagues = []) {
     const titles = ordered.filter(s => getHistoricalTier(s, leagues) === 1 && (s.status === 'champion' || Number(s.position) === 1));
     const movements = ordered.filter(s => ['promoted', 'playoff_winner', 'relegated'].includes(s.status));
 
-    insights.push({ category: 'milestone', headline: 'Recorded history begins', detail: `${first.year}: ${ordinal(first.position)} in ${leagues.find(l => l.id === first.league_id)?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}.` });
-    if (firstTop) insights.push({ category: 'milestone', headline: 'First recorded top-flight season', detail: `${firstTop.year}${firstTop.position ? ` — finished ${ordinal(firstTop.position)}` : ''}.` });
-    if (titles.length) insights.push({ category: 'record', headline: titles.length > 1 ? 'Championship tradition' : 'Championship breakthrough', detail: `${titles.length} recorded top-flight title${titles.length === 1 ? '' : 's'}; first in ${titles[0].year}${titles.length > 1 ? `, latest in ${titles[titles.length - 1].year}` : ''}.` });
-    if (movements.length >= 3) insights.push({ category: 'movement', headline: 'A club shaped by movement', detail: `${movements.filter(s => s.status === 'promoted' || s.status === 'playoff_winner').length} promotions and ${movements.filter(s => s.status === 'relegated').length} relegations are visible in the recorded table history.` });
+    insights.push({ category: 'milestone', headline: 'The competitive story begins', detail: `${first.year}: ${ordinal(first.position)} in ${leagues.find(l => l.id === first.league_id)?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}.` });
+    if (firstTop) insights.push({ category: 'milestone', headline: 'First top-flight season', detail: `${firstTop.year}${firstTop.position ? ` — finished ${ordinal(firstTop.position)}` : ''}.` });
+    if (titles.length) insights.push({ category: 'record', headline: titles.length > 1 ? 'Championship tradition' : 'Championship breakthrough', detail: `${titles.length} top-flight title${titles.length === 1 ? '' : 's'}; first in ${titles[0].year}${titles.length > 1 ? `, most recently in ${titles[titles.length - 1].year}` : ''}.` });
+    if (movements.length >= 3) insights.push({ category: 'movement', headline: 'A club shaped by movement', detail: `${movements.filter(s => s.status === 'promoted' || s.status === 'playoff_winner').length} promotions and ${movements.filter(s => s.status === 'relegated').length} relegations have repeatedly changed the club's place in the pyramid.` });
 
     const topRuns = consecutiveRuns(ordered, s => getHistoricalTier(s, leagues) === 1).sort((a, b) => b.length - a.length);
-    if (topRuns[0]?.length >= 3) insights.push({ category: 'trend', headline: 'Longest top-flight stay', detail: `${topRuns[0].length} consecutive recorded seasons from ${topRuns[0][0].year} to ${topRuns[0][topRuns[0].length - 1].year}.` });
+    if (topRuns[0]?.length >= 3) insights.push({ category: 'trend', headline: 'Longest top-flight stay', detail: `${topRuns[0].length} consecutive seasons from ${topRuns[0][0].year} to ${topRuns[0][topRuns[0].length - 1].year}.` });
 
     const latestTier = getHistoricalTier(latest, leagues);
     const historicalTiers = ordered.map(s => getHistoricalTier(s, leagues)).filter(Boolean);
     const bestTier = historicalTiers.length ? Math.min(...historicalTiers) : null;
-    if (latestTier && bestTier && latestTier > bestTier) insights.push({ category: 'comparison', headline: 'Below historical peak', detail: `Currently recorded at Tier ${latestTier}; the club has previously reached Tier ${bestTier}.` });
-    if (latestTier && bestTier && latestTier === bestTier) insights.push({ category: 'comparison', headline: 'At its highest recorded level', detail: `The latest season is at Tier ${latestTier}, matching the club's highest recorded tier.` });
+    if (latestTier && bestTier && latestTier > bestTier) insights.push({ category: 'comparison', headline: 'Below its historical peak', detail: `Now at Tier ${latestTier}, after previously reaching Tier ${bestTier}.` });
+    if (latestTier && bestTier && latestTier === bestTier) insights.push({ category: 'comparison', headline: 'Back at its highest level', detail: `The latest season is at Tier ${latestTier}, matching the highest level the club has reached.` });
 
     return insights.slice(0, 6);
 }
@@ -207,36 +207,87 @@ export function buildComparativeInsights(club, allClubs = [], seasons = [], leag
     ].filter(Boolean);
 }
 
-export function buildLivingNarrative(club, seasons = [], leagues = []) {
-    const ordered = sortChronologically(seasons);
-    if (!ordered.length) return 'No season-by-season league record has been entered yet, so the living historical narrative will begin when the first season is added.';
+const lineageClubIds = (club) => new Set([
+    club?.id,
+    club?.former_name_club_id,
+    club?.former_name_club_2_id,
+    club?.predecessor_club_id,
+    club?.predecessor_club_2_id,
+].filter(Boolean));
+
+export function buildClubLineage(club, allClubs = []) {
+    const byId = id => allClubs.find(c => c.id === id);
+    const formerNames = [club?.former_name_club_id, club?.former_name_club_2_id].map(byId).filter(Boolean);
+    const predecessors = [club?.predecessor_club_id, club?.predecessor_club_2_id].map(byId).filter(Boolean);
+    const currentName = club?.current_name_club_id ? byId(club.current_name_club_id) : null;
+    return { formerNames, predecessors, currentName };
+}
+
+const identityForSeason = (club, season, allClubs = []) => {
+    if (!season?.club_id || season.club_id === club?.id) return club?.name || season?.club_name;
+    const linked = allClubs.find(c => c.id === season.club_id);
+    return linked?.name || season?.club_name || club?.name;
+};
+
+export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs = []) {
+    const ordered = sortChronologically(seasons).filter(s => !s.club_id || lineageClubIds(club).has(s.club_id));
+    if (!ordered.length) return `${club.name}'s competitive chronicle is still waiting for its opening season.`;
+
     const eras = detectClubEras(ordered, leagues);
-    const insights = buildHistoricalInsights(club, ordered, leagues);
     const first = ordered[0];
     const latest = ordered[ordered.length - 1];
     const firstLeague = leagues.find(l => l.id === first.league_id);
     const latestLeague = leagues.find(l => l.id === latest.league_id);
-    const movements = ordered.filter(s => ['promoted', 'playoff_winner', 'relegated'].includes(s.status));
+    const lineage = buildClubLineage(club, allClubs);
+    const firstIdentity = identityForSeason(club, first, allClubs);
+    const latestIdentity = identityForSeason(club, latest, allClubs);
     const titleSeasons = ordered.filter(s => getHistoricalTier(s, leagues) === 1 && (s.status === 'champion' || Number(s.position) === 1));
+    const promotions = ordered.filter(s => s.status === 'promoted' || s.status === 'playoff_winner');
+    const relegations = ordered.filter(s => s.status === 'relegated');
 
     const paragraphs = [];
-    paragraphs.push(`The recorded competitive story of ${club.name} begins in ${first.year}, when the club finished ${ordinal(first.position)} in ${firstLeague?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}. From that starting point, the archive now contains ${ordered.length} league season${ordered.length === 1 ? '' : 's'}, ending with ${latest.year} in ${latestLeague?.name || `Tier ${getHistoricalTier(latest, leagues) || '?'}`}.`);
+    const openingIdentity = firstIdentity && firstIdentity !== club.name ? `then competing as ${firstIdentity}` : `under the ${club.name} name`;
+    paragraphs.push(`${club.name}'s league story opens in ${first.year}, ${openingIdentity}, with a ${ordinal(first.position)}-place finish in ${firstLeague?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}. What followed was not a single straight climb but a changing place in the football order, stretching through to ${latest.year}, when ${latestIdentity || club.name} finished the season in ${latestLeague?.name || `Tier ${getHistoricalTier(latest, leagues) || '?'}`}.`);
 
-    if (titleSeasons.length || movements.length) {
-        const achievements = [];
-        if (titleSeasons.length) achievements.push(`${titleSeasons.length} top-flight title${titleSeasons.length === 1 ? '' : 's'}${titleSeasons.length ? ` (${titleSeasons.map(s => s.year).join(', ')})` : ''}`);
-        const promotions = movements.filter(s => s.status === 'promoted' || s.status === 'playoff_winner').length;
-        const relegations = movements.filter(s => s.status === 'relegated').length;
-        if (promotions) achievements.push(`${promotions} recorded promotion${promotions === 1 ? '' : 's'}`);
-        if (relegations) achievements.push(`${relegations} relegation${relegations === 1 ? '' : 's'}`);
-        paragraphs.push(`The season record is defined by ${achievements.join(', ')}. These are not separate biography claims: they are drawn directly from the club's entered league tables and therefore evolve as new seasons are added.`);
+    if (lineage.formerNames.length) {
+        const names = lineage.formerNames.map(c => c.name).join(lineage.formerNames.length > 1 ? ' and ' : '');
+        const renameYear = club.renamed_year ? ` around ${club.renamed_year}` : '';
+        paragraphs.push(`Part of that history was lived under another identity. ${names} belongs to the same club lineage, with the present ${club.name} name emerging${renameYear}. Results from those earlier names form part of the same sporting story rather than a separate club career.`);
+    } else if (lineage.predecessors.length) {
+        const names = lineage.predecessors.map(c => c.name).join(lineage.predecessors.length > 1 ? ' and ' : '');
+        paragraphs.push(`${club.name} also carries footballing history inherited from ${names}. Their seasons sit before the present club in the lineage, giving the modern side a competitive ancestry that predates its current identity without pretending the organisations were always identical.`);
+    }
+
+    if (titleSeasons.length || promotions.length || relegations.length) {
+        const achievementBits = [];
+        if (titleSeasons.length) achievementBits.push(`${titleSeasons.length} top-flight championship${titleSeasons.length === 1 ? '' : 's'}, won in ${titleSeasons.map(s => s.year).join(', ')}`);
+        if (promotions.length) achievementBits.push(`${promotions.length} promotion${promotions.length === 1 ? '' : 's'}`);
+        if (relegations.length) achievementBits.push(`${relegations.length} relegation${relegations.length === 1 ? '' : 's'}`);
+        paragraphs.push(`The shape of the club's history comes from ${achievementBits.join(', ')}. The championships mark its highest moments; the promotions and relegations show the periods when its status changed most sharply, carrying the club between very different levels of the game.`);
     }
 
     if (eras.length) {
-        paragraphs.push(`Several distinct eras emerge from the results. ${eras.slice(0, 4).map(e => `${e.startYear}–${e.endYear}: ${e.label.toLowerCase()} (${e.summary})`).join(' ')}`);
+        const eraSentence = eras.slice(0, 4).map((e, index) => {
+            const lead = index === 0 ? '' : index === eras.slice(0, 4).length - 1 ? ' Later, ' : ' This was followed by ';
+            return `${lead}${e.startYear}–${e.endYear} became ${e.label.toLowerCase()}: ${e.summary.charAt(0).toLowerCase()}${e.summary.slice(1)}`;
+        }).join('. ');
+        paragraphs.push(`${eraSentence}.`);
     }
 
-    if (insights.length) paragraphs.push(`In historical context, ${insights.slice(1, 4).map(i => `${i.headline.toLowerCase()}: ${i.detail}`).join(' ')}`);
+    const latestTier = getHistoricalTier(latest, leagues);
+    const bestTier = Math.min(...ordered.map(s => getHistoricalTier(s, leagues)).filter(Boolean));
+    const recent = ordered.slice(-5);
+    const previous = ordered.slice(-10, -5);
+    let direction = '';
+    if (previous.length >= 3 && recent.length >= 3) {
+        const avg = arr => arr.reduce((sum, s) => sum + seasonScore(s, leagues), 0) / arr.length;
+        const change = avg(previous) - avg(recent);
+        direction = change > 35 ? 'The latest run has carried the club upward again.' : change < -35 ? 'The most recent seasons have pulled it away from its earlier level.' : 'Its recent level has been comparatively settled.';
+    }
+    if (latestTier && bestTier) {
+        const levelText = latestTier === bestTier ? `By ${latest.year}, the club was again operating at the highest level it has known, Tier ${latestTier}.` : `By ${latest.year}, it stood at Tier ${latestTier}, below the Tier ${bestTier} heights reached earlier in its history.`;
+        paragraphs.push(`${levelText}${direction ? ` ${direction}` : ''}`);
+    }
 
     return paragraphs.join('\n\n');
 }
