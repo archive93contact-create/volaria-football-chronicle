@@ -276,7 +276,7 @@ export default function NationDetail() {
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                 {nation.region && <span className="text-[11px] uppercase tracking-[0.18em] font-semibold text-white/65">{nation.region}</span>}
-                                {nation.membership && <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${nation.membership === 'VCC' ? 'bg-amber-400/15 border-amber-300/30 text-amber-100' : 'bg-blue-400/15 border-blue-300/30 text-blue-100'}`}>{nation.membership === 'VCC' ? 'VFC Full Member' : 'VFC Associate'}</span>}
+                                {nation.membership && <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded border font-bold" style={{ backgroundColor: `${membershipTheme.primary}28`, borderColor: `${membershipTheme.secondary}70`, color: '#ffffff' }}>{nation.membership === 'VCC' ? 'VFC Full Member' : 'VFC Associate'}</span>}
                             </div>
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] leading-[0.95] text-white break-words">{nation.name}</h1>
                             {(nation.description || nation.federation_name) && <p className="mt-4 text-base sm:text-lg text-white/72 max-w-3xl leading-relaxed">{nation.description || nation.federation_name}</p>}
