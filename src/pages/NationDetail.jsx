@@ -692,7 +692,7 @@ export default function NationDetail() {
                             <h2 className="text-2xl font-bold text-slate-900">League Structure</h2>
                             <AdminOnly>
                                 <Link to={createPageUrl(`AddLeague?nation_id=${nationId}`)}>
-                                    <Button className="bg-emerald-600 hover:bg-emerald-700">
+                                    <Button className="text-white" style={{ backgroundColor: nationTheme.ui }}>
                                         <Plus className="w-4 h-4 mr-2" />
                                         Add League
                                     </Button>
