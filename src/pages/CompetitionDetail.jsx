@@ -115,6 +115,7 @@ export default function CompetitionDetail() {
         queryClient.invalidateQueries({ queryKey: ['competition', compId] });
         queryClient.invalidateQueries({ queryKey: ['continentalCompetitions'] });
         queryClient.invalidateQueries({ queryKey: ['clubs'] });
+        queryClient.invalidateQueries({ queryKey: ['club'] });
         queryClient.invalidateQueries({ queryKey: ['allClubs'] });
     };
 
