@@ -816,7 +816,7 @@ export default function NationDetail() {
                     <TabsContent value="geo-stats">
                         <NationGeographyTab
                             nation={nation}
-                            clubs={clubs}
+                            clubs={allNationClubs}
                             leagueTables={leagueTables}
                             leagues={leagues}
                         />
