@@ -330,7 +330,7 @@ export default function LeagueDetail() {
 
         const previousRow = previousMovementTables.find(prev =>
             (clubId && prev.club_id && prev.club_id === clubId) ||
-            (!prev.club_id && name && normaliseClubName(prev.club_name) === name)
+            (name && normaliseClubName(prev.club_name) === name)
         );
 
         if (previousRow) {
