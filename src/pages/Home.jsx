@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { getEntityTheme } from '@/utils/entityTheme';
 
 export default function Home() {
     const { data: nations = [], isLoading: nationsLoading } = useQuery({
@@ -45,6 +46,12 @@ export default function Home() {
         queryFn: () => base44.entities.Season.list(),
         staleTime: 5 * 60 * 1000,
         cacheTime: 10 * 60 * 1000,
+    });
+
+    const { data: continentalCompetitions = [] } = useQuery({
+        queryKey: ['continentalCompetitionsForBranding'],
+        queryFn: () => base44.entities.ContinentalCompetition.list(),
+        staleTime: 30 * 60 * 1000,
     });
 
     // Categorize nations based on whether they have seasons (complete) or not
@@ -107,11 +114,15 @@ export default function Home() {
     }, [clubs]);
 
     const stats = [
-        { icon: Globe, label: 'Nations', value: nations.length, color: 'from-emerald-500 to-teal-600' },
-        { icon: Trophy, label: 'Leagues', value: leagues.length, color: 'from-amber-500 to-orange-600' },
-        { icon: Shield, label: 'Clubs', value: clubs.length, color: 'from-blue-500 to-indigo-600' },
-        { icon: Star, label: 'Seasons', value: seasons.length, color: 'from-purple-500 to-pink-600' },
+        { icon: Globe, label: 'Nations', value: nations.length },
+        { icon: Trophy, label: 'Leagues', value: leagues.length },
+        { icon: Shield, label: 'Clubs', value: clubs.length },
+        { icon: Star, label: 'Seasons', value: seasons.length },
     ];
+    const vcc = continentalCompetitions.find(c => c.short_name === 'VCC' || c.name?.includes('Champions'));
+    const ccc = continentalCompetitions.find(c => c.short_name === 'CCC' || c.name?.includes('Challenge'));
+    const vccTheme = getEntityTheme({ primary: vcc?.primary_color || '#1a472a', secondary: vcc?.secondary_color || '#d4af37' });
+    const cccTheme = getEntityTheme({ primary: ccc?.primary_color || '#4169e1', secondary: ccc?.secondary_color || '#c0c0c0' });
 
     return (
         <div className="min-h-screen bg-slate-50">
