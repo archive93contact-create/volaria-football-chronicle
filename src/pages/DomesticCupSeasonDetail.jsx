@@ -17,6 +17,7 @@ import AdminOnly, { useIsAdmin } from '@/components/common/AdminOnly';
 import DomesticCupDrawer from '@/components/cups/DomesticCupDrawer';
 import SyncDomesticCupStats from '@/components/cups/SyncDomesticCupStats';
 import EnhancedBracketView from '@/components/continental/EnhancedBracketView';
+import { syncCupStatsToClubs } from '@/components/common/SyncCupStats';
 
 const ROUND_ORDER = ['Round of 128', 'Round of 64', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -126,7 +127,12 @@ export default function DomesticCupSeasonDetail() {
                 runner_up: loser,
                 runner_up_id: loserClub?.id || null,
             });
-            queryClient.invalidateQueries(['cupSeason']);
+            if (cup?.nation_id) await syncCupStatsToClubs(cup.nation_id);
+            queryClient.invalidateQueries({ queryKey: ['cupSeason', seasonId] });
+            queryClient.invalidateQueries({ queryKey: ['cupSeasons', cup?.id] });
+            queryClient.invalidateQueries({ queryKey: ['domesticCup', cup?.id] });
+            queryClient.invalidateQueries({ queryKey: ['clubs', cup?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
         }
     };
 
@@ -156,8 +162,15 @@ export default function DomesticCupSeasonDetail() {
     });
 
     const deleteMatchMutation = useMutation({
-        mutationFn: (id) => base44.entities.DomesticCupMatch.delete(id),
-        onSuccess: () => queryClient.invalidateQueries(['cupMatches']),
+        mutationFn: async (id) => {
+            await base44.entities.DomesticCupMatch.delete(id);
+            if (cup?.nation_id) await syncCupStatsToClubs(cup.nation_id);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cupMatches', seasonId] });
+            queryClient.invalidateQueries({ queryKey: ['clubs', cup?.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        },
     });
 
     const renameRoundMutation = useMutation({
