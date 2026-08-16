@@ -150,11 +150,12 @@ async function canvasToFile(canvas, filename) {
     return new File([blob], filename, { type: 'image/png' });
 }
 
-export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
+export default function CrestCleaner({ open, onOpenChange, club, item, entityType = 'Club', imageField = 'logo_url', assetLabel = 'crest', onSaved }) {
+    const subject = item || club;
     const [threshold, setThreshold] = useState(242);
     const [fillHoles, setFillHoles] = useState(false);
     const [trim, setTrim] = useState(true);
-    const [sourceUrl, setSourceUrl] = useState(club?.logo_url || '');
+    const [sourceUrl, setSourceUrl] = useState(subject?.[imageField] || '');
     const [sourceName, setSourceName] = useState('current crest');
     const [workingCanvas, setWorkingCanvas] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
@@ -164,12 +165,12 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
 
     useEffect(() => {
         if (!open) return;
-        setSourceUrl(club?.logo_url || '');
+        setSourceUrl(subject?.[imageField] || '');
         setSourceName('current crest');
         setWorkingCanvas(null);
         setPreviewUrl('');
         setError('');
-    }, [open, club?.logo_url]);
+    }, [open, subject?.[imageField], imageField]);
 
     const canProcess = useMemo(() => Boolean(sourceUrl), [sourceUrl]);
 
@@ -255,14 +256,14 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
     };
 
     const save = async () => {
-        if (!workingCanvas || !club?.id) return;
+        if (!workingCanvas || !subject?.id) return;
         setIsSaving(true);
         setError('');
         try {
-            const safeName = (club.name || 'club').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            const file = await canvasToFile(workingCanvas, `${safeName}-crest-clean.png`);
+            const safeName = (subject.name || entityType).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            const file = await canvasToFile(workingCanvas, `${safeName}-${assetLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-clean.png`);
             const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            const updated = await base44.entities.Club.update(club.id, { logo_url: file_url });
+            const updated = await base44.entities[entityType].update(subject.id, { [imageField]: file_url });
             onSaved?.(updated, file_url);
             onOpenChange(false);
         } catch (e) {
@@ -277,21 +278,21 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-3xl max-h-[92vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2"><Wand2 className="w-5 h-5" /> Clean {club?.name} crest</DialogTitle>
-                    <DialogDescription>Transparent PNGs are left transparent. For crests with a baked-in white background, only light pixels connected to the outside edge are removed. Use the restore option only when genuine white detail was lost in an older crest file.</DialogDescription>
+                    <DialogTitle className="flex items-center gap-2"><Wand2 className="w-5 h-5" /> Clean {subject?.name} {assetLabel}</DialogTitle>
+                    <DialogDescription>Transparent images are left transparent. For artwork with a baked-in white background, only light pixels connected to the outside edge are removed. Use the restore option only when genuine white detail was lost in an older image.</DialogDescription>
                 </DialogHeader>
 
                 <div className="grid md:grid-cols-2 gap-5">
                     <div className="space-y-3">
                         <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Before</div>
                         <div className="aspect-square rounded-xl border border-slate-200 bg-[linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0px] flex items-center justify-center p-5 overflow-hidden">
-                            {sourceUrl ? <img src={sourceUrl} alt="Original crest" className="max-w-full max-h-full object-contain" /> : <ShieldCheck className="w-20 h-20 text-slate-300" />}
+                            {sourceUrl ? <img src={sourceUrl} alt={`Original ${assetLabel}`} className="max-w-full max-h-full object-contain" /> : <ShieldCheck className="w-20 h-20 text-slate-300" />}
                         </div>
                     </div>
                     <div className="space-y-3">
                         <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Cleaned preview</div>
                         <div className="relative aspect-square rounded-xl border border-slate-800 bg-[linear-gradient(45deg,#111827_25%,#1f2937_25%,#1f2937_75%,#111827_75%,#111827),linear-gradient(45deg,#111827_25%,#1f2937_25%,#1f2937_75%,#111827_75%,#111827)] bg-[length:24px_24px] bg-[position:0_0,12px_12px] flex items-center justify-center p-5 overflow-hidden">
-                            {previewUrl && <img src={previewUrl} alt="Cleaned crest preview" className="max-w-full max-h-full object-contain" />}
+                            {previewUrl && <img src={previewUrl} alt={`Cleaned ${assetLabel} preview`} className="max-w-full max-h-full object-contain" />}
                             {isProcessing && <div className="absolute inset-0 bg-slate-950/45 flex items-center justify-center"><Loader2 className="w-7 h-7 animate-spin text-white" /></div>}
                             {!isProcessing && !previewUrl && <ShieldCheck className="w-20 h-20 text-white/20" />}
                         </div>
@@ -324,7 +325,7 @@ export default function CrestCleaner({ open, onOpenChange, club, onSaved }) {
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button onClick={save} disabled={!workingCanvas || isProcessing || isSaving}>
-                        {isSaving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : <><Sparkles className="w-4 h-4 mr-2" /> Use cleaned crest</>}
+                        {isSaving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : <><Sparkles className="w-4 h-4 mr-2" /> Use cleaned {assetLabel}</>}
                     </Button>
                 </DialogFooter>
             </DialogContent>
