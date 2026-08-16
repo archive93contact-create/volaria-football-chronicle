@@ -40,22 +40,22 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
             // Build succession context - MUST be mentioned in the story
             let successionContext = '';
             if (club.is_defunct && successorClub) {
-                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'}. They were succeeded by ${successorClub.name}. **You MUST mention this** - explain the bittersweet ending where the club is gone but lives on through their successor.`;
+                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'}. They were succeeded by ${successorClub.name}. State the recorded succession clearly, but DO NOT invent why the club folded or how supporters reacted unless that information is supplied.`;
             } else if (club.is_defunct) {
-                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'} with no successor. **You MUST mention this** - treat it as a tragic ending where a club simply ceased to exist.`;
+                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'} with no recorded successor. State this plainly; DO NOT invent the cause of the closure.`;
             }
 
             if (predecessorClub && predecessorClub2) {
-                successionContext += `\n\n🔴 FORMED FROM MERGER (MUST MENTION): ${club.name} was formed in their founding year from a merger of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}) and ${predecessorClub2.name} (defunct ${predecessorClub2.defunct_year || 'earlier'}). **You MUST mention this merger as their origin story** - two clubs became one to create this club.`;
+                successionContext += `\n\n🔴 FORMED FROM MERGER (MUST MENTION): ${club.name} is recorded as the successor to a merger of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}) and ${predecessorClub2.name} (defunct ${predecessorClub2.defunct_year || 'earlier'}). State that relationship without inventing negotiations, motives or circumstances.`;
             } else if (predecessorClub) {
-                successionContext += `\n\n🔴 REFORMATION/CONTINUATION (MUST MENTION): ${club.name} continues the legacy of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}). **You MUST mention this** - the club was reformed/restarted as a phoenix rising from the ashes of their predecessor.`;
+                successionContext += `\n\n🔴 REFORMATION/CONTINUATION (MUST MENTION): ${club.name} continues the recorded lineage of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}). Do not invent the legal, financial or supporter circumstances of that continuation.`;
             }
 
             if (club.is_former_name && currentNameClub) {
                 successionContext += `\n\n🔴 FORMER NAME RECORD (MUST MENTION): This record represents a former name. The club is now known as ${currentNameClub.name} (changed ${club.renamed_year || 'later'}). **You MUST explain this is the same club**, just renamed - maintain continuity in the story.`;
             } else if (formerNameClub || club.former_name_club_id) {
                 const formerName = formerNameClub?.name || 'their previous name';
-                successionContext += `\n\n🔴 NAME CHANGE (MUST MENTION): This club was formerly known as ${formerName} until ${club.renamed_year || 'they changed their name'}${club.reverted_to_original ? ' (they reverted to their original name)' : ''}. **You MUST mention this name change** - same club, different name, explain the continuity and why they changed.`;
+                successionContext += `\n\n🔴 NAME CHANGE (MUST MENTION): This club was formerly known as ${formerName} until ${club.renamed_year || 'a later date'}${club.reverted_to_original ? ' (they later reverted to their original name)' : ''}. Make clear it is the same club, but DO NOT invent a reason for the rename.`;
             }
             
             if (club.former_name_club_2_id) {
