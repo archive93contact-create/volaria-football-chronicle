@@ -47,6 +47,7 @@ import CrestCleaner from '@/components/clubs/CrestCleaner';
 import EntityStickyNav from '@/components/common/EntityStickyNav';
 import EntitySectionHeader from '@/components/common/EntitySectionHeader';
 import { getEntityTheme } from '@/utils/entityTheme';
+import { syncLeagueStatsForNation } from '@/lib/leagueSync';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -193,6 +194,18 @@ export default function LeagueDetail() {
         },
     });
 
+    const invalidateLeagueHistory = () => {
+        queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
+        queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+        queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
+        queryClient.invalidateQueries({ queryKey: ['previousMovementTables'] });
+        queryClient.invalidateQueries({ queryKey: ['club'] });
+        queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        queryClient.invalidateQueries({ queryKey: ['clubs', league?.nation_id] });
+        queryClient.invalidateQueries({ queryKey: ['nation', league?.nation_id] });
+        queryClient.invalidateQueries({ queryKey: ['analyticsNationTables', league?.nation_id] });
+    };
+
     const deleteSeasonMutation = useMutation({
         mutationFn: async (seasonId) => {
             // Delete associated league table entries first
@@ -201,17 +214,29 @@ export default function LeagueDetail() {
                 await base44.entities.LeagueTable.delete(table.id);
             }
             await base44.entities.Season.delete(seasonId);
+            if (league?.nation_id) await syncLeagueStatsForNation(league.nation_id);
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
-            queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
-        },
+        onSuccess: invalidateLeagueHistory,
     });
 
     const updateSeasonMutation = useMutation({
-        mutationFn: ({ id, data }) => base44.entities.Season.update(id, data),
+        mutationFn: async ({ id, data }) => {
+            const historicalTier = Number(data.tier || league?.tier || 1);
+            const safeData = historicalTier === 1 ? {
+                ...data,
+                promotion_spots: 0,
+                promoted_teams: '',
+                playoff_spots_start: null,
+                playoff_spots_end: null,
+                playoff_winner: '',
+                playoff_winner_id: '',
+            } : data;
+            const updated = await base44.entities.Season.update(id, safeData);
+            if (league?.nation_id) await syncLeagueStatsForNation(league.nation_id);
+            return updated;
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
+            invalidateLeagueHistory();
             setEditingSeason(null);
         },
     });
