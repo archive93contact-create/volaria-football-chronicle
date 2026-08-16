@@ -418,7 +418,7 @@ export default function AddSeason() {
                 if (existingClub) {
                     // Update existing club stats
                     const isChampion = row.status === 'champion';
-                    const isPromoted = currentTier > 1 && row.status === 'promoted';
+                    const isPromoted = currentTier > 1 && (row.status === 'promoted' || row.status === 'playoff_winner');
                     const isRelegated = row.status === 'relegated';
 
                     // Only count league titles if this is tier 1 (top tier)
@@ -479,7 +479,7 @@ export default function AddSeason() {
                         total_losses: (existingClub.total_losses || 0) + (row.lost || 0),
                         total_goals_scored: (existingClub.total_goals_scored || 0) + (row.goals_for || 0),
                         total_goals_conceded: (existingClub.total_goals_conceded || 0) + (row.goals_against || 0),
-                        promotions: (existingClub.promotions || 0) + ((isPromoted || row.status === 'playoff_winner') ? 1 : 0),
+                        promotions: (existingClub.promotions || 0) + (isPromoted ? 1 : 0),
                         relegations: (existingClub.relegations || 0) + (isRelegated ? 1 : 0),
                         seasons_top_flight: (existingClub.seasons_top_flight || 0) + (isTopTier ? 1 : 0),
                         seasons_in_tfa: (existingClub.seasons_in_tfa || 0) + (isTFALeague ? 1 : 0),
