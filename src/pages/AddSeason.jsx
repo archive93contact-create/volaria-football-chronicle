@@ -282,13 +282,13 @@ export default function AddSeason() {
                         champion_name: div.rows.find(r => r.status === 'champion')?.club_name || '',
                         runner_up: div.rows.find(r => r.position === 2)?.club_name || '',
                         top_scorer: data.top_scorer,
-                        promoted_teams: div.rows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
+                        promoted_teams: currentTier === 1 ? '' : div.rows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
                         relegated_teams: div.rows.filter(r => r.status === 'relegated').map(r => r.club_name).join(', '),
                         champion_color: data.champion_color,
                         promotion_color: data.promotion_color,
                         relegation_color: data.relegation_color,
                         playoff_color: data.playoff_color,
-                        promotion_spots: div.promotion_spots || data.promotion_spots,
+                        promotion_spots: currentTier === 1 ? 0 : (div.promotion_spots ?? data.promotion_spots),
                         relegation_spots: div.relegation_spots || data.relegation_spots,
                         playoff_spots_start: data.playoff_spots_start || null,
                         playoff_spots_end: data.playoff_spots_end || null,
@@ -305,7 +305,7 @@ export default function AddSeason() {
                         const clubName = row.club_name.trim();
                         const existingClub = allNationClubs.find(c => c.name.trim().toLowerCase() === clubName.toLowerCase());
                         const isChampion = row.status === 'champion';
-                        const isPromoted = row.status === 'promoted' || row.status === 'playoff_winner';
+                        const isPromoted = currentTier > 1 && (row.status === 'promoted' || row.status === 'playoff_winner');
                         const isRelegated = row.status === 'relegated';
 
                         if (existingClub) {
@@ -361,13 +361,14 @@ export default function AddSeason() {
 
                     // Create league table entries for this division
                     const tableEntries = div.rows.filter(r => r.club_name.trim()).map(row => ({
+                        ...row,
+                        status: currentTier === 1 && (row.status === 'promoted' || row.status === 'playoff_winner') ? '' : row.status,
                         season_id: divSeason.id,
                         league_id: leagueId,
                         year: data.year,
                         tier: currentTier, // Capture the league's tier at time of creation
                         division_name: div.name,
-                        club_id: allClubIdMaps[row.club_name.trim()] || '',
-                        ...row
+                        club_id: allClubIdMaps[row.club_name.trim()] || ''
                     }));
                     if (tableEntries.length > 0) {
                         await base44.entities.LeagueTable.bulkCreate(tableEntries);
@@ -388,13 +389,13 @@ export default function AddSeason() {
                 champion_name: tableRows.find(r => r.status === 'champion')?.club_name || '',
                 runner_up: tableRows.find(r => r.position === 2)?.club_name || '',
                 top_scorer: data.top_scorer,
-                promoted_teams: tableRows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
+                promoted_teams: currentTier === 1 ? '' : tableRows.filter(r => r.status === 'promoted' || r.status === 'playoff_winner').map(r => r.club_name).join(', '),
                 relegated_teams: tableRows.filter(r => r.status === 'relegated').map(r => r.club_name).join(', '),
                 champion_color: data.champion_color,
                 promotion_color: data.promotion_color,
                 relegation_color: data.relegation_color,
                 playoff_color: data.playoff_color,
-                promotion_spots: data.promotion_spots,
+                promotion_spots: currentTier === 1 ? 0 : data.promotion_spots,
                 relegation_spots: data.relegation_spots,
                 playoff_spots_start: data.playoff_spots_start || null,
                 playoff_spots_end: data.playoff_spots_end || null,
@@ -528,14 +529,15 @@ export default function AddSeason() {
             // Create league table entries with club IDs (and youth team IDs if youth league)
             const isYouthLeague = league.league_type === 'youth';
             const tableEntries = tableRows.filter(r => r.club_name.trim()).map(row => ({
+                ...row,
+                status: currentTier === 1 && (row.status === 'promoted' || row.status === 'playoff_winner') ? '' : row.status,
                 season_id: season.id,
                 league_id: leagueId,
                 year: data.year,
                 tier: currentTier, // Capture the league's tier at time of creation
                 division_name: data.division_name || null,
                 club_id: clubIdMap[row.club_name.trim()] || '',
-                youth_team_id: isYouthLeague ? selectedYouthTeams[row.position] : null,
-                ...row
+                youth_team_id: isYouthLeague ? selectedYouthTeams[row.position] : null
             }));
 
             if (tableEntries.length > 0) {
@@ -601,7 +603,7 @@ export default function AddSeason() {
             if (pos === 1) {
                 status = 'champion';
                 color = seasonData.champion_color;
-            } else if (pos <= seasonData.promotion_spots) {
+            } else if (currentTier > 1 && pos <= seasonData.promotion_spots) {
                 status = 'promoted';
                 color = seasonData.promotion_color;
             } else if (seasonData.playoff_spots_start && seasonData.playoff_spots_end && 
