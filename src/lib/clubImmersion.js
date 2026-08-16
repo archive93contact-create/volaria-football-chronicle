@@ -69,7 +69,7 @@ export function detectClubEras(seasons = [], leagues = []) {
             titles >= 2 ? 'golden_era' : 'top_flight_stability',
             titles >= 2 ? 'Top-flight golden era' : 'Established top-flight era',
             run,
-            `${run.length} consecutive recorded top-flight seasons${titles ? ` with ${titles} title${titles === 1 ? '' : 's'}` : ''}.`,
+            `${run.length} consecutive top-flight seasons${titles ? ` with ${titles} title${titles === 1 ? '' : 's'}` : ''}.`,
             run.length + titles * 4
         ));
     });
@@ -79,7 +79,7 @@ export function detectClubEras(seasons = [], leagues = []) {
         'wilderness',
         'Lower-league wilderness',
         run,
-        `${run.length} consecutive recorded seasons at Tier ${Math.min(...run.map(s => getHistoricalTier(s, leagues) || 99))} or below.`,
+        `${run.length} consecutive seasons at Tier ${Math.min(...run.map(s => getHistoricalTier(s, leagues) || 99))} or below.`,
         run.length
     )));
 
@@ -99,7 +99,7 @@ export function detectClubEras(seasons = [], leagues = []) {
         const window = ordered.filter(s => yearNumber(s.year) >= start && yearNumber(s.year) <= start + 6);
         const movements = window.filter(s => ['promoted', 'playoff_winner', 'relegated'].includes(s.status));
         if (movements.length >= 3) {
-            eras.push(era('yo_yo', 'Yo-yo years', window, `${movements.length} promotions/relegations were recorded in a seven-year spell.`, 9 + movements.length * 2));
+            eras.push(era('yo_yo', 'Yo-yo years', window, `${movements.length} promotions and relegations arrived within a seven-year spell.`, 9 + movements.length * 2));
         }
     }
 
@@ -114,7 +114,7 @@ export function detectClubEras(seasons = [], leagues = []) {
         }
     }
     if (bestRise?.delta >= 90) eras.push(era('rise', 'Rapid rise', bestRise.slice, `The club improved by roughly ${Math.round(bestRise.delta / 100)} pyramid tier${bestRise.delta >= 190 ? 's' : ''} across this spell.`, Math.round(bestRise.delta / 15)));
-    if (worstFall?.delta <= -90) eras.push(era('decline', 'Major decline', worstFall.slice, `The recorded league position deteriorated sharply across this spell, falling through the pyramid.`, Math.round(Math.abs(worstFall.delta) / 15)));
+    if (worstFall?.delta <= -90) eras.push(era('decline', 'Major decline', worstFall.slice, `League position deteriorated sharply across this spell, carrying the club down through the pyramid.`, Math.round(Math.abs(worstFall.delta) / 15)));
 
     // Recent revival/decline from rolling windows.
     if (ordered.length >= 8) {
