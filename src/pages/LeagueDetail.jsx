@@ -378,12 +378,12 @@ export default function LeagueDetail() {
 
                 {/* League Name Change Notice */}
                 {league.former_name && league.renamed_year && (
-                    <Card className="border-0 shadow-sm mb-6 bg-blue-50 border-l-4 border-l-blue-500">
+                    <Card className="border border-slate-200 shadow-sm mb-6 bg-white" style={{ borderLeft: `4px solid ${leagueTheme.ui}`, backgroundColor: leagueTheme.tint }}>
                         <CardContent className="p-4 flex items-center gap-3">
-                            <Trophy className="w-6 h-6 text-blue-600" />
+                            <Trophy className="w-6 h-6" style={{ color: leagueTheme.ui }} />
                             <div>
-                                <span className="text-blue-800 font-semibold">League renamed in {league.renamed_year}</span>
-                                <div className="text-blue-700 text-sm mt-1">
+                                <span className="text-slate-900 font-semibold">League renamed in {league.renamed_year}</span>
+                                <div className="text-slate-600 text-sm mt-1">
                                     Formerly known as <span className="font-semibold">{league.former_name}</span>
                                     {league.rename_reason && <span> • {league.rename_reason}</span>}
                                 </div>
@@ -393,14 +393,11 @@ export default function LeagueDetail() {
                 )}
 
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="table" className="space-y-6">
-                    <div className="-mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        <TabsList className="h-11 sm:h-12 w-max min-w-full justify-start gap-0 sm:gap-1 rounded-none border-b border-slate-200 bg-transparent p-0">
-                            {[
-                                ['table', 'Table'], ['history-stats', 'History & Stats'], ['story', 'League Story'], ['crests', 'Club Crests'],
-                                ['clubs', 'Clubs'], ['titles', 'Most Titles'], ['seasons', 'Seasons'], ['records', 'Records'],
-                                ['analytics', 'Analytics'], ['predictions', 'Predictions']
-                            ].map(([value, label]) => (
-                                <TabsTrigger key={value} value={value} className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--league-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">{label}</TabsTrigger>
+                    <EntityStickyNav image={league.logo_url} name={league.name} items={leagueTabs} accentColor={leagueTheme.ui} />
+                    <div className="hidden md:block overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="h-12 w-max min-w-full justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0">
+                            {leagueTabs.map(([value, label]) => (
+                                <TabsTrigger key={value} value={value} className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--league-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">{label}</TabsTrigger>
                             ))}
                         </TabsList>
                     </div>
@@ -411,21 +408,13 @@ export default function LeagueDetail() {
                     const currentSeasonObj = seasons.find(s => s.year === currentYear);
                     return (
                     <div>
+                    <EntitySectionHeader eyebrow="Competition" title={`League Table ${currentYear || ''}`} description={hasDivisions ? `${divisionNames.length} divisions in the selected season.` : 'Current standings for the selected season.'} accentColor={leagueTheme.ui} />
                     <ThemedCard
-                        title={
-                            <span className="flex items-center gap-2 justify-between w-full">
-                                <span className="flex items-center gap-2">
-                                    <Trophy className="w-5 h-5" style={{ color: league.accent_color || '#f59e0b' }} />
-                                    League Table {currentYear}
-                                    {hasDivisions && ` (${divisionNames.length} Divisions)`}
-                                </span>
-                            </span>
-                        }
-                        primaryColor={league.primary_color}
-                        accentColor={league.accent_color}
-                        className="mb-8 shadow-lg"
+                        primaryColor={leagueTheme.ui}
+                        accentColor={leagueTheme.ui}
+                        className="mb-8 shadow-sm border border-slate-200 bg-white"
                     >
-                        <CardHeader className="flex flex-row items-center justify-between bg-slate-50 border-b p-0 pt-4 px-6">
+                        <CardHeader className="flex flex-row items-center justify-between border-b p-0 pt-4 px-6" style={{ backgroundColor: leagueTheme.tint }}>
                             <div></div>
                             {uniqueYears.length > 0 && (
                                 <Select value={selectedSeason || uniqueYears[0]} onValueChange={setSelectedSeason}>
@@ -441,7 +430,7 @@ export default function LeagueDetail() {
                                 {Object.entries(tablesByDivision).map(([divName, divTable]) => (
                                     <div key={divName || 'main'} className={hasDivisions ? "border-r last:border-r-0" : ""}>
                                         {hasDivisions && (
-                                            <div className="bg-slate-800 text-white px-4 py-2 font-semibold">
+                                            <div className="text-white px-4 py-2 font-semibold" style={{ backgroundColor: leagueTheme.ui }}>
                                                 {divName}
                                             </div>
                                         )}
