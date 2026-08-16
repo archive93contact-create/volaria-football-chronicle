@@ -141,25 +141,26 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                     const tier = s.tier || seasonLeague?.tier || '?';
                     const finish = s.position ? `, finished ${s.position}` : '';
                     const status = s.status ? `, ${s.status}` : '';
-                    return `- ${s.year}: ${seasonLeague?.name || 'recorded league'} (Tier ${tier})${finish}${status}`;
+                    const identity = allClubs.find(c => c.id === s.club_id)?.name || s.club_name || club.name;
+                    return `- ${s.year}: ${identity}; ${seasonLeague?.name || 'league'} (Tier ${tier})${finish}${status}`;
                 }).join('\n')
-                : '- No season-by-season milestones recorded.';
+                : '- No season-by-season milestones yet.';
 
             const eraText = detectedEras.length ? detectedEras.map(e => `- ${e.startYear}-${e.endYear}: ${e.label}. ${e.summary}`).join('\n') : '- No statistically strong era detected yet.';
             const comparisonText = comparativeInsights.length ? comparativeInsights.map(i => `- ${i.label}: ${i.value}. ${i.detail}`).join('\n') : '- No comparative context available.';
 
-            const prompt = `Write a grounded, vivid 4-6 paragraph archival story about ${club.name}, a football club in ${nation?.name}. It should feel unique because of the ACTUAL record below, not because of invented colour. This is the polished archive narrative layered on top of a deterministic living history.
+            const prompt = `Write a grounded, vivid 4-6 paragraph CLUB HISTORY about ${club.name}, a football club in ${nation?.name}. It should read like a finished chapter from a serious football history book: seamless, chronological and immersive.
 
 APPROVED ORIGIN CANON:
 ${origin?.formation_story ? `Formation type: ${origin.formation_type || 'unclassified'}\nFormation story: ${origin.formation_story}\nFounder context: ${origin.founder_context || 'unrecorded'}\nEarly ground: ${origin.original_ground_context || 'unrecorded'}\nName origin: ${origin.name_origin || 'unrecorded'}\nColour origin: ${origin.colour_origin || 'unrecorded'}\nAdmin canon notes: ${origin.canon_notes || 'none'}` : 'No formation story has been approved. DO NOT invent how the club was formed. State only the recorded founding year/location and move into the competitive record.'}
 
-DETECTED ERAS FROM LEAGUE DATA:
+HISTORICAL ERAS:
 ${eraText}
 
 COMPARATIVE CONTEXT WITHIN THE NATION:
 ${comparisonText}
 
-ALWAYS-CURRENT DATA NARRATIVE:
+LIVING CHRONOLOGY:
 ${livingNarrative}
 
 CLUB DATA:
@@ -186,28 +187,31 @@ HISTORY:
 - Best finish: ${club.best_finish ? `${club.best_finish}${club.best_finish === 1 ? 'st' : club.best_finish === 2 ? 'nd' : club.best_finish === 3 ? 'rd' : 'th'} (${club.best_finish_year || 'unknown year'}, Tier ${club.best_finish_tier || 'unknown'})` : 'No data'}
 - Professional status: ${club.professional_status || 'Unknown'}
 
-RECORDED SEASON MILESTONES:
+SEASON MILESTONES:
 ${milestoneText}
 
 ${tfaContext ? `\nTURULIAND TFA STATUS (CRITICAL):\n${tfaContext}\n` : ''}
 
 SOURCE DISCIPLINE — NON-NEGOTIABLE:
-- Treat ONLY the supplied database data as factual. This is a fictional universe, so there is no outside source to fill gaps from.
+- Treat ONLY the information supplied above as factual. This is a fictional universe, so there is no outside source to fill gaps from.
 - DO NOT invent named players, managers, chairmen, founders, supporters' groups, attendances, crowds, chants, industries, streets, neighbourhood landmarks, derby incidents, finances, ownership changes, stadium construction dates, reasons for a rename/merger/closure, or causes of success/decline unless explicitly supplied above.
-- The recorded stadium name/capacity may be mentioned, but do not invent its architecture, atmosphere, location history or opening date.
-- Rivals may be described as recorded rivals, but do not invent a rivalry origin or famous match.
-- You MAY interpret clear statistical patterns using cautious language such as 'the record suggests', 'a period of', or 'by the recorded results'. Never turn an inference into a new fact.
-- The APPROVED ORIGIN CANON above may be written as established club history because it has already been accepted. If it is absent, do not create an origin story in this narrative.
-- Treat DETECTED ERAS and COMPARATIVE CONTEXT as statistical interpretations: explain them naturally but do not add causes that are not in the data.
-- The narrative should evolve with the latest season. Give more weight to newly-entered seasons when they change an era, create a first/record, end a long stay, or materially alter the club's standing.
-- If the data is sparse, write a shorter, restrained history rather than padding it with invented detail.
+- Stadium names/capacities may be mentioned, but do not invent architecture, atmosphere, location history or opening dates.
+- Rivals may be mentioned naturally, but do not invent a rivalry origin or famous match.
+- The APPROVED ORIGIN CANON may be written as established history because it has already been accepted. If it is absent, do not invent a founding mechanism.
+- Former-name records are the SAME club identity at another time. Weave those names into the chronology naturally. Predecessor/merger records are inherited lineage and must be described with the correct distinction.
+- Use the historical eras and comparisons to shape emphasis, but do not add causes that are not known.
+- Give more weight to newly-entered seasons when they create a first, end a long stay, change an era, win a major honour or materially alter the club's standing.
+- If the history is sparse, write a shorter, restrained history rather than padding it with invented detail.
+
+READER-FACING RULE — ABSOLUTE:
+Never mention 'the data', 'database', 'supplied information', 'recorded results', 'the archive shows', 'according to the records', 'statistically detected', 'the model', 'the prompt', or explain how you know something. The reader should see only the club's history. Write supported interpretation directly as historical prose: 'The 1950s became a period of consolidation', not 'the data suggests the 1950s were stable'.
 
 REQUIREMENTS:
-1. **FIRST PARAGRAPH - Origins & Identity**: ${origin?.formation_story ? 'Use the APPROVED ORIGIN CANON to explain how the club emerged, then connect it to the recorded location/name/colours.' : 'There is no approved formation canon, so DO NOT invent founders or a founding mechanism. State the founding year/location/identity succinctly.'} ${successionContext ? '**CRITICAL**: You MUST mention their succession/merger/name change context (marked with 🔴 above) in this opening - it defines who they are.' : ''}
+1. **FIRST PARAGRAPH - Origins & Identity**: ${origin?.formation_story ? 'Use the APPROVED ORIGIN CANON to explain how the club emerged, then connect it naturally to location, name and colours.' : 'There is no approved formation canon, so DO NOT invent founders or a founding mechanism. State the founding year/location/identity succinctly.'} ${successionContext ? '**CRITICAL**: You MUST mention succession/merger/name-change context (marked with 🔴 above) in this opening or at the correct chronological point.' : ''}
 
 2. **SECOND PARAGRAPH - Journey**: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements from the data above. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity). **You MUST accurately describe their current tier situation** (marked in TFA STATUS above).' : `For non-Turuliand clubs, focus on their journey through ${nation?.name}'s league system (${nation?.federation_name || 'the national federation'}). DO NOT mention TFA - it only exists in Turuliand.`}
 
-3. **THIRD PARAGRAPH - Present Day**: Explain their current position in the hierarchy and what the recorded history says about the club today. ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is much further removed.' : ''} ${rivals.length > 0 ? 'Mention the recorded rivals (' + rivals.map(r => r.name).join(', ') + ') without inventing the reason for those rivalries.' : 'Do not invent a rivalry or supporter sentiment.'}
+3. **THIRD PARAGRAPH - Present Day**: Explain their current position in the hierarchy and how it compares with the club's earlier heights and lows. ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is much further removed.' : ''} ${rivals.length > 0 ? 'Mention the known rivals (' + rivals.map(r => r.name).join(', ') + ') without inventing the reason for those rivalries.' : 'Do not invent a rivalry or supporter sentiment.'}
 
 4. **ERA PARAGRAPH(S)**: Use the detected eras above to give the history shape — golden periods, long stays, rises, falls, wilderness years or revivals — and anchor every claim to the season record.
 
