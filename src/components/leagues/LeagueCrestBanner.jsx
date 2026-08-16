@@ -67,7 +67,7 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
                             <img
                                 src={league.logo_url}
                                 alt={league.name}
-                                className="w-14 h-14 object-contain bg-white/10 rounded-xl p-2"
+                                className="w-14 h-14 object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.35)]"
                             />
                         ) : (
                             <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center">
@@ -114,11 +114,12 @@ export default function LeagueCrestBanner({ league, clubs, currentSeasonTable })
                                 <div
                                     className="relative flex items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl w-full aspect-square"
                                     style={{
-                                        backgroundColor: 'white',
-                                        padding: '12px',
+                                        background: `radial-gradient(circle at 50% 46%, rgba(255,255,255,0.10), rgba(0,0,0,0.18) 72%)`,
+                                        padding: '10px',
+                                        border: '1px solid rgba(255,255,255,0.10)',
                                         boxShadow: isChampion
-                                            ? `0 0 0 4px ${accent}, 0 8px 24px rgba(0,0,0,0.5)`
-                                            : '0 4px 16px rgba(0,0,0,0.4)',
+                                            ? `0 0 0 3px ${accent}aa, 0 10px 28px rgba(0,0,0,0.48)`
+                                            : '0 8px 22px rgba(0,0,0,0.34)',
                                     }}
                                 >
                                     {club.logo_url ? (
