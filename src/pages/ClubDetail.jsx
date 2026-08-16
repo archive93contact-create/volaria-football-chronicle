@@ -644,18 +644,18 @@ export default function ClubDetail() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* VCC Section */}
                                 {(combinedStats?.vcc_titles > 0 || combinedStats?.vcc_appearances > 0 || combinedStats?.vcc_best_finish) && (
-                                    <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200">
+                                    <div className="p-4 rounded-xl border" style={{ backgroundColor: vccTheme.tint, borderColor: vccTheme.border }}>
                                        <div className="flex items-center gap-2 mb-3">
-                                           <Badge className="bg-amber-500 text-white">VCC</Badge>
-                                           <span className="font-semibold text-amber-800">Volarian Champions Cup</span>
+                                           <Badge style={{ backgroundColor: vccTheme.primary, color: '#fff' }}>VCC</Badge>
+                                           <span className="font-semibold text-slate-900">{vcc?.name || "VFC Champions' Cup"}</span>
                                        </div>
-                                       <p className="text-xs text-amber-600 mb-3 italic">Premier competition - Full member nations only</p>
+                                       <p className="text-xs text-slate-500 mb-3 italic">{vcc?.description || 'Premier continental competition for leading VFC clubs'}</p>
                                         <div className="space-y-2">
                                             {combinedStats?.vcc_titles > 0 && (
                                                 <div className="flex items-center gap-2">
-                                                    <Trophy className="w-5 h-5 text-amber-500" />
-                                                    <span className="font-bold text-amber-700">{combinedStats.vcc_titles} Title{combinedStats.vcc_titles > 1 ? 's' : ''}</span>
-                                                    {combinedStats.vcc_title_years && <span className="text-amber-600 text-sm">({combinedStats.vcc_title_years})</span>}
+                                                    <Trophy className="w-5 h-5" style={{ color: vccTheme.ui }} />
+                                                    <span className="font-bold" style={{ color: vccTheme.ui }}>{combinedStats.vcc_titles} Title{combinedStats.vcc_titles > 1 ? 's' : ''}</span>
+                                                    {combinedStats.vcc_title_years && <span className="text-slate-500 text-sm">({combinedStats.vcc_title_years})</span>}
                                                 </div>
                                             )}
                                             {combinedStats?.vcc_runner_up > 0 && (
@@ -682,18 +682,18 @@ export default function ClubDetail() {
 
                                 {/* CCC Section */}
                                 {(combinedStats?.ccc_titles > 0 || combinedStats?.ccc_appearances > 0 || combinedStats?.ccc_best_finish) && (
-                                    <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
+                                    <div className="p-4 rounded-xl border" style={{ backgroundColor: cccTheme.tint, borderColor: cccTheme.border }}>
                                        <div className="flex items-center gap-2 mb-3">
-                                           <Badge className="bg-blue-500 text-white">CCC</Badge>
-                                           <span className="font-semibold text-blue-800">Continental Challenge Cup</span>
+                                           <Badge style={{ backgroundColor: cccTheme.primary, color: '#fff' }}>CCC</Badge>
+                                           <span className="font-semibold text-slate-900">{ccc?.name || 'Continental Challenge Cup'}</span>
                                        </div>
-                                       <p className="text-xs text-blue-600 mb-3 italic">Developing nations pathway</p>
+                                       <p className="text-xs text-slate-500 mb-3 italic">{ccc?.description || 'Secondary continental competition for VFC clubs'}</p>
                                         <div className="space-y-2">
                                             {combinedStats?.ccc_titles > 0 && (
                                                 <div className="flex items-center gap-2">
-                                                    <Trophy className="w-5 h-5 text-blue-500" />
-                                                    <span className="font-bold text-blue-700">{combinedStats.ccc_titles} Title{combinedStats.ccc_titles > 1 ? 's' : ''}</span>
-                                                    {combinedStats.ccc_title_years && <span className="text-blue-600 text-sm">({combinedStats.ccc_title_years})</span>}
+                                                    <Trophy className="w-5 h-5" style={{ color: cccTheme.ui }} />
+                                                    <span className="font-bold" style={{ color: cccTheme.ui }}>{combinedStats.ccc_titles} Title{combinedStats.ccc_titles > 1 ? 's' : ''}</span>
+                                                    {combinedStats.ccc_title_years && <span className="text-slate-500 text-sm">({combinedStats.ccc_title_years})</span>}
                                                 </div>
                                             )}
                                             {combinedStats?.ccc_runner_up > 0 && (
