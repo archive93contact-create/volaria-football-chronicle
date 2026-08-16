@@ -327,12 +327,38 @@ export default function LeagueDetail() {
         const name = normaliseClubName(row?.club_name);
         const clubId = row?.club_id || null;
         if (!clubId && !name) return { isPromoted: false, isRelegated: false, isChampion: false };
+
+        const previousRow = previousMovementTables.find(prev =>
+            (clubId && prev.club_id && prev.club_id === clubId) ||
+            (!prev.club_id && name && normaliseClubName(prev.club_name) === name)
+        );
+
+        if (previousRow) {
+            const previousLeague = allNationLeagues.find(l => l.id === previousRow.league_id);
+            const previousTier = Number(previousRow.tier || previousLeague?.tier || 0);
+            const selectedSeasonRecord = seasons.find(s => s.year === currentYear);
+            const currentHistoricalTier = Number(row?.tier || selectedSeasonRecord?.tier || league.tier || 0);
+            const stayedInSameLeague = previousRow.league_id === leagueId;
+
+            return {
+                isPromoted: Boolean(previousTier && currentHistoricalTier && previousTier > currentHistoricalTier),
+                isRelegated: Boolean(previousTier && currentHistoricalTier && previousTier < currentHistoricalTier),
+                isChampion: Boolean(
+                    currentHistoricalTier === 1 &&
+                    previousTier === 1 &&
+                    stayedInSameLeague &&
+                    (previousRow.status === 'champion' || Number(previousRow.position) === 1)
+                )
+            };
+        }
+
+        // Legacy fallback when a previous table is missing: exact ID/name matches only.
         const idMatches = (set) => Boolean(clubId && set.has(clubId));
         const nameMatches = (set) => Boolean(name && set.has(name));
         return {
             isPromoted: idMatches(promotedClubIds) || nameMatches(promotedClubNames),
             isRelegated: idMatches(relegatedClubIds) || nameMatches(relegatedClubNames),
-            isChampion: Number(league.tier) === 1 && (
+            isChampion: Number(row?.tier || league.tier) === 1 && (
                 Boolean(previousChampionId && clubId && previousChampionId === clubId) ||
                 Boolean(previousChampionName && name && previousChampionName === name)
             )
