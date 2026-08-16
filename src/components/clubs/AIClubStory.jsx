@@ -163,8 +163,6 @@ ALWAYS-CURRENT DATA NARRATIVE:
 ${livingNarrative}
 
 CLUB DATA:
-
-CLUB DATA:
 - Location: ${[club.settlement, club.district, club.region].filter(Boolean).join(', ') || club.city || 'Unknown'}
 - Founded: ${club.founded_year || 'Unknown'}
 - Nickname: ${club.nickname || 'None'}
