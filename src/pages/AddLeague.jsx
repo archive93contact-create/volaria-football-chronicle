@@ -37,7 +37,10 @@ export default function AddLeague() {
     const createMutation = useMutation({
         mutationFn: (data) => base44.entities.League.create(data),
         onSuccess: (newLeague) => {
-            queryClient.invalidateQueries(['leagues']);
+            queryClient.invalidateQueries({ queryKey: ['leagues'] });
+            queryClient.invalidateQueries({ queryKey: ['leagues', newLeague.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['leaguesByNation', newLeague.nation_id] });
+            queryClient.invalidateQueries({ queryKey: ['nation', newLeague.nation_id] });
             navigate(createPageUrl(`LeagueDetail?id=${newLeague.id}`));
         },
     });
