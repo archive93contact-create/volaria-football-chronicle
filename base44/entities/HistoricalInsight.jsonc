@@ -1,0 +1,64 @@
+{
+  "name": "HistoricalInsight",
+  "type": "object",
+  "properties": {
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "club",
+        "league",
+        "nation",
+        "competition"
+      ],
+      "description": "Entity type this insight belongs to"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "Entity ID"
+    },
+    "year": {
+      "type": "string",
+      "description": "Season/year this insight relates to, if applicable"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "record",
+        "trend",
+        "rarity",
+        "geography",
+        "comparison",
+        "milestone",
+        "movement"
+      ],
+      "description": "Insight category"
+    },
+    "headline": {
+      "type": "string",
+      "description": "Short insight headline"
+    },
+    "detail": {
+      "type": "string",
+      "description": "Data-derived explanation"
+    },
+    "metric_value": {
+      "type": "number",
+      "description": "Optional numeric value supporting the insight"
+    },
+    "comparison_scope": {
+      "type": "string",
+      "description": "Scope used for ranking/comparison, e.g. nation, tier, league history"
+    },
+    "source_version": {
+      "type": "string",
+      "description": "Calculation version"
+    }
+  },
+  "required": [
+    "entity_type",
+    "entity_id",
+    "category",
+    "headline",
+    "detail"
+  ]
+}

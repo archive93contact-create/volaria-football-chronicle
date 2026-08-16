@@ -1,0 +1,29 @@
+{
+  "name": "ClubComparativeInsight",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "through_year": {
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "string"
+    },
+    "rank": {
+      "type": "number"
+    },
+    "population_size": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "club_id",
+    "through_year",
+    "headline"
+  ]
+}

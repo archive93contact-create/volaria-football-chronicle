@@ -1,0 +1,32 @@
+{
+  "name": "NarrativeRefreshLog",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "through_year": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "generated",
+        "skipped",
+        "failed"
+      ]
+    },
+    "message": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "club_id",
+    "through_year",
+    "status"
+  ]
+}

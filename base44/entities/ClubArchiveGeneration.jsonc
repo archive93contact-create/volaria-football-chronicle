@@ -1,0 +1,22 @@
+{
+  "name": "ClubArchiveGeneration",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "through_year": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "club_id",
+    "through_year"
+  ]
+}

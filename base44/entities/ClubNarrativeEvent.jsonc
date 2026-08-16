@@ -1,0 +1,65 @@
+{
+  "name": "ClubNarrativeEvent",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Club ID"
+    },
+    "year": {
+      "type": "string",
+      "description": "Season/year of event"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "founded",
+        "renamed",
+        "merged",
+        "stadium_move",
+        "promotion",
+        "relegation",
+        "title",
+        "cup_win",
+        "continental_run",
+        "best_finish",
+        "worst_finish",
+        "revival",
+        "decline",
+        "milestone"
+      ],
+      "description": "Structured event type"
+    },
+    "headline": {
+      "type": "string",
+      "description": "Short event title"
+    },
+    "detail": {
+      "type": "string",
+      "description": "Data-derived event detail"
+    },
+    "importance": {
+      "type": "number",
+      "description": "1-5 importance rating"
+    },
+    "source_entity": {
+      "type": "string",
+      "description": "Entity used as source, e.g. LeagueTable/Season/StadiumHistory"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Source record ID where applicable"
+    },
+    "is_generated": {
+      "type": "boolean",
+      "description": "Whether event was derived automatically",
+      "default": true
+    }
+  },
+  "required": [
+    "club_id",
+    "year",
+    "event_type",
+    "headline"
+  ]
+}

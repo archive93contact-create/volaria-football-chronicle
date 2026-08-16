@@ -102,13 +102,26 @@ Return JSON { proposals: [{ stadium_name, name_type, rationale }] }. name_type m
         for (const record of currentRecords) {
             await base44.entities.StadiumHistory.update(record.id, { is_current: false, end_year: year ? year - 1 : record.end_year || null });
         }
+        // If the legacy Club record had a current ground that was never added to the timeline,
+        // preserve it before switching names so accepting a proposal cannot erase ground history.
+        if (club.stadium && club.stadium !== selectedName && !history.some(h => h.stadium_name === club.stadium)) {
+            await base44.entities.StadiumHistory.create({
+                club_id: club.id,
+                stadium_name: club.stadium,
+                start_year: club.founded_year || undefined,
+                end_year: year ? year - 1 : undefined,
+                capacity: club.stadium_capacity || undefined,
+                ground_grade: club.stadium_rating ?? undefined,
+                is_current: false,
+                generated_context: 'Imported from the previous current-ground field when the club adopted a new ground name; dates can be refined by the admin.'
+            });
+        }
         await base44.entities.StadiumHistory.create({
             club_id: club.id,
             stadium_name: selectedName,
-            start_year: year,
-            capacity: club.stadium_capacity || null,
-            ground_grade: club.stadium_rating || null,
-            has_floodlights: null,
+            start_year: year || undefined,
+            capacity: club.stadium_capacity || undefined,
+            ground_grade: club.stadium_rating ?? undefined,
             is_current: true,
             move_reason: '',
             notes: '',
@@ -124,7 +137,7 @@ Return JSON { proposals: [{ stadium_name, name_type, rationale }] }. name_type m
     const captureExisting = async () => {
         if (!club.stadium) return;
         setSaving(true);
-        await base44.entities.StadiumHistory.create({ club_id: club.id, stadium_name: club.stadium, start_year: club.founded_year || null, capacity: club.stadium_capacity || null, ground_grade: club.stadium_rating || null, is_current: true, generated_context: 'Imported from current Club record; dates can be refined later.' });
+        await base44.entities.StadiumHistory.create({ club_id: club.id, stadium_name: club.stadium, start_year: club.founded_year || undefined, capacity: club.stadium_capacity || undefined, ground_grade: club.stadium_rating ?? undefined, is_current: true, generated_context: 'Imported from current Club record; dates can be refined later.' });
         queryClient.invalidateQueries({ queryKey: ['stadiumHistory', club.id] });
         setSaving(false);
     };

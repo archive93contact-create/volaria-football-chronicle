@@ -1,0 +1,15 @@
+{
+  "name": "ClubHistoricalProfile",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "profile": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "club_id"
+  ]
+}
