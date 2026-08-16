@@ -241,9 +241,9 @@ export function buildClubLineage(club, allClubs = []) {
         c.id !== club?.id && !c.is_former_name && (c.predecessor_club_id === club?.id || c.predecessor_club_2_id === club?.id)
     );
     const successorCandidate = directSuccessor || reverseSuccessor || null;
-+    const isDefunct = Boolean(club?.is_defunct || (club?.is_active === false && !isFormerName && successorCandidate));
-+    const successor = isDefunct ? successorCandidate : null;
-+    const isInactive = Boolean(club?.is_active === false && !isFormerName && !isDefunct);
+    const isDefunct = Boolean(club?.is_defunct || (club?.is_active === false && !isFormerName && successorCandidate));
+    const successor = isDefunct ? successorCandidate : null;
+    const isInactive = Boolean(club?.is_active === false && !isFormerName && !isDefunct);
 
     return {
         formerNames,
