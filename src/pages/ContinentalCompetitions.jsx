@@ -268,7 +268,7 @@ export default function ContinentalCompetitions() {
             </div>
             <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => { setIsAddOpen(false); setEditingComp(null); resetForm(); }}>Cancel</Button>
-                <Button onClick={handleSubmit} disabled={!formData.name} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={handleSubmit} disabled={!formData.name} className="bg-slate-950 hover:bg-slate-800 text-white">
                     {editingComp ? 'Save Changes' : 'Create Competition'}
                 </Button>
             </div>
@@ -276,7 +276,7 @@ export default function ContinentalCompetitions() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-[#f5f5f4]">
             {/* Continental archive masthead */}
             <section className="relative overflow-hidden bg-[#0b0c0e] text-white border-b border-white/10">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,.08),transparent_28%),linear-gradient(120deg,#090a0b_0%,#15181c_55%,#08090a_100%)]" />
@@ -324,20 +324,19 @@ export default function ContinentalCompetitions() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Tabs for History & Competitions */}
                 <Tabs defaultValue="competitions" className="mb-12">
-                    <TabsList className="mb-8">
-                        <TabsTrigger value="competitions" className="flex items-center gap-2">
-                            <Trophy className="w-4 h-4" />
-                            Competitions
-                        </TabsTrigger>
-                        <TabsTrigger value="history" className="flex items-center gap-2">
-                            <BookOpen className="w-4 h-4" />
-                            History & Legacy
-                        </TabsTrigger>
-                        <TabsTrigger value="most-successful" className="flex items-center gap-2">
-                            <Crown className="w-4 h-4" />
-                            Most Successful
-                        </TabsTrigger>
-                    </TabsList>
+                    <div className="overflow-x-auto mb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="h-12 w-max min-w-full justify-start rounded-none border-b border-slate-200 bg-transparent p-0">
+                            <TabsTrigger value="competitions" className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-slate-950 data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none flex items-center gap-2">
+                                <Trophy className="w-4 h-4" /> Competitions
+                            </TabsTrigger>
+                            <TabsTrigger value="history" className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-slate-950 data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none flex items-center gap-2">
+                                <BookOpen className="w-4 h-4" /> History & Legacy
+                            </TabsTrigger>
+                            <TabsTrigger value="most-successful" className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-slate-950 data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none flex items-center gap-2">
+                                <Crown className="w-4 h-4" /> Most Successful
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>
 
                     <TabsContent value="history" className="space-y-6">
                         <div className="mb-6">
