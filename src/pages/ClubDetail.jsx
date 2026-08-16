@@ -52,6 +52,7 @@ import CrestCleaner from '@/components/clubs/CrestCleaner';
 import EntityStickyNav from '@/components/common/EntityStickyNav';
 import EntitySectionHeader from '@/components/common/EntitySectionHeader';
 import { getEntityTheme } from '@/utils/entityTheme';
+import { buildClubLineage } from '@/lib/clubImmersion';
 
 export default function ClubDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -154,42 +155,25 @@ export default function ClubDetail() {
         staleTime: 10 * 60 * 1000,
     });
 
-    // Batch fetch related club data (predecessor, successor, former names) in one go
-    const relatedClubIds = [
-        club?.predecessor_club_id,
-        club?.predecessor_club_2_id,
-        club?.successor_club_id,
-        club?.former_name_club_id,
-        club?.former_name_club_2_id,
-        club?.current_name_club_id
-    ].filter(Boolean);
+    // Resolve club identity as a graph, not just from whichever side of the relationship
+    // happened to be populated. This catches old-name -> current-name and predecessor -> successor links too.
+    const resolvedLineage = React.useMemo(
+        () => club ? buildClubLineage(club, allClubs) : { formerNames: [], predecessors: [], currentName: null, successor: null },
+        [club, allClubs]
+    );
 
-    const { data: relatedClubs = [] } = useQuery({
-        queryKey: ['relatedClubs', relatedClubIds.join(',')],
-        queryFn: async () => {
-            if (relatedClubIds.length === 0) return [];
-            const clubs = await base44.entities.Club.list() || [];
-            return clubs.filter(c => relatedClubIds.includes(c.id));
-        },
-        enabled: !!club && relatedClubIds.length > 0,
-        staleTime: 10 * 60 * 1000,
-    });
+    const predecessorClub = resolvedLineage.predecessors[0] || null;
+    const predecessorClub2 = resolvedLineage.predecessors[1] || null;
+    const successorClub = resolvedLineage.successor || null;
+    const formerNameClub = resolvedLineage.formerNames[0] || null;
+    const formerNameClub2 = resolvedLineage.formerNames[1] || null;
+    const currentNameClub = resolvedLineage.currentName || null;
 
-    // Extract individual clubs from batch
-    const predecessorClub = relatedClubs.find(c => c.id === club?.predecessor_club_id);
-    const predecessorClub2 = relatedClubs.find(c => c.id === club?.predecessor_club_2_id);
-    const successorClub = relatedClubs.find(c => c.id === club?.successor_club_id);
-    const formerNameClub = relatedClubs.find(c => c.id === club?.former_name_club_id);
-    const formerNameClub2 = relatedClubs.find(c => c.id === club?.former_name_club_2_id);
-    const currentNameClub = relatedClubs.find(c => c.id === club?.current_name_club_id);
-
-    // Batch fetch seasons for related clubs
-    const relatedSeasonClubIds = [
-        club?.predecessor_club_id,
-        club?.predecessor_club_2_id,
-        club?.former_name_club_id,
-        club?.former_name_club_2_id
-    ].filter(Boolean);
+    // Fetch seasons for every same-lineage former name and predecessor, including reverse-linked records.
+    const relatedSeasonClubIds = [...new Set([
+        ...resolvedLineage.predecessors.map(c => c.id),
+        ...resolvedLineage.formerNames.map(c => c.id),
+    ].filter(Boolean))];
 
     const { data: relatedSeasons = [] } = useQuery({
         queryKey: ['relatedSeasons', relatedSeasonClubIds.join(',')],
@@ -202,11 +186,12 @@ export default function ClubDetail() {
         staleTime: 10 * 60 * 1000,
     });
 
-    // Extract individual season arrays
-    const predecessorSeasons = relatedSeasons.filter(s => s.club_id === club?.predecessor_club_id).sort((a, b) => b.year.localeCompare(a.year));
-    const predecessorSeasons2 = relatedSeasons.filter(s => s.club_id === club?.predecessor_club_2_id).sort((a, b) => b.year.localeCompare(a.year));
-    const formerNameSeasons = relatedSeasons.filter(s => s.club_id === club?.former_name_club_id).sort((a, b) => b.year.localeCompare(a.year));
-    const formerNameSeasons2 = relatedSeasons.filter(s => s.club_id === club?.former_name_club_2_id).sort((a, b) => b.year.localeCompare(a.year));
+    // Extract the first two legacy branches for existing UI/stat compatibility; the combined narrative
+    // below also receives every extra related season found by the graph.
+    const predecessorSeasons = predecessorClub ? relatedSeasons.filter(s => s.club_id === predecessorClub.id).sort((a, b) => b.year.localeCompare(a.year)) : [];
+    const predecessorSeasons2 = predecessorClub2 ? relatedSeasons.filter(s => s.club_id === predecessorClub2.id).sort((a, b) => b.year.localeCompare(a.year)) : [];
+    const formerNameSeasons = formerNameClub ? relatedSeasons.filter(s => s.club_id === formerNameClub.id).sort((a, b) => b.year.localeCompare(a.year)) : [];
+    const formerNameSeasons2 = formerNameClub2 ? relatedSeasons.filter(s => s.club_id === formerNameClub2.id).sort((a, b) => b.year.localeCompare(a.year)) : [];
 
     // Fetch players for Squad tab - only when needed
     const { data: players = [] } = useQuery({
@@ -219,8 +204,9 @@ export default function ClubDetail() {
         staleTime: 5 * 60 * 1000,
     });
 
-    // Combine seasons from current club, predecessors, and former names
-    const combinedSeasons = [...clubSeasons, ...predecessorSeasons, ...predecessorSeasons2, ...formerNameSeasons, ...formerNameSeasons2].sort((a, b) => b.year.localeCompare(a.year));
+    // Combine the current record with every lineage season exactly once.
+    const combinedSeasons = [...new Map([...clubSeasons, ...relatedSeasons].map(s => [s.id || `${s.club_id}-${s.league_id}-${s.year}`, s])).values()]
+        .sort((a, b) => b.year.localeCompare(a.year));
 
     // Calculate club average OVR from squad
     const clubAverageOVR = React.useMemo(() => {
