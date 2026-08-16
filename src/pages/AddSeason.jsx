@@ -541,10 +541,12 @@ export default function AddSeason() {
             return season;
         },
         onSuccess: (season) => {
+            queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
             queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
             queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
             queryClient.invalidateQueries({ queryKey: ['leagueTables'] });
             queryClient.invalidateQueries({ queryKey: ['clubs'] });
+            queryClient.invalidateQueries({ queryKey: ['club'] });
             queryClient.invalidateQueries({ queryKey: ['nationClubs', league?.nation_id] });
             queryClient.invalidateQueries({ queryKey: ['clubs', league?.nation_id] });
             queryClient.invalidateQueries({ queryKey: ['allClubs'] });
