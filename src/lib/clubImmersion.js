@@ -207,21 +207,62 @@ export function buildComparativeInsights(club, allClubs = [], seasons = [], leag
     ].filter(Boolean);
 }
 
-const lineageClubIds = (club) => new Set([
-    club?.id,
-    club?.former_name_club_id,
-    club?.former_name_club_2_id,
-    club?.predecessor_club_id,
-    club?.predecessor_club_2_id,
-].filter(Boolean));
+const uniqueClubs = (clubs = []) => [...new Map(clubs.filter(Boolean).map(c => [c.id, c])).values()];
 
+// Resolve BOTH directions of every identity relationship. Historical records were entered
+// over time, so some rows point forward (old club -> successor/current name) while others
+// point backward (new club -> predecessor/former name). The narrative must work either way.
 export function buildClubLineage(club, allClubs = []) {
     const byId = id => allClubs.find(c => c.id === id);
-    const formerNames = [club?.former_name_club_id, club?.former_name_club_2_id].map(byId).filter(Boolean);
-    const predecessors = [club?.predecessor_club_id, club?.predecessor_club_2_id].map(byId).filter(Boolean);
-    const currentName = club?.current_name_club_id ? byId(club.current_name_club_id) : null;
-    return { formerNames, predecessors, currentName };
+
+    const directFormerNames = [club?.former_name_club_id, club?.former_name_club_2_id].map(byId).filter(Boolean);
+    const reverseFormerNames = allClubs.filter(c =>
+        c.id !== club?.id && c.is_former_name && c.current_name_club_id === club?.id
+    );
+    const formerNames = uniqueClubs([...directFormerNames, ...reverseFormerNames]);
+
+    const directPredecessors = [club?.predecessor_club_id, club?.predecessor_club_2_id].map(byId).filter(Boolean);
+    const reversePredecessors = allClubs.filter(c =>
+        c.id !== club?.id && c.is_defunct && c.successor_club_id === club?.id
+    );
+    const predecessors = uniqueClubs([...directPredecessors, ...reversePredecessors]);
+
+    const directCurrentName = club?.current_name_club_id ? byId(club.current_name_club_id) : null;
+    const reverseCurrentName = allClubs.find(c =>
+        c.id !== club?.id && (c.former_name_club_id === club?.id || c.former_name_club_2_id === club?.id)
+    );
+    const currentName = directCurrentName || reverseCurrentName || null;
+
+    const directSuccessor = club?.successor_club_id ? byId(club.successor_club_id) : null;
+    const reverseSuccessor = allClubs.find(c =>
+        c.id !== club?.id && (c.predecessor_club_id === club?.id || c.predecessor_club_2_id === club?.id)
+    );
+    const successor = directSuccessor || reverseSuccessor || null;
+
+    const isFormerName = Boolean(club?.is_former_name || currentName);
+    const isDefunct = Boolean(club?.is_defunct && !isFormerName);
+    const isInactive = Boolean(club?.is_active === false && !isFormerName && !club?.is_defunct);
+
+    return {
+        formerNames,
+        predecessors,
+        currentName,
+        successor,
+        isFormerName,
+        isDefunct,
+        isInactive,
+        endedYear: club?.defunct_year || club?.renamed_year || null,
+    };
 }
+
+const lineageClubIds = (club, allClubs = []) => {
+    const lineage = buildClubLineage(club, allClubs);
+    return new Set([
+        club?.id,
+        ...lineage.formerNames.map(c => c.id),
+        ...lineage.predecessors.map(c => c.id),
+    ].filter(Boolean));
+};
 
 const identityForSeason = (club, season, allClubs = []) => {
     if (!season?.club_id || season.club_id === club?.id) return club?.name || season?.club_name;
