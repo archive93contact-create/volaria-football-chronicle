@@ -264,6 +264,7 @@ export default function AILeagueGenerator({ leagueId, seasonYear, isOpen, onClos
         const seasonData = {
             league_id: leagueId,
             year: seasonYear,
+            tier: league?.tier || null,
             number_of_teams: generatedTable.length,
             champion_id: generatedTable[0].club_id,
             champion_name: generatedTable[0].club_name,
