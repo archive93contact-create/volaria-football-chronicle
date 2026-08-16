@@ -277,10 +277,12 @@ export default function AISeasonGenerator({ leagueId, onComplete }) {
         if (league?.nation_id) await syncLeagueStatsForNation(league.nation_id);
 
         queryClient.invalidateQueries({ queryKey: ['seasons'] });
+        queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
         queryClient.invalidateQueries({ queryKey: ['leagueSeasons', leagueId] });
         queryClient.invalidateQueries({ queryKey: ['leagueTables', leagueId] });
         queryClient.invalidateQueries({ queryKey: ['leagueTables'] });
         queryClient.invalidateQueries({ queryKey: ['allClubs'] });
+        queryClient.invalidateQueries({ queryKey: ['club'] });
         queryClient.invalidateQueries({ queryKey: ['clubs', league?.nation_id] });
         queryClient.invalidateQueries({ queryKey: ['nation', league?.nation_id] });
         queryClient.invalidateQueries({ queryKey: ['analyticsNationTables', league?.nation_id] });
