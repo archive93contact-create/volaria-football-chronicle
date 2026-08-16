@@ -200,8 +200,8 @@ Return JSON with formation_type, story, founder_context, original_ground_context
                         <div className="bg-white/90 p-4"><div className="text-[10px] uppercase tracking-wider font-black text-slate-400">Colours</div><div className="mt-1 text-sm text-slate-700">{displayed.colour_origin || 'Unrecorded'}</div></div>
                         <div className="bg-white/90 p-4"><div className="text-[10px] uppercase tracking-wider font-black text-slate-400">Early home</div><div className="mt-1 text-sm text-slate-700">{displayed.original_ground_context || 'Unrecorded'}</div></div>
                     </div>
-                    {proposal?.rationale && <div className="rounded-lg bg-slate-950/[0.035] p-3 text-xs leading-5 text-slate-500"><strong>Why this proposal:</strong> {proposal.rationale}</div>}
                     <AdminOnly>
+                        {proposal?.rationale && <div className="rounded-lg bg-slate-950/[0.035] p-3 text-xs leading-5 text-slate-500 mb-3"><strong>Admin grounding:</strong> {proposal.rationale}</div>}
                         <div className="flex flex-col sm:flex-row gap-2 sm:items-end pt-2">
                             <div className="flex-1"><div className="text-xs font-bold text-slate-500 mb-1">Canon constraints / notes</div><Textarea rows={2} value={canonNotes} onChange={e => setCanonNotes(e.target.value)} placeholder="e.g. formed by railway workers; do not use a church origin" /></div>
                             {proposal && <Button onClick={acceptProposal} disabled={saving}><Check className="w-4 h-4 mr-2" />Accept as canon</Button>}
