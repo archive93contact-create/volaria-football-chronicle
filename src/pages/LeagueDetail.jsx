@@ -383,21 +383,17 @@ export default function LeagueDetail() {
                 )}
 
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="table" className="space-y-6">
-                    <TabsList>
-                        <TabsTrigger value="table">League Table</TabsTrigger>
-                        <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
-                        <TabsTrigger value="story">League Story</TabsTrigger>
-                        <TabsTrigger value="crests">Club Crests ({(() => {
-                            const currentSeasonClubIds = currentSeasonTable.map(t => t.club_id).filter(Boolean);
-                            return clubs.filter(c => currentSeasonClubIds.includes(c.id)).length;
-                        })()})</TabsTrigger>
-                        <TabsTrigger value="clubs">Clubs List</TabsTrigger>
-                        <TabsTrigger value="titles">Most Titles</TabsTrigger>
-                        <TabsTrigger value="seasons">Season History</TabsTrigger>
-                        <TabsTrigger value="records">All-Time Records</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                        <TabsTrigger value="predictions">Predictions</TabsTrigger>
-                    </TabsList>
+                    <div className="-mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="h-11 sm:h-12 w-max min-w-full justify-start gap-0 sm:gap-1 rounded-none border-b border-slate-200 bg-transparent p-0">
+                            {[
+                                ['table', 'Table'], ['history-stats', 'History & Stats'], ['story', 'League Story'], ['crests', 'Club Crests'],
+                                ['clubs', 'Clubs'], ['titles', 'Most Titles'], ['seasons', 'Seasons'], ['records', 'Records'],
+                                ['analytics', 'Analytics'], ['predictions', 'Predictions']
+                            ].map(([value, label]) => (
+                                <TabsTrigger key={value} value={value} className="h-11 sm:h-12 rounded-none border-b-2 border-transparent px-3 sm:px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--league-primary)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">{label}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </div>
 
                     {/* LEAGUE TABLE TAB */}
                     <TabsContent value="table">
