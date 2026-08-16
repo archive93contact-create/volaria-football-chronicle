@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { syncContinentalCompetition } from '@/lib/continentalSync';
 
 const ROUNDS = [
     { name: 'Final', order: 1, matches: 1 },
@@ -119,72 +120,103 @@ export default function AddCompetitionSeason() {
 
     const createSeasonMutation = useMutation({
         mutationFn: async (data) => {
-            // Find champion from Final match
-            let champion = null;
-            let runnerUp = null;
-            let finalScore = '';
-            
-            if (matches['Final'] && matches['Final'][0]) {
-                const finalMatch = matches['Final'][0];
-                finalScore = `${finalMatch.home_score}-${finalMatch.away_score}`;
-                if (finalMatch.penalties) {
-                    finalScore += ` (${finalMatch.penalties} pen)`;
+            const getWinner = (match) => {
+                if (!match?.home_club_id || !match?.away_club_id) return null;
+                const homeScore = Number.parseInt(match.home_score, 10);
+                const awayScore = Number.parseInt(match.away_score, 10);
+                if (!Number.isFinite(homeScore) || !Number.isFinite(awayScore)) return null;
+                if (homeScore > awayScore) return allClubs.find(c => c.id === match.home_club_id) || null;
+                if (awayScore > homeScore) return allClubs.find(c => c.id === match.away_club_id) || null;
+                if (match.penalties) {
+                    const [homePens, awayPens] = String(match.penalties).split('-').map(v => Number.parseInt(v.trim(), 10));
+                    if (Number.isFinite(homePens) && Number.isFinite(awayPens) && homePens !== awayPens) {
+                        return allClubs.find(c => c.id === (homePens > awayPens ? match.home_club_id : match.away_club_id)) || null;
+                    }
                 }
-                
-                const homeScore = parseInt(finalMatch.home_score) || 0;
-                const awayScore = parseInt(finalMatch.away_score) || 0;
-                
-                if (homeScore > awayScore || (finalMatch.penalties && finalMatch.penalties.split('-')[0] > finalMatch.penalties.split('-')[1])) {
-                    champion = { name: finalMatch.home_club_name, nation_id: finalMatch.home_nation_id };
-                    runnerUp = { name: finalMatch.away_club_name, nation_id: finalMatch.away_nation_id };
-                } else {
-                    champion = { name: finalMatch.away_club_name, nation_id: finalMatch.away_nation_id };
-                    runnerUp = { name: finalMatch.home_club_name, nation_id: finalMatch.home_nation_id };
-                }
-            }
+                return null;
+            };
 
-            const championNation = nations.find(n => n.id === champion?.nation_id);
-            const runnerUpNation = nations.find(n => n.id === runnerUp?.nation_id);
+            const finalMatch = matches.Final?.[0];
+            const championClub = getWinner(finalMatch);
+            const runnerUpClub = championClub && finalMatch
+                ? allClubs.find(c => c.id === (championClub.id === finalMatch.home_club_id ? finalMatch.away_club_id : finalMatch.home_club_id)) || null
+                : null;
+            const championNation = nations.find(n => n.id === championClub?.nation_id);
+            const runnerUpNation = nations.find(n => n.id === runnerUpClub?.nation_id);
+            const homeFinalScore = Number.parseInt(finalMatch?.home_score, 10);
+            const awayFinalScore = Number.parseInt(finalMatch?.away_score, 10);
+            let finalScore = Number.isFinite(homeFinalScore) && Number.isFinite(awayFinalScore) ? `${homeFinalScore}-${awayFinalScore}` : '';
+            if (finalScore && finalMatch?.penalties) finalScore += ` (${finalMatch.penalties} pens)`;
 
-            // Create season
             const season = await base44.entities.ContinentalSeason.create({
                 competition_id: competitionId,
                 year: data.year,
-                champion_name: champion?.name || '',
+                champion_id: championClub?.id || '',
+                champion_name: championClub?.name || '',
+                champion_nation_id: championNation?.id || '',
                 champion_nation: championNation?.name || '',
-                runner_up: runnerUp?.name || '',
+                runner_up_id: runnerUpClub?.id || '',
+                runner_up: runnerUpClub?.name || '',
+                runner_up_nation_id: runnerUpNation?.id || '',
                 runner_up_nation: runnerUpNation?.name || '',
                 final_score: finalScore,
-                final_venue: matches['Final']?.[0]?.venue || '',
+                final_venue: finalMatch?.venue || '',
                 top_scorer: data.top_scorer,
                 notes: data.notes,
             });
 
-            // Create all matches
-            const allMatches = [];
-            Object.entries(matches).forEach(([round, roundMatches]) => {
+            const canonicalMatches = [];
+            Object.values(matches).forEach(roundMatches => {
                 roundMatches.forEach(match => {
-                    if (match.home_club_name || match.away_club_name) {
-                        allMatches.push({
-                            ...match,
-                            season_id: season.id,
-                            competition_id: competitionId,
-                            home_score: parseInt(match.home_score) || 0,
-                            away_score: parseInt(match.away_score) || 0,
-                        });
-                    }
+                    if (!match.home_club_id || !match.away_club_id) return;
+                    const homeClub = allClubs.find(c => c.id === match.home_club_id);
+                    const awayClub = allClubs.find(c => c.id === match.away_club_id);
+                    if (!homeClub || !awayClub) return;
+                    const homeNation = nations.find(n => n.id === homeClub.nation_id);
+                    const awayNation = nations.find(n => n.id === awayClub.nation_id);
+                    const winner = getWinner(match);
+                    const homeScore = Number.parseInt(match.home_score, 10);
+                    const awayScore = Number.parseInt(match.away_score, 10);
+
+                    canonicalMatches.push({
+                        season_id: season.id,
+                        round: match.round,
+                        match_number: match.match_number,
+                        home_club_id: homeClub.id,
+                        home_club_name: homeClub.name,
+                        home_nation_id: homeNation?.id || homeClub.nation_id || '',
+                        home_club_nation: homeNation?.name || '',
+                        away_club_id: awayClub.id,
+                        away_club_name: awayClub.name,
+                        away_nation_id: awayNation?.id || awayClub.nation_id || '',
+                        away_club_nation: awayNation?.name || '',
+                        home_score_leg1: Number.isFinite(homeScore) ? homeScore : null,
+                        away_score_leg1: Number.isFinite(awayScore) ? awayScore : null,
+                        home_aggregate: Number.isFinite(homeScore) ? homeScore : null,
+                        away_aggregate: Number.isFinite(awayScore) ? awayScore : null,
+                        penalties: match.penalties || '',
+                        winner: winner?.name || '',
+                        winner_id: winner?.id || '',
+                        is_single_leg: true,
+                        venue: match.venue || '',
+                    });
                 });
             });
 
-            if (allMatches.length > 0) {
-                await base44.entities.CompetitionMatch.bulkCreate(allMatches);
+            if (canonicalMatches.length > 0) {
+                await base44.entities.ContinentalMatch.bulkCreate(canonicalMatches);
             }
 
+            await syncContinentalCompetition(competitionId);
             return season;
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries(['competitionSeasons']);
-            queryClient.invalidateQueries(['continentalSeasons']);
+        onSuccess: (season) => {
+            queryClient.invalidateQueries({ queryKey: ['competitionSeasons', competitionId] });
+            queryClient.invalidateQueries({ queryKey: ['continentalSeasons'] });
+            queryClient.invalidateQueries({ queryKey: ['continentalMatches', season?.id] });
+            queryClient.invalidateQueries({ queryKey: ['continentalCompetitions'] });
+            queryClient.invalidateQueries({ queryKey: ['clubs'] });
+            queryClient.invalidateQueries({ queryKey: ['allClubs'] });
             navigate(createPageUrl(`CompetitionDetail?id=${competitionId}`));
         },
     });
