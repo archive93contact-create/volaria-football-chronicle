@@ -335,11 +335,13 @@ export default function CompetitionDetail() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <Tabs defaultValue="overview" className="space-y-6">
-                    <TabsList>
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="history-stats">History & Stats</TabsTrigger>
-                        <TabsTrigger value="winners">All Winners</TabsTrigger>
-                    </TabsList>
+                    <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="h-12 w-max min-w-full justify-start rounded-none border-b border-slate-200 bg-transparent p-0">
+                            <TabsTrigger value="overview" className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--competition-accent)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">Overview</TabsTrigger>
+                            <TabsTrigger value="history-stats" className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--competition-accent)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">History & Stats</TabsTrigger>
+                            <TabsTrigger value="winners" className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--competition-accent)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">All Winners</TabsTrigger>
+                        </TabsList>
+                    </div>
 
                     {/* OVERVIEW TAB */}
                     <TabsContent value="overview">
