@@ -46,6 +46,7 @@ import ClubMatchHistory from '@/components/clubs/ClubMatchHistory';
 import ClubSeasonCupBadges from '@/components/clubs/ClubSeasonCupBadges';
 import CrestCleaner from '@/components/clubs/CrestCleaner';
 import EntityStickyNav from '@/components/common/EntityStickyNav';
+import EntitySectionHeader from '@/components/common/EntitySectionHeader';
 import { getEntityTheme } from '@/utils/entityTheme';
 
 export default function ClubDetail() {
@@ -454,11 +455,11 @@ export default function ClubDetail() {
 
                     {/* OVERVIEW TAB - Club Story, History & Honours */}
                     <TabsContent value="overview">
-                {/* Stats - with subtle club theming */}
+                <EntitySectionHeader eyebrow="Club record" title="At a glance" description="A clean summary of the club's standing and tracked history." accentColor={clubTheme.ui} className="hidden sm:block" />
+                {/* Stats - club identity for general data; semantic colours only for football outcomes */}
                 <div 
                     id="honours" 
-                    className="hidden sm:grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 p-4 rounded-xl" 
-                    style={{ backgroundColor: club.primary_color ? `${club.primary_color}05` : undefined }}
+                    className="hidden sm:grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-8 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" 
                 >
                     {/* Club OVR */}
                     {clubAverageOVR && (
@@ -466,8 +467,8 @@ export default function ClubDetail() {
                             icon={Users} 
                             label="Squad OVR" 
                             value={clubAverageOVR} 
-                            customColor={club.primary_color || '#10b981'}
-                            customBg={club.primary_color ? `${club.primary_color}10` : '#d1fae5'}
+                            customColor={clubTheme.ui}
+                            customBg={clubTheme.tint}
                         />
                     )}
                     {/* Total Trophies */}
@@ -481,16 +482,16 @@ export default function ClubDetail() {
                             icon={Star} 
                             label="Total Trophies" 
                             value={totalTrophies} 
-                            customColor={club.accent_color || club.primary_color}
-                            customBg={club.primary_color ? `${club.primary_color}15` : '#fef3c7'}
+                            customColor={clubTheme.ui}
+                            customBg={clubTheme.tintStrong}
                             gradient
                         />;
                     })()}
                     {combinedStats?.league_titles > 0 && (
-                        <StatsCard icon={Trophy} label="League Titles" value={combinedStats.league_titles} color="amber" />
+                        <StatsCard icon={Trophy} label="League Titles" value={combinedStats.league_titles} customColor={clubTheme.ui} customBg={clubTheme.tint} />
                     )}
                     {combinedStats?.domestic_cup_titles > 0 && (
-                        <StatsCard icon={Award} label="Cup Titles" value={combinedStats.domestic_cup_titles} color="orange" />
+                        <StatsCard icon={Award} label="Cup Titles" value={combinedStats.domestic_cup_titles} customColor={clubTheme.ui} customBg={clubTheme.tint} />
                     )}
                     {/* Cup Best Finish - show for all clubs that have any cup history */}
                     {(combinedStats?.domestic_cup_best_finish || combinedStats?.domestic_cup_titles > 0 || combinedStats?.domestic_cup_runner_up > 0) && (
