@@ -14,7 +14,7 @@ const FORMATION_LABELS = {
     merger: 'Merger', breakaway: 'Breakaway club', unknown: 'Unclassified origin'
 };
 
-export default function ClubOriginPanel({ club, nation, league, allClubs = [], accentColor = '#334155' }) {
+export default function ClubOriginPanel({ club, nation, league, seasons = [], allLeagues = [], allClubs = [], accentColor = '#334155' }) {
     const queryClient = useQueryClient();
     const [generating, setGenerating] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -40,8 +40,35 @@ export default function ClubOriginPanel({ club, nation, league, allClubs = [], a
         const predecessor = allClubs.find(c => c.id === club?.predecessor_club_id);
         const predecessor2 = allClubs.find(c => c.id === club?.predecessor_club_2_id);
         const former = allClubs.find(c => c.id === club?.former_name_club_id);
-        return { predecessor, predecessor2, former };
+        const former2 = allClubs.find(c => c.id === club?.former_name_club_2_id);
+        const currentName = allClubs.find(c => c.id === club?.current_name_club_id);
+        return { predecessor, predecessor2, former, former2, currentName };
     }, [allClubs, club]);
+
+    const lineageContext = useMemo(() => {
+        const describe = (linked, relationship) => linked ? `${relationship}: ${linked.name}; founded ${linked.founded_year || 'unknown'}; location ${[linked.settlement, linked.district, linked.region].filter(Boolean).join(', ') || linked.city || 'unknown'}; nickname ${linked.nickname || 'none recorded'}; colours ${linked.primary_color || '?'} / ${linked.secondary_color || '?'}; defunct/renamed year ${linked.defunct_year || linked.renamed_year || 'not recorded'}; existing history ${linked.history || 'none'}` : null;
+        return [
+            describe(lineage.former, 'Earlier name of the same club'),
+            describe(lineage.former2, 'Another earlier name of the same club'),
+            describe(lineage.predecessor, 'Predecessor club'),
+            describe(lineage.predecessor2, 'Second predecessor club'),
+            describe(lineage.currentName, 'Current-name continuation'),
+        ].filter(Boolean).join('\n');
+    }, [lineage]);
+
+    const seasonContext = useMemo(() => {
+        const ordered = [...seasons].sort((a, b) => String(a.year || '').localeCompare(String(b.year || ''), undefined, { numeric: true }));
+        if (!ordered.length) return 'No season history yet.';
+        const important = ordered.filter((s, index) => {
+            const tier = Number(s.tier || allLeagues.find(l => l.id === s.league_id)?.tier || 0);
+            return index === 0 || index === ordered.length - 1 || tier === 1 || ['champion','promoted','playoff_winner','relegated'].includes(s.status);
+        }).slice(-16);
+        return important.map(s => {
+            const l = allLeagues.find(item => item.id === s.league_id);
+            const identity = allClubs.find(c => c.id === s.club_id)?.name || s.club_name || club.name;
+            return `${s.year}: ${identity}; ${l?.name || 'league'}; Tier ${s.tier || l?.tier || '?'}; finish ${s.position || '?'}${s.status ? `; ${s.status}` : ''}`;
+        }).join('\n');
+    }, [seasons, allLeagues, allClubs, club.name]);
 
     const generateOrigin = async () => {
         setGenerating(true);
