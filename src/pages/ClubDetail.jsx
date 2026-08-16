@@ -474,131 +474,35 @@ export default function ClubDetail() {
                     {/* OVERVIEW TAB - Club Story, History & Honours */}
                     <TabsContent value="overview">
                 <EntitySectionHeader eyebrow="Club record" title="At a glance" description="A clean summary of the club's standing and tracked history." accentColor={clubTheme.ui} className="hidden sm:block" />
-                {/* Stats - club identity for general data; semantic colours only for football outcomes */}
-                <div 
-                    id="honours" 
-                    className="hidden sm:grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-8 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" 
+                {/* One continuous club-record surface rather than cards inside cards */}
+                <div
+                    id="honours"
+                    className="hidden sm:block mb-8 rounded-2xl border overflow-hidden shadow-sm"
+                    style={{
+                        borderColor: clubTheme.border,
+                        background: `radial-gradient(circle at 0% 0%, ${clubTheme.tintStrong} 0%, transparent 45%), linear-gradient(135deg, ${clubTheme.tint} 0%, rgba(255,255,255,.98) 36%, #ffffff 82%)`
+                    }}
                 >
-                    {/* Club OVR */}
-                    {clubAverageOVR && (
-                        <StatsCard 
-                            icon={Users} 
-                            label="Squad OVR" 
-                            value={clubAverageOVR} 
-                            customColor={clubTheme.ui}
-                            customBg={clubTheme.tint}
-                        />
-                    )}
-                    {/* Total Trophies */}
-                    {(() => {
-                        const totalTrophies = (combinedStats?.league_titles || 0) + 
-                                              (combinedStats?.domestic_cup_titles || 0) + 
-                                              (combinedStats?.vcc_titles || 0) + 
-                                              (combinedStats?.ccc_titles || 0);
-                        if (totalTrophies === 0) return null;
-                        return <StatsCard 
-                            icon={Star} 
-                            label="Total Trophies" 
-                            value={totalTrophies} 
-                            customColor={clubTheme.ui}
-                            customBg={clubTheme.tintStrong}
-                            gradient
-                        />;
-                    })()}
-                    {combinedStats?.league_titles > 0 && (
-                        <StatsCard icon={Trophy} label="League Titles" value={combinedStats.league_titles} customColor={clubTheme.ui} customBg={clubTheme.tint} />
-                    )}
-                    {combinedStats?.domestic_cup_titles > 0 && (
-                        <StatsCard icon={Award} label="Cup Titles" value={combinedStats.domestic_cup_titles} customColor={clubTheme.ui} customBg={clubTheme.tint} />
-                    )}
-                    {/* Cup Best Finish - show for all clubs that have any cup history */}
-                    {(combinedStats?.domestic_cup_best_finish || combinedStats?.domestic_cup_titles > 0 || combinedStats?.domestic_cup_runner_up > 0) && (
-                        <Card className="border-0 shadow-sm" style={{ backgroundColor: clubTheme.tint }}>
-                            <CardContent className="p-4 text-center">
-                                <Award className="w-6 h-6 mx-auto mb-2" style={{ color: clubTheme.ui }} />
-                                <div className="text-lg font-bold" style={{ color: clubTheme.ui }}>
-                                    {combinedStats?.domestic_cup_titles > 0 
-                                        ? 'Winner' 
-                                        : combinedStats?.domestic_cup_best_finish || 'Final'}
-                                </div>
-                                <div className="text-xs text-slate-500">Best Cup Finish</div>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {combinedStats?.best_finish && (
-                                                  <Card className="border-0 shadow-sm">
-                                                      <CardContent className="p-4 text-center">
-                                                          <Target className="w-6 h-6 mx-auto mb-2" style={{ color: clubTheme.ui }} />
-                                                          <div className="text-2xl font-bold">{combinedStats.best_finish === 1 ? '1st' : combinedStats.best_finish === 2 ? '2nd' : combinedStats.best_finish === 3 ? '3rd' : `${combinedStats.best_finish}th`}</div>
-                                                          <div className="text-xs text-slate-500">
-                                                              Best Finish {combinedStats.best_finish_tier ? `(Tier ${combinedStats.best_finish_tier})` : ''}
-                                                          </div>
-                                                      </CardContent>
-                                                  </Card>
-                                              )}
-                                              {(() => {
-                                                                      if (combinedSeasons.length === 0) return null;
-                                                                      let worstFinish = null;
-                                                                      let worstTier = null;
-                                                                      combinedSeasons.forEach(s => {
-                                                                          const tier = allLeagues.find(l => l.id === s.league_id)?.tier || 1;
-                                                                          // Higher tier number = lower level, higher position number = worse finish
-                                                                          // Use tier * 100 + position to find the "worst" (highest score)
-                                                                          const score = tier * 100 + s.position;
-                                                                          if (worstFinish === null || score > (worstTier * 100 + worstFinish)) {
-                                                                              worstFinish = s.position;
-                                                                              worstTier = tier;
-                                                                          }
-                                                                      });
-                                                                      if (!worstFinish) return null;
-                                                                      return (
-                                                                          <Card className="border-0 shadow-sm">
-                                                                              <CardContent className="p-4 text-center">
-                                                                                  <TrendingDown className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                                                                                  <div className="text-2xl font-bold">{worstFinish === 1 ? '1st' : worstFinish === 2 ? '2nd' : worstFinish === 3 ? '3rd' : `${worstFinish}th`}</div>
-                                                                                  <div className="text-xs text-slate-500">
-                                                                                      Worst Finish (Tier {worstTier})
-                                                                                  </div>
-                                                                                  </CardContent>
-                                                                                  </Card>
-                                                                                  );
-                                                                                  })()}
-                    {combinedStats?.seasons_played > 0 && (
-                        <Card className="border-0 shadow-sm">
-                            <CardContent className="p-4 text-center">
-                                <Calendar className="w-6 h-6 mx-auto mb-2" style={{ color: clubTheme.ui }} />
-                                <div className="text-2xl font-bold">{combinedStats.seasons_played}</div>
-                                <div className="text-xs text-slate-500">Seasons</div>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {combinedStats?.promotions > 0 && (
-                        <Card className="border-0 shadow-sm bg-green-50">
-                            <CardContent className="p-4 text-center">
-                                <TrendingUp className="w-6 h-6 text-green-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-green-700">{combinedStats.promotions}</div>
-                                <div className="text-xs text-green-600">Promotions</div>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {combinedStats?.relegations > 0 && (
-                        <Card className="border-0 shadow-sm bg-red-50">
-                            <CardContent className="p-4 text-center">
-                                <TrendingDown className="w-6 h-6 text-red-500 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-red-700">{combinedStats.relegations}</div>
-                                <div className="text-xs text-red-600">Relegations</div>
-                            </CardContent>
-                        </Card>
-                    )}
-                    {league && (
-                        <Card className="border-0 shadow-sm">
-                            <CardContent className="p-4 text-center">
-                                <Shield className="w-6 h-6 text-slate-500 mx-auto mb-2" />
-                                <div className="text-sm font-bold truncate">{league.name}</div>
-                                <div className="text-xs text-slate-500">Current League</div>
-                            </CardContent>
-                        </Card>
-                    )}
+                    <div className="h-[3px]" style={{ background: `linear-gradient(90deg, ${clubTheme.ui}, ${clubTheme.accent}, transparent 82%)` }} />
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 [&>*]:border-r [&>*]:border-b [&>*]:border-slate-200/70">
+                        {clubAverageOVR && <EntityStatCell icon={Users} label="Squad OVR" value={clubAverageOVR} accentColor={clubTheme.ui} />}
+                        {totalTrophies > 0 && <EntityStatCell icon={Star} label="Total trophies" value={totalTrophies} accentColor={clubTheme.ui} />}
+                        {combinedStats?.league_titles > 0 && <EntityStatCell icon={Trophy} label="League titles" value={combinedStats.league_titles} accentColor={clubTheme.ui} />}
+                        {combinedStats?.domestic_cup_titles > 0 && <EntityStatCell icon={Award} label="Cup titles" value={combinedStats.domestic_cup_titles} accentColor={clubTheme.ui} />}
+                        {(combinedStats?.domestic_cup_best_finish || combinedStats?.domestic_cup_titles > 0 || combinedStats?.domestic_cup_runner_up > 0) && (
+                            <EntityStatCell icon={Award} label="Best cup finish" value={combinedStats?.domestic_cup_titles > 0 ? 'Winner' : combinedStats?.domestic_cup_best_finish || 'Final'} accentColor={clubTheme.ui} />
+                        )}
+                        {combinedStats?.best_finish && (
+                            <EntityStatCell icon={Target} label={`Best finish${combinedStats.best_finish_tier ? ` · T${combinedStats.best_finish_tier}` : ''}`} value={combinedStats.best_finish === 1 ? '1st' : combinedStats.best_finish === 2 ? '2nd' : combinedStats.best_finish === 3 ? '3rd' : `${combinedStats.best_finish}th`} accentColor={clubTheme.ui} />
+                        )}
+                        {worstRecordedFinish && (
+                            <EntityStatCell icon={TrendingDown} label={`Worst finish · T${worstRecordedFinish.tier}`} value={worstRecordedFinish.position === 1 ? '1st' : worstRecordedFinish.position === 2 ? '2nd' : worstRecordedFinish.position === 3 ? '3rd' : `${worstRecordedFinish.position}th`} accentColor="#64748b" />
+                        )}
+                        {combinedStats?.seasons_played > 0 && <EntityStatCell icon={Calendar} label="Seasons" value={combinedStats.seasons_played} accentColor={clubTheme.ui} />}
+                        {combinedStats?.promotions > 0 && <EntityStatCell icon={TrendingUp} label="Promotions" value={combinedStats.promotions} accentColor="#16a34a" valueColor="#15803d" />}
+                        {combinedStats?.relegations > 0 && <EntityStatCell icon={TrendingDown} label="Relegations" value={combinedStats.relegations} accentColor="#dc2626" valueColor="#b91c1c" />}
+                        {league && <EntityStatCell icon={Shield} label="Current league" value={league.name} accentColor={clubTheme.ui} className="[&>div:nth-child(2)]:text-base" />}
+                    </div>
                 </div>
 
                 {/* Honours timeline - one visual language, using the club palette */}
