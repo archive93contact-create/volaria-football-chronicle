@@ -49,7 +49,7 @@ export default function StadiumHistoryPanel({ club, nation, league, seasons = []
         setGenerating(true);
         try {
             const existingNames = displayHistory.map(h => h.stadium_name).filter(Boolean).join(', ') || 'none';
-            const prompt = `Propose FOUR distinctive but believable football ground names for this FICTIONAL club. These are proposals for new canon, not factual lookups.
+            const prompt = `Propose SIX distinctive but believable football ground names for this FICTIONAL club. These are proposals for new canon, not factual lookups.
 
 KNOWN CANON:
 Club: ${club.name}
@@ -67,16 +67,19 @@ Existing/previous ground names: ${existingNames}
 Proposed ground begins around: ${startYear || 'unknown year'}
 
 NAMING PRINCIPLES:
-- Real football grounds usually acquire names from roads, districts, fields, parks, works, municipal grounds, local landscape or long usage; they are rarely poetic brand names.
-- A name may introduce a small piece of NEW local canon (for example a plausible lane/field microtoponym) but if it does, say that explicitly in the rationale instead of pretending it was already supplied.
-- Prefer short names that supporters would actually say: normally 1-4 words before 'Ground/Park/Field/Stadium' or a locally appropriate equivalent.
-- Match the era. Avoid 'Arena', sponsor names and glossy modern branding for an old/lower-league ground unless the club context supports it.
-- Do not name a ground after a fabricated person, monarch, chairman, sponsor, battle or famous event.
-- Do not repeat the full club name mechanically.
-- Vary the four proposals: one location-led, one traditional field/park form, one culture/language-led form if justified, and one tied to a supplied industry/landmark if possible.
-- If no industry/landmark is supplied, do not invent a named company merely to produce a works ground.
+- Think about how REAL football grounds get oddly specific identities. The famous name is often a small road, old field, estate, farm, works site, bank, end, meadow, common, hill, bridge, enclosure or inherited local microtoponym — not the town itself.
+- DO NOT default to the club, town, district or region name. AT MOST ONE of the six proposals may contain the settlement/district/region name. At least FOUR should work as distinctive standalone ground identities.
+- You MAY create a low-stakes local microtoponym as NEW proposed canon: an old field name, lane, bank, coppice, meadow, end, fold, hollow, croft, heath, wharf, works enclosure or similar culturally appropriate form. This is encouraged because fictional places need the same messy local naming history as real places.
+- If you invent such a microtoponym, make it linguistically compatible with the nation's naming style and describe it only in the private rationale. Do not make it a grand historic claim.
+- Do not just combine two generic scenic words. Names should sound inherited and slightly arbitrary rather than fantasy-poetic.
+- Include a genuinely varied set: (1) a road/lane or approach name, (2) an old field/estate/microtoponym, (3) a short traditional name that may not need 'Ground', (4) a works/industrial or landmark-derived option ONLY if context supports it, (5) a park/enclosure/common form, and (6) one wildcard that feels locally natural but not obviously derived from the club's address.
+- Some proposals may be only one or two words. Others can use Ground, Park, Field, Lane, Road, Enclosure, Recreation Ground, Stadium or a locally appropriate equivalent. Avoid making every option end in 'Ground'.
+- Match the era. Avoid 'Arena', sponsor names and glossy corporate branding for an old/lower-league ground unless the club context genuinely supports it.
+- Do not name a ground after a fabricated person, monarch, chairman, sponsor, battle or major historic event.
+- Never mechanically use the full club name.
+- Do not reuse an existing/previous ground name and avoid obvious famous real-world stadium names.
 
-Return JSON { proposals: [{ stadium_name, name_type, rationale }] }. name_type must be one of road, district, landmark, field, park, works, municipal, traditional.`;
+Return JSON { proposals: [{ stadium_name, name_type, rationale }] }. name_type must be one of road, district, landmark, field, park, works, municipal, traditional. The rationale is admin-only and should say whether any microtoponym is newly proposed canon.`;
             const result = await base44.integrations.Core.InvokeLLM({
                 prompt,
                 add_context_from_internet: false,
@@ -84,7 +87,7 @@ Return JSON { proposals: [{ stadium_name, name_type, rationale }] }. name_type m
                     type: 'object', properties: { proposals: { type: 'array', items: { type: 'object', properties: { stadium_name: { type: 'string' }, name_type: { type: 'string' }, rationale: { type: 'string' } }, required: ['stadium_name', 'name_type', 'rationale'] } } }, required: ['proposals']
                 }
             });
-            const next = (result?.proposals || []).filter(p => p.stadium_name).slice(0, 4);
+            const next = (result?.proposals || []).filter(p => p.stadium_name).slice(0, 6);
             setProposals(next);
             setSelectedName(next[0]?.stadium_name || '');
             await Promise.all(next.map(p => base44.entities.StadiumNameProposal.create({ club_id: club.id, proposed_name: p.stadium_name, name_type: p.name_type, rationale: p.rationale, generated_at: new Date().toISOString(), is_accepted: false })));
@@ -156,7 +159,7 @@ Return JSON { proposals: [{ stadium_name, name_type, rationale }] }. name_type m
                                         {ground.is_current && <Badge variant="outline" className="text-xs" style={{ color: accentColor, borderColor: `${accentColor}55` }}>Current</Badge>}
                                     </div>
                                     <div className="mt-1 text-sm text-slate-500">{ground.start_year || '?'}–{ground.is_current ? 'present' : ground.end_year || '?'}{ground.capacity ? ` · ${Number(ground.capacity).toLocaleString()} capacity` : ''}{ground.ground_grade != null ? ` · Grade ${ground.ground_grade}` : ''}</div>
-                                    {(ground.move_reason || ground.notes || ground.generated_context) && <div className="mt-2 text-sm leading-6 text-slate-600 max-w-3xl">{ground.move_reason || ground.notes || ground.generated_context}</div>}
+                                    {(ground.move_reason || ground.notes) && <div className="mt-2 text-sm leading-6 text-slate-600 max-w-3xl">{ground.move_reason || ground.notes}</div>}
                                 </div>
                             </div>
                         </div>
