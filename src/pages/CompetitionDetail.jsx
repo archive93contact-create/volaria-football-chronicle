@@ -191,8 +191,14 @@ export default function CompetitionDetail() {
     };
 
     if (!competition) {
-        return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" /></div>;
+        return <div className="min-h-screen bg-[#f5f5f4] flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-slate-700 border-t-transparent rounded-full" /></div>;
     }
+
+    const competitionTheme = getEntityTheme({ primary: competition.primary_color, secondary: competition.secondary_color });
+    const participatingNationIds = new Set(participatingNations.map(n => n.id));
+    const eligibleClubs = clubs
+        .filter(c => participatingNationIds.size === 0 || participatingNationIds.has(c.nation_id))
+        .sort((a, b) => a.name.localeCompare(b.name));
 
     const seasonFormContent = (
         <div className="space-y-4 py-4">
@@ -206,24 +212,34 @@ export default function CompetitionDetail() {
                     <Input value={seasonFormData.final_score || ''} onChange={(e) => updateSeasonField('final_score', e.target.value)} placeholder="e.g., 2-1" className="mt-1" />
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <Label>Champion</Label>
-                    <Input value={seasonFormData.champion_name || ''} onChange={(e) => updateSeasonField('champion_name', e.target.value)} placeholder="Winning club" className="mt-1" />
+                    <Select value={seasonFormData.champion_id || ''} onValueChange={(v) => updateFinalist('champion', v)}>
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select winning club" /></SelectTrigger>
+                        <SelectContent>
+                            {eligibleClubs.map(club => <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div>
                     <Label>Champion Nation</Label>
-                    <Input value={seasonFormData.champion_nation || ''} onChange={(e) => updateSeasonField('champion_nation', e.target.value)} className="mt-1" />
+                    <div className="mt-1 h-10 rounded-md border border-slate-200 bg-slate-50 px-3 flex items-center text-sm text-slate-600">{seasonFormData.champion_nation || 'Derived from club'}</div>
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <Label>Runner-up</Label>
-                    <Input value={seasonFormData.runner_up || ''} onChange={(e) => updateSeasonField('runner_up', e.target.value)} className="mt-1" />
+                    <Select value={seasonFormData.runner_up_id || ''} onValueChange={(v) => updateFinalist('runner_up', v)}>
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select runner-up" /></SelectTrigger>
+                        <SelectContent>
+                            {eligibleClubs.filter(club => club.id !== seasonFormData.champion_id).map(club => <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div>
                     <Label>Runner-up Nation</Label>
-                    <Input value={seasonFormData.runner_up_nation || ''} onChange={(e) => updateSeasonField('runner_up_nation', e.target.value)} className="mt-1" />
+                    <div className="mt-1 h-10 rounded-md border border-slate-200 bg-slate-50 px-3 flex items-center text-sm text-slate-600">{seasonFormData.runner_up_nation || 'Derived from club'}</div>
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -242,7 +258,7 @@ export default function CompetitionDetail() {
             </div>
             <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => { setIsAddSeasonOpen(false); setEditingSeason(null); resetSeasonForm(); }}>Cancel</Button>
-                <Button onClick={handleSeasonSubmit} disabled={!seasonFormData.year} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={handleSeasonSubmit} disabled={!seasonFormData.year} className="text-white" style={{ backgroundColor: competitionTheme.ui }}>
                     {editingSeason ? 'Save Changes' : 'Add Season'}
                 </Button>
             </div>
