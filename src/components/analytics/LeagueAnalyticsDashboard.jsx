@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LeagueClubHistory from '../leagues/LeagueClubHistory';
+import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
 
 export default function LeagueAnalyticsDashboard({ league, seasons = [], allTables = [], clubs = [], allLeagues = [] }) {
     const analytics = useMemo(() => {
@@ -83,31 +84,43 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
             };
         });
         
-        // Promotion success rate
+        // Promotion outcomes: promoted clubs must be evaluated in the destination (higher) tier,
+        // not incorrectly searched for back in this same league the following season.
         const promotionTracking = [];
+        const higherTierLeagueIds = allLeagues
+            .filter(l => l.nation_id === league.nation_id && l.tier === (league.tier || 1) - 1)
+            .map(l => l.id);
         for (let i = 0; i < sortedSeasons.length - 1; i++) {
             const currentSeason = sortedSeasons[i];
             const nextSeason = sortedSeasons[i + 1];
-            
-            if (currentSeason.promoted_teams && nextSeason) {
-                const promotedClubs = currentSeason.promoted_teams.split(',').map(c => c.trim()).filter(Boolean);
-                const nextSeasonTables = allTables.filter(t => t.season_id === nextSeason.id || (t.league_id === league.id && t.year === nextSeason.year));
-                
-                promotedClubs.forEach(clubName => {
-                    const clubInNextSeason = nextSeasonTables.find(t => t.club_name === clubName);
-                    if (clubInNextSeason) {
-                        const survived = !nextSeason.relegated_teams?.split(',').map(c => c.trim()).includes(clubName);
-                        const position = clubInNextSeason.position;
-                        promotionTracking.push({ year: nextSeason.year, clubName, survived, position });
-                    }
-                });
-            }
+            if (!currentSeason.promoted_teams || !nextSeason || higherTierLeagueIds.length === 0) continue;
+
+            const promotedClubs = currentSeason.promoted_teams.split(',').map(c => c.trim()).filter(Boolean);
+            const destinationTables = allTables.filter(t => higherTierLeagueIds.includes(t.league_id) && t.year === nextSeason.year);
+
+            promotedClubs.forEach(clubName => {
+                const club = clubs.find(c => c.name === clubName);
+                const destinationRow = destinationTables.find(t =>
+                    (club?.id && t.club_id === club.id) || t.club_name === clubName
+                );
+                if (destinationRow) {
+                    promotionTracking.push({
+                        year: nextSeason.year,
+                        clubName,
+                        landedInHigherTier: true,
+                        survived: destinationRow.status ? destinationRow.status !== 'relegated' : null,
+                        position: destinationRow.position,
+                    });
+                }
+            });
         }
-        
+
         const totalPromoted = promotionTracking.length;
-        const survivedPromoted = promotionTracking.filter(p => p.survived).length;
-        const promotionSurvivalRate = totalPromoted > 0 ? (survivedPromoted / totalPromoted * 100).toFixed(1) : 0;
-        const avgPromotedFinish = totalPromoted > 0 ? (promotionTracking.reduce((sum, p) => sum + p.position, 0) / totalPromoted).toFixed(1) : 0;
+        const knownSurvival = promotionTracking.filter(p => typeof p.survived === 'boolean');
+        const survivedPromoted = knownSurvival.filter(p => p.survived).length;
+        const promotionSurvivalRate = knownSurvival.length > 0 ? (survivedPromoted / knownSurvival.length * 100).toFixed(1) : null;
+        const finishes = promotionTracking.filter(p => Number.isFinite(Number(p.position)));
+        const avgPromotedFinish = finishes.length > 0 ? (finishes.reduce((sum, p) => sum + Number(p.position), 0) / finishes.length).toFixed(1) : null;
         
         // Geographic heatmap
         const championsByRegion = {};
@@ -139,9 +152,10 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
         
         const volatilityIndex = comparisonCount > 0 ? (totalPositionChanges / comparisonCount).toFixed(2) : 0;
         
-        // Most appearances by club
+        // Most appearances by club in THIS league only (allTables may also contain other national tiers for cross-tier analytics).
         const clubAppearances = {};
-        allTables.forEach(t => {
+        const leagueOnlyTables = allTables.filter(t => t.league_id === league.id || seasons.some(s => s.id === t.season_id));
+        leagueOnlyTables.forEach(t => {
             clubAppearances[t.club_name] = (clubAppearances[t.club_name] || 0) + 1;
         });
         const mostFrequentClubs = Object.entries(clubAppearances)
@@ -161,6 +175,36 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
                 return { name, titles: count, clubId: club?.id };
             });
         
+        const balanceLabel = competitiveBalance >= 0.6 ? 'Wide open' : competitiveBalance >= 0.35 ? 'Competitive' : 'Concentrated';
+        const gapNumber = Number(avgPointsGap) || 0;
+        const raceLabel = gapNumber <= 3 ? 'Very tight' : gapNumber <= 7 ? 'Competitive' : 'Often decisive';
+        const volatilityNumber = Number(volatilityIndex) || 0;
+        const volatilityLabel = volatilityNumber < 2 ? 'Stable order' : volatilityNumber < 4.5 ? 'Fluid' : 'Highly volatile';
+        let scoringTrend = null;
+        if (goalData.length >= 4) {
+            const window = Math.min(5, Math.floor(goalData.length / 2));
+            const recentGoals = goalData.slice(-window).map(d => Number(d.avgGoalsPerGame) || 0);
+            const previousGoals = goalData.slice(-(window * 2), -window).map(d => Number(d.avgGoalsPerGame) || 0);
+            if (previousGoals.length) {
+                const recentAvg = recentGoals.reduce((a, b) => a + b, 0) / recentGoals.length;
+                const previousAvg = previousGoals.reduce((a, b) => a + b, 0) / previousGoals.length;
+                const delta = recentAvg - previousAvg;
+                scoringTrend = {
+                    value: Math.abs(delta) < 0.08 ? 'Stable' : delta > 0 ? 'More goals' : 'Fewer goals',
+                    detail: `${recentAvg.toFixed(2)} vs ${previousAvg.toFixed(2)} goals/game`,
+                    tone: delta > 0.08 ? 'positive' : 'neutral'
+                };
+            }
+        }
+        const insights = [
+            { label: 'Competitive balance', value: balanceLabel, detail: `${uniqueChampions} champions across ${totalSeasons} seasons`, icon: Trophy },
+            { label: 'Title concentration', value: `${titleConcentration}%`, detail: mostSuccessfulClub ? `${mostSuccessfulClub[0]}'s share of recorded titles` : 'No champion history', icon: Crown },
+            { label: 'Title-race margin', value: raceLabel, detail: `${avgPointsGap} average points between 1st and 2nd`, icon: Target },
+            { label: 'Table movement', value: volatilityLabel, detail: `${volatilityIndex} average positional movement`, icon: Activity },
+            scoringTrend && { label: 'Scoring trend', value: scoringTrend.value, detail: scoringTrend.detail, tone: scoringTrend.tone, icon: TrendingUp },
+            avgPromotedFinish && { label: 'Promoted-club landing', value: `Avg ${avgPromotedFinish}`, detail: `${totalPromoted} promoted clubs found in the higher tier next season`, icon: Globe },
+        ].filter(Boolean).slice(0, 5);
+
         return {
             uniqueChampions,
             competitiveBalance: (competitiveBalance * 100).toFixed(1),
@@ -179,9 +223,10 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
             titleDistributionData,
             totalSeasons,
             totalPromoted,
-            survivedPromoted
+            survivedPromoted,
+            insights
         };
-    }, [league, seasons, allTables, clubs]);
+    }, [league, seasons, allTables, clubs, allLeagues]);
 
     if (!analytics) {
         return (
@@ -207,6 +252,8 @@ export default function LeagueAnalyticsDashboard({ league, seasons = [], allTabl
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
+                <AnalyticsInsightGrid items={analytics.insights} accentColor={league.primary_color || league.accent_color || '#334155'} />
+
                 {/* Key Metrics */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
