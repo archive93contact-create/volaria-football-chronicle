@@ -237,25 +237,25 @@ export default function ContinentalSeasonDetail() {
                 )}
 
                 <Tabs defaultValue="bracket" className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <TabsList>
-                            <TabsTrigger value="bracket">Tournament Bracket</TabsTrigger>
-                            <TabsTrigger value="crests">Club Crests</TabsTrigger>
-                            <TabsTrigger value="participants">Participants</TabsTrigger>
-                            <TabsTrigger value="stats">Stats & Records</TabsTrigger>
-                            <TabsTrigger value="rounds">By Round</TabsTrigger>
-                        </TabsList>
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                        <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            <TabsList className="h-12 w-max justify-start rounded-none border-b border-slate-200 bg-transparent p-0">
+                                {[
+                                    ['bracket', 'Tournament Bracket'], ['crests', 'Club Crests'], ['participants', 'Participants'], ['stats', 'Stats & Records'], ['rounds', 'By Round']
+                                ].map(([value, label]) => <TabsTrigger key={value} value={value} className="h-12 rounded-none border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 data-[state=active]:border-[var(--competition-accent)] data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none">{label}</TabsTrigger>)}
+                            </TabsList>
+                        </div>
                         <AdminOnly>
                             <div className="flex gap-2 flex-wrap">
                                 <Button variant="outline" size="sm" onClick={openEditRounds}>
                                     <Settings className="w-4 h-4 mr-1" /> Round Names
                                 </Button>
                                 <Link to={createPageUrl(`UpdateContinentalStats?season=${seasonId}`)}>
-                                    <Button variant="outline" size="sm">
-                                        <RefreshCw className="w-4 h-4 mr-1" /> Sync Stats
+                                    <Button variant="outline" size="sm" title="Stats now sync automatically; use this to rebuild older historical aggregates">
+                                        <RefreshCw className="w-4 h-4 mr-1" /> Rebuild Stats
                                     </Button>
                                 </Link>
-                                <Button size="sm" onClick={() => setIsAddMatchOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+                                <Button size="sm" onClick={() => setIsAddMatchOpen(true)} className="text-white" style={{ backgroundColor: competitionTheme.ui }}>
                                     <Plus className="w-4 h-4 mr-1" /> Add Match
                                 </Button>
                             </div>
