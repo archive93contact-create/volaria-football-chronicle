@@ -133,7 +133,7 @@ export default function Home() {
                 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
                     <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 border border-white/15 text-white/75 text-sm font-medium mb-6">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white/75 text-sm font-medium mb-6">
                             <Heart className="w-4 h-4" />
                             18+ Years of Fictional Football
                         </div>
@@ -175,7 +175,7 @@ export default function Home() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             {stats.map((stat) => (
                                 <div key={stat.label} className="text-center">
-                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/8 border border-white/10 mb-3">
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 border border-white/10 mb-3">
                                         <stat.icon className="w-6 h-6 text-white/85" />
                                     </div>
                                     <div className="text-3xl md:text-4xl font-bold text-white">{stat.value.toLocaleString()}</div>
@@ -197,10 +197,10 @@ export default function Home() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Start With These Nations */}
-                        <Card className="border-0 shadow-sm bg-emerald-50">
+                        <Card className="border border-slate-200 shadow-sm bg-white">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center">
                                         <Globe className="w-4 h-4 text-white" />
                                     </div>
                                     <h3 className="font-bold text-slate-900">Start With These Nations</h3>
@@ -211,7 +211,7 @@ export default function Home() {
                                         <Link 
                                             key={nation.id} 
                                             to={createPageUrl(`NationDetail?id=${nation.id}`)}
-                                            className="flex items-center justify-between p-2 rounded-lg hover:bg-emerald-100 transition-colors group"
+                                            className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors group"
                                         >
                                             <div className="flex items-center gap-2">
                                                 {nation.flag_url ? (
@@ -219,20 +219,20 @@ export default function Home() {
                                                 ) : (
                                                     <div className="w-5 h-4 bg-slate-300 rounded-sm" />
                                                 )}
-                                                <span className="font-medium text-slate-800 group-hover:text-emerald-700">{nation.name}</span>
+                                                <span className="font-medium text-slate-800">{nation.name}</span>
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600" />
+                                            <ChevronRight className="w-4 h-4 text-slate-400" />
                                         </Link>
                                     ))}
                                 </div>
-                                <Link to={createPageUrl('Nations')} className="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700 font-medium mt-4">
+                                <Link to={createPageUrl('Nations')} className="inline-flex items-center text-sm text-slate-700 hover:text-slate-950 font-semibold mt-4">
                                     View all nations <ArrowRight className="w-3 h-3 ml-1" />
                                 </Link>
                             </CardContent>
                         </Card>
 
                         {/* Iconic Clubs */}
-                        <Card className="border-0 shadow-sm bg-amber-50">
+                        <Card className="border border-slate-200 shadow-sm bg-white">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-2 mb-3">
                                     <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
@@ -248,7 +248,7 @@ export default function Home() {
                                             <Link 
                                                 key={club.id} 
                                                 to={createPageUrl(`ClubDetail?id=${club.id}`)}
-                                                className="flex items-center justify-between p-2 rounded-lg hover:bg-amber-100 transition-colors group"
+                                                className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors group"
                                             >
                                                 <div className="flex items-center gap-2">
                                                     {club.logo_url ? (
@@ -257,7 +257,7 @@ export default function Home() {
                                                         <Shield className="w-5 h-5 text-slate-400" />
                                                     )}
                                                     <div>
-                                                        <span className="font-medium text-slate-800 group-hover:text-amber-700">{club.name}</span>
+                                                        <span className="font-medium text-slate-800">{club.name}</span>
                                                         <span className="text-xs text-slate-500 ml-1">{nation?.name}</span>
                                                     </div>
                                                 </div>
@@ -268,17 +268,17 @@ export default function Home() {
                                         );
                                     })}
                                 </div>
-                                <Link to={createPageUrl('AllClubs')} className="inline-flex items-center text-sm text-amber-600 hover:text-amber-700 font-medium mt-4">
+                                <Link to={createPageUrl('AllClubs')} className="inline-flex items-center text-sm text-slate-700 hover:text-slate-950 font-semibold mt-4">
                                     Browse all clubs <ArrowRight className="w-3 h-3 ml-1" />
                                 </Link>
                             </CardContent>
                         </Card>
 
                         {/* Continental Glory */}
-                        <Card className="border-0 shadow-sm bg-purple-50">
+                        <Card className="border border-slate-200 shadow-sm bg-white">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center">
                                         <Trophy className="w-4 h-4 text-white" />
                                     </div>
                                     <h3 className="font-bold text-slate-900">Continental Glory</h3>
@@ -306,7 +306,7 @@ export default function Home() {
                                         <p className="text-xs text-slate-500 mt-1">For associates and second-tier qualifiers</p>
                                     </Link>
                                 </div>
-                                <Link to={createPageUrl('Coefficients')} className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 font-medium mt-4">
+                                <Link to={createPageUrl('Coefficients')} className="inline-flex items-center text-sm text-slate-700 hover:text-slate-950 font-semibold mt-4">
                                     View rankings <ArrowRight className="w-3 h-3 ml-1" />
                                 </Link>
                             </CardContent>
