@@ -5,6 +5,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { Trophy, TrendingUp, TrendingDown, Home, Plane, Swords, Calendar, Users, Target, Flame, Award, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
 
 export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = [], allLeagues = [] }) {
     const analytics = useMemo(() => {
@@ -17,6 +18,7 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
         const performanceData = sortedSeasons.map(s => {
             const league = allLeagues.find(l => l.id === s.league_id);
             return {
+                id: s.id,
                 year: s.year,
                 position: s.position,
                 points: s.points || 0,
@@ -73,37 +75,31 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
             else positionRanges['Bottom 6']++;
         });
         
-        // Rival records
+        // Recorded rival relationships only. We deliberately do not pretend to know
+        // seasons-in-the-same-league here because this component does not receive rival season histories.
         const rivalRecords = {};
         if (club.rival_club_ids && club.rival_club_ids.length > 0) {
             club.rival_club_ids.forEach(rivalId => {
                 const rival = allClubs.find(c => c.id === rivalId);
                 if (rival) {
-                    // Count seasons they've been in same league
-                    const rivalSeasons = seasons.filter(s => {
-                        // This is simplified - would need actual match data for real H2H
-                        return true;
-                    });
-                    rivalRecords[rival.name] = {
-                        name: rival.name,
-                        id: rival.id,
-                        seasonsInSameLeague: rivalSeasons.length
-                    };
+                    rivalRecords[rival.name] = { name: rival.name, id: rival.id };
                 }
             });
         }
         
-        // Best and worst seasons
+        // Best/worst seasons across the full pyramid. Lower score is stronger:
+        // Tier 1 10th (110) correctly ranks above Tier 2 1st (201).
+        const rankedSeasons = performanceData
+            .filter(s => Number.isFinite(Number(s.position)))
+            .map(s => ({ ...s, pyramidScore: (Number(s.tier) || 1) * 100 + Number(s.position) }));
+        const bestRanked = rankedSeasons.reduce((best, s) => !best || s.pyramidScore < best.pyramidScore ? s : best, null);
+        const worstRanked = rankedSeasons.reduce((worst, s) => !worst || s.pyramidScore > worst.pyramidScore ? s : worst, null);
+        const bestSeason = seasons.find(s => s.id === bestRanked?.id) || null;
+        const worstSeason = seasons.find(s => s.id === worstRanked?.id) || null;
         const topFlightSeasons = seasons.filter(s => {
             const tier = s.tier || allLeagues.find(l => l.id === s.league_id)?.tier;
             return tier === 1;
         });
-        
-        const bestSeason = topFlightSeasons.length > 0 
-            ? topFlightSeasons.reduce((best, s) => !best || s.position < best.position ? s : best, null)
-            : seasons.reduce((best, s) => !best || s.points > best.points ? s : best, null);
-            
-        const worstSeason = seasons.reduce((worst, s) => !worst || s.position > worst.position ? s : worst, null);
         
         // Promotion/Relegation history
         const promotions = seasons.filter(s => s.status === 'promoted').length;
@@ -125,6 +121,47 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
         const totalGoalsScored = seasons.reduce((sum, s) => sum + (s.goals_for || 0), 0);
         const totalGoalsConceded = seasons.reduce((sum, s) => sum + (s.goals_against || 0), 0);
         const avgGoalsPerSeason = (totalGoalsScored / seasons.length).toFixed(1);
+
+        // Interpretation layer: tell the user what the record means rather than only charting it.
+        const scores = rankedSeasons.map(s => s.pyramidScore);
+        const comparisonWindow = Math.min(5, Math.floor(scores.length / 2));
+        let trajectory = null;
+        let trajectoryDetail = null;
+        let trajectoryTone = 'neutral';
+        if (comparisonWindow >= 2) {
+            const recent = scores.slice(-comparisonWindow);
+            const previous = scores.slice(-(comparisonWindow * 2), -comparisonWindow);
+            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const previousAvg = previous.reduce((a, b) => a + b, 0) / previous.length;
+            const improvement = previousAvg - recentAvg;
+            if (improvement >= 12) {
+                trajectory = 'Rising';
+                trajectoryTone = 'positive';
+            } else if (improvement <= -12) {
+                trajectory = 'Falling';
+                trajectoryTone = 'negative';
+            } else {
+                trajectory = 'Stable';
+            }
+            trajectoryDetail = `${comparisonWindow}-season average versus the previous ${comparisonWindow}`;
+        }
+
+        const meanScore = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        const scoreStdDev = scores.length > 1
+            ? Math.sqrt(scores.reduce((sum, score) => sum + Math.pow(score - meanScore, 2), 0) / scores.length)
+            : 0;
+        const consistency = scoreStdDev < 18 ? 'Very stable' : scoreStdDev < 45 ? 'Variable' : 'Volatile';
+        const topFlightShare = seasons.length ? (topFlightSeasons.length / seasons.length) * 100 : 0;
+        const totalTrophies = Object.values(trophies).reduce((a, b) => a + b, 0);
+        const trophyRate = seasons.length ? (totalTrophies / seasons.length) * 10 : 0;
+        const goalDifferencePerGame = totalGames ? (totalGoalsScored - totalGoalsConceded) / totalGames : 0;
+        const insights = [
+            trajectory && { label: 'Recent trajectory', value: trajectory, detail: trajectoryDetail, tone: trajectoryTone, icon: trajectory === 'Rising' ? TrendingUp : trajectory === 'Falling' ? TrendingDown : Target },
+            { label: 'Pyramid stability', value: consistency, detail: `Season-to-season spread ${scoreStdDev.toFixed(1)}`, icon: Shield },
+            { label: 'Top-flight share', value: `${topFlightShare.toFixed(0)}%`, detail: `${topFlightSeasons.length} of ${seasons.length} recorded seasons`, icon: Trophy },
+            { label: 'Trophy frequency', value: `${trophyRate.toFixed(2)} / 10`, detail: `${totalTrophies} major trophies across recorded seasons`, icon: Award },
+            totalGames > 0 && { label: 'Goal edge', value: `${goalDifferencePerGame >= 0 ? '+' : ''}${goalDifferencePerGame.toFixed(2)}/game`, detail: 'Goal difference per recorded league game', tone: goalDifferencePerGame > 0.1 ? 'positive' : goalDifferencePerGame < -0.1 ? 'negative' : 'neutral', icon: Flame },
+        ].filter(Boolean);
         
         return {
             performanceData,
@@ -147,7 +184,8 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
             totalGoalsScored,
             totalGoalsConceded,
             avgGoalsPerSeason,
-            topFlightSeasons: topFlightSeasons.length
+            topFlightSeasons: topFlightSeasons.length,
+            insights
         };
     }, [club, seasons, allClubs, allLeagues]);
 
@@ -167,6 +205,8 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
 
     return (
         <div className="space-y-6">
+            <AnalyticsInsightGrid items={analytics.insights} accentColor={club.primary_color || club.accent_color || '#334155'} />
+
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <Card className="border-0 shadow-sm">
@@ -445,7 +485,7 @@ export default function ClubAnalyticsDashboard({ club, seasons = [], allClubs = 
                                         <Shield className="w-4 h-4 text-slate-500" />
                                         <span className="font-semibold">{rival.name}</span>
                                     </div>
-                                    <Badge variant="outline">{rival.seasonsInSameLeague} seasons together</Badge>
+                                    <Badge variant="outline">Recorded rival</Badge>
                                 </Link>
                             ))}
                         </div>
