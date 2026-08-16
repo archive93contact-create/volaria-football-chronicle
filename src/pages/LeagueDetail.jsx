@@ -44,6 +44,9 @@ import PersonalizedLeagueStory from '@/components/leagues/PersonalizedLeagueStor
 import LeagueTierSwitcher from '@/components/leagues/LeagueTierSwitcher';
 import LeagueCrestBanner from '@/components/leagues/LeagueCrestBanner';
 import CrestCleaner from '@/components/clubs/CrestCleaner';
+import EntityStickyNav from '@/components/common/EntityStickyNav';
+import EntitySectionHeader from '@/components/common/EntitySectionHeader';
+import { getEntityTheme } from '@/utils/entityTheme';
 
 export default function LeagueDetail() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -275,9 +278,16 @@ export default function LeagueDetail() {
         };
     };
 
+    const leagueTheme = getEntityTheme({ primary: league.primary_color, secondary: league.secondary_color, accent: league.accent_color });
+    const leagueTabs = [
+        ['table', 'Table'], ['history-stats', 'History & Stats'], ['story', 'League Story'], ['crests', 'Club Crests'],
+        ['clubs', 'Clubs'], ['titles', 'Most Titles'], ['seasons', 'Seasons'], ['records', 'Records'],
+        ['analytics', 'Analytics'], ['predictions', 'Predictions']
+    ];
+
     return (
-        <div className="min-h-screen bg-slate-50">
-            <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10" style={{ '--league-primary': league.primary_color || '#334155', '--league-secondary': league.secondary_color || '#111827', '--league-accent': league.accent_color || league.primary_color || '#f59e0b' }}>
+        <div className="min-h-screen bg-[#f5f5f4]" style={{ '--league-primary': leagueTheme.ui, '--league-secondary': leagueTheme.secondary, '--league-accent': leagueTheme.accent }}>
+            <section className="relative overflow-hidden bg-[#090a0b] text-white border-b border-white/10">
                 <div className="absolute inset-0" style={{ background: `linear-gradient(108deg, #070809 0%, ${league.primary_color || '#334155'}e8 48%, ${league.secondary_color || league.primary_color || '#111827'}d8 100%)` }} />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-black/35" />
                 <div className="absolute inset-0 opacity-[0.10]" style={{ backgroundImage: `radial-gradient(circle at 17% 30%, rgba(255,255,255,.24), transparent 28%), linear-gradient(115deg, transparent 0 58%, rgba(255,255,255,.10) 58% 59%, transparent 59% 100%)` }} />
