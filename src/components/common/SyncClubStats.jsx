@@ -93,7 +93,7 @@ export default function SyncClubStats({ clubs = [], leagueTables = [], leagues =
                             titleYears.push(table.year);
                         }
                     }
-                    if (table.status === 'promoted' || table.status === 'playoff_winner') {
+                    if (tableTier && tableTier > 1 && (table.status === 'promoted' || table.status === 'playoff_winner')) {
                         promotions++;
                     }
                     if (table.status === 'relegated') {
