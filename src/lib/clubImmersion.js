@@ -271,7 +271,7 @@ const identityForSeason = (club, season, allClubs = []) => {
 };
 
 export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs = []) {
-    const ordered = sortChronologically(seasons).filter(s => !s.club_id || lineageClubIds(club).has(s.club_id));
+    const ordered = sortChronologically(seasons).filter(s => !s.club_id || lineageClubIds(club, allClubs).has(s.club_id));
     if (!ordered.length) return `${club.name}'s competitive chronicle is still waiting for its opening season.`;
 
     const eras = detectClubEras(ordered, leagues);
@@ -290,13 +290,21 @@ export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs 
     const openingIdentity = firstIdentity && firstIdentity !== club.name ? `then competing as ${firstIdentity}` : `under the ${club.name} name`;
     paragraphs.push(`${club.name}'s league story opens in ${first.year}, ${openingIdentity}, with a ${ordinal(first.position)}-place finish in ${firstLeague?.name || `Tier ${getHistoricalTier(first, leagues) || '?'}`}. What followed was not a single straight climb but a changing place in the football order, stretching through to ${latest.year}, when ${latestIdentity || club.name} finished the season in ${latestLeague?.name || `Tier ${getHistoricalTier(latest, leagues) || '?'}`}.`);
 
-    if (lineage.formerNames.length) {
-        const names = lineage.formerNames.map(c => c.name).join(lineage.formerNames.length > 1 ? ' and ' : '');
+    if (lineage.isFormerName && lineage.currentName) {
+        const renameYear = club.renamed_year || lineage.currentName.renamed_year;
+        paragraphs.push(`The ${club.name} identity did not mark the end of the club itself. ${renameYear ? `In ${renameYear}, ` : ''}the same institution continued under the name ${lineage.currentName.name}; the change belongs to one continuous club history rather than the creation of a successor club.`);
+    } else if (lineage.formerNames.length) {
+        const orderedNames = [...lineage.formerNames].sort((a, b) => (a.renamed_year || a.founded_year || 0) - (b.renamed_year || b.founded_year || 0));
+        const names = orderedNames.map(c => c.name).join(orderedNames.length > 1 ? ' and ' : '');
         const renameYear = club.renamed_year ? ` around ${club.renamed_year}` : '';
-        paragraphs.push(`Part of that history was lived under another identity. The club competed as ${names} before the present ${club.name} name emerged${renameYear}; the change of name sits within the same continuous footballing story.`);
-    } else if (lineage.predecessors.length) {
-        const names = lineage.predecessors.map(c => c.name).join(lineage.predecessors.length > 1 ? ' and ' : '');
-        paragraphs.push(`${club.name} also carries footballing history inherited from ${names}. Their seasons sit before the present club in the lineage, giving the modern side a competitive ancestry that predates its current identity without pretending the organisations were always identical.`);
+        paragraphs.push(`Part of that history was lived under earlier names. The same club competed as ${names} before the ${club.name} identity emerged${renameYear}, preserving one sporting lineage through the changes of name.`);
+    }
+
+    if (lineage.predecessors.length) {
+        const orderedPredecessors = [...lineage.predecessors].sort((a, b) => (a.defunct_year || a.founded_year || 0) - (b.defunct_year || b.founded_year || 0));
+        const names = orderedPredecessors.map(c => c.name).join(orderedPredecessors.length > 1 ? ' and ' : '');
+        const relationship = orderedPredecessors.length > 1 ? 'the earlier clubs' : 'the earlier club';
+        paragraphs.push(`${club.name}'s roots also run through ${names}. ${relationship.charAt(0).toUpperCase() + relationship.slice(1)} sit before the present organisation in the lineage, so their footballing past forms part of its ancestry without being rewritten as seasons played under the ${club.name} name.`);
     }
 
     if (titleSeasons.length || promotions.length || relegations.length || club.domestic_cup_titles || club.vcc_titles || club.ccc_titles) {
@@ -329,13 +337,27 @@ export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs 
         direction = change > 35 ? 'The latest run has carried the club upward again.' : change < -35 ? 'The most recent seasons have pulled it away from its earlier level.' : 'Its recent level has been comparatively settled.';
     }
     if (latestTier && bestTier) {
-        const levelText = latestTier === bestTier ? `By ${latest.year}, the club was again operating at the highest level it has known, Tier ${latestTier}.` : `By ${latest.year}, it stood at Tier ${latestTier}, below the Tier ${bestTier} heights reached earlier in its history.`;
-        const identityBits = [];
-        if (club.stadium) identityBits.push(`home matches centred on ${club.stadium}${club.stadium_capacity ? `, a ${Number(club.stadium_capacity).toLocaleString()}-capacity ground` : ''}`);
-        if (club.professional_status) identityBits.push(`${club.professional_status.replace('-', ' ')} status`);
-        if (club.nickname) identityBits.push(`the ${club.nickname} identity`);
-        const presentIdentity = identityBits.length ? ` Away from the table, the modern club is defined by ${identityBits.join(', ')}.` : '';
-        paragraphs.push(`${levelText}${direction ? ` ${direction}` : ''}${presentIdentity}`);
+        const levelText = latestTier === bestTier ? `By ${latest.year}, the club was operating at the highest level it had known, Tier ${latestTier}.` : `By ${latest.year}, it stood at Tier ${latestTier}, below the Tier ${bestTier} heights reached earlier in its history.`;
+
+        if (lineage.isDefunct) {
+            const endYear = club.defunct_year || yearNumber(latest.year) || null;
+            const successorText = lineage.successor
+                ? ` Its footballing lineage then passed to ${lineage.successor.name}, which is recorded as the successor club rather than merely a renamed continuation.`
+                : ` No successor club is recorded, so the ${club.name} story ends there.`;
+            paragraphs.push(`${levelText} ${endYear ? `In ${endYear}, ` : 'After its final period, '}${club.name} was disbanded and ceased to operate as an active club.${successorText}`);
+        } else if (lineage.isFormerName && lineage.currentName) {
+            const renameYear = club.renamed_year || lineage.currentName.renamed_year;
+            paragraphs.push(`${levelText} ${renameYear ? `From ${renameYear}, ` : 'Thereafter, '}the club's story continued under its current identity, ${lineage.currentName.name}.`);
+        } else if (lineage.isInactive) {
+            paragraphs.push(`${levelText} The club is no longer active, although it is not recorded as having been replaced by a successor organisation.`);
+        } else {
+            const identityBits = [];
+            if (club.stadium) identityBits.push(`home matches centred on ${club.stadium}${club.stadium_capacity ? `, a ${Number(club.stadium_capacity).toLocaleString()}-capacity ground` : ''}`);
+            if (club.professional_status) identityBits.push(`${club.professional_status.replace('-', ' ')} status`);
+            if (club.nickname) identityBits.push(`the ${club.nickname} identity`);
+            const presentIdentity = identityBits.length ? ` Away from the table, the modern club is defined by ${identityBits.join(', ')}.` : '';
+            paragraphs.push(`${levelText}${direction ? ` ${direction}` : ''}${presentIdentity}`);
+        }
     }
 
     return paragraphs.join('\n\n');
