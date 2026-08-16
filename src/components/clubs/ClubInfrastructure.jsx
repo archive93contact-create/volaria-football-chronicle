@@ -65,26 +65,70 @@ const calculateFacilities = (club, league, nation) => {
     };
 };
 
-// Generate stadium name based on club data
-const generateStadiumName = (club, nation) => {
-    const templates = [
-        // Location-based
-        () => `${club.settlement || club.city || club.district || 'City'} Stadium`,
-        () => `${club.region || club.district || 'Central'} Park`,
-        () => `The ${club.settlement || club.city || club.district || ''} Ground`.trim(),
-        // Club-based
-        () => `${club.name.split(' ')[0]} Park`,
-        () => `${club.nickname ? club.nickname + ' Arena' : club.name + ' Stadium'}`,
-        // Historical
-        () => `${club.founded_year ? 'Old ' + (club.settlement || club.city || 'Town') : club.name} Ground`,
-        // Generic prestigious names
-        () => `The ${['Meadow', 'Valley', 'Hill', 'Bridge', 'Lane', 'Fields'][Math.floor(Math.random() * 6)]}`,
-        () => `${club.settlement || club.city || club.region || 'Town'} Athletic Ground`,
+// Deterministic fallback if AI generation is unavailable.
+const fallbackStadiumName = (club) => {
+    const place = club.settlement || club.city || club.district || club.region || club.name.split(' ')[0];
+    const options = [
+        `${place} Ground`,
+        `${place} Park`,
+        `${place} Athletic Ground`,
+        `${club.name.split(' ')[0]} Park`,
+        `The ${place} Ground`,
     ];
-    
-    // Pick based on hash of club name for consistency
-    const hash = club.name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return templates[hash % templates.length]();
+    const hash = club.name.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return options[hash % options.length];
+};
+
+// Generate a grounded stadium name using the club's actual cultural/location context.
+const generateStadiumName = async (club, league, nation) => {
+    const place = [club.settlement, club.district, club.region].filter(Boolean).join(', ') || club.city || 'unknown location';
+    const namingStyles = Array.isArray(nation?.naming_styles) && nation.naming_styles.length
+        ? nation.naming_styles.join(', ')
+        : 'not specified';
+
+    const prompt = `Create ONE plausible home-ground name for this fictional football club.
+
+KNOWN DATA ONLY:
+Club: ${club.name}
+Nickname: ${club.nickname || 'none recorded'}
+Founded: ${club.founded_year || 'unknown'}
+Location: ${place}
+Nation: ${nation?.name || 'unknown'}
+Nation language: ${nation?.language || 'not specified'}
+Nation naming styles: ${namingStyles}
+League: ${league?.name || 'unknown'}
+Tier: ${league?.tier || 'unknown'}
+Professional status: ${club.professional_status || 'unknown'}
+
+RULES:
+- The name must feel like a real football ground that could have evolved organically in this place and era.
+- Use the nation's language/naming style only where the supplied data supports it. Do not invent fake translations or pseudo-language.
+- Older/lower-league clubs should usually favour traditional forms such as Ground, Park, Field, Lane or a locally plausible equivalent rather than modern 'Arena' branding.
+- Do NOT invent a named person, sponsor, company, street, battle, monarch, historical event or local landmark that is not in the supplied data.
+- Do NOT claim a reason/history for the name that is not known.
+- Avoid the lazy pattern '[full club name] Stadium' unless it genuinely fits better than a location-led name.
+- Keep it distinctive but believable, normally 2-5 words.
+- Return only a stadium_name plus a short rationale explaining which supplied facts drove the choice. The rationale is for the admin preview and must not invent facts.`;
+
+    try {
+        const result = await base44.integrations.Core.InvokeLLM({
+            prompt,
+            add_context_from_internet: false,
+            response_json_schema: {
+                type: 'object',
+                properties: {
+                    stadium_name: { type: 'string' },
+                    rationale: { type: 'string' }
+                },
+                required: ['stadium_name']
+            }
+        });
+        const name = String(result?.stadium_name || '').trim();
+        return name && name.length <= 80 ? name : fallbackStadiumName(club);
+    } catch (error) {
+        console.warn('AI stadium naming failed, using grounded fallback:', error);
+        return fallbackStadiumName(club);
+    }
 };
 
 // Generate capacity based on tier, stability, AND nation strength
@@ -164,7 +208,7 @@ export default function ClubInfrastructure({ club, league, nation }) {
         setIsGenerating(true);
         
         const facilities = calculateFacilities(club, league, nation);
-        const stadium = generateStadiumName(club, nation);
+        const stadium = await generateStadiumName(club, league, nation);
         const capacity = generateCapacity(club, league, nation);
         
         await base44.entities.Club.update(club.id, {
