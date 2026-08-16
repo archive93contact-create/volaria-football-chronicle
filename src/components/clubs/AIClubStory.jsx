@@ -103,7 +103,26 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 }
             }
 
-            const prompt = `Write a deeply personal and immersive 3-4 paragraph story about ${club.name}, a football club in ${nation?.name}. This should feel UNIQUE to this club based on their actual data.
+            const chronologicalSeasons = [...seasons].sort((a, b) => String(a.year || '').localeCompare(String(b.year || ''), undefined, { numeric: true }));
+            const milestoneCandidates = chronologicalSeasons.filter(s => {
+                const tier = s.tier || allLeagues.find(l => l.id === s.league_id)?.tier;
+                return s.position === 1 || ['champion', 'promoted', 'relegated'].includes(s.status) || tier === 1;
+            });
+            const milestoneRecords = [chronologicalSeasons[0], ...milestoneCandidates, chronologicalSeasons.at(-1)]
+                .filter(Boolean)
+                .filter((season, index, array) => array.findIndex(other => other.id === season.id) === index)
+                .slice(-12);
+            const milestoneText = milestoneRecords.length
+                ? milestoneRecords.map(s => {
+                    const seasonLeague = allLeagues.find(l => l.id === s.league_id);
+                    const tier = s.tier || seasonLeague?.tier || '?';
+                    const finish = s.position ? `, finished ${s.position}` : '';
+                    const status = s.status ? `, ${s.status}` : '';
+                    return `- ${s.year}: ${seasonLeague?.name || 'recorded league'} (Tier ${tier})${finish}${status}`;
+                }).join('\n')
+                : '- No season-by-season milestones recorded.';
+
+            const prompt = `Write a grounded, vivid 3-4 paragraph archival story about ${club.name}, a football club in ${nation?.name}. It should feel unique because of the ACTUAL record below, not because of invented colour.
 
 CLUB DATA:
 - Location: ${[club.settlement, club.district, club.region].filter(Boolean).join(', ') || club.city || 'Unknown'}
@@ -122,23 +141,34 @@ HISTORY:
 - Lower tier titles: ${club.lower_tier_titles || 0}${club.lower_tier_title_years ? ` (${club.lower_tier_title_years})` : ''}
 - Domestic cup titles: ${club.domestic_cup_titles || 0}${club.domestic_cup_title_years ? ` (${club.domestic_cup_title_years})` : ''}
   ${club.domestic_cup_title_years ? `🔴 Cup glory years: ${club.domestic_cup_title_years} - **Mention major cup wins**, they're huge moments` : ''}
-  ${club.domestic_cup_runner_up > 0 ? `- Cup finals lost: ${club.domestic_cup_runner_up} (heartbreak)` : ''}
+  ${club.domestic_cup_runner_up > 0 ? `- Cup finals lost: ${club.domestic_cup_runner_up}` : ''}
 - VCC titles: ${club.vcc_titles || 0}${club.vcc_title_years ? ` (${club.vcc_title_years})` : ''}, CCC titles: ${club.ccc_titles || 0}${club.ccc_title_years ? ` (${club.ccc_title_years})` : ''}
   ${club.vcc_title_years || club.ccc_title_years ? `🔴 CONTINENTAL GLORY - **Must mention these historic achievements**` : ''}
 - Promotions: ${club.promotions || 0}, Relegations: ${club.relegations || 0}
 - Best finish: ${club.best_finish ? `${club.best_finish}${club.best_finish === 1 ? 'st' : club.best_finish === 2 ? 'nd' : club.best_finish === 3 ? 'rd' : 'th'} (${club.best_finish_year || 'unknown year'}, Tier ${club.best_finish_tier || 'unknown'})` : 'No data'}
 - Professional status: ${club.professional_status || 'Unknown'}
 
+RECORDED SEASON MILESTONES:
+${milestoneText}
+
 ${tfaContext ? `\nTURULIAND TFA STATUS (CRITICAL):\n${tfaContext}\n` : ''}
+
+SOURCE DISCIPLINE — NON-NEGOTIABLE:
+- Treat ONLY the supplied database data as factual. This is a fictional universe, so there is no outside source to fill gaps from.
+- DO NOT invent named players, managers, chairmen, founders, supporters' groups, attendances, crowds, chants, industries, streets, neighbourhood landmarks, derby incidents, finances, ownership changes, stadium construction dates, reasons for a rename/merger/closure, or causes of success/decline unless explicitly supplied above.
+- The recorded stadium name/capacity may be mentioned, but do not invent its architecture, atmosphere, location history or opening date.
+- Rivals may be described as recorded rivals, but do not invent a rivalry origin or famous match.
+- You MAY interpret clear statistical patterns using cautious language such as 'the record suggests', 'a period of', or 'by the recorded results'. Never turn an inference into a new fact.
+- If the data is sparse, write a shorter, restrained history rather than padding it with invented detail.
 
 REQUIREMENTS:
 1. **FIRST PARAGRAPH - Origins & Identity**: Start with their founding and identity. ${successionContext ? '**CRITICAL**: You MUST mention their succession/merger/name change context (marked with 🔴 above) in this opening - it defines who they are.' : ''} What makes them unique? Use their location: ${[club.settlement, club.district, club.region].filter(Boolean)[0] || club.city || 'their town'}. Make it PERSONAL.
 
 2. **SECOND PARAGRAPH - Journey**: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements from the data above. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity). **You MUST accurately describe their current tier situation** (marked in TFA STATUS above).' : `For non-Turuliand clubs, focus on their journey through ${nation?.name}'s league system (${nation?.federation_name || 'the national federation'}). DO NOT mention TFA - it only exists in Turuliand.`}
 
-3. **THIRD PARAGRAPH - Present Day**: Their current status and what defines them today. Where do they sit in the hierarchy? ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is the doldrums.' : ''} What's their relationship to ${rivals.length > 0 ? 'their rivals (' + rivals.map(r => r.name).join(', ') + ')' : 'other local clubs'}? What are fans feeling?
+3. **THIRD PARAGRAPH - Present Day**: Explain their current position in the hierarchy and what the recorded history says about the club today. ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is much further removed.' : ''} ${rivals.length > 0 ? 'Mention the recorded rivals (' + rivals.map(r => r.name).join(', ') + ') without inventing the reason for those rivalries.' : 'Do not invent a rivalry or supporter sentiment.'}
 
-4. **OPTIONAL FOURTH**: Data quirks (yo-yo club, fallen giant, never relegated, etc) - explore emotionally.
+4. **OPTIONAL FOURTH**: Draw out only genuinely supported patterns — for example repeated promotions/relegations, a long top-flight spell, a title era, or a documented fall through the tiers. Use the season milestones above to anchor it.
 
 **CRITICAL REMINDERS**:
 - ${successionContext ? '🔴 You MUST mention succession/merger/name change context - it\'s marked with 🔴 above' : 'No succession context to mention'}
@@ -146,7 +176,7 @@ REQUIREMENTS:
 - 🚨 TFA ONLY EXISTS IN TURULIAND - **NEVER** mention TFA, organized tiers, or the TFA system for clubs from ${!isTuruliand ? nation?.name : 'other nations'}
 - For non-Turuliand clubs: Reference ${nation?.federation_name || 'their national federation'} and ${nation?.name}'s league system instead
 
-TONE: Engaging, emotionally resonant, like a documentary. Use specific data points (years, numbers, names). Avoid clichés. Make every club story feel completely different.
+TONE: An excellent football historian writing for a club archive: vivid, readable and emotionally aware, but precise. Prefer chronology, specific years and meaningful comparisons. Avoid clichés such as 'phoenix from the ashes', 'sleeping giant', 'against all odds', 'passionate fanbase' or 'hallowed turf' unless the supplied record genuinely supports the idea.
 
 Do NOT use markdown. Just plain paragraphs separated by double line breaks.`;
 
