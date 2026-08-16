@@ -1,13 +1,36 @@
 import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Sparkles, Loader2 } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { BookOpen, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AdminOnly from '@/components/common/AdminOnly';
+import { buildComparativeInsights, buildLivingNarrative, detectClubEras } from '@/lib/clubImmersion';
 
 export default function AIClubStory({ club, nation, league, seasons = [], allLeagues = [], allClubs = [], onStoryGenerated }) {
+    const queryClient = useQueryClient();
     const [generating, setGenerating] = useState(false);
     const [story, setStory] = useState(club.history || null);
+    const latestYear = [...seasons].sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }))[0]?.year || '';
+    const detectedEras = detectClubEras(seasons, allLeagues);
+    const comparativeInsights = buildComparativeInsights(club, allClubs, seasons, allLeagues);
+    const livingNarrative = buildLivingNarrative(club, seasons, allLeagues);
+
+    const { data: originRows = [] } = useQuery({
+        queryKey: ['clubOrigin', club?.id],
+        queryFn: () => base44.entities.ClubOrigin.filter({ club_id: club.id }),
+        enabled: !!club?.id,
+    });
+    const origin = originRows[0] || null;
+
+    const { data: snapshotRows = [] } = useQuery({
+        queryKey: ['clubNarrativeSnapshot', club?.id],
+        queryFn: () => base44.entities.ClubNarrativeSnapshot.filter({ club_id: club.id }, '-through_year'),
+        enabled: !!club?.id,
+    });
+    const latestSnapshot = snapshotRows[0] || null;
+    const narrativeIsStale = Boolean(latestYear && latestSnapshot?.through_year && latestSnapshot.through_year !== latestYear);
 
     const generateStory = async () => {
         setGenerating(true);
@@ -122,7 +145,24 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 }).join('\n')
                 : '- No season-by-season milestones recorded.';
 
-            const prompt = `Write a grounded, vivid 3-4 paragraph archival story about ${club.name}, a football club in ${nation?.name}. It should feel unique because of the ACTUAL record below, not because of invented colour.
+            const eraText = detectedEras.length ? detectedEras.map(e => `- ${e.startYear}-${e.endYear}: ${e.label}. ${e.summary}`).join('\n') : '- No statistically strong era detected yet.';
+            const comparisonText = comparativeInsights.length ? comparativeInsights.map(i => `- ${i.label}: ${i.value}. ${i.detail}`).join('\n') : '- No comparative context available.';
+
+            const prompt = `Write a grounded, vivid 4-6 paragraph archival story about ${club.name}, a football club in ${nation?.name}. It should feel unique because of the ACTUAL record below, not because of invented colour. This is the polished archive narrative layered on top of a deterministic living history.
+
+APPROVED ORIGIN CANON:
+${origin?.formation_story ? `Formation type: ${origin.formation_type || 'unclassified'}\nFormation story: ${origin.formation_story}\nFounder context: ${origin.founder_context || 'unrecorded'}\nEarly ground: ${origin.original_ground_context || 'unrecorded'}\nName origin: ${origin.name_origin || 'unrecorded'}\nColour origin: ${origin.colour_origin || 'unrecorded'}\nAdmin canon notes: ${origin.canon_notes || 'none'}` : 'No formation story has been approved. DO NOT invent how the club was formed. State only the recorded founding year/location and move into the competitive record.'}
+
+DETECTED ERAS FROM LEAGUE DATA:
+${eraText}
+
+COMPARATIVE CONTEXT WITHIN THE NATION:
+${comparisonText}
+
+ALWAYS-CURRENT DATA NARRATIVE:
+${livingNarrative}
+
+CLUB DATA:
 
 CLUB DATA:
 - Location: ${[club.settlement, club.district, club.region].filter(Boolean).join(', ') || club.city || 'Unknown'}
@@ -159,16 +199,21 @@ SOURCE DISCIPLINE — NON-NEGOTIABLE:
 - The recorded stadium name/capacity may be mentioned, but do not invent its architecture, atmosphere, location history or opening date.
 - Rivals may be described as recorded rivals, but do not invent a rivalry origin or famous match.
 - You MAY interpret clear statistical patterns using cautious language such as 'the record suggests', 'a period of', or 'by the recorded results'. Never turn an inference into a new fact.
+- The APPROVED ORIGIN CANON above may be written as established club history because it has already been accepted. If it is absent, do not create an origin story in this narrative.
+- Treat DETECTED ERAS and COMPARATIVE CONTEXT as statistical interpretations: explain them naturally but do not add causes that are not in the data.
+- The narrative should evolve with the latest season. Give more weight to newly-entered seasons when they change an era, create a first/record, end a long stay, or materially alter the club's standing.
 - If the data is sparse, write a shorter, restrained history rather than padding it with invented detail.
 
 REQUIREMENTS:
-1. **FIRST PARAGRAPH - Origins & Identity**: Start with their founding and identity. ${successionContext ? '**CRITICAL**: You MUST mention their succession/merger/name change context (marked with 🔴 above) in this opening - it defines who they are.' : ''} What makes them unique? Use their location: ${[club.settlement, club.district, club.region].filter(Boolean)[0] || club.city || 'their town'}. Make it PERSONAL.
+1. **FIRST PARAGRAPH - Origins & Identity**: ${origin?.formation_story ? 'Use the APPROVED ORIGIN CANON to explain how the club emerged, then connect it to the recorded location/name/colours.' : 'There is no approved formation canon, so DO NOT invent founders or a founding mechanism. State the founding year/location/identity succinctly.'} ${successionContext ? '**CRITICAL**: You MUST mention their succession/merger/name change context (marked with 🔴 above) in this opening - it defines who they are.' : ''}
 
 2. **SECOND PARAGRAPH - Journey**: Their footballing journey - the highs and lows. Reference ACTUAL seasons, years, achievements from the data above. ${tfaContext ? 'For Turuliand clubs, the TFA vs non-league distinction is HUGE - explain what this means emotionally (organized fixtures vs sparse regional games, recognition vs obscurity). **You MUST accurately describe their current tier situation** (marked in TFA STATUS above).' : `For non-Turuliand clubs, focus on their journey through ${nation?.name}'s league system (${nation?.federation_name || 'the national federation'}). DO NOT mention TFA - it only exists in Turuliand.`}
 
 3. **THIRD PARAGRAPH - Present Day**: Explain their current position in the hierarchy and what the recorded history says about the club today. ${isTuruliand && currentTier > 4 ? '**For Turuliand non-league clubs: Be specific about how far they are from the TFA** - Tier 5 is close, Tier 8+ is much further removed.' : ''} ${rivals.length > 0 ? 'Mention the recorded rivals (' + rivals.map(r => r.name).join(', ') + ') without inventing the reason for those rivalries.' : 'Do not invent a rivalry or supporter sentiment.'}
 
-4. **OPTIONAL FOURTH**: Draw out only genuinely supported patterns — for example repeated promotions/relegations, a long top-flight spell, a title era, or a documented fall through the tiers. Use the season milestones above to anchor it.
+4. **ERA PARAGRAPH(S)**: Use the detected eras above to give the history shape — golden periods, long stays, rises, falls, wilderness years or revivals — and anchor every claim to the season record.
+
+5. **PRESENT-DAY HISTORICAL POSITION**: End by placing the club in comparative context. Explain where its longevity/success sits within the nation and whether its recent direction is rising, stable or declining. Do not make forecasts.
 
 **CRITICAL REMINDERS**:
 - ${successionContext ? '🔴 You MUST mention succession/merger/name change context - it\'s marked with 🔴 above' : 'No succession context to mention'}
@@ -185,8 +230,22 @@ Do NOT use markdown. Just plain paragraphs separated by double line breaks.`;
                 add_context_from_internet: false
             });
 
-            // Save to club record
+            // Keep the legacy Club.history field for compatibility, while storing a dated snapshot
+            // so the UI can tell when a new season has made the polished narrative stale.
             await base44.entities.Club.update(club.id, { history: result });
+            const snapshotPayload = {
+                club_id: club.id,
+                through_year: latestYear || 'no-season',
+                formation_story: origin?.formation_story || '',
+                historical_narrative: result,
+                era_summary: detectedEras.map(e => `${e.startYear}-${e.endYear}: ${e.label}`).join(' | '),
+                insight_summary: comparativeInsights.map(i => `${i.label}: ${i.value}`).join(' | '),
+                generated_at: new Date().toISOString(),
+                generation_version: 'living-history-v2',
+            };
+            if (latestSnapshot?.id) await base44.entities.ClubNarrativeSnapshot.update(latestSnapshot.id, snapshotPayload);
+            else await base44.entities.ClubNarrativeSnapshot.create(snapshotPayload);
+            queryClient.invalidateQueries({ queryKey: ['clubNarrativeSnapshot', club.id] });
             setStory(result);
             
             if (onStoryGenerated) {
@@ -208,11 +267,17 @@ Do NOT use markdown. Just plain paragraphs separated by double line breaks.`;
             }}
         >
             <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
+                    <div>
                     <CardTitle className="flex items-center gap-2">
                         <BookOpen className="w-5 h-5" style={{ color: club.accent_color || '#10b981' }} />
-                        The Story of {club.name}
+                        Archive Narrative
                     </CardTitle>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                        {latestSnapshot?.through_year && <Badge variant="outline">Written through {latestSnapshot.through_year}</Badge>}
+                        {narrativeIsStale && <Badge className="bg-amber-100 text-amber-800 border border-amber-200"><RefreshCw className="w-3 h-3 mr-1" />New season data available</Badge>}
+                    </div>
+                    </div>
                     <AdminOnly>
                         <Button 
                             onClick={generateStory} 
