@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AdminOnly from '@/components/common/AdminOnly';
-import { buildComparativeInsights, buildLivingNarrative, detectClubEras } from '@/lib/clubImmersion';
+import { buildClubLineage, buildComparativeInsights, buildLivingNarrative, detectClubEras } from '@/lib/clubImmersion';
 
 export default function AIClubStory({ club, nation, league, seasons = [], allLeagues = [], allClubs = [], onStoryGenerated }) {
     const queryClient = useQueryClient();
@@ -15,6 +15,7 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
     const latestYear = [...seasons].sort((a, b) => String(b.year || '').localeCompare(String(a.year || ''), undefined, { numeric: true }))[0]?.year || '';
     const detectedEras = detectClubEras(seasons, allLeagues);
     const comparativeInsights = buildComparativeInsights(club, allClubs, seasons, allLeagues);
+    const lineage = buildClubLineage(club, allClubs);
     const livingNarrative = buildLivingNarrative(club, seasons, allLeagues, allClubs);
 
     const { data: originRows = [] } = useQuery({
@@ -53,39 +54,35 @@ export default function AIClubStory({ club, nation, league, seasons = [], allLea
                 .filter(Boolean)
                 .slice(0, 3);
 
-            // Get club succession/merger context
-            const predecessorClub = club.predecessor_club_id ? allClubs.find(c => c.id === club.predecessor_club_id) : null;
-            const predecessorClub2 = club.predecessor_club_2_id ? allClubs.find(c => c.id === club.predecessor_club_2_id) : null;
-            const successorClub = club.successor_club_id ? allClubs.find(c => c.id === club.successor_club_id) : null;
-            const formerNameClub = club.former_name_club_id ? allClubs.find(c => c.id === club.former_name_club_id) : null;
-            const currentNameClub = club.current_name_club_id ? allClubs.find(c => c.id === club.current_name_club_id) : null;
+            // Build succession/name-change context from the bidirectional lineage graph.
+            // This prevents a missing reverse link from causing the story to use the wrong club name or status.
+            const predecessorClub = lineage.predecessors[0] || null;
+            const predecessorClub2 = lineage.predecessors[1] || null;
+            const successorClub = lineage.successor || null;
+            const formerNameClub = lineage.formerNames[0] || null;
+            const currentNameClub = lineage.currentName || null;
 
-            // Build succession context - MUST be mentioned in the story
             let successionContext = '';
-            if (club.is_defunct && successorClub) {
-                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'}. They were succeeded by ${successorClub.name}. State the recorded succession clearly, but DO NOT invent why the club folded or how supporters reacted unless that information is supplied.`;
-            } else if (club.is_defunct) {
-                successionContext = `\n🔴 DEFUNCT CLUB (MUST MENTION): This club is defunct/disbanded as of ${club.defunct_year || 'unknown year'} with no recorded successor. State this plainly; DO NOT invent the cause of the closure.`;
+            if (lineage.isDefunct && successorClub) {
+                successionContext = `\n🔴 TERMINAL STATUS (MUST MENTION): ${club.name} was disbanded/ceased operating${club.defunct_year ? ` in ${club.defunct_year}` : ''}. The exact successor club is ${successorClub.name}. End the history of ${club.name} at that point and explain that ${successorClub.name} is a successor organisation, not merely another name for the same club. Do not invent the cause of the closure.`;
+            } else if (lineage.isDefunct) {
+                successionContext = `\n🔴 TERMINAL STATUS (MUST MENTION): ${club.name} was disbanded/ceased operating${club.defunct_year ? ` in ${club.defunct_year}` : ''}. No successor club is recorded. The narrative MUST end the club's active story rather than writing as if it still exists.`;
+            } else if (lineage.isInactive) {
+                successionContext = `\n🔴 INACTIVE STATUS (MUST MENTION): ${club.name} is no longer active, but is not recorded as a defunct predecessor with a successor. Do not describe it as a current active club.`;
             }
 
-            if (predecessorClub && predecessorClub2) {
-                successionContext += `\n\n🔴 FORMED FROM MERGER (MUST MENTION): ${club.name} is recorded as the successor to a merger of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}) and ${predecessorClub2.name} (defunct ${predecessorClub2.defunct_year || 'earlier'}). State that relationship without inventing negotiations, motives or circumstances.`;
+            if (lineage.predecessors.length > 1) {
+                const predecessorNames = lineage.predecessors.map(c => `${c.name}${c.defunct_year ? ` (ended ${c.defunct_year})` : ''}`).join(' and ');
+                successionContext += `\n\n🔴 MULTIPLE PREDECESSORS (MUST MENTION): ${club.name} stands in succession to ${predecessorNames}. Use these exact names. They are earlier clubs feeding into the present organisation, not former names of the same continuous legal identity unless separately marked as former names.`;
             } else if (predecessorClub) {
-                successionContext += `\n\n🔴 REFORMATION/CONTINUATION (MUST MENTION): ${club.name} continues the recorded lineage of ${predecessorClub.name} (defunct ${predecessorClub.defunct_year || 'earlier'}). Do not invent the legal, financial or supporter circumstances of that continuation.`;
+                successionContext += `\n\n🔴 PREDECESSOR (MUST MENTION): ${club.name} stands in succession to ${predecessorClub.name}${predecessorClub.defunct_year ? `, which ended in ${predecessorClub.defunct_year}` : ''}. Use that exact club name and do not rewrite its seasons as if they were originally played under the ${club.name} name.`;
             }
 
-            if (club.is_former_name && currentNameClub) {
-                successionContext += `\n\n🔴 FORMER NAME RECORD (MUST MENTION): This record represents a former name. The club is now known as ${currentNameClub.name} (changed ${club.renamed_year || 'later'}). **You MUST explain this is the same club**, just renamed - maintain continuity in the story.`;
-            } else if (formerNameClub || club.former_name_club_id) {
-                const formerName = formerNameClub?.name || 'their previous name';
-                successionContext += `\n\n🔴 NAME CHANGE (MUST MENTION): This club was formerly known as ${formerName} until ${club.renamed_year || 'a later date'}${club.reverted_to_original ? ' (they later reverted to their original name)' : ''}. Make clear it is the same club, but DO NOT invent a reason for the rename.`;
-            }
-            
-            if (club.former_name_club_2_id) {
-                const formerName2 = allClubs.find(c => c.id === club.former_name_club_2_id);
-                if (formerName2) {
-                    successionContext += `\n\nSECOND NAME CHANGE: The club also had another previous name: ${formerName2.name}. **Mention this too** - they've gone through multiple identity changes.`;
-                }
+            if (lineage.isFormerName && currentNameClub) {
+                successionContext += `\n\n🔴 FORMER NAME (MUST MENTION): ${club.name} is an earlier name of the SAME club now known as ${currentNameClub.name}${club.renamed_year ? ` from ${club.renamed_year}` : ''}. This was a rename, not a disbandment. The exact current name is ${currentNameClub.name}.`;
+            } else if (lineage.formerNames.length) {
+                const formerNames = lineage.formerNames.map(c => c.name).join(lineage.formerNames.length > 1 ? ' and ' : '');
+                successionContext += `\n\n🔴 PREVIOUS NAMES (MUST MENTION): The same club previously competed as ${formerNames}. These are former names, not predecessor clubs. Use the exact linked names and preserve continuity.`;
             }
 
             // Build TFA context (ONLY for Turuliand - NEVER mention TFA for other nations)
