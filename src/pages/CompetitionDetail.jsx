@@ -402,11 +402,11 @@ export default function CompetitionDetail() {
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-slate-400 font-bold w-6">{idx + 1}</span>
                                                     {nation?.flag_url && (
-                                                        <img src={nation.flag_url} alt="" className="w-6 h-4 object-cover rounded-sm" />
+                                                        <img src={nation.flag_url} alt="" className="w-6 h-4 object-contain" />
                                                     )}
                                                     <span className="font-medium text-slate-700">{nationName}</span>
                                                 </div>
-                                                <span className="font-bold text-emerald-600">{count}</span>
+                                                <span className="font-bold" style={{ color: competitionTheme.ui }}>{count}</span>
                                             </div>
                                         );
                                     })}
@@ -436,16 +436,16 @@ export default function CompetitionDetail() {
                                                         <img src={club.logo_url} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
                                                     )}
                                                     <div className="flex flex-col min-w-0">
-                                                        <span className="font-medium text-slate-700 hover:text-emerald-600 truncate">{clubName}</span>
+                                                        <span className="font-medium text-slate-700 truncate">{clubName}</span>
                                                         <div className="flex items-center gap-1">
                                                             {nation?.flag_url && (
-                                                                <img src={nation.flag_url} alt="" className="w-4 h-3 object-cover rounded-sm" />
+                                                                <img src={nation.flag_url} alt="" className="w-4 h-3 object-contain" />
                                                             )}
                                                             <span className="text-xs text-slate-500">{data.nation}</span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <span className="font-bold text-amber-600 ml-2">{data.count}</span>
+                                                <span className="font-bold ml-2" style={{ color: competitionTheme.ui }}>{data.count}</span>
                                             </Link>
                                         );
                                     })}
@@ -485,7 +485,7 @@ export default function CompetitionDetail() {
                         <AdminOnly>
                             <Dialog open={isAddSeasonOpen} onOpenChange={setIsAddSeasonOpen}>
                                 <DialogTrigger asChild>
-                                    <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
+                                    <Button className="text-white" style={{ backgroundColor: competitionTheme.ui }}><Plus className="w-4 h-4 mr-2" /> Add Season</Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-xl">
                                     <DialogHeader><DialogTitle>Add Season</DialogTitle></DialogHeader>
@@ -517,7 +517,7 @@ export default function CompetitionDetail() {
                                     {seasons.map(season => (
                                         <TableRow key={season.id} className="hover:bg-slate-50">
                                             <TableCell className="font-medium">
-                                                <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)} className="hover:text-emerald-600 hover:underline">
+                                                <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)} className="hover:underline" style={{ color: competitionTheme.ui }}>
                                                     {season.year}
                                                 </Link>
                                             </TableCell>
@@ -527,11 +527,11 @@ export default function CompetitionDetail() {
                                                         <img src={getNationFlag(season.champion_nation)} alt="" className="w-5 h-3 object-contain" />
                                                     )}
                                                     {(() => {
-                                                        const champClub = clubs.find(c => c.name === season.champion_name);
+                                                        const champClub = clubs.find(c => c.id === season.champion_id) || clubs.find(c => c.name === season.champion_name);
                                                         return champClub ? (
-                                                            <Link to={createPageUrl(`ClubDetail?id=${champClub.id}`)} className="font-semibold text-emerald-600 hover:underline">{season.champion_name}</Link>
+                                                            <Link to={createPageUrl(`ClubDetail?id=${champClub.id}`)} className="font-semibold hover:underline" style={{ color: competitionTheme.ui }}>{champClub.name}</Link>
                                                         ) : (
-                                                            <span className="font-semibold text-emerald-600">{season.champion_name}</span>
+                                                            <span className="font-semibold" style={{ color: competitionTheme.ui }}>{season.champion_name}</span>
                                                         );
                                                     })()}
                                                 </div>
@@ -543,9 +543,9 @@ export default function CompetitionDetail() {
                                                         <img src={getNationFlag(season.runner_up_nation)} alt="" className="w-5 h-3 object-contain" />
                                                     )}
                                                     {(() => {
-                                                        const runnerClub = clubs.find(c => c.name === season.runner_up);
+                                                        const runnerClub = clubs.find(c => c.id === season.runner_up_id) || clubs.find(c => c.name === season.runner_up);
                                                         return runnerClub ? (
-                                                            <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="hover:text-emerald-600 hover:underline">{season.runner_up}</Link>
+                                                            <Link to={createPageUrl(`ClubDetail?id=${runnerClub.id}`)} className="hover:underline">{runnerClub.name}</Link>
                                                         ) : (
                                                             <span>{season.runner_up}</span>
                                                         );
@@ -557,7 +557,7 @@ export default function CompetitionDetail() {
                                             <TableCell>
                                                 <div className="flex gap-1">
                                                     <Link to={createPageUrl(`ContinentalSeasonDetail?id=${season.id}`)}>
-                                                        <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700">Matches</Button>
+                                                        <Button size="sm" className="h-8 text-white" style={{ backgroundColor: competitionTheme.ui }}>Matches</Button>
                                                     </Link>
                                                     <AdminOnly>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSeason(season)}><Edit2 className="w-3 h-3" /></Button>
