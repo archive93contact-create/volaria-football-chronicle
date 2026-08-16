@@ -225,23 +225,25 @@ export function buildClubLineage(club, allClubs = []) {
     const reversePredecessors = allClubs.filter(c =>
         c.id !== club?.id && c.is_defunct && c.successor_club_id === club?.id
     );
-    const predecessors = uniqueClubs([...directPredecessors, ...reversePredecessors]);
+    // If a linked record is explicitly a former name, continuity takes precedence over predecessor semantics.
+    const predecessors = uniqueClubs([...directPredecessors, ...reversePredecessors])
+        .filter(candidate => !formerNames.some(former => former.id === candidate.id));
 
-    const directCurrentName = club?.current_name_club_id ? byId(club.current_name_club_id) : null;
-    const reverseCurrentName = allClubs.find(c =>
-        c.id !== club?.id && (c.former_name_club_id === club?.id || c.former_name_club_2_id === club?.id)
-    );
+    const isFormerName = Boolean(club?.is_former_name);
+    const directCurrentName = isFormerName && club?.current_name_club_id ? byId(club.current_name_club_id) : null;
+    const reverseCurrentName = isFormerName ? allClubs.find(c =>
+        c.id !== club?.id && !c.is_former_name && (c.former_name_club_id === club?.id || c.former_name_club_2_id === club?.id)
+    ) : null;
     const currentName = directCurrentName || reverseCurrentName || null;
 
     const directSuccessor = club?.successor_club_id ? byId(club.successor_club_id) : null;
     const reverseSuccessor = allClubs.find(c =>
-        c.id !== club?.id && (c.predecessor_club_id === club?.id || c.predecessor_club_2_id === club?.id)
+        c.id !== club?.id && !c.is_former_name && (c.predecessor_club_id === club?.id || c.predecessor_club_2_id === club?.id)
     );
-    const successor = directSuccessor || reverseSuccessor || null;
-
-    const isFormerName = Boolean(club?.is_former_name || currentName);
-    const isDefunct = Boolean(club?.is_defunct && !isFormerName);
-    const isInactive = Boolean(club?.is_active === false && !isFormerName && !club?.is_defunct);
+    const successorCandidate = directSuccessor || reverseSuccessor || null;
++    const isDefunct = Boolean(club?.is_defunct || (club?.is_active === false && !isFormerName && successorCandidate));
++    const successor = isDefunct ? successorCandidate : null;
++    const isInactive = Boolean(club?.is_active === false && !isFormerName && !isDefunct);
 
     return {
         formerNames,
