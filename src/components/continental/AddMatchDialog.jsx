@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from 'lucide-react';
+import { syncContinentalCompetition } from '@/lib/continentalSync';
 
 const ROUNDS = ['Group Stage', 'Round of 32', 'Round of 16', 'Quarter-final', 'Semi-final', 'Final'];
 
@@ -18,9 +19,13 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
     const [formData, setFormData] = useState({
         round: 'Round of 16',
         match_number: 1,
+        home_club_id: '',
         home_club_name: '',
+        home_nation_id: '',
         home_club_nation: '',
+        away_club_id: '',
         away_club_name: '',
+        away_nation_id: '',
         away_club_nation: '',
         home_score_leg1: '',
         away_score_leg1: '',
@@ -38,9 +43,13 @@ export default function AddMatchDialog({ isOpen, onClose, seasonId, editingMatch
             setFormData({
                 round: editingMatch.round || 'Round of 16',
                 match_number: editingMatch.match_number || 1,
+                home_club_id: editingMatch.home_club_id || clubs.find(c => c.name === editingMatch.home_club_name)?.id || '',
                 home_club_name: editingMatch.home_club_name || '',
+                home_nation_id: editingMatch.home_nation_id || clubs.find(c => c.id === editingMatch.home_club_id)?.nation_id || '',
                 home_club_nation: editingMatch.home_club_nation || '',
+                away_club_id: editingMatch.away_club_id || clubs.find(c => c.name === editingMatch.away_club_name)?.id || '',
                 away_club_name: editingMatch.away_club_name || '',
+                away_nation_id: editingMatch.away_nation_id || clubs.find(c => c.id === editingMatch.away_club_id)?.nation_id || '',
                 away_club_nation: editingMatch.away_club_nation || '',
                 home_score_leg1: editingMatch.home_score_leg1 ?? '',
                 away_score_leg1: editingMatch.away_score_leg1 ?? '',
