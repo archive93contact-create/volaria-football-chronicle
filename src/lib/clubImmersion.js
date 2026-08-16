@@ -271,15 +271,26 @@ const identityForSeason = (club, season, allClubs = []) => {
 };
 
 export function buildLivingNarrative(club, seasons = [], leagues = [], allClubs = []) {
+    const lineage = buildClubLineage(club, allClubs);
     const ordered = sortChronologically(seasons).filter(s => !s.club_id || lineageClubIds(club, allClubs).has(s.club_id));
-    if (!ordered.length) return `${club.name}'s competitive chronicle is still waiting for its opening season.`;
+    if (!ordered.length) {
+        if (lineage.isDefunct) {
+            return lineage.successor
+                ? `${club.name}${club.founded_year ? `, founded in ${club.founded_year},` : ''} is no longer an active club. ${club.defunct_year ? `It ceased operating in ${club.defunct_year}` : 'It eventually ceased operating'}, after which the footballing line continued through ${lineage.successor.name}, its recorded successor.`
+                : `${club.name}${club.founded_year ? `, founded in ${club.founded_year},` : ''} is no longer an active club. ${club.defunct_year ? `It ceased operating in ${club.defunct_year}` : 'It eventually ceased operating'}, and no successor club is recorded.`;
+        }
+        if (lineage.isFormerName && lineage.currentName) {
+            return `${club.name} is an earlier identity in the history of ${lineage.currentName.name}. ${club.renamed_year ? `From ${club.renamed_year}, ` : ''}the same club continued under the ${lineage.currentName.name} name rather than disappearing or being replaced.`;
+        }
+        if (lineage.isInactive) return `${club.name} is no longer active, although no successor organisation is recorded.`;
+        return `${club.name}'s competitive chronicle is still waiting for its opening season.`;
+    }
 
     const eras = detectClubEras(ordered, leagues);
     const first = ordered[0];
     const latest = ordered[ordered.length - 1];
     const firstLeague = leagues.find(l => l.id === first.league_id);
     const latestLeague = leagues.find(l => l.id === latest.league_id);
-    const lineage = buildClubLineage(club, allClubs);
     const firstIdentity = identityForSeason(club, first, allClubs);
     const latestIdentity = identityForSeason(club, latest, allClubs);
     const titleSeasons = ordered.filter(s => getHistoricalTier(s, leagues) === 1 && (s.status === 'champion' || Number(s.position) === 1));
