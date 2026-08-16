@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import AdminOnly from '@/components/common/AdminOnly';
 import ImageUploaderWithColors from '@/components/common/ImageUploaderWithColors';
+import ContinentalCompetitionCard from '@/components/continental/ContinentalCompetitionCard';
+import { getEntityTheme } from '@/utils/entityTheme';
 
 export default function ContinentalCompetitions() {
     const queryClient = useQueryClient();
@@ -178,14 +180,29 @@ export default function ContinentalCompetitions() {
                 />
             </div>
             <div>
-                <Label>Participating Nations (for VCC select all VCC nations, for CCC select CCC nations)</Label>
-                <Textarea 
-                    value={formData.participating_nation_ids?.join(',') || ''} 
-                    onChange={(e) => setFormData({...formData, participating_nation_ids: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
-                    placeholder="Paste nation IDs, comma separated"
-                    rows={2}
-                    className="mt-1 text-xs"
-                />
+                <Label>Participating Nations</Label>
+                <p className="text-xs text-slate-500 mt-1 mb-2">Select the actual nation records. IDs are stored automatically.</p>
+                <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50/60 p-2 grid grid-cols-1 sm:grid-cols-2 gap-1">
+                    {nations.map(nation => {
+                        const selected = formData.participating_nation_ids?.includes(nation.id) || false;
+                        return (
+                            <label key={nation.id} className={`flex items-center gap-2 rounded-md px-2.5 py-2 cursor-pointer transition-colors ${selected ? 'bg-white shadow-sm' : 'hover:bg-white/70'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={selected}
+                                    onChange={(e) => setFormData(prev => ({
+                                        ...prev,
+                                        participating_nation_ids: e.target.checked
+                                            ? [...new Set([...(prev.participating_nation_ids || []), nation.id])]
+                                            : (prev.participating_nation_ids || []).filter(id => id !== nation.id)
+                                    }))}
+                                />
+                                {nation.flag_url && <img src={nation.flag_url} alt="" className="w-6 h-4 object-contain" />}
+                                <span className="text-sm text-slate-700">{nation.name}</span>
+                            </label>
+                        );
+                    })}
+                </div>
             </div>
             <div>
                 <Label>Description</Label>
