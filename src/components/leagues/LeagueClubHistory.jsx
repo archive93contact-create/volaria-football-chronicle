@@ -7,6 +7,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Trophy, Calendar, TrendingUp, BarChart2 } from 'lucide-react';
 
 export default function LeagueClubHistory({ league, leagueTables, clubs, allLeagues = [] }) {
+    // Defensive scope: this component is league-specific. Even if a caller accidentally
+    // passes national/cross-tier data, never include a row from another league.
+    const scopedLeagueTables = useMemo(
+        () => (leagueTables || []).filter(entry => entry.league_id === league?.id),
+        [leagueTables, league?.id]
+    );
+
+    const normaliseName = (value) => String(value || '').trim().toLowerCase();
+
     // Build a map of club_id -> current league name
     const clubCurrentLeagueMap = useMemo(() => {
         const map = {};
@@ -20,10 +29,10 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
     }, [clubs, allLeagues]);
 
     const clubHistory = useMemo(() => {
-        if (!leagueTables || leagueTables.length === 0) return { allClubs: [], currentClubs: [] };
+        if (scopedLeagueTables.length === 0) return { allClubs: [], currentClubs: [], allTimeTable: [] };
 
         const clubStats = {};
-        const sortedSeasons = [...leagueTables].sort((a, b) => a.year.localeCompare(b.year));
+        const sortedSeasons = [...scopedLeagueTables].sort((a, b) => a.year.localeCompare(b.year));
         const latestYear = sortedSeasons[sortedSeasons.length - 1]?.year;
 
         // Build club history
@@ -64,30 +73,40 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
             }
         });
 
-        // Calculate consecutive stays for current clubs
+        // Current membership comes from the Club's actual current league when that record exists.
+        // Only fall back to latest recorded participation for legacy/missing club metadata.
         Object.values(clubStats).forEach(club => {
-            if (club.lastSeason === latestYear) {
-                club.isCurrentlyInLeague = true;
-                // Count backwards to find consecutive seasons
-                const sortedClubSeasons = club.seasons.sort((a, b) => b.year.localeCompare(a.year));
-                let consecutive = 1;
+            const clubRecord = (clubs || []).find(c =>
+                (club.club_id && c.id === club.club_id) ||
+                normaliseName(c.name) === normaliseName(club.club_name)
+            );
+            const hasCurrentMetadata = Boolean(clubRecord);
+            const isActiveClub = clubRecord ? !clubRecord.is_defunct && !clubRecord.is_former_name && clubRecord.is_active !== false : true;
+            club.isCurrentlyInLeague = hasCurrentMetadata
+                ? isActiveClub && clubRecord.league_id === league.id
+                : club.lastSeason === latestYear;
+
+            if (club.isCurrentlyInLeague) {
+                // Count backwards through this league only to find the current unbroken stint.
+                const sortedClubSeasons = [...club.seasons].sort((a, b) => b.year.localeCompare(a.year));
+                let consecutive = sortedClubSeasons.length > 0 ? 1 : 0;
                 for (let i = 1; i < sortedClubSeasons.length; i++) {
                     const currentYear = parseInt(sortedClubSeasons[i - 1].year);
                     const prevYear = parseInt(sortedClubSeasons[i].year);
-                    if (currentYear - prevYear === 1) {
+                    if (Number.isFinite(currentYear) && Number.isFinite(prevYear) && currentYear - prevYear === 1) {
                         consecutive++;
                     } else {
                         break;
                     }
                 }
                 club.currentConsecutive = consecutive;
-                club.stintStartYear = sortedClubSeasons[consecutive - 1].year;
+                club.stintStartYear = consecutive > 0 ? sortedClubSeasons[consecutive - 1].year : null;
             }
         });
 
         // Build all-time league table by accumulated points
         const allTimePoints = {};
-        leagueTables.forEach(entry => {
+        scopedLeagueTables.forEach(entry => {
             const key = entry.club_id || entry.club_name;
             if (!allTimePoints[key]) {
                 allTimePoints[key] = {
@@ -132,7 +151,7 @@ export default function LeagueClubHistory({ league, leagueTables, clubs, allLeag
             .sort((a, b) => b.currentConsecutive - a.currentConsecutive);
 
         return { allClubs, currentClubs, allTimeTable };
-    }, [leagueTables]);
+    }, [scopedLeagueTables, clubs, league?.id]);
 
     const getClubLogo = (clubId) => {
         const club = clubs?.find(c => c.id === clubId);
