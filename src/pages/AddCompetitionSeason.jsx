@@ -216,6 +216,7 @@ export default function AddCompetitionSeason() {
             queryClient.invalidateQueries({ queryKey: ['continentalMatches', season?.id] });
             queryClient.invalidateQueries({ queryKey: ['continentalCompetitions'] });
             queryClient.invalidateQueries({ queryKey: ['clubs'] });
+            queryClient.invalidateQueries({ queryKey: ['club'] });
             queryClient.invalidateQueries({ queryKey: ['allClubs'] });
             navigate(createPageUrl(`CompetitionDetail?id=${competitionId}`));
         },
