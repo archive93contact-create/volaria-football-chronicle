@@ -61,8 +61,27 @@ export default function RivalryTracker({ club, allClubs = [], allLeagueTables = 
     staleTime: 10 * 60 * 1000,
   });
 
-  const candidates = allClubsData.length ? allClubsData : allClubs;
+  const clubPool = allClubsData.length ? allClubsData : allClubs;
   const leagueTables = allLeagueTables.length ? allLeagueTables : fetchedLeagueTables;
+  const candidates = useMemo(() => {
+    if (!club) return [];
+    const opponentNames = new Set();
+    const opponentIds = new Set();
+    continentalMatches.forEach(match => {
+      const homeMatchesClub = match.home_club_id === club.id || match.home_club_name === club.name;
+      const awayMatchesClub = match.away_club_id === club.id || match.away_club_name === club.name;
+      if (homeMatchesClub) {
+        if (match.away_club_id) opponentIds.add(match.away_club_id);
+        if (match.away_club_name) opponentNames.add(match.away_club_name);
+      } else if (awayMatchesClub) {
+        if (match.home_club_id) opponentIds.add(match.home_club_id);
+        if (match.home_club_name) opponentNames.add(match.home_club_name);
+      }
+    });
+    return clubPool.filter(c => c.id !== club.id && !c.is_former_name && (
+      c.nation_id === club.nation_id || opponentIds.has(c.id) || opponentNames.has(c.name)
+    ));
+  }, [club, clubPool, continentalMatches]);
   const rivalries = useMemo(
     () => buildRivalriesForClub(club, candidates, leagueTables, continentalMatches, nations, 12),
     [club, candidates, leagueTables, continentalMatches, nations]
