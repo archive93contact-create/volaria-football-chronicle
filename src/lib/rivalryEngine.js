@@ -41,11 +41,11 @@ const primaryType = ({ geo, official, titleBattles, directTitleFights, promotion
   return { key: 'football_rivalry', label: 'Football rivalry' };
 };
 
-export function buildRivalryForPair(a, b, leagueTables = [], continentalMatches = [], nations = []) {
+export function buildRivalryForPair(a, b, leagueTables = [], continentalMatches = [], nations = [], prepared = null) {
   if (!a || !b || a.id === b.id || !activeish(a) || !activeish(b)) return null;
 
-  const aRows = leagueTables.filter(r => r.club_id === a.id);
-  const bRows = leagueTables.filter(r => r.club_id === b.id);
+  const aRows = prepared?.tablesByClub?.get(a.id) || leagueTables.filter(r => r.club_id === a.id);
+  const bRows = prepared?.tablesByClub?.get(b.id) || leagueTables.filter(r => r.club_id === b.id);
   const bBySeason = new Map(bRows.map(r => [seasonKey(r), r]));
   const shared = aRows.map(r => ({ a: r, b: bBySeason.get(seasonKey(r)) })).filter(x => x.b);
 
@@ -136,7 +136,8 @@ export function buildRivalryForPair(a, b, leagueTables = [], continentalMatches 
 
   const aNames = new Set([a.name, a.shortened_name].filter(Boolean));
   const bNames = new Set([b.name, b.shortened_name].filter(Boolean));
-  const vs = continentalMatches.filter(m => {
+  const indexedContinental = prepared?.continentalByPair?.get(pairKey(a.id, b.id));
+  const vs = indexedContinental || continentalMatches.filter(m => {
     const home = m.home_club_id || m.home_club_name;
     const away = m.away_club_id || m.away_club_name;
     const aHome = home === a.id || aNames.has(home);
@@ -216,11 +217,37 @@ export function buildRivalryForPair(a, b, leagueTables = [], continentalMatches 
   };
 }
 
+const prepareRivalryIndexes = (clubs = [], leagueTables = [], continentalMatches = []) => {
+  const tablesByClub = new Map();
+  leagueTables.forEach(row => {
+    if (!row.club_id) return;
+    if (!tablesByClub.has(row.club_id)) tablesByClub.set(row.club_id, []);
+    tablesByClub.get(row.club_id).push(row);
+  });
+
+  const nameToId = new Map();
+  clubs.forEach(c => {
+    if (c?.id && c?.name) nameToId.set(c.name, c.id);
+    if (c?.id && c?.shortened_name) nameToId.set(c.shortened_name, c.id);
+  });
+  const continentalByPair = new Map();
+  continentalMatches.forEach(match => {
+    const homeId = match.home_club_id || nameToId.get(match.home_club_name);
+    const awayId = match.away_club_id || nameToId.get(match.away_club_name);
+    if (!homeId || !awayId || homeId === awayId) return;
+    const key = pairKey(homeId, awayId);
+    if (!continentalByPair.has(key)) continentalByPair.set(key, []);
+    continentalByPair.get(key).push(match);
+  });
+  return { tablesByClub, continentalByPair };
+};
+
 export function buildRivalriesForClub(club, candidates = [], leagueTables = [], continentalMatches = [], nations = [], limit = 12) {
   if (!club) return [];
+  const prepared = prepareRivalryIndexes([club, ...candidates], leagueTables, continentalMatches);
   return candidates
     .filter(c => c.id !== club.id && !c.is_former_name)
-    .map(other => buildRivalryForPair(club, other, leagueTables, continentalMatches, nations))
+    .map(other => buildRivalryForPair(club, other, leagueTables, continentalMatches, nations, prepared))
     .filter(Boolean)
     .sort((a, b) => {
       const statusPriority = { active: 5, emerging: 4, cooling: 3, historic: 2, fading: 1 };
@@ -232,9 +259,10 @@ export function buildRivalriesForClub(club, candidates = [], leagueTables = [], 
 
 export function buildLeagueRivalries(clubs = [], leagueTables = [], continentalMatches = [], nations = [], limit = 8) {
   const pairs = [];
+  const prepared = prepareRivalryIndexes(clubs, leagueTables, continentalMatches);
   for (let i = 0; i < clubs.length; i++) {
     for (let j = i + 1; j < clubs.length; j++) {
-      const result = buildRivalryForPair(clubs[i], clubs[j], leagueTables, continentalMatches, nations);
+      const result = buildRivalryForPair(clubs[i], clubs[j], leagueTables, continentalMatches, nations, prepared);
       if (result) pairs.push({ ...result, club1: clubs[i], club2: clubs[j] });
     }
   }
