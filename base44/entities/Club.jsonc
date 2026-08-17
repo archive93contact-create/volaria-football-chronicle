@@ -100,6 +100,22 @@
       "type": "string",
       "description": "Generated third kit image URL"
     },
+    "kit_sponsor_name": {
+      "type": "string",
+      "description": "Current/generated shirt sponsor brand used across the kit set"
+    },
+    "kit_sponsor_sector": {
+      "type": "string",
+      "description": "Business sector of the current shirt sponsor"
+    },
+    "kit_manufacturer_name": {
+      "type": "string",
+      "description": "Current/generated kit manufacturer brand"
+    },
+    "kit_season_year": {
+      "type": "string",
+      "description": "Season/year the current generated kit identity represents"
+    },
     "history": {
       "type": "string",
       "description": "Detailed club history"
