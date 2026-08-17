@@ -1,117 +1,86 @@
 import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Swords, MapPin, Trophy } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Swords, MapPin, Trophy, Globe2, TrendingUp, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { buildLeagueRivalries } from '@/lib/rivalryEngine';
+
+const TYPE_ICON = {
+  local_derby: MapPin,
+  district_derby: MapPin,
+  regional_rivalry: MapPin,
+  title_rivalry: Trophy,
+  promotion_rivalry: TrendingUp,
+  survival_rivalry: Shield,
+  continental: Globe2,
+};
 
 export default function LeagueRivalries({ clubs = [], leagueTables = [] }) {
-    const rivalries = useMemo(() => {
-        if (clubs.length < 2) return [];
+  const { data: continentalMatches = [] } = useQuery({
+    queryKey: ['continentalMatchesForLeagueRivalry'],
+    queryFn: () => base44.entities.ContinentalMatch.list(),
+    staleTime: 15 * 60 * 1000,
+  });
+  const { data: nations = [] } = useQuery({
+    queryKey: ['nationsForLeagueRivalry'],
+    queryFn: () => base44.entities.Nation.list(),
+    staleTime: 30 * 60 * 1000,
+  });
 
-        const pairs = [];
+  const activeClubs = useMemo(() => clubs.filter(c => !c.is_former_name && !c.is_defunct && c.is_active !== false), [clubs]);
+  const rivalries = useMemo(
+    () => buildLeagueRivalries(activeClubs, leagueTables, continentalMatches, nations, 9),
+    [activeClubs, leagueTables, continentalMatches, nations]
+  );
 
-        for (let i = 0; i < clubs.length; i++) {
-            for (let j = i + 1; j < clubs.length; j++) {
-                const club1 = clubs[i];
-                const club2 = clubs[j];
-                let score = 0;
-                const reasons = [];
+  if (!rivalries.length) return null;
 
-                // Geographic - same settlement
-                if (club1.settlement && club1.settlement === club2.settlement) {
-                    score += 40;
-                    reasons.push({ icon: 'geo', text: 'Same city' });
-                } else if (club1.district && club1.district === club2.district) {
-                    score += 20;
-                    reasons.push({ icon: 'geo', text: 'Same district' });
-                }
-
-                // Official rivals
-                if (club1.rival_club_ids?.includes(club2.id) || club2.rival_club_ids?.includes(club1.id)) {
-                    score += 50;
-                    reasons.push({ icon: 'rivalry', text: 'Official rivals' });
-                }
-
-                // Shared seasons & close finishes
-                const c1Tables = leagueTables.filter(t => t.club_id === club1.id);
-                const c2Tables = leagueTables.filter(t => t.club_id === club2.id);
-                
-                let titleBattles = 0;
-                c1Tables.forEach(t1 => {
-                    const t2 = c2Tables.find(t => t.league_id === t1.league_id && t.year === t1.year);
-                    if (t2 && t1.position <= 2 && t2.position <= 2) {
-                        titleBattles++;
-                    }
-                });
-                
-                if (titleBattles > 0) {
-                    score += titleBattles * 10;
-                    reasons.push({ icon: 'trophy', text: `${titleBattles} title battle${titleBattles > 1 ? 's' : ''}` });
-                }
-
-                if (score >= 30) {
-                    pairs.push({ club1, club2, score, reasons });
-                }
-            }
-        }
-
-        return pairs.sort((a, b) => b.score - a.score).slice(0, 6);
-    }, [clubs, leagueTables]);
-
-    if (rivalries.length === 0) return null;
-
-    const getIntensity = (score) => {
-        if (score >= 80) return { label: 'Fierce', color: 'bg-red-100 text-red-700 border-red-300' };
-        if (score >= 50) return { label: 'Intense', color: 'bg-orange-100 text-orange-700 border-orange-300' };
-        return { label: 'Strong', color: 'bg-amber-100 text-amber-700 border-amber-300' };
-    };
-
-    return (
-        <Card className="border-0 shadow-sm mb-8">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Swords className="w-5 h-5 text-red-500" />
-                    League Rivalries
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {rivalries.map((rivalry, idx) => {
-                        const intensity = getIntensity(rivalry.score);
-                        return (
-                            <div key={idx} className={`p-4 rounded-lg border ${intensity.color}`}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        {rivalry.club1.logo_url ? (
-                                            <img src={rivalry.club1.logo_url} alt="" className="w-8 h-8 object-contain" />
-                                        ) : <div className="w-8 h-8 bg-slate-200 rounded-full" />}
-                                        <Swords className="w-4 h-4" />
-                                        {rivalry.club2.logo_url ? (
-                                            <img src={rivalry.club2.logo_url} alt="" className="w-8 h-8 object-contain" />
-                                        ) : <div className="w-8 h-8 bg-slate-200 rounded-full" />}
-                                    </div>
-                                    <span className="text-xs font-bold px-2 py-1 rounded bg-white/50">{intensity.label}</span>
-                                </div>
-                                <div className="text-sm font-medium mb-2">
-                                    <Link to={createPageUrl(`ClubDetail?id=${rivalry.club1.id}`)} className="hover:underline">{rivalry.club1.name}</Link>
-                                    {' vs '}
-                                    <Link to={createPageUrl(`ClubDetail?id=${rivalry.club2.id}`)} className="hover:underline">{rivalry.club2.name}</Link>
-                                </div>
-                                <div className="flex flex-wrap gap-1">
-                                    {rivalry.reasons.map((r, i) => (
-                                        <span key={i} className="text-xs bg-white/50 px-2 py-0.5 rounded flex items-center gap-1">
-                                            {r.icon === 'geo' && <MapPin className="w-3 h-3" />}
-                                            {r.icon === 'trophy' && <Trophy className="w-3 h-3" />}
-                                            {r.icon === 'rivalry' && <Swords className="w-3 h-3" />}
-                                            {r.text}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })}
+  return (
+    <Card className="border border-slate-200 shadow-sm mb-8 overflow-hidden">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Current division</div>
+            <CardTitle className="mt-1 flex items-center gap-2"><Swords className="w-5 h-5 text-slate-700" />Rivalries inside this league</CardTitle>
+            <p className="mt-1 text-sm text-slate-500">The same rivalry model used on club pages: geography provides the natural derby base, while shared history determines intensity.</p>
+          </div>
+          <Badge variant="outline">{rivalries.length} leading pairings</Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {rivalries.map((rivalry, idx) => {
+            const Icon = TYPE_ICON[rivalry.primaryType.key] || Swords;
+            return (
+              <div key={`${rivalry.club1.id}-${rivalry.club2.id}`} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {rivalry.club1.logo_url ? <img src={rivalry.club1.logo_url} alt="" className="w-9 h-9 object-contain" /> : <Shield className="w-8 h-8 text-slate-300" />}
+                    <Swords className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    {rivalry.club2.logo_url ? <img src={rivalry.club2.logo_url} alt="" className="w-9 h-9 object-contain" /> : <Shield className="w-8 h-8 text-slate-300" />}
+                  </div>
+                  <div className="text-right flex-shrink-0"><div className="font-black text-slate-900">{rivalry.score}</div><div className="text-[9px] uppercase tracking-wider text-slate-400">index</div></div>
                 </div>
-            </CardContent>
-        </Card>
-    );
+                <div className="mt-3 text-sm font-bold leading-5">
+                  <Link to={createPageUrl(`ClubDetail?id=${rivalry.club1.id}`)} className="hover:underline">{rivalry.club1.name}</Link>
+                  <span className="text-slate-400 font-normal"> vs </span>
+                  <Link to={createPageUrl(`ClubDetail?id=${rivalry.club2.id}`)} className="hover:underline">{rivalry.club2.name}</Link>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <Badge variant="outline" className="text-[10px]"><Icon className="w-3 h-3 mr-1" />{rivalry.primaryType.label}</Badge>
+                  <Badge variant="outline" className="text-[10px]">{rivalry.intensity.label}</Badge>
+                  {rivalry.status !== 'active' && <Badge variant="outline" className="text-[10px] capitalize">{rivalry.status}</Badge>}
+                </div>
+                <div className="mt-3 text-xs leading-5 text-slate-500">{rivalry.reasons.slice(0, 3).join(' · ')}</div>
+                {idx === 0 && rivalry.statusNote && <div className="mt-2 text-xs italic text-slate-400">{rivalry.statusNote}</div>}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
