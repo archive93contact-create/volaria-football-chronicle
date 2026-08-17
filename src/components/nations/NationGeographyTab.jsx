@@ -9,6 +9,7 @@ import { MapPin, Shield, Trophy, TrendingUp, Calendar, Building2, Map, Star, Awa
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { base44 } from '@/api/base44Client';
 import AnalyticsInsightGrid from '@/components/analytics/AnalyticsInsightGrid';
+import { buildSharedSeasonPairCounts, yearNumber } from '@/lib/rivalryEngine';
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1'];
 
@@ -213,6 +214,62 @@ export default function NationGeographyTab({ nation, clubs = [], leagues = [], l
         ].filter(Boolean);
     }, [historicalHeartlands, geoLevel]);
 
+    // Derby geography: locality creates natural rivalries, while repeated shared divisions make some areas much hotter than others.
+    const derbyHotspots = useMemo(() => {
+        const clubById = new Map(clubs.filter(c => c.id && !c.is_former_name).map(c => [c.id, c]));
+        const areaMap = {};
+        clubs.filter(c => !c.is_former_name).forEach(c => {
+            const key = c[geoLevel] || (geoLevel === 'settlement' ? c.city : null);
+            if (!key) return;
+            if (!areaMap[key]) areaMap[key] = { name: key, activeClubs: 0, historicClubs: 0, sharedPairs: 0, longRivalries: 0, sharedSeasons: 0 };
+            areaMap[key].historicClubs++;
+            if (!c.is_defunct && c.is_active !== false) areaMap[key].activeClubs++;
+        });
+        const pairCounts = buildSharedSeasonPairCounts(leagueTables);
+        pairCounts.forEach((count, key) => {
+            const [aId, bId] = key.split('::');
+            const a = clubById.get(aId), b = clubById.get(bId);
+            if (!a || !b) return;
+            const aArea = a[geoLevel] || (geoLevel === 'settlement' ? a.city : null);
+            const bArea = b[geoLevel] || (geoLevel === 'settlement' ? b.city : null);
+            if (!aArea || aArea !== bArea || !areaMap[aArea]) return;
+            areaMap[aArea].sharedPairs++;
+            areaMap[aArea].sharedSeasons += count;
+            if (count >= 10) areaMap[aArea].longRivalries++;
+        });
+        return Object.values(areaMap).map(area => ({
+            ...area,
+            naturalDerbies: area.activeClubs > 1 ? (area.activeClubs * (area.activeClubs - 1)) / 2 : 0,
+            heat: area.sharedPairs * 4 + area.longRivalries * 12 + Math.min(area.sharedSeasons, 120) + area.activeClubs * 2,
+        })).filter(area => area.activeClubs >= 2 || area.sharedPairs > 0).sort((a, b) => b.heat - a.heat);
+    }, [clubs, leagueTables, geoLevel]);
+
+    // Show how the centre of football power moves around the map decade by decade.
+    const geographicEras = useMemo(() => {
+        const byDecade = {};
+        leagueTables.forEach(entry => {
+            const year = yearNumber(entry.year);
+            if (!year) return;
+            const club = clubs.find(c => c.id === entry.club_id) || clubs.find(c => !entry.club_id && c.name === entry.club_name);
+            if (!club) return;
+            const area = club[geoLevel] || (geoLevel === 'settlement' ? club.city : null);
+            if (!area) return;
+            const decade = Math.floor(year / 10) * 10;
+            if (!byDecade[decade]) byDecade[decade] = {};
+            if (!byDecade[decade][area]) byDecade[decade][area] = { area, seasons: 0, topFlightSeasons: 0, titles: 0, clubs: new Set() };
+            const row = byDecade[decade][area];
+            row.seasons++;
+            if (entry.club_id) row.clubs.add(entry.club_id);
+            const tier = Number(entry.tier || leagueMap[entry.league_id]?.tier || 0);
+            if (tier === 1) row.topFlightSeasons++;
+            if (tier === 1 && (entry.status === 'champion' || Number(entry.position) === 1)) row.titles++;
+        });
+        return Object.entries(byDecade).map(([decade, areas]) => {
+            const ranked = Object.values(areas).map(row => ({ ...row, clubCount: row.clubs.size, score: row.titles * 100 + row.topFlightSeasons * 4 + row.seasons * .15 })).sort((a, b) => b.score - a.score);
+            return { decade: Number(decade), leader: ranked[0], runnerUp: ranked[1] };
+        }).filter(row => row.leader).sort((a, b) => a.decade - b.decade);
+    }, [leagueTables, clubs, leagueMap, geoLevel]);
+
     const chartData = byClubCount.slice(0, 12).map(g => ({
         name: g.name.length > 12 ? g.name.slice(0, 12) + '…' : g.name,
         clubs: g.clubs.length,
@@ -252,6 +309,51 @@ export default function NationGeographyTab({ nation, clubs = [], leagues = [], l
                     <div className="mb-3 text-xs font-black uppercase tracking-[0.15em] text-slate-500">What the football map says</div>
                     <AnalyticsInsightGrid items={geographyInsights} accentColor={nation?.primary_color || nation?.secondary_color || '#334155'} />
                 </div>
+            )}
+
+            {derbyHotspots.length > 0 && (
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4 text-slate-500" />Derby Hotspots</CardTitle>
+                        <p className="text-sm text-slate-500">Where geography and repeated shared divisions create the densest local rivalry networks.</p>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-slate-100">
+                            {derbyHotspots.slice(0, 10).map((area, index) => (
+                                <div key={area.name} className="grid grid-cols-[32px_minmax(0,1fr)_auto] md:grid-cols-[32px_minmax(0,1fr)_90px_90px_90px] gap-3 items-center px-4 py-3">
+                                    <div className="font-black text-slate-400">{index + 1}</div>
+                                    <div><div className="font-bold text-slate-900">{area.name}</div><div className="text-xs text-slate-500">{area.activeClubs} active clubs · {area.naturalDerbies} natural local pairings</div></div>
+                                    <div className="hidden md:block text-center"><div className="font-black">{area.sharedPairs}</div><div className="text-[10px] uppercase text-slate-400">Shared-history pairs</div></div>
+                                    <div className="hidden md:block text-center"><div className="font-black">{area.longRivalries}</div><div className="text-[10px] uppercase text-slate-400">10+ seasons</div></div>
+                                    <div className="text-right md:text-center"><div className="font-black">{Math.round(area.heat)}</div><div className="text-[10px] uppercase text-slate-400">Derby heat</div></div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {geographicEras.length > 0 && (
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2"><Calendar className="w-4 h-4 text-slate-500" />Football Power by Decade</CardTitle>
+                        <p className="text-sm text-slate-500">The leading {levelLabel.toLowerCase()} changes as titles and top-flight presence move around the country.</p>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-slate-100">
+                            {geographicEras.slice(-12).map(row => (
+                                <div key={row.decade} className="grid grid-cols-[72px_minmax(0,1fr)_auto] gap-4 px-4 py-3 items-center">
+                                    <div className="font-black text-slate-500">{row.decade}s</div>
+                                    <div>
+                                        <div className="font-bold text-slate-900">{row.leader.area}</div>
+                                        <div className="text-xs text-slate-500">{row.leader.titles} top-flight titles · {row.leader.topFlightSeasons} top-flight club-seasons · {row.leader.clubCount} clubs</div>
+                                    </div>
+                                    {row.runnerUp && <div className="hidden sm:block text-right text-xs text-slate-400">Next: {row.runnerUp.area}</div>}
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {historicalHeartlands.length > 0 && (
