@@ -1,0 +1,43 @@
+{
+  "name": "ClubCrestHistory",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string",
+      "description": "Owning club ID"
+    },
+    "crest_url": {
+      "type": "string",
+      "description": "Crest image URL for this era"
+    },
+    "identity_name": {
+      "type": "string",
+      "description": "Club name/identity used with this crest"
+    },
+    "start_year": {
+      "type": "number",
+      "description": "First year this crest was used"
+    },
+    "end_year": {
+      "type": "number",
+      "description": "Final year this crest was used"
+    },
+    "change_reason": {
+      "type": "string",
+      "description": "Known reason for the crest change"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional historical notes"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is the current crest"
+    }
+  },
+  "required": [
+    "club_id",
+    "crest_url"
+  ]
+}
