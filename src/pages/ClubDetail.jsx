@@ -47,6 +47,7 @@ import ClubSeasonCupBadges from '@/components/clubs/ClubSeasonCupBadges';
 import ClubLivingHistory from '@/components/clubs/ClubLivingHistory';
 import ClubOriginPanel from '@/components/clubs/ClubOriginPanel';
 import StadiumHistoryPanel from '@/components/clubs/StadiumHistoryPanel';
+import ClubCrestHistory from '@/components/clubs/ClubCrestHistory';
 import CompetitionRecordPanel from '@/components/clubs/CompetitionRecordPanel';
 import CrestCleaner from '@/components/clubs/CrestCleaner';
 import EntityStickyNav from '@/components/common/EntityStickyNav';
@@ -1222,6 +1223,9 @@ export default function ClubDetail() {
                                                                   </ThemedCard>
                                                               )}
                                                           </AdminOnly>
+
+                                                          {/* Identity history */}
+                                                          <ClubCrestHistory club={club} accentColor={clubTheme.ui} />
 
                                                           {/* Ground history & infrastructure */}
                                                           <StadiumHistoryPanel club={club} nation={nation} league={league} seasons={combinedSeasons} accentColor={clubTheme.ui} />
