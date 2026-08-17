@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shirt, Wand2, Loader2, Download, Trash2 } from 'lucide-react';
+import { Shirt, Wand2, Loader2, Download, Trash2, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,32 @@ export default function KitGenerator() {
         primaryColor: '#0066cc',
         secondaryColor: '#ffffff',
         accentColor: '#ff0000',
-        style: 'modern'
+        style: 'modern',
+        seasonYear: '1986',
+        sponsor: '',
+        manufacturer: ''
     });
+
+    const generateBrandIdentity = async () => {
+        setGenerating(true);
+        try {
+            const result = await base44.integrations.Core.InvokeLLM({
+                prompt: `Create one distinctive fictional football shirt sponsor and one fictional sportswear manufacturer for a ${params.seasonYear || 'period-neutral'} kit. The sponsor should sound like a real brand, not a generic formula such as City Industries, United Group, Energy, Bank or Motors. Use a plausible commercial sector such as food, engineering, retail, transport, insurance, electronics, textiles, building supplies, publishing or logistics. The manufacturer should be a short memorable sportswear brand and must not copy a real-world brand. Return JSON with sponsor_name and manufacturer_name.`,
+                add_context_from_internet: false,
+                response_json_schema: {
+                    type: 'object',
+                    properties: { sponsor_name: { type: 'string' }, manufacturer_name: { type: 'string' } },
+                    required: ['sponsor_name','manufacturer_name']
+                }
+            });
+            setParams(p => ({ ...p, sponsor: result?.sponsor_name || '', manufacturer: result?.manufacturer_name || '' }));
+        } catch (error) {
+            console.error(error);
+            toast.error('Could not generate commercial identity');
+        } finally {
+            setGenerating(false);
+        }
+    };
 
     const generateRandomKit = async () => {
         setGenerating(true);
@@ -26,9 +50,15 @@ export default function KitGenerator() {
             const pattern = params.pattern;
             const primary = params.primaryColor;
             const secondary = params.secondaryColor;
-            const styleDesc = params.style === 'retro' ? 'retro vintage 1990s' : 
-                             params.style === 'classic' ? 'classic traditional' : 
-                             'modern futuristic';
+            const year = Number(String(params.seasonYear || '').match(/\d{4}/)?.[0] || 0);
+            const eraDesc = year && year < 1965 ? `${year} era, heavyweight simple shirt, minimal branding` :
+                             year && year < 1980 ? `${year} era, traditional V-neck or fold collar, restrained trim` :
+                             year && year < 1995 ? `${year} era, boxier polyester cut, woven badge, period-correct trim` :
+                             year && year < 2010 ? `${year} era, slightly loose technical cut` :
+                             year ? `${year} era contemporary technical shirt` : 'period-neutral traditional football shirt';
+            const styleDesc = params.style === 'retro' ? 'retro traditional design' : 
+                             params.style === 'classic' ? 'classic restrained design' : 
+                             'modern clean design';
             
             const patternDesc = pattern === 'vertical_stripes' ? 'with bold vertical stripes' : 
                                pattern === 'horizontal_hoops' ? 'with horizontal hoops' : 
@@ -37,7 +67,9 @@ export default function KitGenerator() {
                                pattern === 'halves' ? 'with half and half split design' : 
                                pattern === 'quarters' ? 'with quartered design' : 'solid color';
             
-            const prompt = `Professional football soccer jersey, ${styleDesc} design, short sleeve, ${patternDesc}, main color ${primary}, accent color ${secondary}, sponsor logo, manufacturer branding, front view straight on, centered composition, studio product photography, plain white background, no person wearing it, jersey only`;
+            const sponsorInstruction = params.sponsor ? `one central sponsor wordmark reading exactly "${params.sponsor}"` : 'one tasteful fictional sponsor wordmark';
+            const manufacturerInstruction = params.manufacturer ? `small right-chest manufacturer mark reading "${params.manufacturer}"` : 'small restrained fictional manufacturer mark';
+            const prompt = `Ultra-realistic football shirt product photograph, shirt only, straight-on front view, no person, no mannequin, no shorts, no hanger, neutral off-white studio background. ${eraDesc}. ${styleDesc}. ${patternDesc}. Main colour ${primary}, secondary ${secondary}, accent ${params.accentColor}. ${sponsorInstruction}. ${manufacturerInstruction}. Realistic collar, cuffs, seams and fabric texture. Correct football-jersey proportions. No extra logos, no random text, no player name, no number, no watermark, no futuristic concept-art panels.`;
 
             const result = await base44.integrations.Core.GenerateImage({
                 prompt
@@ -107,6 +139,16 @@ export default function KitGenerator() {
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div><Label>Season / year</Label><Input className="mt-1" value={params.seasonYear} onChange={(e) => setParams({...params, seasonYear: e.target.value})} placeholder="e.g. 1986" /></div>
+                                <div><Label>Sponsor</Label><Input className="mt-1" value={params.sponsor} onChange={(e) => setParams({...params, sponsor: e.target.value})} placeholder="Generate or enter" /></div>
+                                <div><Label>Manufacturer</Label><Input className="mt-1" value={params.manufacturer} onChange={(e) => setParams({...params, manufacturer: e.target.value})} placeholder="Generate or enter" /></div>
+                            </div>
+
+                            <Button size="sm" variant="outline" onClick={generateBrandIdentity} disabled={generating} className="w-full">
+                                <RefreshCw className="w-4 h-4 mr-2" /> Generate imaginative sponsor & manufacturer
+                            </Button>
 
                             <div>
                                 <Label>Kit Style</Label>
@@ -234,8 +276,9 @@ export default function KitGenerator() {
                         <ul className="text-sm text-slate-600 space-y-1">
                             <li>• Use contrasting colors for better visibility</li>
                             <li>• Classic patterns work best with 2-3 colors</li>
-                            <li>• Retro style gives vintage vibes from the 80s-90s</li>
-                            <li>• Modern style creates sleek, contemporary designs</li>
+                            <li>• Set a season/year so collars, fabric and cut match the era</li>
+                            <li>• Generate a sponsor/manufacturer identity instead of relying on random image text</li>
+                            <li>• Retro and classic modes now avoid futuristic concept-shirt styling</li>
                             <li>• Download and share your creations!</li>
                         </ul>
                     </CardContent>
