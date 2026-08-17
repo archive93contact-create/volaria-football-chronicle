@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { buildRivalryForPair } from '@/lib/rivalryEngine';
 
 export default function SeasonStorylines({ season, league, leagueTable = [], allSeasons = [], allLeagueTables = [], clubs = [] }) {
     const storylines = useMemo(() => {
@@ -40,19 +41,16 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
             const runnerClub = getClub(runnerUp.club_name);
             const margin = (champion.points || 0) - (runnerUp.points || 0);
             
-            // Check if they're rivals
-            const areRivals = champClub && runnerClub && (
-                (champClub.rival_club_ids || []).includes(runnerClub.id) ||
-                (runnerClub.rival_club_ids || []).includes(champClub.id)
-            );
+            // Use the same history/geography rivalry engine as club and league pages.
+            const rivalry = champClub && runnerClub ? buildRivalryForPair(champClub, runnerClub, allLeagueTables, [], []) : null;
             
-            if (areRivals && margin <= 5) {
+            if (rivalry && margin <= 5) {
                 results.push({
                     icon: Swords,
                     color: 'text-red-600',
                     bg: 'bg-gradient-to-r from-red-50 to-orange-50',
                     title: '🔥 Rivalry Decides Title',
-                    text: `The bitter rivalry between ${champion.club_name} and ${runnerUp.club_name} came to a head as they battled for the championship, with ${champion.club_name} prevailing by just ${margin} point${margin !== 1 ? 's' : ''} to claim bragging rights.`,
+                    text: `${rivalry.primaryType.label} ${champion.club_name} and ${runnerUp.club_name} brought their rivalry into the title race, with ${champion.club_name} prevailing by just ${margin} point${margin !== 1 ? 's' : ''}.`,
                     clubId: champClub?.id
                 });
             }
@@ -133,14 +131,14 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
                 const club1 = getClub(top4[i].club_name);
                 const club2 = getClub(top4[j].club_name);
                 if (club1 && club2) {
-                    const areRivals = (club1.rival_club_ids || []).includes(club2.id) ||
-                                     (club2.rival_club_ids || []).includes(club1.id);
-                    if (areRivals) {
+                    const rivalry = buildRivalryForPair(club1, club2, allLeagueTables, [], []);
+                    if (rivalry) {
                         rivalPairs.push({ 
                             club1: top4[i], 
                             club2: top4[j],
                             club1Data: club1,
-                            club2Data: club2
+                            club2Data: club2,
+                            rivalry
                         });
                     }
                 }
@@ -153,7 +151,7 @@ export default function SeasonStorylines({ season, league, leagueTable = [], all
                 color: 'text-orange-600',
                 bg: 'bg-gradient-to-r from-orange-50 to-amber-50',
                 title: 'Rivalry in the Spotlight',
-                text: `Fierce rivals ${pair.club1.club_name} and ${pair.club2.club_name} both secured top-4 finishes, finishing ${pair.club1.position}${pair.club1.position === 1 ? 'st' : pair.club1.position === 2 ? 'nd' : pair.club1.position === 3 ? 'rd' : 'th'} and ${pair.club2.position}${pair.club2.position === 1 ? 'st' : pair.club2.position === 2 ? 'nd' : pair.club2.position === 3 ? 'rd' : 'th'} respectively in a season where local pride was at stake.`,
+                text: `${pair.rivalry.primaryType.label} ${pair.club1.club_name} and ${pair.club2.club_name} both finished in the top four, taking an established rivalry into the upper end of the table: ${pair.club1.position}${pair.club1.position === 1 ? 'st' : pair.club1.position === 2 ? 'nd' : pair.club1.position === 3 ? 'rd' : 'th'} and ${pair.club2.position}${pair.club2.position === 1 ? 'st' : pair.club2.position === 2 ? 'nd' : pair.club2.position === 3 ? 'rd' : 'th'}.`,
             });
         }
         
